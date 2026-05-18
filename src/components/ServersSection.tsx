@@ -1,10 +1,61 @@
+"use client";
+ 
 import Link from "next/link";
 import { ArrowRight, Sword, Paintbrush } from "lucide-react";
 import CopyToClipboard from "./ui/CopyToClipboard";
-
+import { useEffect, useState } from "react";
+ 
+interface ServerStatus {
+  online: boolean;
+  players?: { online: number; max: number };
+  version?: string;
+}
+ 
+function useServerStatus(host: string) {
+  const [status, setStatus] = useState<ServerStatus | null>(null);
+ 
+  useEffect(() => {
+    fetch(`/api/server-status/${encodeURIComponent(host)}`)
+      .then((r) => r.json())
+      .then(setStatus)
+      .catch(() => setStatus({ online: false }));
+  }, [host]);
+ 
+  return status;
+}
+ 
+function ServerStatusBadge({ host }: { host: string }) {
+  const status = useServerStatus(host);
+ 
+  if (!status) {
+    return (
+      <div className="text-right text-xs text-amber-100/30 animate-pulse">
+        <div>Загрузка...</div>
+      </div>
+    );
+  }
+ 
+  return (
+    <div className="text-right text-xs space-y-0.5">
+      <div className={`font-medium ${status.online ? "text-green-400" : "text-red-400"}`}>
+        {status.online ? "● Онлайн" : "● Офлайн"}
+      </div>
+      {status.online && status.players && (
+        <div className="text-amber-100/40">
+          {status.players.online}/{status.players.max} игроков
+        </div>
+      )}
+      {status.version && (
+        <div className="text-amber-100/30">{status.version}</div>
+      )}
+    </div>
+  );
+}
+ 
 const servers = [
   {
     id: "duckburg",
+    host: "s6.yufu.su:25582",
     name: "DuckBurg",
     tagline: "Выживание",
     description:
@@ -17,11 +68,10 @@ const servers = [
     glow: "hover:shadow-green-900/30",
     href: "/docs/duckburg",
     features: ["Экономика", "Города", "Без вайпов", "PvE", "Квесты"],
-    players: "до 70 игроков",
-    version: "1.21.10",
   },
   {
     id: "duckhood",
+    host: "s6.yufu.su:25572",
     name: "DuckHood",
     tagline: "Креатив",
     description:
@@ -34,11 +84,9 @@ const servers = [
     glow: "hover:shadow-sky-900/30",
     href: "/docs/duckhood",
     features: ["Личные участки", "WorldEdit", "PvE"],
-    players: "до 50 игроков",
-    version: "1.21.10",
   },
 ];
-
+ 
 export default function ServersSection() {
   return (
     <section id="servers" className="py-24 px-6">
@@ -56,7 +104,7 @@ export default function ServersSection() {
           </h2>
           <div className="h-px w-24 bg-linear-to-r from-transparent via-amber-500 to-transparent mx-auto" />
         </div>
-
+ 
         {/* Server cards */}
         <div className="grid md:grid-cols-2 gap-6">
           {servers.map((server) => {
@@ -68,7 +116,7 @@ export default function ServersSection() {
               >
                 {/* Top decoration line */}
                 <div className="absolute top-0 left-8 right-8 h-px bg-linear-to-r from-transparent via-current to-transparent opacity-20" />
-
+ 
                 {/* Header */}
                 <div className="flex items-start justify-between mb-6">
                   <div className="flex items-center gap-4">
@@ -82,24 +130,21 @@ export default function ServersSection() {
                       >
                         {server.name}
                       </h3>
-                      <span
-                        className={`text-xs px-2 py-0.5 rounded-full ${server.badge}`}
-                      >
+                      <span className={`text-xs px-2 py-0.5 rounded-full ${server.badge}`}>
                         {server.tagline}
                       </span>
                     </div>
                   </div>
-                  <div className="text-right text-xs text-amber-100/40">
-                    <div>{server.version}</div>
-                    <div>{server.players}</div>
-                  </div>
+ 
+                  {/* Live status */}
+                  <ServerStatusBadge host={server.host} />
                 </div>
-
+ 
                 {/* Description */}
                 <p className="text-amber-100/70 leading-relaxed mb-6 text-sm">
                   {server.description}
                 </p>
-
+ 
                 {/* Features */}
                 <div className="flex flex-wrap gap-2 mb-8">
                   {server.features.map((f) => (
@@ -111,7 +156,7 @@ export default function ServersSection() {
                     </span>
                   ))}
                 </div>
-
+ 
                 {/* CTA */}
                 <Link
                   href={server.href}
@@ -129,7 +174,7 @@ export default function ServersSection() {
             );
           })}
         </div>
-
+ 
         {/* IP block */}
         <div
           id="connect"
