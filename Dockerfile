@@ -3,7 +3,7 @@ FROM node:22-alpine AS base
 # --- deps ---
 FROM base AS deps
 WORKDIR /app
-COPY package.json package-lock.json ./
+COPY package.json package-lock.json source.config.ts ./
 RUN npm ci
 
 # --- builder ---
