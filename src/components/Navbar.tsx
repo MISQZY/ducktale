@@ -20,24 +20,6 @@ export default function Navbar() {
             <Logo/>
           </Link>
 
-          {/* Desktop nav */}
-          <div className="hidden md:flex items-center gap-8">
-            <NavLink href="/#about">О проекте</NavLink>
-            <NavLink href="/#servers">Серверы</NavLink>
-            <NavLink href="/docs/duckburg">DuckBurg</NavLink>
-            <NavLink href="/docs/duckhood">DuckHood</NavLink>
-          </div>
-
-          {/* CTA */}
-          <div className="hidden md:flex items-center gap-4">
-            <Link
-              href="/#connect"
-              className="px-5 py-2 rounded-lg bg-amber-500 hover:bg-amber-400 text-duck-dark font-semibold text-sm transition-all hover:shadow-lg hover:shadow-amber-500/25 active:scale-95"
-            >
-              Подключиться
-            </Link>
-          </div>
-
           {/* Mobile menu toggle */}
           <button
             className="md:hidden text-amber-400 hover:text-amber-300"
