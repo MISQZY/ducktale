@@ -20,9 +20,9 @@ export default function DuckBurgDocsLayout({
       }}
       sidebar={{
         banner: (
-          <div className="rounded-lg border border-amber-700/30 bg-amber-950/30 p-3 text-center">
-            <p className="text-xs text-amber-400 font-medium">Сервер выживания</p>
-            <p className="text-xs text-amber-100/50 mt-0.5">s6.yufu.su:25569</p>
+          <div className="rounded-lg border border-green-700/30 bg-green-950/30 p-3 text-center">
+            <p className="text-xs text-green-400 font-medium">DuckBurg</p>
+            <p className="text-xs text-green-100/50 mt-0.5">s6.yufu.su:25569</p>
           </div>
         ),
       }}
