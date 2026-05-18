@@ -1,5 +1,5 @@
 import { defineDocs, defineConfig } from "fumadocs-mdx/config";
-import { SERVERS } from "./src/config/servers";
+import { SERVERS } from "@/config/servers";
 
 const dirs = Object.fromEntries(SERVERS.map((s) => [s.id, s.id]));
 
