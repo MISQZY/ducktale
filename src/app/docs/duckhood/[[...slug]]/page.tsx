@@ -22,7 +22,8 @@ export default async function DuckHoodPage({
 
   return (
     <DocsPage
-      toc={(page.data as any).toc} full={page.data.full}>
+      toc={page.data.toc}
+      full={page.data.full}>
       <DocsTitle>{page.data.title}</DocsTitle>
       <DocsDescription>{page.data.description}</DocsDescription>
       <DocsBody>

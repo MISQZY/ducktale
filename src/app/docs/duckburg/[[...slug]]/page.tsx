@@ -20,10 +20,12 @@ export default async function DuckBurgPage({
   if (!page) notFound();
 
   const MDX = (page.data as any).body;
+  const data = page.data as any;
 
   return (
     <DocsPage
-      toc={(page.data as any).toc} full={page.data.full}>
+      toc={page.data.toc}
+      full={page.data.full}>
       <DocsTitle>{page.data.title}</DocsTitle>
       <DocsDescription>{page.data.description}</DocsDescription>
       <DocsBody>
