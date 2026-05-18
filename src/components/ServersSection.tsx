@@ -3,55 +3,8 @@
 import Link from "next/link";
 import { ArrowRight, Sword, Paintbrush } from "lucide-react";
 import CopyToClipboard from "./ui/CopyToClipboard";
-import { useEffect, useState } from "react";
- 
-interface ServerStatus {
-  online: boolean;
-  players?: { online: number; max: number };
-  version?: string;
-}
- 
-function useServerStatus(host: string) {
-  const [status, setStatus] = useState<ServerStatus | null>(null);
- 
-  useEffect(() => {
-    fetch(`/api/server-status/${encodeURIComponent(host)}`)
-      .then((r) => r.json())
-      .then(setStatus)
-      .catch(() => setStatus({ online: false }));
-  }, [host]);
- 
-  return status;
-}
- 
-function ServerStatusBadge({ host }: { host: string }) {
-  const status = useServerStatus(host);
- 
-  if (!status) {
-    return (
-      <div className="text-right text-xs text-amber-100/30 animate-pulse">
-        <div>Загрузка...</div>
-      </div>
-    );
-  }
- 
-  return (
-    <div className="text-right text-xs space-y-0.5">
-      <div className={`font-medium ${status.online ? "text-green-400" : "text-red-400"}`}>
-        {status.online ? "● Онлайн" : "● Офлайн"}
-      </div>
-      {status.online && status.players && (
-        <div className="text-amber-100/40">
-          {status.players.online}/{status.players.max} игроков
-        </div>
-      )}
-      {status.version && (
-        <div className="text-amber-100/30">{status.version}</div>
-      )}
-    </div>
-  );
-}
- 
+import ServerStatusBadge from "./ServerStatusBadge"
+
 const servers = [
   {
     id: "duckburg",
