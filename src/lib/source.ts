@@ -1,5 +1,6 @@
 import { loader, map } from "fumadocs-core/source";
-import { duckburg, duckhood } from "@/.source";
+import { duckburg, duckhood } from "@/../.source";
+import { SERVERS } from "@/config/servers";
 import { z } from "zod";
 
 const pageSchema = z.object({
@@ -21,12 +22,20 @@ function makeSource(collection: typeof duckburg) {
   }));
 }
 
-export const duckburgSource = loader({
-  baseUrl: "/docs/duckburg",
-  source: makeSource(duckburg),
-});
+const collections: Record<string, typeof duckburg> = { duckburg, duckhood };
 
-export const duckhoodSource = loader({
-  baseUrl: "/docs/duckhood",
-  source: makeSource(duckhood),
-});
+export const docsSources = Object.fromEntries(
+  SERVERS.map((s) => [
+    s.id,
+    loader({
+      baseUrl: `/docs/${s.id}`,
+      source: makeSource(collections[s.id]),
+    }),
+  ])
+);
+
+export function getDocsSource(id: string) {
+  const src = docsSources[id];
+  if (!src) throw new Error(`Unknown docs source: "${id}"`);
+  return src;
+}

@@ -1,12 +1,9 @@
 import { defineDocs, defineConfig } from "fumadocs-mdx/config";
+import { SERVERS } from "./src/config/servers";
 
-// Каждый defineDocs возвращает объект { docs, meta } — два отдельных коллектора
-export const duckburg = defineDocs({
-  dir: "content/duckburg",
-});
+const dirs = Object.fromEntries(SERVERS.map((s) => [s.id, s.id]));
 
-export const duckhood = defineDocs({
-  dir: "content/duckhood",
-});
+export const duckburg = defineDocs({ dir: `content/${dirs.duckburg}` });
+export const duckhood = defineDocs({ dir: `content/${dirs.duckhood}` });
 
 export default defineConfig();

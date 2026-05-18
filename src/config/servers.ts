@@ -14,6 +14,11 @@ export interface ServerConfig {
   glow: string;
   href: string;
   features: string[];
+  docs: {
+    sidebarBorderColor: string;
+    sidebarBgColor: string;
+    sidebarTextColor: string;
+  };
 }
 
 export const SERVERS: ServerConfig[] = [
@@ -32,6 +37,11 @@ export const SERVERS: ServerConfig[] = [
     glow: "hover:shadow-green-900/30",
     href: "/docs/duckburg",
     features: ["Экономика", "Города", "Без вайпов", "PvE", "Квесты"],
+    docs: {
+      sidebarBorderColor: "border-green-700/30",
+      sidebarBgColor: "bg-green-950/30",
+      sidebarTextColor: "text-green-400",
+    },
   },
   {
     id: "duckhood",
@@ -48,6 +58,11 @@ export const SERVERS: ServerConfig[] = [
     glow: "hover:shadow-sky-900/30",
     href: "/docs/duckhood",
     features: ["Личные участки", "WorldEdit", "PvE"],
+    docs: {
+      sidebarBorderColor: "border-sky-700/30",
+      sidebarBgColor: "bg-sky-950/30",
+      sidebarTextColor: "text-sky-400",
+    },
   },
 ];
 
