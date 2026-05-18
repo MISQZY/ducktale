@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { ArrowRight, Sword, Paintbrush } from "lucide-react";
+import CopyToClipboard from "./ui/CopyToClipboard";
 
 const servers = [
   {
@@ -137,14 +138,7 @@ export default function ServersSection() {
           <p className="text-amber-100/50 text-sm mb-4 tracking-widest uppercase">
             Адрес для подключения
           </p>
-          <div className="inline-flex items-center gap-3 bg-black/40 border border-amber-500/20 rounded-xl px-8 py-4">
-            <code
-              className="text-amber-300 text-xl md:text-2xl tracking-widest"
-              style={{ fontFamily: "var(--font-mono)" }}
-            >
-            s6.yufu.su:25569
-            </code>
-          </div>
+          <CopyToClipboard value="s6.yufu.su:25569" />
           <p className="text-amber-100/30 text-xs mt-4">
             Minecraft Java Edition • версии {">"} 1.21.x
           </p>
