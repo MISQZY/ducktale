@@ -1,45 +1,12 @@
 "use client";
  
 import Link from "next/link";
-import { ArrowRight, Sword, Paintbrush } from "lucide-react";
+import { ArrowRight } from "lucide-react";
+import { SERVERS, NETWORK_HOST } from "@/config/servers";
 import CopyToClipboard from "./ui/CopyToClipboard";
 import ServerStatusBadge from "./ServerStatusBadge"
 
-const servers = [
-  {
-    id: "duckburg",
-    host: "s6.yufu.su:25582",
-    name: "DuckBurg",
-    tagline: "Выживание",
-    description:
-      "Классическое выживание с уникальной экономикой, кланами, аукционом и сотнями часов контента. Стройте города, торгуйте, завоёвывайте.",
-    icon: Sword,
-    emoji: "⚔️",
-    color: "from-green-900/40 to-emerald-900/20",
-    border: "border-green-700/30 hover:border-green-500/60",
-    badge: "bg-green-900/50 text-green-300",
-    glow: "hover:shadow-green-900/30",
-    href: "/docs/duckburg",
-    features: ["Экономика", "Города", "Без вайпов", "PvE", "Квесты"],
-  },
-  {
-    id: "duckhood",
-    host: "s6.yufu.su:25572",
-    name: "DuckHood",
-    tagline: "Креатив",
-    description:
-      "Безграничное пространство для ваших идей. Личные участки, общий мир, конкурсы строений и вдохновляющее сообщество.",
-    icon: Paintbrush,
-    emoji: "🎨",
-    color: "from-sky-900/40 to-indigo-900/20",
-    border: "border-sky-700/30 hover:border-sky-400/60",
-    badge: "bg-sky-900/50 text-sky-300",
-    glow: "hover:shadow-sky-900/30",
-    href: "/docs/duckhood",
-    features: ["Личные участки", "WorldEdit", "PvE"],
-  },
-];
- 
+
 export default function ServersSection() {
   return (
     <section id="servers" className="py-24 px-6">
@@ -60,7 +27,7 @@ export default function ServersSection() {
  
         {/* Server cards */}
         <div className="grid md:grid-cols-2 gap-6">
-          {servers.map((server) => {
+          {SERVERS.map((server) => {
             const Icon = server.icon;
             return (
               <div
@@ -136,7 +103,7 @@ export default function ServersSection() {
           <p className="text-amber-100/50 text-sm mb-4 tracking-widest uppercase">
             Адрес для подключения
           </p>
-          <CopyToClipboard value="s6.yufu.su:25569" />
+          <CopyToClipboard value={NETWORK_HOST} />
           <p className="text-amber-100/30 text-xs mt-4">
             Minecraft Java Edition • версии {">"} 1.21.x
           </p>

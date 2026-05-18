@@ -7,7 +7,8 @@ import {
 } from "fumadocs-ui/page";
 import { notFound } from "next/navigation";
 import defaultMdxComponents from "fumadocs-ui/mdx";
-import { PageEmbed } from "@/components/ui/PageEmbed";
+import { PageEmbed } from "@/components/docs/PageEmbed";
+import { ServerAddress } from "@/components/docs/ServerAddress";
 
 export default async function DuckBurgPage({
   params,
@@ -29,7 +30,7 @@ export default async function DuckBurgPage({
       <DocsTitle>{page.data.title}</DocsTitle>
       <DocsDescription>{page.data.description}</DocsDescription>
       <DocsBody>
-        <MDX components={{ ...defaultMdxComponents, PageEmbed }} />
+        <MDX components={{ ...defaultMdxComponents, PageEmbed, ServerAddress }} />
       </DocsBody>
     </DocsPage>
   );
