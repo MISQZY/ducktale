@@ -1,4 +1,5 @@
-import { duckburgSource, duckhoodSource } from "@/lib/source";
+import { docsSources } from "@/lib/source";
+import { SERVERS } from "@/config/servers";
 import { createSearchAPI } from "fumadocs-core/search/server";
 
 export const { GET } = createSearchAPI("advanced", {
@@ -6,20 +7,13 @@ export const { GET } = createSearchAPI("advanced", {
     language: "russian",
     normalizationCache: new Map(),
   },
-  indexes: [
-    ...duckburgSource.getPages().map((page) => ({
+  indexes: SERVERS.flatMap((s) =>
+    docsSources[s.id].getPages().map((page) => ({
       title: page.data.title ?? "",
       description: page.data.description ?? "",
       url: page.url,
       id: page.url,
       structuredData: (page as any).data.structuredData ?? { contents: [] },
-    })),
-    ...duckhoodSource.getPages().map((page) => ({
-      title: page.data.title ?? "",
-      description: page.data.description ?? "",
-      url: page.url,
-      id: page.url,
-      structuredData: (page as any).data.structuredData ?? { contents: [] },
-    })),
-  ],
+    }))
+  ),
 });
