@@ -31,7 +31,10 @@ export default function RootLayout({
         />
       </head>
       <body>
-        <RootProvider>{children}</RootProvider>
+        <RootProvider theme={{
+          defaultTheme: 'dark',
+          forcedTheme: 'dark',
+        }}>{children}</RootProvider>
       </body>
     </html>
   );
