@@ -1,6 +1,7 @@
 import { DocsLayout } from "fumadocs-ui/layouts/docs";
 import type { ReactNode } from "react";
 import { duckburgSource } from "@/lib/source";
+import Logo from "@/components/ui/Logo";
 
 export default function DuckBurgDocsLayout({
   children,
@@ -10,19 +11,16 @@ export default function DuckBurgDocsLayout({
   return (
     <DocsLayout
       tree={duckburgSource.pageTree}
+      themeSwitch={{ enabled: false }}
       nav={{
         title: (
-          <span className="flex items-center gap-2 font-bold text-amber-400">
-            <span>⚔️</span>
-            <span>DuckBurg</span>
-          </span>
+          <Logo/>
         ),
       }}
       sidebar={{
         banner: (
           <div className="rounded-lg border border-green-700/30 bg-green-950/30 p-3 text-center">
-            <p className="text-xs text-green-400 font-medium">DuckBurg</p>
-            <p className="text-xs text-green-100/50 mt-0.5">s6.yufu.su:25569</p>
+            <p className="text-lg text-green-400 font-bold">DuckBurg</p>
           </div>
         ),
       }}

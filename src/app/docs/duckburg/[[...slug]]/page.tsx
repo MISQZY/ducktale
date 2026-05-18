@@ -7,6 +7,7 @@ import {
 } from "fumadocs-ui/page";
 import { notFound } from "next/navigation";
 import defaultMdxComponents from "fumadocs-ui/mdx";
+import { PageEmbed } from "@/components/ui/PageEmbed";
 
 export default async function DuckBurgPage({
   params,
@@ -18,14 +19,15 @@ export default async function DuckBurgPage({
 
   if (!page) notFound();
 
-  const MDX = page.data.body;
+  const MDX = (page.data as any).body;
 
   return (
-    <DocsPage toc={page.data.toc} full={page.data.full}>
+    <DocsPage
+      toc={(page.data as any).toc} full={page.data.full}>
       <DocsTitle>{page.data.title}</DocsTitle>
       <DocsDescription>{page.data.description}</DocsDescription>
       <DocsBody>
-        <MDX components={{ ...defaultMdxComponents }} />
+        <MDX components={{ ...defaultMdxComponents, PageEmbed }} />
       </DocsBody>
     </DocsPage>
   );
@@ -44,7 +46,7 @@ export async function generateMetadata({
   const page = duckburgSource.getPage(slug);
   if (!page) notFound();
   return {
-    title: page.data.title + " | DuckBurg",
+    title: "DuckBurg | " + page.data.title,
     description: page.data.description,
   };
 }

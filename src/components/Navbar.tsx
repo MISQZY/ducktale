@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import { Menu, X } from "lucide-react";
+import Logo from "./ui/Logo"
 
 export default function Navbar() {
   const [open, setOpen] = useState(false);
@@ -10,21 +11,13 @@ export default function Navbar() {
   return (
     <header className="fixed top-0 left-0 right-0 z-50">
       {/* Top golden line */}
-      <div className="h-px bg-gradient-to-r from-transparent via-amber-500 to-transparent" />
+      <div className="h-px bg-linear-to-r from-transparent via-amber-500 to-transparent" />
 
       <nav className="backdrop-blur-md bg-duck-darker/80 border-b border-amber-900/30">
         <div className="max-w-6xl mx-auto px-6 flex items-center justify-between h-16">
           {/* Logo */}
-          <Link href="/" className="flex items-center gap-3 group">
-            <div className="w-9 h-9 rounded-lg border border-amber-500/40 flex items-center justify-center text-xl group-hover:border-amber-400/70 transition-colors">
-              🦆
-            </div>
-            <span
-              className="text-lg font-bold tracking-wider text-amber-400"
-              style={{ fontFamily: "var(--font-display)" }}
-            >
-              DuckTale
-            </span>
+          <Link href={"/"}>
+            <Logo/>
           </Link>
 
           {/* Desktop nav */}

@@ -1,6 +1,8 @@
 import { DocsLayout } from "fumadocs-ui/layouts/docs";
 import type { ReactNode } from "react";
 import { duckhoodSource } from "@/lib/source";
+import Logo from "@/components/ui/Logo"
+
 
 export default function DuckHoodDocsLayout({
   children,
@@ -10,19 +12,16 @@ export default function DuckHoodDocsLayout({
   return (
     <DocsLayout
       tree={duckhoodSource.pageTree}
+      themeSwitch={{ enabled: false }}
       nav={{
         title: (
-          <span className="flex items-center gap-2 font-bold text-sky-400">
-            <span>🎨</span>
-            <span>DuckHood</span>
-          </span>
+          <Logo/>
         ),
       }}
       sidebar={{
         banner: (
           <div className="rounded-lg border border-sky-700/30 bg-sky-950/30 p-3 text-center">
-            <p className="text-xs text-sky-400 font-medium">DuckHood</p>
-            <p className="text-xs text-amber-100/50 mt-0.5">s6.yufu.su:25569</p>
+            <p className="text-lg text-sky-400 font-bold">DuckHood</p>
           </div>
         ),
       }}

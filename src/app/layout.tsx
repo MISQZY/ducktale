@@ -4,7 +4,7 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: {
-    template: "%s | DuckTale",
+    template: "%s",
     default: "DuckTale — Minecraft Network",
   },
   description:

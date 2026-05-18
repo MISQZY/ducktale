@@ -18,10 +18,11 @@ export default async function DuckHoodPage({
 
   if (!page) notFound();
 
-  const MDX = page.data.body;
+  const MDX = (page.data as any).body;
 
   return (
-    <DocsPage toc={page.data.toc} full={page.data.full}>
+    <DocsPage
+      toc={(page.data as any).toc} full={page.data.full}>
       <DocsTitle>{page.data.title}</DocsTitle>
       <DocsDescription>{page.data.description}</DocsDescription>
       <DocsBody>
@@ -44,7 +45,7 @@ export async function generateMetadata({
   const page = duckhoodSource.getPage(slug);
   if (!page) notFound();
   return {
-    title: page.data.title + " | DuckHood",
+    title: "DuckHood | " + page.data.title,
     description: page.data.description,
   };
 }
