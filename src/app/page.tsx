@@ -2,6 +2,7 @@ import Link from "next/link";
 import Navbar from "@/components/Navbar";
 import ServersSection from "@/components/ServersSection";
 import { Shield, Users, Trophy, Zap, ChevronDown } from "lucide-react";
+import Logo from "@/components/ui/Logo";
 
 const features = [
   {
@@ -65,14 +66,14 @@ export default function HomePage() {
               className="text-6xl md:text-8xl mb-6 leading-none"
               style={{ fontFamily: "var(--font-display)" }}
             >
-              <span className="shimmer-gold">DuckTale</span>
+              <span className="shimmer-gold p-4">DuckTale</span>
             </h1>
 
             {/* Subtitle */}
             <p className="text-amber-100/40 max-w-xl mx-auto leading-relaxed mb-12">
               DuckTale — это сеть Minecraft серверов, объединяющая сервер
               выживания{" "}
-              <Link href="/docs/duckburg" className="text-amber-400 hover:text-amber-300 transition-colors font-semibold">
+              <Link href="/docs/duckburg" className="text-green-700  hover:text-emerald-600 transition-colors font-semibold">
                 DuckBurg
               </Link>{" "}
               и сервер творчества{" "}
@@ -172,21 +173,11 @@ export default function HomePage() {
         {/* ── FOOTER ── */}
         <footer className="border-t border-amber-900/20 py-12 px-6 text-center">
           <div className="max-w-5xl mx-auto">
-            <div className="flex items-center justify-center gap-3 mb-4">
-              <span className="text-2xl">🦆</span>
-              <span
-                className="text-amber-400 text-lg font-bold"
-                style={{ fontFamily: "var(--font-display)" }}
-              >
-                DuckTale
-              </span>
+            <div className="flex items-center justify-center mb-4">
+              <Logo/>
             </div>
-            <p className="text-amber-100/30 text-sm mb-2">
-              DuckBurg • DuckHood
-            </p>
             <p className="text-amber-100/20 text-xs">
-              © 2024–{new Date().getFullYear()} DuckTale. Не аффилирован
-              с Mojang Studios.
+              Существует с 2024 года. Не является официальным сервисом Minecraft. Не одобрено и не связано с компанией Mojang, Microsoft
             </p>
           </div>
         </footer>

@@ -3,6 +3,9 @@ import { RootProvider } from "fumadocs-ui/provider";
 import "./globals.css";
 
 export const metadata: Metadata = {
+  icons: {
+    icon: "icons/favicon.svg",
+  },
   title: {
     template: "%s",
     default: "DuckTale — Minecraft Network",
@@ -17,7 +20,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="ru" suppressHydrationWarning>
+    <html lang="ru" suppressHydrationWarning className="scroll-pt-16">
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link
