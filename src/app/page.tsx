@@ -22,13 +22,6 @@ const stats = [
   { n: "1000+", label: "человек посетило проект" },
 ];
 
-const colsMap: Record<number, string> = {
-  1: "grid-cols-1",
-  2: "grid-cols-2",
-  3: "grid-cols-3",
-  4: "grid-cols-4",
-};
-
 
 export default function HomePage() {
   return (
@@ -149,9 +142,9 @@ export default function HomePage() {
             </div>
 
             {/* Stats bar */}
-            <div className={`mt-12 grid divide-x divide-amber-900/30 rounded-2xl border border-amber-900/30 bg-duck-stone/30 overflow-hidden ${colsMap[stats.length] ?? "grid-cols-3"}`}>
-              {stats.map(({ n, label }) => (
-                <div key={label} className="py-8 text-center">
+          <div className="mt-12 grid grid-cols-2 divide-x divide-amber-900/30 rounded-2xl border border-amber-900/30 bg-duck-stone/30 overflow-hidden">
+            {stats.map(({ n, label }) => (
+              <div key={label} className="py-8 text-center">
                   <div
                     className="text-3xl text-amber-400 font-bold mb-1"
                     style={{ fontFamily: "var(--font-display)" }}
