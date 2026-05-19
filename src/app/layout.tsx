@@ -1,6 +1,30 @@
 import type { Metadata } from "next";
 import { RootProvider } from "fumadocs-ui/provider";
+import { Cinzel_Decorative, Crimson_Pro, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
+
+const fontDisplay = Cinzel_Decorative({
+  weight: ["400", "700", "900"],
+  subsets: ["latin"],
+  variable: "--font-display",
+  display: "swap",
+});
+
+const fontBody = Crimson_Pro({
+  weight: ["300", "400", "600"],
+  style: ["normal", "italic"],
+  subsets: ["latin", "latin-ext"],
+  variable: "--font-body",
+  display: "swap",
+});
+
+const fontMono = JetBrains_Mono({
+  weight: ["400", "500"],
+  subsets: ["latin"],
+  variable: "--font-mono",
+  display: "swap",
+});
+
 
 export const metadata: Metadata = {
   icons: {
@@ -20,19 +44,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="ru" suppressHydrationWarning className="scroll-pt-16">
-      <head>
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link
-          rel="preconnect"
-          href="https://fonts.gstatic.com"
-          crossOrigin="anonymous"
-        />
-        <link
-          href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700;900&family=Crimson+Pro:ital,wght@0,300;0,400;0,600;1,400&family=JetBrains+Mono:wght@400;500&display=swap"
-          rel="stylesheet"
-        />
-      </head>
+    <html lang="ru" suppressHydrationWarning className="scroll-pt-16 ${fontDisplay.variable} ${fontBody.variable} ${fontMono.variable}">
       <body>
         <RootProvider theme={{
           defaultTheme: 'dark',
