@@ -12,8 +12,7 @@ docker compose up -d --no-deps app
 
 echo "⏳ Waiting for app to be healthy..."
 for i in $(seq 1 15); do
-  STATUS=$(docker inspect --format='{{.State.Health.Status}}' $(docker compose ps -q app) 2>/dev/null || echo "none")
-  if [ "$STATUS" = "healthy" ] || docker compose ps app | grep -q "Up"; then
+  if docker compose ps app | grep -q "Up"; then
     echo "✅ App is up!"
     break
   fi
