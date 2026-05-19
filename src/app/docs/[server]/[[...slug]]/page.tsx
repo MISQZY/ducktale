@@ -3,6 +3,7 @@ import { SERVERS } from "@/config/servers";
 import { DocsPage, DocsBody, DocsTitle, DocsDescription } from "fumadocs-ui/page";
 import { notFound } from "next/navigation";
 import { docsComponents } from "@/lib/mdx-components";
+import type { ExtendedPage } from "@/lib/source";
 
 export default async function DocsServerPage({
   params,
@@ -11,15 +12,18 @@ export default async function DocsServerPage({
 }) {
   const { server, slug } = await params;
   const source = getDocsSource(server);
+
   const page = source.getPage(slug);
   if (!page) notFound();
 
-  const MDX = (page.data as any).body;
+  
+  const { body: MDX, toc, full, title, description } =
+    page.data as ExtendedPage;
 
   return (
-    <DocsPage toc={page.data.toc} full={page.data.full}>
-      <DocsTitle>{page.data.title}</DocsTitle>
-      <DocsDescription>{page.data.description}</DocsDescription>
+    <DocsPage toc={toc} full={full}>
+      <DocsTitle>{title}</DocsTitle>
+      <DocsDescription>{description}</DocsDescription>
       <DocsBody>
         <MDX components={docsComponents} />
       </DocsBody>

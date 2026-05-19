@@ -2,16 +2,18 @@ import { loader, map } from "fumadocs-core/source";
 import { duckburg, duckhood } from "@/../.source";
 import { SERVERS } from "@/config/servers";
 import { z } from "zod";
+import { ComponentType } from "react";
+import type { MDXComponents } from "mdx/types";
 
 const pageSchema = z.object({
   title: z.string(),
   description: z.string().optional(),
   full: z.boolean().optional(),
   toc: z.any().optional(),
-  body: z.any().optional(),
+  body: z.custom<ComponentType<{ components: MDXComponents }>>(),
 });
 
-type ExtendedPage = z.infer<typeof pageSchema>;
+export type ExtendedPage = z.infer<typeof pageSchema>;
 
 function makeSource(collection: typeof duckburg) {
   const raw = collection.toFumadocsSource();
