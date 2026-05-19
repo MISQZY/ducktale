@@ -29,7 +29,6 @@ export default function ServersSection() {
           {/* Server cards */}
           <div className="grid md:grid-cols-2 gap-6">
             {SERVERS.map((server) => {
-              const Icon = server.icon;
               return (
                 <div
                   key={server.id}

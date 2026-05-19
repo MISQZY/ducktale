@@ -1,40 +1,39 @@
-import { loader, map } from "fumadocs-core/source";
+import { loader } from "fumadocs-core/source";
 import { duckburg, duckhood } from "@/../.source";
 import { SERVERS } from "@/config/servers";
-import { z } from "zod";
 import { ComponentType } from "react";
 import type { MDXComponents } from "mdx/types";
+import type { VirtualFile, SourceConfig } from 'fumadocs-core/source';
 
-const pageSchema = z.object({
-  title: z.string(),
-  description: z.string().optional(),
-  full: z.boolean().optional(),
-  toc: z.any().optional(),
-  body: z.custom<ComponentType<{ components: MDXComponents }>>(),
-});
-
-export type ExtendedPage = z.infer<typeof pageSchema>;
-
-function makeSource(collection: typeof duckburg) {
-  const raw = collection.toFumadocsSource();
-  const files = (raw.files as any)();
-  return map({ files } as any).page((entry) => ({
-    ...entry,
-    data: entry.data as ExtendedPage,
-  }));
+export interface ExtendedPage {
+  title: string;
+  description?: string;
+  full?: boolean;
+  toc?: unknown;
+  body?: ComponentType<{ components: MDXComponents }>;
 }
 
-const collections: Record<string, typeof duckburg> = { duckburg, duckhood };
+type FumadocsCollection = typeof duckburg;
+
+const collections: Record<string, FumadocsCollection> = { duckburg, duckhood };
 
 export const docsSources = Object.fromEntries(
   SERVERS.map((s) => [
     s.id,
-    loader({
-      baseUrl: `/docs/${s.id}`,
-      source: makeSource(collections[s.id]),
-    }),
+    (() => {
+      const src = collections[s.id].toFumadocsSource();
+      return loader({
+        baseUrl: `/docs/${s.id}`,
+        source: {
+          ...src,
+          files: typeof src.files === 'function'
+            ? (src.files as () => VirtualFile<SourceConfig>[] )()
+            : (src.files as VirtualFile<SourceConfig>[]),
+        },
+      });
+    })(),
   ])
-);
+) as Record<string, ReturnType<typeof loader>>;
 
 export function getDocsSource(id: string) {
   const src = docsSources[id];

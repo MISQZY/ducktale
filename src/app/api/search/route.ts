@@ -13,7 +13,7 @@ export const { GET } = createSearchAPI("advanced", {
       description: page.data.description ?? "",
       url: page.url,
       id: page.url,
-      structuredData: (page as any).data.structuredData ?? { contents: [] },
+      structuredData: (page.data as { structuredData?: { contents: unknown[] } }).structuredData ?? { contents: [] },
     }))
   ),
 });

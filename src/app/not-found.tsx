@@ -85,9 +85,7 @@ export default function NotFound() {
               Или перейдите в документацию
             </p>
             <div className="grid sm:grid-cols-2 divide-y sm:divide-y-0 sm:divide-x divide-amber-900/30">
-              {SERVERS.map((server) => {
-                const Icon = server.icon;
-                return (
+              {SERVERS.map((server) => (
                   <Link
                     key={server.id}
                     href={server.href}
@@ -114,8 +112,7 @@ export default function NotFound() {
                       className="text-amber-500/50 group-hover:text-amber-400 group-hover:translate-x-1 transition-all"
                     />
                   </Link>
-                );
-              })}
+              ))}
             </div>
           </div>
         </div>

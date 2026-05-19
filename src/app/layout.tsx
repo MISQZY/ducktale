@@ -25,7 +25,6 @@ const fontMono = JetBrains_Mono({
   display: "swap",
 });
 
-
 export const metadata: Metadata = {
   icons: {
     icon: "icons/favicon.svg",
@@ -44,11 +43,15 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="ru" suppressHydrationWarning className="scroll-pt-16 ${fontDisplay.variable} ${fontBody.variable} ${fontMono.variable}">
+    <html
+      lang="ru"
+      suppressHydrationWarning
+      className={`scroll-pt-16 ${fontDisplay.variable} ${fontBody.variable} ${fontMono.variable}`}
+    >
       <body>
         <RootProvider theme={{
-          defaultTheme: 'dark',
-          forcedTheme: 'dark',
+          defaultTheme: "dark",
+          forcedTheme: "dark",
         }}>{children}</RootProvider>
       </body>
     </html>

@@ -1,7 +1,7 @@
 import Link from "next/link";
 import Navbar from "@/components/Navbar";
 import ServersSection from "@/components/ServersSection";
-import { Shield, Users, Trophy, Zap, ChevronDown } from "lucide-react";
+import { Shield, Users, ChevronDown } from "lucide-react";
 import Logo from "@/components/ui/Logo";
 
 const features = [
