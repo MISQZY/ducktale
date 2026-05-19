@@ -4,6 +4,14 @@ import Link from "next/link";
 import { useState } from "react";
 import { Menu, X } from "lucide-react";
 import Logo from "./ui/Logo"
+import { SERVERS } from "@/config/servers";
+
+const navLinks = [
+  { href: "/#about", label: "О проекте" },
+  { href: "/#servers", label: "Серверы" },
+  ...SERVERS.map((s) => ({ href: s.href, label: `${s.name}` })),
+];
+
 
 export default function Navbar() {
   const [open, setOpen] = useState(false);
@@ -17,8 +25,21 @@ export default function Navbar() {
         <div className="max-w-6xl mx-auto px-6 flex items-center justify-between h-16">
           {/* Logo */}
           <Link href={"/"}>
-            <Logo/>
+            <Logo />
           </Link>
+
+          {/* Desktop menu*/}
+          <div className="md:flex items-center gap-6">
+            {navLinks.map((link) => (
+              <Link
+                key={link.href}
+                href={link.href}
+                className="text-sm text-amber-100/70 hover:text-amber-300 transition-colors tracking-wide"
+              >
+                {link.label}
+              </Link>
+            ))}
+          </div>
 
           {/* Mobile menu toggle */}
           <button
@@ -33,18 +54,16 @@ export default function Navbar() {
       {/* Mobile menu */}
       {open && (
         <div className="md:hidden bg-duck-darker/95 backdrop-blur-md border-b border-amber-900/30 px-6 py-4 flex flex-col gap-4">
-          <MobileNavLink href="/#about" onClick={() => setOpen(false)}>
-            О проекте
-          </MobileNavLink>
-          <MobileNavLink href="/#servers" onClick={() => setOpen(false)}>
-            Серверы
-          </MobileNavLink>
-          <MobileNavLink href="/docs/duckburg" onClick={() => setOpen(false)}>
-            DuckBurg Docs
-          </MobileNavLink>
-          <MobileNavLink href="/docs/duckhood" onClick={() => setOpen(false)}>
-            DuckHood Docs
-          </MobileNavLink>
+          {navLinks.map((link) => (
+            <Link
+              key={link.href}
+              href={link.href}
+              onClick={() => setOpen(false)}
+              className="text-amber-100/70 hover:text-amber-300 transition-colors py-1"
+            >
+              {link.label}
+            </Link>
+          ))}
         </div>
       )}
     </header>
