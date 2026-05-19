@@ -1,7 +1,7 @@
 set -euo pipefail
 
 echo "⬇️  Pulling latest code..."
-git pull origin main
+git pull origin master
 
 echo "🔨 Rebuilding app..."
 docker compose build app
