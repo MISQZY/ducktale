@@ -1,6 +1,7 @@
 set -euo pipefail
 
 echo "⬇️  Pulling latest code..."
+git checkout -- .
 git pull origin master
 
 echo "🔨 Rebuilding app..."
@@ -11,7 +12,8 @@ docker compose up -d --no-deps app
 
 echo "⏳ Waiting for app to be healthy..."
 for i in $(seq 1 15); do
-  if docker compose exec -T app wget -qO- http://localhost:3000 > /dev/null 2>&1; then
+  STATUS=$(docker inspect --format='{{.State.Health.Status}}' $(docker compose ps -q app) 2>/dev/null || echo "none")
+  if [ "$STATUS" = "healthy" ] || docker compose ps app | grep -q "Up"; then
     echo "✅ App is up!"
     break
   fi
