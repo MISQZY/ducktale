@@ -4,6 +4,7 @@ import { DocsPage, DocsBody, DocsTitle, DocsDescription } from "fumadocs-ui/page
 import { notFound } from "next/navigation";
 import { docsComponents } from "@/lib/mdx-components";
 import type { ExtendedPage } from "@/lib/source";
+import type { TOCItemType } from 'fumadocs-core/toc';
 
 export default async function DocsServerPage({
   params,
@@ -13,15 +14,16 @@ export default async function DocsServerPage({
   const { server, slug } = await params;
   const source = getDocsSource(server);
 
-  const page = source.getPage(slug);
+  const page = await source.getPage(slug || []);
   if (!page) notFound();
 
-  
   const { body: MDX, toc, full, title, description } =
     page.data as ExtendedPage;
 
+  if (!MDX) notFound();
+
   return (
-    <DocsPage toc={toc} full={full}>
+    <DocsPage toc={(toc as TOCItemType[]) || []} full={full}>
       <DocsTitle>{title}</DocsTitle>
       <DocsDescription>{description}</DocsDescription>
       <DocsBody>
@@ -47,7 +49,7 @@ export async function generateMetadata({
   const { server, slug } = await params;
   const config = SERVERS.find((s) => s.id === server);
   const source = getDocsSource(server);
-  const page = source.getPage(slug);
+  const page = await source.getPage(slug || []);
   if (!page) notFound();
 
   return {
