@@ -6,10 +6,19 @@ interface Props {
 }
 
 export function ServerAddress({ server = "network" }: Props) {
-  const host =
-    server === "network"
-      ? NETWORK_HOST
-      : (SERVERS.find((s) => s.id === server)?.host ?? NETWORK_HOST);
+  if (server !== "network") {
+    const found = SERVERS.find((s) => s.id === server);
+    if (!found) {
+      if (process.env.NODE_ENV === "development") {
+        throw new Error(
+          `<ServerAddress server="${server}" /> — unknown id. ` +
+          `Avaliable: ${SERVERS.map((s) => s.id).join(", ")}, network.`
+        );
+      }
+      return <CopyToClipboard value={NETWORK_HOST} />;
+    }
+    return <CopyToClipboard value={found.host} />;
+  }
 
-  return <CopyToClipboard value={host} />;
+  return <CopyToClipboard value={NETWORK_HOST} />;
 }
