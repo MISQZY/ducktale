@@ -1,26 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import StatusDot from "./ui/StatusBadge";
+import { useServerStatus } from "@/hooks/useServerStatus";
 
-interface ServerStatus {
-    online: boolean;
-    players?: { online: number; max: number; list?: { name: string }[] };
-    version?: string;
-}
-
-function useServerStatus(host: string) {
-    const [status, setStatus] = useState<ServerStatus | null>(null);
-
-    useEffect(() => {
-        fetch(`/api/server-status/${encodeURIComponent(host)}`)
-            .then((r) => r.json())
-            .then(setStatus)
-            .catch(() => setStatus({ online: false }));
-    }, [host]);
-
-    return status;
-}
 
 export default function ServerStatusBadge({ host }: { host: string }) {
     const status = useServerStatus(host);

@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 
 export interface ServerStatus {
   online: boolean;
-  players?: { online: number; max: number };
+  players?: { online: number; max: number; list?: { name: string }[]  };
   version?: string;
 }
 
