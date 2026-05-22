@@ -1,5 +1,10 @@
 {
   "title": "Правила",
   "defaultOpen": false,
-  "pages": ["index", "game-process", "communicate", "farms"]
+  "pages": [
+    "index",
+    "game-process",
+    "communicate",
+    "farms"
+  ]
 }

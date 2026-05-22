@@ -1,5 +1,8 @@
 {
   "title": "Команды",
   "defaultOpen": false,
-  "pages": ["towny", "flectonepulse"]
+  "pages": [
+    "towny",
+    "flectonepulse"
+  ]
 }

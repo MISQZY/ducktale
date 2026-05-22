@@ -1,0 +1,111 @@
+---
+title: Города — Towny
+description: Всё о создании городов, управлении и экономике на DuckBurg.
+---
+
+import { Sword, Map, Users, ShoppingCart, Shield, Home } from "lucide-react";
+
+<FeatureGrid features={[
+  { icon: Sword,        title: "PvP",        description: "Войны между городами, защита территорий и осады" },
+  { icon: Map,          title: "Карта",       description: "Каждый участок — визуально отображается на dynmap" },
+  { icon: Users,        title: "Жители",      description: "Приглашай игроков, назначай роли и налоги" },
+  { icon: ShoppingCart, title: "Экономика",   description: "Городская казна, налоги, торговые зоны" },
+  { icon: Shield,       title: "Защита",      description: "Участки города защищены от гриферства" },
+  { icon: Home,         title: "Участки",     description: "Каждый житель получает свой выделенный участок" },
+]} />
+
+## Начало работы
+
+<StepList steps={[
+  {
+    title: "Выбери место для города",
+    children: (
+      <p>
+        Город должен располагаться не ближе <strong>300 блоков от спавна</strong>.
+        Используй <code>/t spawn</code> для телепортации или dynmap для разведки карты.
+      </p>
+    ),
+  },
+  {
+    title: "Создай город",
+    children: (
+      <>
+        <p>Встань на желаемую точку и выполни команду:</p>
+        <code className="block mt-1 rounded bg-black/40 px-3 py-1.5 text-amber-300 font-mono text-sm">
+          /t new &lt;название&gt;
+        </code>
+      </>
+    ),
+  },
+  {
+    title: "Расшири владения",
+    children: (
+      <p>
+        Находясь на нужном чанке: <code>/t claim</code>. Каждый чанк стоит золото из казны.
+      </p>
+    ),
+  },
+  {
+    title: "Пригласи жителей",
+    children: (
+      <p>
+        <code>/t invite &lt;player&gt;</code> — игрок получит уведомление и сможет принять приглашение.
+      </p>
+    ),
+  },
+]} />
+
+---
+
+## Основные команды
+
+<CommandCard
+  command="/t new"
+  description="Создать новый город. Требует стартового капитала в казне."
+  usage="/t new <название>"
+  permission="all"
+  warning="Название нельзя изменить после создания — выбирай тщательно."
+/>
+
+<CommandCard
+  command="/t claim"
+  description="Добавить текущий чанк к территории города. Чанк должен граничить с уже занятыми."
+  usage="/t claim [radius]"
+  aliases={["/town claim"]}
+  permission="all"
+/>
+
+<CommandCard
+  command="/t set mayor"
+  description="Передать права мэра другому игроку."
+  usage="/t set mayor <player>"
+  permission="admin"
+  warning="Действие необратимо. Новый мэр получает полный контроль над городом."
+/>
+
+---
+
+## Важные ограничения
+
+<Callout variant="warning" title="Застройка вплотную">
+  Запрещено строить базу **ближе 70 блоков** к чужой территории без согласия владельца.
+  Нарушение ведёт к откату и предупреждению.
+</Callout>
+
+<Callout variant="danger" title="Лаг-машины">
+  Создание конструкций, намеренно нагружающих сервер, карается баном от 1 дня до навсегда.
+</Callout>
+
+<Callout variant="tip" title="Совет мэра">
+  Храни в казне запас на 7+ дней налогов. Если казна опустеет — город будет распущен автоматически.
+</Callout>
+
+---
+
+## Статус сервера
+
+<ServerStatusWidget host="s6.yufu.su:25582" serverName="DuckBurg" />
+
+## Подключение
+
+<ServerAddress server="duckburg" />

@@ -1,0 +1,624 @@
+---
+title: Towny — Команды
+description: Полный справочник команд плагина Towny
+---
+
+<Callout variant="info">
+  Описание механик городов и наций — в разделе [Плагины → Towny](/docs/duckburg/plugins/towny).
+</Callout>
+
+---
+
+## `/towny` — Общая информация
+
+<CommandCard
+  command="/towny map"
+  description="Показать карту мира с отмеченными городами прямо в чате."
+  permission="all"
+/>
+
+<CommandCard
+  command="/towny hud"
+  description="Включить/выключить карту в боковой панели (scoreboard)."
+  permission="all"
+/>
+
+<CommandCard
+  command="/towny prices"
+  description="Показать актуальные налоги и стоимость содержания города."
+  permission="all"
+/>
+
+<CommandCard
+  command="/towny time"
+  description="Показать время до следующего дня (момента сбора налогов)."
+  permission="all"
+/>
+
+<CommandCard
+  command="/towny universe"
+  description="Глобальная статистика сети: количество городов, наций и жителей."
+  permission="all"
+/>
+
+<CommandCard
+  command="/towny top residents {all/town/nation}"
+  description="Рейтинг городов и наций по количеству жителей."
+  permission="all"
+/>
+
+<CommandCard
+  command="/towny top land {all/resident/town}"
+  description="Рейтинг по количеству застолблённой земли."
+  permission="all"
+/>
+
+<CommandCard
+  command="/towny spy"
+  description="Следить за всеми каналами чата. Только для администрации."
+  permission="admin"
+/>
+
+---
+
+## `/plot` — Управление участками
+
+<CommandCard
+  command="/plot claim"
+  description="Лично купить участок, выставленный мэром на продажу."
+  usage="/plot claim [auto]"
+  aliases={["/plot claim auto"]}
+  permission="all"
+/>
+
+<CommandCard
+  command="/plot unclaim"
+  description="Отказаться от личного участка, вернув его городу."
+  permission="all"
+/>
+
+<CommandCard
+  command="/plot forsale"
+  description="Выставить участок на продажу по указанной цене."
+  usage="/plot forsale <цена>"
+  permission="all"
+/>
+
+<CommandCard
+  command="/plot notforsale"
+  description="Убрать участок с продажи."
+  permission="all"
+/>
+
+<CommandCard
+  command="/plot evict"
+  description="Выселить жителя с его личного участка."
+  usage="/plot evict [forsale]"
+  permission="all"
+/>
+
+<CommandCard
+  command="/plot set"
+  description="Установить тип участка или его название."
+  usage="/plot set <shop|embassy|arena|farm|jail|wilds|inn|bank|outpost|reset|name>"
+  permission="all"
+/>
+
+<CommandCard
+  command="/plot toggle"
+  description="Переключить параметр участка: огонь, PvP, взрывы, спавн мобов."
+  usage="/plot toggle <fire|pvp|explosion|mob>"
+  permission="all"
+/>
+
+<CommandCard
+  command="/plot trust add"
+  description="Добавить игрока как доверенного — он сможет строить на твоём участке."
+  usage="/plot trust add <игрок>"
+  permission="all"
+/>
+
+<CommandCard
+  command="/plot trust remove"
+  description="Убрать игрока из доверенных на участке."
+  usage="/plot trust remove <игрок>"
+  permission="all"
+/>
+
+<CommandCard
+  command="/plot perm gui"
+  description="Открыть графический интерфейс для тонкой настройки прав участка."
+  permission="all"
+/>
+
+<CommandCard
+  command="/plot district create"
+  description="Создать именованный район из нескольких участков."
+  usage="/plot district create <название>"
+  permission="all"
+/>
+
+<CommandCard
+  command="/plot clear"
+  description="Очистить блоки на участке по заданному списку типов."
+  permission="all"
+  warning="Действие необратимо. Все блоки указанных типов будут удалены."
+/>
+
+---
+
+## `/resident` — Профиль жителя
+
+<CommandCard
+  command="/resident"
+  description="Показать свой профиль жителя: город, участки, налоги, статус."
+  usage="/resident [игрок]"
+  permission="all"
+/>
+
+<CommandCard
+  command="/resident list"
+  description="Список всех жителей, находящихся онлайн."
+  permission="all"
+/>
+
+<CommandCard
+  command="/resident friend add"
+  description="Добавить игрока в личный список друзей."
+  usage="/resident friend add <игрок>"
+  permission="all"
+/>
+
+<CommandCard
+  command="/resident friend remove"
+  description="Убрать игрока из списка друзей."
+  usage="/resident friend remove <игрок>"
+  permission="all"
+/>
+
+<CommandCard
+  command="/resident plotlist"
+  description="Показать список всех участков, принадлежащих тебе."
+  permission="all"
+/>
+
+<CommandCard
+  command="/resident jail paybail"
+  description="Заплатить залог для досрочного выхода из тюрьмы."
+  permission="all"
+/>
+
+<CommandCard
+  command="/resident spawn"
+  description="Телепортироваться к своей кровати или точке спавна."
+  permission="all"
+/>
+
+<CommandCard
+  command="/resident set perm"
+  description="Настроить права доступа по умолчанию на всех своих участках."
+  usage="/resident set perm ..."
+  permission="all"
+/>
+
+<CommandCard
+  command="/resident toggle map"
+  description="Включить автообновляемую карту при перемещении по миру."
+  permission="all"
+/>
+
+<CommandCard
+  command="/resident toggle plotborder"
+  description="Показывать дымовые границы участков при их пересечении."
+  permission="all"
+/>
+
+<CommandCard
+  command="/resident toggle pvp"
+  description="Изменить PvP-статус на своих личных участках."
+  permission="all"
+/>
+
+<CommandCard
+  command="/resident toggle spy"
+  description="Следить за всеми каналами чата."
+  permission="admin"
+/>
+
+---
+
+## `/town` — Управление городом
+
+<CommandCard
+  command="/town"
+  description="Показать информацию о своём городе: жители, участки, банк, налоги."
+  usage="/town [город]"
+  permission="all"
+/>
+
+<CommandCard
+  command="/town new"
+  description="Создать новый город. Требует стартового капитала."
+  usage="/town new <название>"
+  permission="all"
+  warning="Название нельзя изменить без помощи администрации — выбирай тщательно."
+/>
+
+<CommandCard
+  command="/town list"
+  description="Список всех городов на сервере."
+  permission="all"
+/>
+
+<CommandCard
+  command="/town join"
+  description="Вступить в открытый город без приглашения."
+  usage="/town join <город>"
+  permission="all"
+/>
+
+<CommandCard
+  command="/town leave"
+  description="Покинуть текущий город."
+  permission="all"
+/>
+
+<CommandCard
+  command="/town invite"
+  description="Пригласить игрока в город."
+  usage="/town invite <игрок>"
+  permission="all"
+/>
+
+<CommandCard
+  command="/town kick"
+  description="Исключить жителя из города."
+  usage="/town kick <игрок>"
+  permission="all"
+/>
+
+<CommandCard
+  command="/town spawn"
+  description="Телепортироваться к спавну города."
+  usage="/town spawn [город]"
+  permission="all"
+/>
+
+<CommandCard
+  command="/town claim"
+  description="Застолбить чанк земли для города. Чанк должен граничить с уже занятыми."
+  usage="/town claim [outpost|auto]"
+  permission="all"
+/>
+
+<CommandCard
+  command="/town unclaim"
+  description="Освободить чанк или все чанки города."
+  usage="/town unclaim [all]"
+  permission="all"
+  warning="Освобождённые чанки теряют защиту мгновенно."
+/>
+
+<CommandCard
+  command="/town deposit"
+  description="Положить Дукаты в банк города."
+  usage="/town deposit <сумма>"
+  permission="all"
+/>
+
+<CommandCard
+  command="/town withdraw"
+  description="Снять Дукаты из банка города."
+  usage="/town withdraw <сумма>"
+  permission="all"
+/>
+
+<CommandCard
+  command="/town set mayor"
+  description="Передать пост мэра другому жителю."
+  usage="/town set mayor <игрок>"
+  permission="all"
+  warning="Действие необратимо без участия администрации."
+/>
+
+<CommandCard
+  command="/town set taxes"
+  description="Установить ежедневный налог с жителей."
+  usage="/town set taxes <сумма>"
+  permission="all"
+/>
+
+<CommandCard
+  command="/town set plottax"
+  description="Установить налог за личные участки."
+  usage="/town set plottax <сумма>"
+  permission="all"
+/>
+
+<CommandCard
+  command="/town set plotprice"
+  description="Установить цену участка по умолчанию при продаже."
+  usage="/town set plotprice <сумма>"
+  permission="all"
+/>
+
+<CommandCard
+  command="/town toggle"
+  description="Переключить параметры города: PvP, огонь, мобы, открытость, публичный спавн, взрывы."
+  usage="/town toggle <pvp|fire|mobs|open|public|explosion|taxpercent>"
+  permission="all"
+/>
+
+<CommandCard
+  command="/town rank add"
+  description="Выдать жителю внутренний ранг (помощник, страж, казначей и т.д.)."
+  usage="/town rank add <игрок> <ранг>"
+  permission="all"
+/>
+
+<CommandCard
+  command="/town outlaw add"
+  description="Добавить игрока в список преступников города — его можно будет атаковать на территории."
+  usage="/town outlaw add <игрок>"
+  permission="all"
+/>
+
+<CommandCard
+  command="/town jail"
+  description="Посадить жителя в городскую тюрьму на указанное количество часов."
+  usage="/town jail <игрок> <часы>"
+  permission="all"
+/>
+
+<CommandCard
+  command="/town merge"
+  description="Запросить слияние другого города в свой."
+  usage="/town merge <город>"
+  permission="all"
+/>
+
+<CommandCard
+  command="/town delete"
+  description="Удалить город. Все чанки освобождаются, жители становятся бездомными."
+  usage="/town delete <город>"
+  permission="all"
+  warning="Операция необратима. Восстановление возможно только силами администрации."
+/>
+
+<CommandCard
+  command="/town nearby"
+  description="Показать ближайшие города и расстояние до них."
+  permission="all"
+/>
+
+<CommandCard
+  command="/town say"
+  description="Отправить сообщение всем онлайн-жителям города."
+  usage="/town say <сообщение>"
+  permission="all"
+/>
+
+---
+
+## `/invite` — Приглашения
+
+<CommandCard
+  command="/invite list"
+  description="Показать все полученные приглашения в города."
+  permission="all"
+/>
+
+<CommandCard
+  command="/invite accept"
+  description="Принять приглашение в конкретный город."
+  usage="/invite accept <город>"
+  permission="all"
+/>
+
+<CommandCard
+  command="/invite deny"
+  description="Отклонить приглашение в город или все сразу."
+  usage="/invite deny <город|all>"
+  permission="all"
+/>
+
+---
+
+## `/nation` — Управление нацией
+
+<CommandCard
+  command="/nation"
+  description="Показать информацию о своей нации: города, банк, союзники, враги."
+  usage="/nation [нация]"
+  permission="all"
+/>
+
+<CommandCard
+  command="/nation new"
+  description="Создать новую нацию. Мэр основавшего города становится королём."
+  usage="/nation new <название>"
+  permission="all"
+/>
+
+<CommandCard
+  command="/nation list"
+  description="Список всех наций на сервере."
+  permission="all"
+/>
+
+<CommandCard
+  command="/nation add"
+  description="Пригласить город в нацию."
+  usage="/nation add <город>"
+  permission="all"
+/>
+
+<CommandCard
+  command="/nation kick"
+  description="Исключить город из нации."
+  usage="/nation kick <город>"
+  permission="all"
+/>
+
+<CommandCard
+  command="/nation ally add"
+  description="Добавить нацию в союзники."
+  usage="/nation ally add <нация>"
+  permission="all"
+/>
+
+<CommandCard
+  command="/nation enemy add"
+  description="Объявить нацию врагом."
+  usage="/nation enemy add <нация>"
+  permission="all"
+/>
+
+<CommandCard
+  command="/nation set king"
+  description="Передать корону другому игроку."
+  usage="/nation set king <житель>"
+  permission="all"
+  warning="Действие необратимо без помощи администрации."
+/>
+
+<CommandCard
+  command="/nation set capital"
+  description="Изменить столицу нации."
+  usage="/nation set capital <город>"
+  permission="all"
+/>
+
+<CommandCard
+  command="/nation set taxes"
+  description="Установить ежедневный налог для городов нации."
+  usage="/nation set taxes <сумма>"
+  permission="all"
+/>
+
+<CommandCard
+  command="/nation toggle neutral"
+  description="Объявить нацию нейтральной — она не может участвовать в войнах. Требует ежедневной оплаты."
+  permission="all"
+/>
+
+<CommandCard
+  command="/nation toggle open"
+  description="Открыть нацию для свободного вступления городов без приглашения."
+  permission="all"
+/>
+
+<CommandCard
+  command="/nation merge"
+  description="Запросить слияние другой нации в свою."
+  usage="/nation merge <нация>"
+  permission="all"
+/>
+
+<CommandCard
+  command="/nation delete"
+  description="Распустить нацию. Города остаются, но теряют принадлежность к нации."
+  permission="all"
+  warning="Операция необратима."
+/>
+
+---
+
+## `/townyadmin` — Администрирование
+
+<Callout variant="danger" title="Только для администрации">
+  Все команды этого раздела доступны исключительно администраторам сервера. Использование рядовыми игроками невозможно.
+</Callout>
+
+<CommandCard
+  command="/ta town new"
+  description="Создать город для указанного игрока бесплатно."
+  usage="/ta town new <название> <мэр>"
+  permission="admin"
+/>
+
+<CommandCard
+  command="/ta town {город} delete"
+  description="Удалить любой город принудительно."
+  usage="/ta town <город> delete"
+  permission="admin"
+/>
+
+<CommandCard
+  command="/ta town {город} set mayor"
+  description="Назначить нового мэра вручную."
+  usage="/ta town <город> set mayor <игрок>"
+  permission="admin"
+/>
+
+<CommandCard
+  command="/ta town {город} unruin"
+  description="Восстановить разрушенный (руинированный) город."
+  usage="/ta town <город> unruin"
+  permission="admin"
+/>
+
+<CommandCard
+  command="/ta givebonus"
+  description="Выдать городу дополнительные блоки земли сверх лимита."
+  usage="/ta givebonus <город> <количество>"
+  permission="admin"
+/>
+
+<CommandCard
+  command="/ta newday"
+  description="Принудительно запустить новый день — немедленный сбор налогов."
+  permission="admin"
+  warning="Запустит списание налогов со всех городов прямо сейчас."
+/>
+
+<CommandCard
+  command="/ta purge"
+  description="Удалить профили неактивных жителей старше N дней."
+  usage="/ta purge <дни>"
+  permission="admin"
+/>
+
+<CommandCard
+  command="/ta reload all"
+  description="Перезагрузить все конфиги Towny без перезапуска сервера."
+  permission="admin"
+/>
+
+---
+
+## `/townyworld` — Настройки мира
+
+<Callout variant="info">
+  Команды `/tw` применяются к конкретному игровому миру и доступны только администраторам.
+</Callout>
+
+<CommandCard
+  command="/tw list"
+  description="Список всех миров с включённым Towny."
+  permission="admin"
+/>
+
+<CommandCard
+  command="/tw toggle claimable"
+  description="Разрешить или запретить заявку блоков в мире."
+  permission="admin"
+/>
+
+<CommandCard
+  command="/tw toggle pvp"
+  description="Включить или выключить PvP во всём мире."
+  permission="admin"
+/>
+
+<CommandCard
+  command="/tw toggle forcepvp"
+  description="Принудительно включить PvP во всех городах мира, игнорируя их настройки."
+  permission="admin"
+/>
+
+<CommandCard
+  command="/tw toggle warallowed"
+  description="Разрешить или запретить войны в мире."
+  permission="admin"
+/>

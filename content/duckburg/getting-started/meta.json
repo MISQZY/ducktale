@@ -1,5 +1,9 @@
 {
   "title": "Начало игры",
   "defaultOpen": true,
-  "pages": ["first-steps", "connection", "roles"]
+  "pages": [
+    "first-steps",
+    "connection",
+    "roles"
+  ]
 }

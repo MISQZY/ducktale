@@ -1,4 +1,11 @@
 {
   "title": "DuckBurg",
-  "pages": ["index", "map", "getting-started", "rules", "command"]
+  "pages": [
+    "index",
+    "map",
+    "getting-started",
+    "rules",
+    "plugins",
+    "commands"
+  ]
 }
