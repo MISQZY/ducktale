@@ -26,19 +26,6 @@ const GRID_COLS: Record<2 | 3 | 4, string> = {
   4: "sm:grid-cols-2 lg:grid-cols-4",
 };
 
-/**
- * FeatureGrid.
- *
- * Usage in MDX:
- * ```mdx
- * import { Sword, Map, Users } from "lucide-react";
- * <FeatureGrid features={[
- *   { icon: Sword, title: "PvE", description: "Монстры, данжи, боссы" },
- *   { icon: Map,  title: "Города", description: "Создай свой город с Towny" },
- *   { icon: Users, title: "Экономика", description: "Аукцион, магазины, торговля" },
- * ]} />
- * ```
- */
 export function FeatureGrid({ features, columns = 3, className }: FeatureGridProps) {
   return (
     <div className={cn("grid grid-cols-1 gap-4 my-6", GRID_COLS[columns], className)}>

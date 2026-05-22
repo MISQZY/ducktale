@@ -1,6 +1,7 @@
-export default function HeroBackground() {
+export function PageBackground() {
   return (
     <>
+      {/* Ambient glow */}
       <div className="absolute inset-0 pointer-events-none">
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
           <div
@@ -16,8 +17,10 @@ export default function HeroBackground() {
         </div>
       </div>
 
+      {/* Grid */}
       <div
         className="absolute inset-0 opacity-5 pointer-events-none"
+        aria-hidden="true"
         style={{
           backgroundImage:
             "linear-gradient(rgba(245,158,11,0.5) 1px, transparent 1px), " +

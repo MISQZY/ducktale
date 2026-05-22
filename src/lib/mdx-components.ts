@@ -1,29 +1,44 @@
 import defaultMdxComponents from "fumadocs-ui/mdx";
-import { PageEmbed } from "@/components/docs/PageEmbed";
-import { ServerAddress } from "@/components/docs/ServerAddress";
-import { CommandCard } from "@/components/docs/CommandCard";
-import { RuleTable } from "@/components/docs/RuleTable";
-import { Callout } from "@/components/docs/Callout";
-import { StepList } from "@/components/docs/StepList";
-import { FeatureGrid } from "@/components/docs/FeatureGrid";
-import { ItemCard } from "@/components/docs/ItemCard";
-import { ServerStatusWidget } from "@/components/docs/ServerStatusWidget";
-import { ResourceCard, ResourceCardGrid } from "@/components/docs/ResourceCard";
+import {
+  Callout,
+  CommandCard,
+  FeatureGrid,
+  ItemCard,
+  PageEmbed,
+  ResourceCard,
+  ResourceCardGrid,
+  RuleTable,
+  ServerAddress,
+  ServerStatusWidget,
+  StepList,
+} from "@/components/docs";
+
+import {
+  DocsTable,
+  DocsTableHeader,
+  DocsTableBody,
+  DocsTableRow,
+  DocsTableHead,
+  DocsTableCell,
+} from "@/components/ui/docs-table";
 
 export const docsComponents = {
   ...defaultMdxComponents,
-
-  PageEmbed,
-  ServerAddress,
-
+  table: DocsTable,
+  thead: DocsTableHeader,
+  tbody: DocsTableBody,
+  tr: DocsTableRow,
+  th: DocsTableHead,
+  td: DocsTableCell,
   Callout,
-  StepList,
-
   CommandCard,
-  RuleTable,
   FeatureGrid,
   ItemCard,
-  ServerStatusWidget,
+  PageEmbed,
   ResourceCard,
   ResourceCardGrid,
+  RuleTable,
+  ServerAddress,
+  ServerStatusWidget,
+  StepList,
 };

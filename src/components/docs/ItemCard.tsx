@@ -10,17 +10,12 @@ import type { ReactNode } from "react";
 type Rarity = "common" | "uncommon" | "rare" | "epic" | "legendary";
 
 interface ItemCardProps {
-  /** Название предмета */
+
   name: string;
-  /** Эмодзи или символ предмета */
   emoji?: string;
-  /** Краткое описание */
   description?: string;
-  /** Редкость */
   rarity?: Rarity;
-  /** Дополнительные характеристики (лор) */
   lore?: string;
-  /** Как получить */
   obtain?: string;
   className?: string;
   children?: ReactNode;
@@ -34,16 +29,6 @@ const RARITY_STYLES: Record<Rarity, { badge: string; title: string; label: strin
   legendary: { badge: "bg-amber-900/50 text-amber-300 border-amber-700/30", title: "text-amber-300",  label: "Легендарный" },
 };
 
-/**
- * ItemCard.
- *
- * Usage in MDX:
- * ```mdx
- * <ItemCard name="Зачарованный меч" emoji="⚔️" rarity="rare" obtain="Данж | Крафт" lore="Кован из камня, закалён в лаве">
- *   Урон: **+8** / Прочность: **250**
- * </ItemCard>
- * ```
- */
 export function ItemCard({
   name,
   emoji = "📦",

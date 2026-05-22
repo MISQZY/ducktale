@@ -1,9 +1,10 @@
 "use client";
 
-import { memo, useState, useCallback, useEffect, useRef } from "react";
+import { memo, useState, useCallback } from "react";
 import Image from "next/image";
 import { ChevronLeft, ChevronRight, X } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useFullscreen } from "@/hooks/useFullscreen";
 import type { ResourceImage } from "./types";
 
 interface ImageViewerProps {
@@ -16,54 +17,31 @@ interface ImageViewerProps {
 export const ImageViewer = memo(
   ({ images, initialIndex, open, onOpenChange }: ImageViewerProps) => {
     const [index, setIndex] = useState(initialIndex);
-    const closeButtonRef = useRef<HTMLButtonElement>(null);
     const hasMultiple = images.length > 1;
 
-    useEffect(() => {
-      if (open) setIndex(initialIndex);
-    }, [open, initialIndex]);
-
-    const closeFullscreen = useCallback(() => {
-      onOpenChange(false);
-    }, [onOpenChange]);
+    const handleClose = useCallback(() => onOpenChange(false), [onOpenChange]);
 
     const navigate = useCallback(
-      (dir: "prev" | "next") => {
+      (dir: "prev" | "next") =>
         setIndex((prev) =>
           dir === "prev"
             ? (prev - 1 + images.length) % images.length
             : (prev + 1) % images.length
-        );
-      },
+        ),
       [images.length]
     );
 
-    useEffect(() => {
-      document.body.style.overflow = open ? "hidden" : "";
-      return () => {
-        document.body.style.overflow = "";
-      };
-    }, [open]);
+    const { closeButtonRef } = useFullscreen({
+      open,
+      onClose: handleClose,
+      withArrows: hasMultiple
+        ? { onPrev: () => navigate("prev"), onNext: () => navigate("next") }
+        : undefined,
+    });
 
-    useEffect(() => {
-      if (open) closeButtonRef.current?.focus();
-    }, [open]);
-
-    useEffect(() => {
-      if (!open) return;
-
-      const handler = (e: KeyboardEvent) => {
-        if (e.key === "Escape") closeFullscreen();
-        if (hasMultiple && e.key === "ArrowLeft") navigate("prev");
-        if (hasMultiple && e.key === "ArrowRight") navigate("next");
-      };
-
-      window.addEventListener("keydown", handler);
-      return () => window.removeEventListener("keydown", handler);
-    }, [open, closeFullscreen, navigate, hasMultiple]);
+    useState(() => { if (open) setIndex(initialIndex); });
 
     const current = images[index];
-
     if (!open || !current) return null;
 
     return (
@@ -73,14 +51,14 @@ export const ImageViewer = memo(
         aria-modal="true"
         aria-label={current.alt ?? current.title ?? "Просмотр изображения"}
       >
+        {/* Header */}
         <div className="flex items-center justify-between px-4 py-2 border-b border-amber-900/20 bg-[#111]/80 shrink-0 min-h-10">
           <span className="text-xs text-amber-400 font-mono truncate pr-4">
             {current.title ?? current.alt ?? "Просмотр изображения"}
           </span>
-
           <button
             ref={closeButtonRef}
-            onClick={closeFullscreen}
+            onClick={handleClose}
             aria-label="Закрыть полноэкранный просмотр"
             className="shrink-0 flex items-center justify-center h-7 w-7 rounded-md text-amber-500/60 hover:text-amber-300 hover:bg-amber-900/20 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
           >
@@ -88,6 +66,7 @@ export const ImageViewer = memo(
           </button>
         </div>
 
+        {/* Image area */}
         <div className="relative flex-1 w-full overflow-hidden">
           <div className="relative w-full h-full flex items-center justify-center p-4 md:p-6">
             <div className="relative w-full h-full max-w-[75vw] max-h-[90vh]">
@@ -134,12 +113,14 @@ export const ImageViewer = memo(
                 <ChevronRight size={22} />
               </button>
 
+              {/* Counter */}
               <div className="absolute top-4 left-1/2 -translate-x-1/2 z-10">
                 <span className="px-3 py-1.5 rounded-full bg-black/60 border border-amber-900/30 text-amber-300/70 text-xs backdrop-blur-sm">
                   {index + 1} / {images.length}
                 </span>
               </div>
 
+              {/* Dot indicators */}
               <div className="absolute bottom-5 left-1/2 -translate-x-1/2 flex gap-1.5 z-10">
                 {images.map((_, i) => (
                   <button
@@ -147,9 +128,7 @@ export const ImageViewer = memo(
                     onClick={() => setIndex(i)}
                     className={cn(
                       "h-1.5 rounded-full transition-all duration-200",
-                      i === index
-                        ? "w-5 bg-amber-400"
-                        : "w-1.5 bg-white/30 hover:bg-white/50"
+                      i === index ? "w-5 bg-amber-400" : "w-1.5 bg-white/30 hover:bg-white/50"
                     )}
                     aria-label={`Перейти к изображению ${i + 1}`}
                   />

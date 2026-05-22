@@ -11,9 +11,11 @@ import { cn } from "@/lib/utils";
 import {
   Sheet,
   SheetContent,
+  SheetTitle,
   SheetTrigger,
   SheetClose,
 } from "@/components/ui/sheet";
+import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 
 const navLinks = [
   { href: "/#about", label: "О проекте" },
@@ -74,20 +76,36 @@ export default function Navbar() {
                 <Menu size={22} />
               </Button>
             </SheetTrigger>
+
             <SheetContent
               side="right"
-              className="bg-duck-darker/95 border-amber-900/30 backdrop-blur-md w-64"
+              className={cn(
+                "w-64 border-l border-amber-900/30",
+                "bg-[#0e0c09]/95 backdrop-blur-md",
+                "flex flex-col pt-0"
+              )}
             >
-              <div className="flex flex-col gap-4 mt-8">
+              {/* Accessible title */}
+              <VisuallyHidden>
+                <SheetTitle>Навигация</SheetTitle>
+              </VisuallyHidden>
+
+              {/* Header strip matching the navbar */}
+              <div className="flex items-center h-16 px-5 border-b border-amber-900/30 shrink-0">
+                <Logo />
+              </div>
+
+              {/* Nav links */}
+              <nav className="flex flex-col px-4 py-5 gap-1">
                 {navLinks.map((link) => (
                   <SheetClose asChild key={link.href}>
                     <Link
                       href={link.href}
                       className={cn(
-                        "transition-colors py-1",
+                        "flex items-center rounded-lg px-3 py-2.5 text-sm tracking-wide transition-colors",
                         isActive(link.href)
-                          ? "text-amber-300 font-semibold"
-                          : "text-amber-100/70 hover:text-amber-300"
+                          ? "bg-amber-400/10 text-amber-300 font-semibold"
+                          : "text-amber-100/60 hover:bg-amber-400/6 hover:text-amber-200"
                       )}
                       aria-current={isActive(link.href) ? "page" : undefined}
                     >
@@ -95,7 +113,7 @@ export default function Navbar() {
                     </Link>
                   </SheetClose>
                 ))}
-              </div>
+              </nav>
             </SheetContent>
           </Sheet>
         </div>

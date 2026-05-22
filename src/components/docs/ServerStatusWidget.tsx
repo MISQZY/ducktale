@@ -24,7 +24,7 @@ interface ServerStatusWidgetProps {
 }
 
 /**
- * ServerStatusWidget.
+ * ServerStatusWidget — full card with player list, version and collapsible roster.
  *
  * Usage in MDX:
  * ```mdx
@@ -51,16 +51,17 @@ export function ServerStatusWidget({ host, serverName, className }: ServerStatus
     return (
       <Card className={cn("border-red-900/20 bg-duck-stone/30", className)}>
         <CardContent className="py-3">
-          <p className="text-xs text-red-400/70">Не удалось получить статус сервера. Попробуйте обновить страницу.</p>
+          <p className="text-xs text-red-400/70">
+            Не удалось получить статус сервера. Попробуйте обновить страницу.
+          </p>
         </CardContent>
       </Card>
     );
   }
 
   const { status } = result;
-
-  const hasPlayers = status.online && status.players && status.players.online > 0;
   const playerList = status.players?.list ?? [];
+  const hasPlayers = status.online && (status.players?.online ?? 0) > 0 && playerList.length > 0;
 
   return (
     <Card className={cn("border-amber-900/20 bg-duck-stone/30 my-4", className)}>
@@ -90,7 +91,7 @@ export function ServerStatusWidget({ host, serverName, className }: ServerStatus
       </CardHeader>
 
       <CardContent className="pt-0 space-y-2">
-        {status.online && (
+        {status.online ? (
           <>
             <div className="flex items-center gap-4 text-xs text-amber-100/50">
               {status.players && (
@@ -104,7 +105,7 @@ export function ServerStatusWidget({ host, serverName, className }: ServerStatus
               )}
             </div>
 
-            {hasPlayers && playerList.length > 0 && (
+            {hasPlayers && (
               <>
                 <Separator className="bg-amber-900/20" />
                 <Collapsible>
@@ -132,9 +133,7 @@ export function ServerStatusWidget({ host, serverName, className }: ServerStatus
               </>
             )}
           </>
-        )}
-
-        {!status.online && (
+        ) : (
           <p className="text-xs text-amber-100/30">
             Сервер временно недоступен. Попробуйте позже.
           </p>

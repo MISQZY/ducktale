@@ -48,16 +48,7 @@ const CONFIG: Record<
   },
 };
 
-/**
- * Callout.
- *
- * Usage in в MDX:
- * ```mdx
- * <Callout variant="warning" title="Осторожно">
- *   Гриферство карается баном.
- * </Callout>
- * ```
- */
+
 export function Callout({ variant = "info", title, children, className }: CalloutProps) {
   const { icon: Icon, containerCn, titleCn, iconCn } = CONFIG[variant];
 
