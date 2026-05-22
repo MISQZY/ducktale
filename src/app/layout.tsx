@@ -30,7 +30,7 @@ const fontMono = JetBrains_Mono({
 
 export const metadata: Metadata = {
   icons: {
-    icon: "icons/favicon.svg",
+    icon: "/icons/favicon.svg",
   },
   title: {
     template: "%s",
