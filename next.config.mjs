@@ -6,6 +6,11 @@ const withMDX = createMDX();
 const config = {
   reactStrictMode: true,
   output: "standalone",
+   images: {
+    remotePatterns: [
+      { protocol: "https", hostname: "**" },
+    ],
+  },
 };
 
 export default withMDX(config);

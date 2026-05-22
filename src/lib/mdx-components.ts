@@ -8,6 +8,7 @@ import { StepList } from "@/components/docs/StepList";
 import { FeatureGrid } from "@/components/docs/FeatureGrid";
 import { ItemCard } from "@/components/docs/ItemCard";
 import { ServerStatusWidget } from "@/components/docs/ServerStatusWidget";
+import { ResourceCard, ResourceCardGrid } from "@/components/docs/ResourceCard";
 
 export const docsComponents = {
   ...defaultMdxComponents,
@@ -23,4 +24,6 @@ export const docsComponents = {
   FeatureGrid,
   ItemCard,
   ServerStatusWidget,
+  ResourceCard,
+  ResourceCardGrid,
 };
