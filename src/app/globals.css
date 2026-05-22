@@ -227,3 +227,7 @@ body {
     @apply font-sans;
   }
 }
+
+.step-item-content h3 {
+  margin-top: 0 !important;
+}

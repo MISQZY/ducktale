@@ -51,7 +51,7 @@ const CONFIG: Record<
 /**
  * Callout.
  *
- * Usage in MDX:
+ * Usage in в MDX:
  * ```mdx
  * <Callout variant="warning" title="Осторожно">
  *   Гриферство карается баном.

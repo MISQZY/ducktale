@@ -1,14 +1,8 @@
 "use client";
 
 import { useState, useCallback } from "react";
-import { Maximize2 } from "lucide-react";
+import { Maximize2, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 
 interface PageEmbedProps {
   src: string;
@@ -22,14 +16,19 @@ export function PageEmbed({ src, title = "Embedded page", height = 500 }: PageEm
 
   return (
     <>
-      {/* Fullscreen Dialog */}
-      <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="max-w-[95vw] w-full h-[90vh] flex flex-col p-0 bg-[#0a0a0a] border-amber-900/30 gap-0">
-          <DialogHeader className="px-4 py-2 border-b border-amber-900/20 bg-[#111]/80 shrink-0">
-            <DialogTitle className="text-xs text-amber-400 font-mono font-normal truncate text-left">
-              {title}
-            </DialogTitle>
-          </DialogHeader>
+      {/* Fullscreen overlay — bypasses Dialog to avoid shadcn size constraints */}
+      {open && (
+        <div className="fixed inset-0 z-50 flex flex-col bg-[#0a0a0a]">
+          <div className="flex items-center justify-between px-4 py-2 border-b border-amber-900/20 bg-[#111]/80 shrink-0">
+            <span className="text-xs text-amber-400 font-mono truncate">{title}</span>
+            <button
+              onClick={toggle}
+              aria-label="Закрыть"
+              className="text-amber-500/60 hover:text-amber-300 transition-colors p-1"
+            >
+              <X size={16} />
+            </button>
+          </div>
           <iframe
             src={src}
             title={title}
@@ -37,8 +36,8 @@ export function PageEmbed({ src, title = "Embedded page", height = 500 }: PageEm
             loading="lazy"
             allow="fullscreen"
           />
-        </DialogContent>
-      </Dialog>
+        </div>
+      )}
 
       {/* Inline embed */}
       <div

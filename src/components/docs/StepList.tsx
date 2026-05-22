@@ -20,16 +20,19 @@ interface StepProps {
 function StepItem({ number, title, children }: StepProps) {
   return (
     <div className="relative flex gap-4">
-      {/* Connector line (except for last item — handled by CSS) */}
-      <div className="flex flex-col items-center">
-        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-amber-500/40 bg-amber-950/40 text-sm font-bold text-amber-400 font-mono z-10">
+      {/* Circle + line column */}
+      <div className="relative flex flex-col items-center">
+        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-amber-500/40 bg-amber-950/40 text-sm font-bold text-amber-400 font-mono z-10 relative">
           {number}
         </div>
-        <div className="step-line mt-1 w-px flex-1 bg-amber-900/30" />
+        <div className="step-line absolute top-8 bottom-0 w-px bg-amber-500/40" />
       </div>
 
-      <div className="pb-8 flex-1 min-w-0">
-        <h3 className="font-semibold text-amber-100 mb-2 mt-0.5">{title}</h3>
+      {/* Content */}
+      <div className="pb-10 flex-1 min-w-0 step-item-content">
+        <h3 className="font-semibold text-amber-100 mb-2 leading-8">
+          {title}
+        </h3>
         <div className="text-amber-100/70 text-sm leading-relaxed [&>p]:mt-0 [&>p]:mb-2">
           {children}
         </div>
@@ -38,20 +41,9 @@ function StepItem({ number, title, children }: StepProps) {
   );
 }
 
-/**
- * StepList.
- *
- * Usage in MDX:
- * ```mdx
- * <StepList steps={[
- *   { title: "Установите лаунчер", children: <p>Скачайте TLauncher...</p> },
- *   { title: "Подключитесь к серверу", children: <ServerAddress /> },
- * ]} />
- * ```
- */
 export function StepList({ steps, className }: StepListProps) {
   return (
-    <div className={cn("mt-4 [&_.step-line:last-of-type]:hidden", className)}>
+    <div className={cn("mt-4 [&>div:last-child_.step-line]:hidden", className)}>
       {steps.map((step, i) => (
         <StepItem key={i} number={i + 1} title={step.title}>
           {step.children}

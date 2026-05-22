@@ -14,9 +14,14 @@ import { cn } from "@/lib/utils";
 interface CopyToClipboardProps {
   value: string;
   className?: string;
+  children?: React.ReactNode;
 }
 
-export default function CopyToClipboard({ value, className }: CopyToClipboardProps) {
+export default function CopyToClipboard({
+  value,
+  className,
+  children,
+}: CopyToClipboardProps) {
   const [copied, setCopied] = useState(false);
 
   const handleCopy = async () => {
@@ -30,6 +35,7 @@ export default function CopyToClipboard({ value, className }: CopyToClipboardPro
       document.execCommand("copy");
       document.body.removeChild(el);
     }
+
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
@@ -41,34 +47,25 @@ export default function CopyToClipboard({ value, className }: CopyToClipboardPro
           <Button
             variant="outline"
             onClick={handleCopy}
-            aria-label={`Скопировать адрес ${value}`}
+            aria-label={`Скопировать ${value}`}
             className={cn(
-              "inline-flex items-center gap-3 h-auto px-8 py-4 rounded-xl",
-              "border-amber-500/20 bg-black/40 hover:bg-black/60",
-              "hover:border-amber-500/50 focus-visible:ring-amber-400/60",
-              "transition-all duration-200",
-              copied && "border-green-500/50 bg-green-500/10",
+              "h-auto w-full p-0 bg-transparent border-0 hover:bg-transparent",
+              "focus-visible:ring-0 focus-visible:ring-offset-0",
               className
             )}
           >
-            <code
-              className={cn(
-                "text-xl md:text-2xl tracking-widest font-mono transition-colors duration-200",
-                copied ? "text-green-400" : "text-amber-300"
-              )}
-            >
-              {value}
-            </code>
-            <span
-              className={cn(
-                "transition-all duration-200",
-                copied
-                  ? "text-green-400"
-                  : "text-amber-500/60 group-hover:text-amber-400"
-              )}
-            >
-              {copied ? <Check size={18} strokeWidth={2.5} /> : <Copy size={18} />}
-            </span>
+            {children ?? (
+              <div className="w-full flex items-center justify-center gap-3 rounded-lg bg-black/40 border border-amber-900/20 px-6 py-4 cursor-pointer">
+                <span className="font-mono text-2xl text-amber-300 tracking-wide">
+                  {value}
+                </span>
+                {copied ? (
+                  <Check size={18} className="text-green-400 shrink-0" />
+                ) : (
+                  <Copy size={18} className="text-amber-500/50 shrink-0" />
+                )}
+              </div>
+            )}
           </Button>
         </TooltipTrigger>
         <TooltipContent
