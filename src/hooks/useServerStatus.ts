@@ -8,7 +8,14 @@ export interface ServerStatus {
   version?: string;
 }
 
-export function useServerStatus(host: string): ServerStatus | null {
-  const statuses = useServerStatuses();
-  return Object.keys(statuses).length === 0 ? null : (statuses[host] ?? { online: false });
+export type ServerStatusResult =
+  | { state: "loading" }
+  | { state: "error" }
+  | { state: "ok"; status: ServerStatus };
+
+export function useServerStatus(host: string): ServerStatusResult {
+  const { statuses, loading, error } = useServerStatuses();
+  if (loading) return { state: "loading" };
+  if (error) return { state: "error" };
+  return { state: "ok", status: statuses[host] ?? { online: false } };
 }

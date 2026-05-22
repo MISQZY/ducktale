@@ -42,7 +42,7 @@ export default function CopyToClipboard({
 
   return (
     <TooltipProvider delayDuration={200}>
-      <Tooltip open={copied ? true : undefined}>
+      <Tooltip>
         <TooltipTrigger asChild>
           <Button
             variant="outline"

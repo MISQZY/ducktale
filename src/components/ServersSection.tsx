@@ -3,28 +3,16 @@
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { SERVERS, NETWORK_HOST } from "@/config/servers";
-import CopyToClipboard from "./ui/CopyToClipboard";
+import CopyToClipboard from "./ui/CopyToClipboard"
+import SectionHeader from "@/components/SectionHeader";
 import ServerStatusBadge from "./ServerStatusBadge"
-import { ServerStatusProvider } from "@/context/ServerStatusContext";
+
 
 export default function ServersSection() {
   return (
-    <ServerStatusProvider>
-      <section id="servers" className="py-24 px-6">
+    <section id="servers" className="py-24 px-6">
         <div className="max-w-5xl mx-auto">
-          {/* Header */}
-          <div className="text-center mb-16">
-            <p className="text-amber-500 text-sm tracking-[0.3em] uppercase mb-3">
-              Наши сервера
-            </p>
-            <h2
-              className="text-4xl md:text-5xl text-amber-100 mb-4"
-              style={{ fontFamily: "var(--font-display)" }}
-            >
-              Выбери свой мир
-            </h2>
-            <div className="h-px w-24 bg-linear-to-r from-transparent via-amber-500 to-transparent mx-auto" />
-          </div>
+          <SectionHeader label="Наши сервера" title="Выбери свой мир" />
   
           {/* Server cards */}
           <div className="grid md:grid-cols-2 gap-6">
@@ -110,6 +98,5 @@ export default function ServersSection() {
           </div>
         </div>
       </section>
-    </ServerStatusProvider>
   );
 }

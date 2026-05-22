@@ -103,16 +103,27 @@ export function CommandCard({
       {(usage || (aliases && aliases.length > 0) || warning) && (
         <CardContent className="space-y-3 pt-0">
           {usage && (
-            <CopyToClipboard value={copyValue} className="block w-full">
-              <div className="rounded-lg bg-black/40 border border-amber-900/15 px-3 py-3 cursor-pointer select-none">
-                <p className="text-xs text-amber-100/40 uppercase tracking-wider">
-                  Использование
-                </p>
-                <code className="block whitespace-pre-wrap text-sm leading-relaxed font-mono text-amber-200/80">
-                  {usage}
-                </code>
-              </div>
-            </CopyToClipboard>
+            <TooltipProvider delayDuration={200}>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <div>
+                    <CopyToClipboard value={copyValue} className="block w-full">
+                      <div className="rounded-lg bg-black/40 border border-amber-900/15 px-3 py-3 cursor-pointer select-none">
+                        <p className="text-xs text-amber-100/40 uppercase tracking-wider">
+                          Использование
+                        </p>
+                        <code className="block whitespace-pre-wrap text-sm leading-relaxed font-mono text-amber-200/80">
+                          {usage}
+                        </code>
+                      </div>
+                    </CopyToClipboard>
+                  </div>
+                </TooltipTrigger>
+                <TooltipContent className="bg-black/90 border-amber-900/30 text-amber-100/80">
+                  Скопировать команду {copyValue ? `(${copyValue})` : ""}
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
           )}
 
           {aliases && aliases.length > 0 && (

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { Maximize2, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -12,11 +12,23 @@ interface PageEmbedProps {
 
 export function PageEmbed({ src, title = "Embedded page", height = 500 }: PageEmbedProps) {
   const [open, setOpen] = useState(false);
+
   const toggle = useCallback(() => setOpen((v) => !v), []);
+
+  useEffect(() => {
+    if (open) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [open]);
 
   return (
     <>
-      {/* Fullscreen overlay — bypasses Dialog to avoid shadcn size constraints */}
+      {/* Fullscreen overlay */}
       {open && (
         <div className="fixed inset-0 z-50 flex flex-col bg-[#0a0a0a]">
           <div className="flex items-center justify-between px-4 py-2 border-b border-amber-900/20 bg-[#111]/80 shrink-0">
