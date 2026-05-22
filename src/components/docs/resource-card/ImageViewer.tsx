@@ -1,6 +1,6 @@
 "use client";
 
-import { memo, useState, useCallback } from "react";
+import { memo, useState, useCallback, useEffect } from "react";
 import Image from "next/image";
 import { ChevronLeft, ChevronRight, X } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -39,7 +39,7 @@ export const ImageViewer = memo(
         : undefined,
     });
 
-    useState(() => { if (open) setIndex(initialIndex); });
+    useEffect(() => { if (open) setIndex(initialIndex); }, [open, initialIndex]);
 
     const current = images[index];
     if (!open || !current) return null;

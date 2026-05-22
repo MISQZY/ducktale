@@ -3,9 +3,5 @@ export default function DocsRootLayout({
 }: {
   children: React.ReactNode;
 }) {
-  return (
-    <div className="min-h-screen flex">
-      {children}
-    </div>
-  );
-} 
+  return children;
+}

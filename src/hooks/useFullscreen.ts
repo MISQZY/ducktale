@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useCallback, useRef } from "react";
+import { useEffect, useRef } from "react";
 
 interface UseFullscreenOptions {
   open: boolean;
@@ -11,21 +11,17 @@ interface UseFullscreenOptions {
   };
 }
 
-
 export function useFullscreen({ open, onClose, withArrows }: UseFullscreenOptions) {
   const closeButtonRef = useRef<HTMLButtonElement>(null);
-
 
   useEffect(() => {
     document.body.style.overflow = open ? "hidden" : "";
     return () => { document.body.style.overflow = ""; };
   }, [open]);
 
-
   useEffect(() => {
     if (open) closeButtonRef.current?.focus();
   }, [open]);
-
 
   useEffect(() => {
     if (!open) return;
@@ -40,7 +36,5 @@ export function useFullscreen({ open, onClose, withArrows }: UseFullscreenOption
     return () => window.removeEventListener("keydown", handler);
   }, [open, onClose, withArrows]);
 
-  const handleClose = useCallback(() => onClose(), [onClose]);
-
-  return { closeButtonRef, handleClose };
+  return { closeButtonRef };
 }

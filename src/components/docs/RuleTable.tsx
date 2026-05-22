@@ -107,8 +107,7 @@ export function RuleTable({ rules, className }: RuleTableProps) {
         </DocsTableRow>
       </DocsTableHeader>
 
-      <DocsTableBody
-      className="[&_tr:last-child]:border-0">
+      <DocsTableBody className="[&_tr:last-child]:border-0">
         {rules.map((r, i) => {
           const hasGrades = Array.isArray(r.punishments) && r.punishments.length > 0;
           const singleSeverity = r.severity ?? inferSeverity(r.punishment ?? "");

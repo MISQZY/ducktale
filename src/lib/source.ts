@@ -3,7 +3,7 @@ import { duckburg, duckhood } from "@/../.source";
 import { SERVERS } from "@/config/servers";
 import { ComponentType } from "react";
 import type { MDXComponents } from "mdx/types";
-import type { VirtualFile, SourceConfig } from 'fumadocs-core/source';
+import type { VirtualFile, SourceConfig } from "fumadocs-core/source";
 import { notFound } from "next/navigation";
 
 export interface ExtendedPage {
@@ -18,22 +18,21 @@ type FumadocsCollection = typeof duckburg;
 
 const collections: Record<string, FumadocsCollection> = { duckburg, duckhood };
 
+function buildSource(collection: FumadocsCollection, baseUrl: string) {
+  const src = collection.toFumadocsSource();
+  return loader({
+    baseUrl,
+    source: {
+      ...src,
+      files: typeof src.files === "function"
+        ? (src.files as () => VirtualFile<SourceConfig>[])()
+        : (src.files as VirtualFile<SourceConfig>[]),
+    },
+  });
+}
+
 export const docsSources = Object.fromEntries(
-  SERVERS.map((s) => [
-    s.id,
-    (() => {
-      const src = collections[s.id].toFumadocsSource();
-      return loader({
-        baseUrl: `/docs/${s.id}`,
-        source: {
-          ...src,
-          files: typeof src.files === 'function'
-            ? (src.files as () => VirtualFile<SourceConfig>[] )()
-            : (src.files as VirtualFile<SourceConfig>[]),
-        },
-      });
-    })(),
-  ])
+  SERVERS.map((s) => [s.id, buildSource(collections[s.id], `/docs/${s.id}`)])
 ) as Record<string, ReturnType<typeof loader>>;
 
 export function getDocsSource(id: string) {

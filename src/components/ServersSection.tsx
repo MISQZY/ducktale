@@ -6,6 +6,7 @@ import { SERVERS, NETWORK_HOST } from "@/config/servers";
 import CopyToClipboard from "./ui/CopyToClipboard"
 import SectionHeader from "@/components/SectionHeader";
 import ServerStatusBadge from "./ServerStatusBadge"
+import { cn } from "@/lib/utils";
 
 
 export default function ServersSection() {
@@ -20,7 +21,13 @@ export default function ServersSection() {
               return (
                 <div
                   key={server.id}
-                  className={`relative rounded-2xl border ${server.border} bg-linear-to-br ${server.color} p-8 transition-all duration-300 hover:shadow-2xl ${server.glow} group`}
+                  className={cn(
+                    "relative rounded-2xl border p-8 transition-all duration-300 hover:shadow-2xl group",
+                    server.border,
+                    "bg-linear-to-br",
+                    server.color,
+                    server.glow
+                  )}
                 >
                   {/* Top decoration line */}
                   <div className="absolute top-0 left-8 right-8 h-px bg-linear-to-r from-transparent via-current to-transparent opacity-20" />
@@ -38,7 +45,7 @@ export default function ServersSection() {
                         >
                           {server.name}
                         </h3>
-                        <span className={`text-xs px-2 py-0.5 rounded-full ${server.badge}`}>
+                        <span className={cn("text-xs px-2 py-0.5 rounded-full", server.badge)}>
                           {server.tagline}
                         </span>
                       </div>
