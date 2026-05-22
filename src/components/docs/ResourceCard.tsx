@@ -1,5 +1,7 @@
 "use client";
 
+import { memo, useState, useCallback, useMemo } from "react";
+import { Package, Download, ChevronLeft, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -10,39 +12,26 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Download, Package, ExternalLink, ChevronLeft, ChevronRight } from "lucide-react";
-import { useState } from "react";
 
-interface Dependency {
-  name: string;
-  url: string;
-}
+import { DependencyBadge } from "./resource-card/DependencyBadge";
+import { CarouselIndicators } from "./resource-card/CarouselIndicators";
+import { CarouselImage } from "./resource-card/CarouselImage";
+import { ImageViewer } from "./resource-card/ImageViewer";
+import type { ResourceCardProps, ResourceCardGridProps } from "./resource-card/types";
 
-interface ResourceImage {
-  src: string;
-  alt: string;
-  title?: string;
-}
+export type { ResourceCardProps, ResourceCardGridProps } from "./resource-card/types";
 
-interface ResourceCardProps {
-  name: string;
-  description: string;
-  version?: string;
-  dependencies?: Dependency[];
-  images?: ResourceImage[];
-  downloadUrl: string;
-  className?: string;
-}
+const CAROUSEL_HEIGHT = 176;
+const PRELOAD_NEIGHBORS = 2;
 
-export function ResourceCardGrid({ children }: { children: React.ReactNode }) {
-  return (
-    <div className="flex flex-wrap gap-4">
-      {children}
-    </div>
-  );
-}
+export const ResourceCardGrid = memo(({ children, className }: ResourceCardGridProps) => (
+  <div className={cn("not-prose flex flex-wrap gap-4", className)}>
+    {children}
+  </div>
+));
+ResourceCardGrid.displayName = "ResourceCardGrid";
 
-export function ResourceCard({
+export const ResourceCard = memo(({
   name,
   description,
   version,
@@ -50,180 +39,194 @@ export function ResourceCard({
   images = [],
   downloadUrl,
   className,
-}: ResourceCardProps) {
+}: ResourceCardProps) => {
   const hasImages = images.length > 0;
   const hasDependencies = dependencies.length > 0;
-  const [currentIndex, setCurrentIndex] = useState(0);
+  const hasMultipleImages = images.length > 1;
 
-  const prevImage = () =>
-    setCurrentIndex((i) => (i - 1 + images.length) % images.length);
-  const nextImage = () =>
-    setCurrentIndex((i) => (i + 1) % images.length);
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [imageStates, setImageStates] = useState<Map<string, { loaded: boolean; error: boolean }>>(
+    () => new Map()
+  );
+  const [viewerOpen, setViewerOpen] = useState(false);
+
+  const navigateCarousel = useCallback((direction: "prev" | "next") => {
+    setCurrentIndex(prev =>
+      direction === "prev"
+        ? (prev - 1 + images.length) % images.length
+        : (prev + 1) % images.length
+    );
+  }, [images.length]);
+
+  const handleImageLoad = useCallback((src: string) => {
+    setImageStates(prev => new Map(prev).set(src, { loaded: true, error: false }));
+  }, []);
+
+  const handleImageError = useCallback((src: string) => {
+    setImageStates(prev => new Map(prev).set(src, { loaded: false, error: true }));
+    console.error(`Failed to load image: ${src}`);
+  }, []);
+
+  const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
+    if (!hasMultipleImages) return;
+    if (e.key === "ArrowLeft") { e.preventDefault(); navigateCarousel("prev"); }
+    if (e.key === "ArrowRight") { e.preventDefault(); navigateCarousel("next"); }
+  }, [hasMultipleImages, navigateCarousel]);
+
+  const imagesToPreload = useMemo(() => {
+    const set = new Set<number>();
+    for (let i = 1; i <= PRELOAD_NEIGHBORS; i++) {
+      set.add((currentIndex + i) % images.length);
+    }
+    return set;
+  }, [currentIndex, images.length]);
 
   return (
-    <Card
-      className={cn(
-        "w-96 shrink-0 flex flex-col border-amber-900/20 bg-duck-stone/40 hover:border-amber-700/30 transition-colors",
-        className
-      )}
-    >
-      <CardHeader className="pb-3">
-        <div className="flex items-start justify-between gap-3 flex-wrap">
-          <CardTitle className="flex items-center gap-2 text-amber-100">
-            <Package size={15} className="text-amber-500/60 shrink-0" />
-            {name}
-          </CardTitle>
+    <>
+      <Card
+        className={cn(
+          "w-96 shrink-0 flex flex-col border-amber-900/20 bg-duck-stone/40 hover:border-amber-700/30 transition-colors",
+          className
+        )}
+      >
+        <CardHeader className="pb-3">
+          <div className="flex items-start justify-between gap-3 flex-wrap">
+            <CardTitle className="flex items-center gap-2 text-amber-100">
+              <Package size={15} className="text-amber-500/60 shrink-0" aria-hidden="true" />
+              {name}
+            </CardTitle>
+            {version && (
+              <Badge
+                variant="outline"
+                className="text-xs bg-amber-900/30 text-amber-400 border-amber-700/30"
+              >
+                v{version}
+              </Badge>
+            )}
+          </div>
+          <CardDescription className="text-amber-100/60 mt-2">
+            {description}
+          </CardDescription>
+        </CardHeader>
 
-          {version && (
-            <Badge
-              variant="outline"
-              className="text-xs bg-amber-900/30 text-amber-400 border-amber-700/30"
-            >
-              v{version}
-            </Badge>
-          )}
-        </div>
+        <CardContent className="space-y-4 pt-0 flex flex-col flex-1">
+          {hasImages && (
+            <div className="space-y-2">
+              <p className="text-xs text-amber-100/40 uppercase tracking-wider">
+                Изображения
+              </p>
 
-        <CardDescription className="text-amber-100/60 mt-2">
-          {description}
-        </CardDescription>
-      </CardHeader>
-
-      <CardContent className="space-y-4 pt-0 flex flex-col flex-1">
-        {hasImages && (
-          <div className="space-y-2">
-            <p className="text-xs text-amber-100/40 uppercase tracking-wider">
-              Изображения
-            </p>
-
-            <div className="relative group overflow-hidden rounded-xl border border-amber-900/20 bg-black/30" style={{ height: "176px" }}>
-              <div className="relative w-full" style={{ height: "176px" }}>
+              <div
+                className="not-prose relative group overflow-hidden rounded-xl border border-amber-900/20 bg-black/30"
+                style={{ height: `${CAROUSEL_HEIGHT}px` }}
+                onKeyDown={handleKeyDown}
+                role="region"
+                aria-label="Карусель изображений"
+                aria-live="polite"
+                tabIndex={0}
+              >
                 {images.map((image, index) => (
-                  <img
-                    key={`${image.src}-${index}`}
-                    src={image.src}
-                    alt={image.alt}
-                    title={image.title}
-                    loading="lazy"
-                    style={{
-                      display: "block",
-                      position: "absolute",
-                      top: 0,
-                      left: 0,
-                      width: "100%",
-                      height: "100%",
-                      objectFit: "cover",
-                      margin: 0,
-                      objectPosition: "center center",
-                      opacity: index === currentIndex ? 1 : 0,
-                      transition: "opacity 0.3s",
-                    }}
+                  <CarouselImage
+                    key={image.src}
+                    image={image}
+                    index={index}
+                    currentIndex={currentIndex}
+                    isLoaded={imageStates.get(image.src)?.loaded ?? false}
+                    onLoad={() => handleImageLoad(image.src)}
+                    onError={() => handleImageError(image.src)}
+                    shouldPreload={imagesToPreload.has(index)}
+                    onOpenViewer={() => setViewerOpen(true)}
                   />
                 ))}
+
+                {hasMultipleImages && (
+                  <>
+                    <div className="absolute inset-y-0 left-0 w-16 bg-linear-to-r from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" aria-hidden="true" />
+                    <div className="absolute inset-y-0 right-0 w-16 bg-linear-to-l from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" aria-hidden="true" />
+
+                    <button
+                      onClick={() => navigateCarousel("prev")}
+                      className={cn(
+                        "absolute left-2 top-1/2 -translate-y-1/2 z-20",
+                        "flex h-8 w-8 items-center justify-center rounded-full",
+                        "bg-black/60 border border-amber-900/30 text-amber-300",
+                        "opacity-0 group-hover:opacity-100 transition-all hover:bg-black/80 hover:scale-105",
+                        "focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
+                      )}
+                      aria-label="Предыдущее изображение"
+                      type="button"
+                    >
+                      <ChevronLeft size={18} aria-hidden="true" />
+                    </button>
+
+                    <button
+                      onClick={() => navigateCarousel("next")}
+                      className={cn(
+                        "absolute right-2 top-1/2 -translate-y-1/2 z-20",
+                        "flex h-8 w-8 items-center justify-center rounded-full",
+                        "bg-black/60 border border-amber-900/30 text-amber-300",
+                        "opacity-0 group-hover:opacity-100 transition-all hover:bg-black/80 hover:scale-105",
+                        "focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
+                      )}
+                      aria-label="Следующее изображение"
+                      type="button"
+                    >
+                      <ChevronRight size={18} aria-hidden="true" />
+                    </button>
+
+                    <CarouselIndicators
+                      total={images.length}
+                      current={currentIndex}
+                      onSelect={setCurrentIndex}
+                    />
+                  </>
+                )}
               </div>
-
-              {images.length > 1 && (
-                <>
-                  <div className="absolute inset-y-0 left-0 w-16 bg-linear-to-r from-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-                  <div className="absolute inset-y-0 right-0 w-16 bg-linear-to-l from-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-
-                  <button
-                    onClick={prevImage}
-                    className={cn(
-                      "absolute left-2 top-1/2 -translate-y-1/2 z-10",
-                      "flex h-8 w-8 items-center justify-center rounded-full",
-                      "bg-black/50 border border-amber-900/30 text-amber-300",
-                      "opacity-0 group-hover:opacity-100 transition-all duration-200",
-                      "hover:bg-black/70 hover:text-amber-100 focus:outline-none"
-                    )}
-                    aria-label="Предыдущее изображение"
-                  >
-                    <ChevronLeft size={16} />
-                  </button>
-
-                  <button
-                    onClick={nextImage}
-                    className={cn(
-                      "absolute right-2 top-1/2 -translate-y-1/2 z-10",
-                      "flex h-8 w-8 items-center justify-center rounded-full",
-                      "bg-black/50 border border-amber-900/30 text-amber-300",
-                      "opacity-0 group-hover:opacity-100 transition-all duration-200",
-                      "hover:bg-black/70 hover:text-amber-100 focus:outline-none"
-                    )}
-                    aria-label="Следующее изображение"
-                  >
-                    <ChevronRight size={16} />
-                  </button>
-
-                  <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1.5 z-10">
-                    {images.map((_, index) => (
-                      <button
-                        key={index}
-                        onClick={() => setCurrentIndex(index)}
-                        className={cn(
-                          "h-1.5 rounded-full transition-all duration-200 focus:outline-none",
-                          index === currentIndex
-                            ? "w-4 bg-amber-400"
-                            : "w-1.5 bg-amber-400/30 hover:bg-amber-400/60"
-                        )}
-                        aria-label={`Изображение ${index + 1}`}
-                      />
-                    ))}
-                  </div>
-                </>
-              )}
             </div>
-          </div>
-        )}
+          )}
 
-        {hasDependencies && (
-          <div className="space-y-2">
-            <p className="text-xs text-amber-100/40 uppercase tracking-wider">
-              Зависимости
-            </p>
-            <div className="flex flex-wrap gap-2">
-              {dependencies.map((dep) => (
-                <a
-                  key={dep.name}
-                  href={dep.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  style={{ textDecoration: "none" }}
-                  className={cn(
-                    "inline-flex items-center gap-1 rounded-md border px-2 py-0.5 text-xs font-medium transition-colors",
-                    "border-amber-900/20 bg-black/30 text-amber-300/70",
-                    "hover:border-amber-700/40 hover:text-amber-300"
-                  )}
-                >
-                  {dep.name}
-                  <ExternalLink size={10} className="opacity-50" />
-                </a>
-              ))}
+          {hasDependencies && (
+            <div className="space-y-2">
+              <p className="text-xs text-amber-100/40 uppercase tracking-wider">
+                Зависимости
+              </p>
+              <div className="flex flex-wrap gap-2">
+                {dependencies.map((dep) => (
+                  <DependencyBadge key={dep.name} dep={dep} />
+                ))}
+              </div>
             </div>
-          </div>
-        )}
+          )}
 
-        {/* Pushes button to bottom */}
-        <div className="flex-1" />
+          <div className="flex-1" aria-hidden="true" />
 
-        <Button
-          asChild
-          size="lg"
-          variant="link"
-          className="no-underline border-amber-900/30 bg-amber-950/20 text-amber-300 hover:bg-amber-950/40 hover:text-amber-200 hover:border-amber-700/50 hover:no-underline **:no-underline"
-          style={{ textDecoration: "none" }}
-        >
-          <a
-            href={downloadUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            style={{ textDecoration: "none" }}
+          <Button
+            asChild
+            size="lg"
+            className="border border-amber-900/30 bg-amber-950/30 text-amber-200 hover:bg-amber-900/40 hover:text-amber-100 hover:border-amber-700/50"
           >
-            <Download size={13} />
-            Скачать
-          </a>
-        </Button>
-      </CardContent>
-    </Card>
+            <a
+              href={downloadUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label={`Скачать ${name}`}
+            >
+              <Download size={16} className="mr-2" aria-hidden="true" />
+              Скачать
+            </a>
+          </Button>
+        </CardContent>
+      </Card>
+
+      {hasImages && (
+        <ImageViewer
+          images={images}
+          initialIndex={currentIndex}
+          open={viewerOpen}
+          onOpenChange={setViewerOpen}
+        />
+      )}
+    </>
   );
-}
+});
+ResourceCard.displayName = "ResourceCard";
