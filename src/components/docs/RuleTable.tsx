@@ -48,66 +48,72 @@ function inferSeverity(punishment: string): Severity {
   if (p.includes("предупр")) return "warn";
   return "other";
 }
-
 export function RuleTable({ rules, className }: RuleTableProps) {
   return (
-    <div className={cn("rounded-xl border border-amber-900/20 overflow-hidden", className)}>
-      <Table>
-        <TableHeader>
-          <TableRow className="border-amber-900/20 hover:bg-transparent bg-duck-stone/60">
-            <TableHead className="text-amber-400/70 w-16">№</TableHead>
-            <TableHead className="text-amber-400/70">Правило</TableHead>
-            <TableHead className="text-amber-400/70 text-right">Наказание</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {rules.map((r) => {
-            const hasGrades = Array.isArray(r.punishments) && r.punishments.length > 0;
+    <Table className={cn(className)}>
+      <TableHeader>
+        <TableRow>
+          <TableHead className="w-16">№</TableHead>
+          <TableHead>Правило</TableHead>
+          <TableHead className="text-right">Наказание</TableHead>
+        </TableRow>
+      </TableHeader>
 
-            return (
-              <TableRow
-                key={r.id}
-                className="border-amber-900/10 hover:bg-amber-500/5 transition-colors align-top"
-              >
-                <TableCell className="font-mono text-xs text-amber-100/30 pt-3">{r.id}</TableCell>
-                <TableCell
-                  className="text-amber-100/80 text-sm pt-3"
-                  dangerouslySetInnerHTML={{ __html: r.rule }}
-                />
-                <TableCell className="text-left pt-2 pb-2">
-                  {hasGrades ? (
-                    <div className="flex flex-col gap-1 items-start">
-                      {r.punishments!.map((p) => (
-                        <div key={p.grade} className="flex items-center gap-2">
-                          <span className="text-xs text-amber-100/30 font-mono shrink-0">
-                            {p.grade}×
-                          </span>
-                          <Badge
-                            variant="outline"
-                            className={cn("text-xs whitespace-nowrap", SEVERITY_STYLES[p.type])}
-                          >
-                            {p.label}
-                          </Badge>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <Badge
-                      variant="outline"
-                      className={cn(
-                        "text-xs whitespace-nowrap",
-                        SEVERITY_STYLES[r.severity ?? inferSeverity(r.punishment ?? "")]
-                      )}
-                    >
-                      {r.punishment}
-                    </Badge>
-                  )}
-                </TableCell>
-              </TableRow>
-            );
-          })}
-        </TableBody>
-      </Table>
-    </div>
+      <TableBody>
+        {rules.map((r) => {
+          const hasGrades =
+            Array.isArray(r.punishments) && r.punishments.length > 0;
+
+          return (
+            <TableRow key={r.id}>
+              <TableCell className="align-top font-mono text-xs text-muted-foreground">
+                {r.id}
+              </TableCell>
+
+              <TableCell
+                className="align-top text-sm"
+                dangerouslySetInnerHTML={{ __html: r.rule }}
+              />
+
+              <TableCell className="align-top text-right">
+                {hasGrades ? (
+                  <div className="flex flex-col items-start gap-1">
+                    {r.punishments!.map((p) => (
+                      <div key={p.grade} className="flex items-center gap-2">
+                        <span className="shrink-0 font-mono text-xs text-muted-foreground">
+                          {p.grade}×
+                        </span>
+
+                        <Badge
+                          variant="outline"
+                          className={cn(
+                            "text-xs whitespace-nowrap",
+                            SEVERITY_STYLES[p.type]
+                          )}
+                        >
+                          {p.label}
+                        </Badge>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <Badge
+                    variant="outline"
+                    className={cn(
+                      "text-xs whitespace-nowrap",
+                      SEVERITY_STYLES[
+                        r.severity ?? inferSeverity(r.punishment ?? "")
+                      ]
+                    )}
+                  >
+                    {r.punishment}
+                  </Badge>
+                )}
+              </TableCell>
+            </TableRow>
+          );
+        })}
+      </TableBody>
+    </Table>
   );
 }
