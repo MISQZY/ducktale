@@ -7,62 +7,88 @@ description: Правила игрового поведения на DuckBurg
   {
     id: "1.1",
     rule: "<strong>Гриферство</strong> — целенаправленное разрушение территории других игроков",
-    punishment: "⚠️ Предупреждение",
-    severity: "warn"
+    punishments: [
+      { grade: 1, type: "warn",     label: "⚠️ Предупреждение" },
+      { grade: 2, type: "rollback", label: "🔄 Откат" },
+      { grade: 3, type: "ban-temp", label: "🔨 Бан 3 дня" },
+      { grade: 4, type: "ban-perm", label: "🔨 Перманентный бан" }
+    ]
   },
   {
     id: "1.2",
     rule: "<strong>Читерство</strong> — использование запрещённых багов, чит-модификаций (в т.ч. Fullbright) и читов",
-    punishment: "🔨 Бан 1 день — навсегда / 🔒 Тюрьма",
-    severity: "ban-temp"
+    punishments: [
+      { grade: 1, type: "prison",   label: "🔒 Тюрьма" },
+      { grade: 2, type: "ban-temp", label: "🔨 Бан 1 день" },
+      { grade: 3, type: "ban-perm", label: "🔨 Перманентный бан" }
+    ]
   },
   {
     id: "1.3",
     rule: "<strong>AFK-обход</strong> — использование автокликеров и других способов обхода AFK-системы",
-    punishment: "🔨 Бан от 1 дня / 🔒 Тюрьма",
-    severity: "ban-temp"
+    punishments: [
+      { grade: 1, type: "prison",   label: "🔒 Тюрьма" },
+      { grade: 2, type: "ban-temp", label: "🔨 Бан 1 день" },
+      { grade: 3, type: "ban-temp", label: "🔨 Бан 7 дней" }
+    ]
   },
   {
     id: "1.4",
     rule: "<strong>Застройка вплотную</strong> — строительство базы ближе <strong>70 блоков</strong> к чужой территории без согласия владельца",
-    punishment: "🔄 Откат + ⚠️ Предупреждение",
-    severity: "rollback"
+    punishments: [
+      { grade: 1, type: "warn",     label: "⚠️ Предупреждение" },
+      { grade: 2, type: "rollback", label: "🔄 Откат" }
+    ]
   },
   {
     id: "1.5",
     rule: "<strong>Лаг-машины</strong> — создание конструкций, намеренно нагружающих сервер",
-    punishment: "🔨 Бан от 1 дня / 🔒 Тюрьма",
-    severity: "ban-temp"
+    punishments: [
+      { grade: 1, type: "prison",   label: "🔒 Тюрьма" },
+      { grade: 2, type: "ban-temp", label: "🔨 Бан 1 день" },
+      { grade: 3, type: "ban-perm", label: "🔨 Перманентный бан" }
+    ]
   },
   {
     id: "1.6",
     rule: "<strong>Мультиаккаунты</strong> — создание нескольких аккаунтов без весомой причины",
-    punishment: "🔨 Перманентный бан всех аккаунтов",
-    severity: "ban-perm"
+    punishments: [
+      { grade: 1, type: "ban-perm", label: "🔨 Перманентный бан всех аккаунтов" }
+    ]
   },
   {
     id: "1.7",
     rule: "<strong>Застройка спавна</strong> — города и поселения должны быть не ближе <strong>300 блоков</strong> от спавна",
-    punishment: "⚠️ Предупреждение + 🔧 Снос",
-    severity: "warn"
+    punishments: [
+      { grade: 1, type: "warn",  label: "⚠️ Предупреждение" },
+      { grade: 2, type: "other", label: "🔧 Снос" }
+    ]
   },
   {
     id: "1.8",
     rule: "<strong>Абьюз жителей</strong> — обход ограничения жителей (убийства / соло-тим абьюз)",
-    punishment: "🔨 Бан от 1 дня / 🔒 Тюрьма",
-    severity: "ban-temp"
+    punishments: [
+      { grade: 1, type: "prison",   label: "🔒 Тюрьма" },
+      { grade: 2, type: "ban-temp", label: "🔨 Бан 1 день" },
+      { grade: 3, type: "ban-temp", label: "🔨 Бан 7 дней" }
+    ]
   },
   {
     id: "1.9",
     rule: "<strong>Абьюз медных големов</strong> — превышение лимита в <strong>6 големов на команду</strong>",
-    punishment: "🔨 Бан от 1 дня / 🔒 Тюрьма",
-    severity: "ban-temp"
+    punishments: [
+      { grade: 1, type: "prison",   label: "🔒 Тюрьма" },
+      { grade: 2, type: "ban-temp", label: "🔨 Бан 1 день" },
+      { grade: 3, type: "ban-temp", label: "🔨 Бан 7 дней" }
+    ]
   },
   {
     id: "1.10",
     rule: "<strong>Поиск данжей через миникарту</strong>",
-    punishment: "🔨 Бан 1 день — навсегда",
-    severity: "ban-temp"
+    punishments: [
+      { grade: 1, type: "ban-temp", label: "🔨 Бан 1 день" },
+      { grade: 2, type: "ban-perm", label: "🔨 Перманентный бан" }
+    ]
   }
 ]} />
 

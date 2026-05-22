@@ -11,10 +11,17 @@ import {
 
 type Severity = "warn" | "ban-temp" | "ban-perm" | "prison" | "rollback" | "other";
 
+interface Punishment {
+  grade: number;
+  type: Severity;
+  label: string;
+}
+
 interface Rule {
   id: string;
   rule: string;
-  punishment: string;
+  punishments?: Punishment[];
+  punishment?: string;
   severity?: Severity;
 }
 
@@ -24,15 +31,14 @@ interface RuleTableProps {
 }
 
 const SEVERITY_STYLES: Record<Severity, string> = {
-  "warn":      "bg-yellow-900/40 text-yellow-300 border-yellow-700/30",
-  "ban-temp":  "bg-orange-900/40 text-orange-300 border-orange-700/30",
-  "ban-perm":  "bg-red-900/50 text-red-300 border-red-700/30",
-  "prison":    "bg-purple-900/40 text-purple-300 border-purple-700/30",
-  "rollback":  "bg-blue-900/40 text-blue-300 border-blue-700/30",
-  "other":     "bg-stone-800/60 text-stone-300 border-stone-600/30",
+  "warn":     "bg-yellow-900/40 text-yellow-300 border-yellow-700/30",
+  "ban-temp": "bg-orange-900/40 text-orange-300 border-orange-700/30",
+  "ban-perm": "bg-red-900/50 text-red-300 border-red-700/30",
+  "prison":   "bg-purple-900/40 text-purple-300 border-purple-700/30",
+  "rollback": "bg-blue-900/40 text-blue-300 border-blue-700/30",
+  "other":    "bg-stone-800/60 text-stone-300 border-stone-600/30",
 };
 
-/** Автоматически угадывает severity по тексту наказания */
 function inferSeverity(punishment: string): Severity {
   const p = punishment.toLowerCase();
   if (p.includes("перманент") || p.includes("навсегда")) return "ban-perm";
@@ -56,24 +62,46 @@ export function RuleTable({ rules, className }: RuleTableProps) {
         </TableHeader>
         <TableBody>
           {rules.map((r) => {
-            const severity = r.severity ?? inferSeverity(r.punishment);
+            const hasGrades = Array.isArray(r.punishments) && r.punishments.length > 0;
+
             return (
               <TableRow
                 key={r.id}
-                className="border-amber-900/10 hover:bg-amber-500/5 transition-colors"
+                className="border-amber-900/10 hover:bg-amber-500/5 transition-colors align-top"
               >
-                <TableCell className="font-mono text-xs text-amber-100/30">{r.id}</TableCell>
+                <TableCell className="font-mono text-xs text-amber-100/30 pt-3">{r.id}</TableCell>
                 <TableCell
-                  className="text-amber-100/80 text-sm"
+                  className="text-amber-100/80 text-sm pt-3"
                   dangerouslySetInnerHTML={{ __html: r.rule }}
                 />
-                <TableCell className="text-right">
-                  <Badge
-                    variant="outline"
-                    className={cn("text-xs whitespace-nowrap", SEVERITY_STYLES[severity])}
-                  >
-                    {r.punishment}
-                  </Badge>
+                <TableCell className="text-left pt-2 pb-2">
+                  {hasGrades ? (
+                    <div className="flex flex-col gap-1 items-start">
+                      {r.punishments!.map((p) => (
+                        <div key={p.grade} className="flex items-center gap-2">
+                          <span className="text-xs text-amber-100/30 font-mono shrink-0">
+                            {p.grade}×
+                          </span>
+                          <Badge
+                            variant="outline"
+                            className={cn("text-xs whitespace-nowrap", SEVERITY_STYLES[p.type])}
+                          >
+                            {p.label}
+                          </Badge>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <Badge
+                      variant="outline"
+                      className={cn(
+                        "text-xs whitespace-nowrap",
+                        SEVERITY_STYLES[r.severity ?? inferSeverity(r.punishment ?? "")]
+                      )}
+                    >
+                      {r.punishment}
+                    </Badge>
+                  )}
                 </TableCell>
               </TableRow>
             );

@@ -22,20 +22,28 @@ description: Правила строительства и использован
   {
     id: "3.1",
     rule: "<strong>Использование чужой частной фермы</strong> без разрешения владельца",
-    punishment: "💰 Штраф / ⚠️ Предупреждение",
-    severity: "warn"
+    punishments: [
+      { grade: 1, type: "warn",  label: "⚠️ Предупреждение" },
+      { grade: 2, type: "other", label: "💰 Штраф" },
+      { grade: 3, type: "ban-temp", label: "🔨 Бан 1 день" }
+    ]
   },
   {
     id: "3.2",
     rule: "<strong>Разрушение частной фермы</strong> (&gt; 2000 блоков) без разрешения — расценивается как гриферство",
-    punishment: "⚠️ Предупреждение",
-    severity: "warn"
+    punishments: [
+      { grade: 1, type: "warn",     label: "⚠️ Предупреждение" },
+      { grade: 2, type: "rollback", label: "🔄 Откат" },
+      { grade: 3, type: "ban-temp", label: "🔨 Бан 3 дня" }
+    ]
   },
   {
     id: "3.3",
     rule: "<strong>Фермы мобов</strong> — запрещено строительство палок-платформ в небо",
-    punishment: "🔧 Снос / 🔒 Тюрьма",
-    severity: "prison"
+    punishments: [
+      { grade: 1, type: "other",  label: "🔧 Снос без предупреждения" },
+      { grade: 2, type: "prison", label: "🔒 Тюрьма" }
+    ]
   }
 ]} />
 
