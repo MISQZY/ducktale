@@ -3,7 +3,6 @@ import Navbar from "@/components/Navbar";
 import ServersSection from "@/components/ServersSection";
 import SectionHeader from "@/components/SectionHeader";
 import { PageBackground } from "@/components/common/PageBackground";
-import { GoldDivider } from "@/components/common/GoldDivider";
 import { StatusBadge } from "@/components/common/StatusBadge";
 import { CtaButton } from "@/components/common/CtaButton";
 import { Shield, Users, ChevronDown } from "lucide-react";
