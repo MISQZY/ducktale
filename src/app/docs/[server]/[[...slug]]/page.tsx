@@ -27,7 +27,7 @@ export default async function DocsServerPage({
   if (!MDX) notFound();
 
   return (
-    <DocsPage toc={(toc as TOCItemType[]) || []} full={full}>
+    <DocsPage toc={(toc as TOCItemType[]) || []} full={full ?? false}>
       <DocsTitle>{title}</DocsTitle>
       <DocsDescription>{description}</DocsDescription>
       <DocsBody>
