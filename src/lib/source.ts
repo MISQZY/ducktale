@@ -4,6 +4,7 @@ import { SERVERS } from "@/config/servers";
 import { ComponentType } from "react";
 import type { MDXComponents } from "mdx/types";
 import type { VirtualFile, SourceConfig } from 'fumadocs-core/source';
+import { notFound } from "next/navigation";
 
 export interface ExtendedPage {
   title: string;
@@ -37,6 +38,6 @@ export const docsSources = Object.fromEntries(
 
 export function getDocsSource(id: string) {
   const src = docsSources[id];
-  if (!src) throw new Error(`Unknown docs source: "${id}"`);
+  if (!src) notFound();
   return src;
 }

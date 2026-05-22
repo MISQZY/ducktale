@@ -12,6 +12,10 @@ export default async function DocsServerPage({
   params: Promise<{ server: string; slug?: string[] }>;
 }) {
   const { server, slug } = await params;
+
+  const config = SERVERS.find((s) => s.id === server);
+  if (!config) notFound();
+
   const source = getDocsSource(server);
 
   const page = await source.getPage(slug || []);
