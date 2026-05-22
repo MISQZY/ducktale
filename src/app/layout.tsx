@@ -1,10 +1,9 @@
 import type { Metadata } from "next";
 import { RootProvider } from "fumadocs-ui/provider";
-import { Cinzel_Decorative, Crimson_Pro, JetBrains_Mono, Geist } from "next/font/google";
+import { Cinzel_Decorative, Crimson_Pro, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import { cn } from "@/lib/utils";
-
-const geist = Geist({subsets:['latin'],variable:'--font-sans'});
+import { ServerStatusProvider } from "@/context/ServerStatusContext";
 
 const fontDisplay = Cinzel_Decorative({
   weight: ["400", "700", "900"],
@@ -28,7 +27,13 @@ const fontMono = JetBrains_Mono({
   display: "swap",
 });
 
+const siteURL = new URL(
+    process.env.NEXT_PUBLIC_SITE_URL ??
+      (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000")
+  )
+
 export const metadata: Metadata = {
+  metadataBase: siteURL,
   icons: {
     icon: "/icons/favicon.svg",
   },
@@ -38,6 +43,23 @@ export const metadata: Metadata = {
   },
   description:
     "DuckTale — сеть Minecraft серверов. DuckBurg — сервер выживания, DuckHood — сервер творчества.",
+  openGraph: {
+    title: "DuckTale — Minecraft Network",
+    description:
+      "DuckTale — сеть Minecraft серверов. DuckBurg — выживание, DuckHood — творчество.",
+    url: siteURL,
+    siteName: "DuckTale",
+    locale: "ru_RU",
+    type: "website",
+    images: [
+      {
+        url: "/icons/favicon.png",
+        width: 1200,
+        height: 630,
+        alt: "DuckTale — Minecraft Network",
+      },
+    ],
+  },
 };
 
 export default function RootLayout({
@@ -49,13 +71,18 @@ export default function RootLayout({
     <html
       lang="ru"
       suppressHydrationWarning
-      className={cn("scroll-pt-16", fontDisplay.variable, fontBody.variable, fontMono.variable, "font-sans", geist.variable)}
+      className={cn(
+        "scroll-pt-16",
+        fontDisplay.variable,
+        fontBody.variable,
+        fontMono.variable
+      )}
     >
       <body>
-        <RootProvider theme={{
-          defaultTheme: "dark",
-          forcedTheme: "dark",
-        }}>{children}</RootProvider>
+        <RootProvider theme={{ defaultTheme: "dark", forcedTheme: "dark" }}>
+          {/* ServerStatusProvider*/}
+          <ServerStatusProvider>{children}</ServerStatusProvider>
+        </RootProvider>
       </body>
     </html>
   );
