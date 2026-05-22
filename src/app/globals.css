@@ -195,3 +195,20 @@ body {
 .step-item-content h3 {
   margin-top: 0 !important;
 }
+
+@keyframes heroPulse {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 0.40;
+  }
+  50% {
+    transform: scale(1.03);
+    opacity: 0.80;
+  }
+}
+
+.hero-pulse {
+  animation: heroPulse 6s ease-in-out infinite;
+  transform-origin: center;
+}
