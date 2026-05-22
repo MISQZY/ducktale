@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { SERVERS } from "@/config/servers";
 import { getDocsSource } from "@/lib/source";
 import Logo from "@/components/ui/Logo";
+import { ServerBanner } from "@/components/docs/ServerBanner";
 
 export default async function DocsServerLayout({
   children,
@@ -17,7 +18,6 @@ export default async function DocsServerLayout({
   if (!config) notFound();
 
   const source = getDocsSource(server);
-  const { sidebarBorderColor, sidebarBgColor, sidebarTextColor } = config.docs;
 
   return (
     <DocsLayout
@@ -25,11 +25,7 @@ export default async function DocsServerLayout({
       themeSwitch={{ enabled: false }}
       nav={{ title: <Logo /> }}
       sidebar={{
-        banner: (
-          <div className={`rounded-lg border ${sidebarBorderColor} ${sidebarBgColor} p-3 text-center`}>
-            <p className={`text-lg font-bold ${sidebarTextColor}`}>{config.name}</p>
-          </div>
-        ),
+        banner: <ServerBanner config={config} />,
       }}
     >
       {children}
