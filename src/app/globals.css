@@ -60,10 +60,6 @@
   --radius: 0.625rem;
 }
 
-html {
-  scroll-behavior: smooth;
-}
-
 body {
   background-color: #0f0e0a;
   color: #fef9ee;

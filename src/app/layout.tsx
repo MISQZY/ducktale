@@ -71,6 +71,7 @@ export default function RootLayout({
     <html
       lang="ru"
       suppressHydrationWarning
+      data-scroll-behavior="smooth" 
       className={cn(
         "scroll-pt-16",
         fontDisplay.variable,
