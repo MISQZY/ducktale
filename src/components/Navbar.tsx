@@ -18,7 +18,7 @@ import {
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 
 const navLinks = [
-  { href: "/#about", label: "О проекте" },
+  { href: "/#about",   label: "О проекте" },
   { href: "/#servers", label: "Серверы" },
   ...SERVERS.map((s) => ({ href: s.href, label: s.name })),
 ];
@@ -35,41 +35,42 @@ export default function Navbar() {
   return (
     <header className="fixed top-0 left-0 right-0 z-50">
 
-      <nav className="backdrop-blur-md bg-duck-darker/80 border-b border-amber-900/30">
-        {/* Golden Topline */}
-        <div className="h-px bg-linear-to-r from-transparent via-amber-500 to-transparent" />
+      <nav className="backdrop-blur-md border-b border-gold-800/25"
+           style={{ boxShadow: "0 1px 0 rgba(212,160,23,0.04), 0 4px 30px rgba(0,0,0,0.4)" }}>
+            
+        <div className="h-px bg-linear-to-r from-transparent via-gold-500/70 to-transparent" />
         <div className="max-w-6xl mx-auto px-6 flex items-center justify-between h-16">
-          {/* Logo */}
-          <Link href="/">
+          <Link href="/" aria-label="DuckTale — на главную">
             <Logo />
           </Link>
 
-          {/* Desktop menu */}
-          <div className="hidden md:flex items-center gap-6">
+          <div className="hidden md:flex items-center gap-1">
             {navLinks.map((link) => (
               <Link
                 key={link.href}
                 href={link.href}
                 className={cn(
-                  "text-sm transition-colors tracking-wide",
+                  "relative px-4 py-2 text-sm transition-colors tracking-wide rounded-md",
                   isActive(link.href)
-                    ? "text-amber-300 font-semibold"
-                    : "text-amber-100/70 hover:text-amber-300"
+                    ? "text-gold-300 font-semibold"
+                    : "text-amber-100/55 hover:text-gold-300/90"
                 )}
                 aria-current={isActive(link.href) ? "page" : undefined}
               >
                 {link.label}
+                {isActive(link.href) && (
+                  <span className="absolute bottom-0 left-3 right-3 h-px bg-linear-to-r from-transparent via-gold-400/70 to-transparent" />
+                )}
               </Link>
             ))}
           </div>
 
-          {/* Mobile: shadcn Sheet */}
           <Sheet open={menuOpen} onOpenChange={setMenuOpen}>
             <SheetTrigger asChild>
               <Button
                 variant="ghost"
                 size="icon"
-                className="md:hidden text-amber-400 hover:text-amber-300 hover:bg-amber-400/10"
+                className="md:hidden text-gold-400/70 hover:text-gold-300 hover:bg-gold-400/8"
                 aria-label={menuOpen ? "Закрыть меню" : "Открыть меню"}
                 aria-expanded={menuOpen}
               >
@@ -80,32 +81,30 @@ export default function Navbar() {
             <SheetContent
               side="right"
               className={cn(
-                "w-64 border-l border-amber-900/30",
-                "bg-[#0e0c09]/95 backdrop-blur-md",
+                "w-64 border-l border-gold-800/25",
+                "bg-stone-950/97 backdrop-blur-lg",
                 "flex flex-col pt-0"
               )}
             >
-              {/* Accessible title */}
               <VisuallyHidden>
                 <SheetTitle>Навигация</SheetTitle>
               </VisuallyHidden>
 
-              {/* Header strip matching the navbar */}
-              <div className="flex items-center h-16 px-5 border-b border-amber-900/30 shrink-0">
+              <div className="flex items-center h-16 px-5 border-b border-gold-800/20 shrink-0">
                 <Logo />
               </div>
+              <div className="h-px mx-5 bg-linear-to-r from-transparent via-gold-600/25 to-transparent" />
 
-              {/* Nav links */}
-              <nav className="flex flex-col px-4 py-5 gap-1">
+              <nav className="flex flex-col px-3 py-4 gap-0.5">
                 {navLinks.map((link) => (
                   <SheetClose asChild key={link.href}>
                     <Link
                       href={link.href}
                       className={cn(
-                        "flex items-center rounded-lg px-3 py-2.5 text-sm tracking-wide transition-colors",
+                        "flex items-center rounded-lg px-4 py-2.5 text-sm tracking-wide transition-colors",
                         isActive(link.href)
-                          ? "bg-amber-400/10 text-amber-300 font-semibold"
-                          : "text-amber-100/60 hover:bg-amber-400/6 hover:text-amber-200"
+                          ? "bg-gold-400/8 text-gold-300 font-semibold border-l-2 border-gold-400/50"
+                          : "text-amber-100/50 hover:bg-gold-400/5 hover:text-gold-200/80"
                       )}
                       aria-current={isActive(link.href) ? "page" : undefined}
                     >

@@ -21,14 +21,24 @@ export function CtaButton({
     <Link
       href={href}
       className={cn(
-        "flex items-center gap-2 px-8 py-3.5 rounded-xl font-bold tracking-wide transition-all active:scale-95",
-        variant === "primary" &&
-          "bg-amber-500 hover:bg-amber-400 text-duck-dark hover:shadow-xl hover:shadow-amber-500/30",
-        variant === "outline" &&
-          "border border-amber-500/30 hover:border-amber-500/60 text-amber-300 hover:text-amber-200",
+        "relative flex items-center gap-2 px-8 py-3.5 rounded-xl font-semibold tracking-wide transition-all duration-200 active:scale-95 overflow-hidden group",
+        variant === "primary" && [
+          "bg-linear-to-b from-gold-400 to-gold-600 text-stone-950",
+          "hover:from-gold-300 hover:to-gold-500",
+          "shadow-lg shadow-gold-900/30 hover:shadow-xl hover:shadow-gold-800/40",
+          "border border-gold-300/20",
+        ],
+        variant === "outline" && [
+          "border border-gold-600/30 hover:border-gold-500/55 text-gold-300/80 hover:text-gold-200",
+          "hover:bg-gold-500/5",
+        ],
         className
       )}
+      style={variant === "primary" ? { fontFamily: "var(--font-display)", fontSize: "0.85rem" } : { fontFamily: "var(--font-display)", fontSize: "0.85rem" }}
     >
+      {variant === "primary" && (
+        <span className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-700 bg-linear-to-r from-transparent via-white/15 to-transparent skew-x-12" />
+      )}
       {icon}
       {children}
     </Link>
