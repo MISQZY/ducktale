@@ -2,6 +2,7 @@
 @import "fumadocs-ui/style.css";
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
+@import "./fumadocs-overrides.css";
 
 @custom-variant dark (&:is(.dark *));
 
@@ -10,23 +11,23 @@
   --color-gold-100: #f9ecca;
   --color-gold-200: #f0d27a;
   --color-gold-300: #e6b93a;
-  --color-gold-400: #d4a017;
+  --color-gold-400: var(--color-accent-gold);
   --color-gold-500: #b8860b;
   --color-gold-600: #9a6f09;
   --color-gold-700: #7a5407;
   --color-gold-800: #5c3d05;
   --color-gold-900: #3d2803;
 
-  --color-stone-950: #0c0b09;
+  --color-stone-950: var(--color-bg-page);
   --color-stone-900: #111009;
-  --color-stone-800: #1a180f;
+  --color-stone-800: var(--color-bg-elevated);
   --color-stone-700: #252318;
   --color-stone-600: #332f21;
   --color-stone-500: #4a4535;
 
-  --color-duck-dark:   #0c0b09;
+  --color-duck-dark:   var(--color-bg-page);
   --color-duck-darker: #080705;
-  --color-duck-stone:  #1a180f;
+  --color-duck-stone:  var(--color-bg-elevated);
   --color-duck-muted:  #252318;
 
   --font-display: "Cinzel Decorative", serif;
@@ -35,14 +36,14 @@
 }
 
 :root {
-  --fd-primary:           #d4a017;
-  --fd-background:        #0c0b09;
-  --fd-foreground:        #f5e8c0;
-  --fd-muted:             #1a180f;
-  --fd-muted-foreground:  #8a7a55;
+  --fd-primary:           var(--color-accent-gold);
+  --fd-background:        var(--color-bg-page);
+  --fd-foreground:        var(--color-text-primary);
+  --fd-muted:             var(--color-bg-elevated);
+  --fd-muted-foreground:  var(--color-text-secondary);
   --fd-border:            #2e2a1a;
-  --fd-card:              #141209;
-  --fd-card-foreground:   #f5e8c0;
+  --fd-card:              var(--color-bg-surface);
+  --fd-card-foreground:   var(--color-text-primary);
 
   --background:          oklch(0.09 0.015 75);
   --foreground:          oklch(0.94 0.04 80);
@@ -63,17 +64,66 @@
   --input:               oklch(1 0 0 / 13%);
   --ring:                oklch(0.68 0.13 72 / 50%);
   --radius:              0.5rem;
+
+  --color-bg-page: #0c0b09;
+  --color-bg-surface: #141209;
+  --color-bg-elevated: #1a180f;
+  --color-bg-muted: #252318;
+  --color-bg-strong: #111009;
+
+  --color-text-primary: #f5e8c0;
+  --color-text-secondary: #8a7a55;
+  --color-text-dim: rgba(245, 232, 192, 0.52);
+  --color-text-faint: rgba(245, 232, 192, 0.38);
+  --color-text-ghost: rgba(245, 232, 192, 0.28);
+
+  --color-accent-gold: #d4a017;
+  --color-accent-gold-strong: #b8860b;
+  --color-accent-gold-light: #e6b93a;
+  --color-accent-gold-pale: #fdf8e8;
+
+  --color-accent-gold-soft: rgba(212, 160, 23, 0.12);
+  --color-accent-gold-faint: rgba(212, 160, 23, 0.05);
+  --color-accent-gold-muted: rgba(212, 160, 23, 0.18);
+  --color-accent-gold-line: rgba(212, 160, 23, 0.85);
+  --color-accent-gold-line-soft: rgba(212, 160, 23, 0.45);
+  --color-accent-gold-line-strong: rgba(212, 160, 23, 0.95);
+
+  --color-border-subtle: #2e2a1a;
+  --color-border-soft: rgba(212, 160, 23, 0.15);
+  --color-border-weak: rgba(212, 160, 23, 0.1);
+  --color-border-accent: rgba(212, 160, 23, 0.55);
+
+  --color-shadow-deep: rgba(0, 0, 0, 0.4);
+  --color-shadow-gold: rgba(212, 160, 23, 0.12);
+  --color-shadow-gold-soft: rgba(212, 160, 23, 0.06);
+
+  --color-dialog-overlay: rgba(0, 0, 0, 0.7);
+  --color-input-bg: rgba(20, 18, 9, 0.9);
+  --color-input-border: rgba(212, 160, 23, 0.25);
+  --color-link-hover-bg: rgba(212, 160, 23, 0.05);
+  --color-link-active-bg: rgba(212, 160, 23, 0.09);
+  --color-selection-bg: rgba(212, 160, 23, 0.25);
+
+  --color-scrollbar-track: var(--color-bg-page);
+  --color-scrollbar-thumb: rgba(212, 160, 23, 0.25);
+  --color-scrollbar-thumb-hover: rgba(212, 160, 23, 0.45);
+
+  --font-display: "Cinzel Decorative", serif;
+  --font-body: "Crimson Pro", serif;
+  --font-mono: "JetBrains Mono", monospace;
 }
 
 html {
-  background-color: #0c0b09;
+  background-color: var(--color-bg-page);
   data-scroll-behavior: smooth;
 }
 
 body {
-  background-color: #0c0b09;
-  color: #f5e8c0;
+  background-color: var(--color-bg-page);
+  color: var(--color-text-primary);
   font-family: var(--font-body);
+  letter-spacing: 0.015em;
   margin: 0;
   background-image:
     url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
@@ -272,27 +322,6 @@ body {
 .step-item-content h3 {
   margin-top: 0 !important;
 }
-
-::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
-}
-::-webkit-scrollbar-track {
-  background: #0c0b09;
-}
-::-webkit-scrollbar-thumb {
-  background: rgba(212,160,23,0.25);
-  border-radius: 3px;
-}
-::-webkit-scrollbar-thumb:hover {
-  background: rgba(212,160,23,0.45);
-}
-
-::selection {
-  background: rgba(212,160,23,0.25);
-  color: #fdf8e8;
-}
-
 
 .stonework-bg {
   background-image:
