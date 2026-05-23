@@ -34,10 +34,10 @@ export default function Navbar() {
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50">
-      {/* Top golden line */}
-      <div className="h-px bg-linear-to-r from-transparent via-amber-500 to-transparent" />
 
       <nav className="backdrop-blur-md bg-duck-darker/80 border-b border-amber-900/30">
+        {/* Golden Topline */}
+        <div className="h-px bg-linear-to-r from-transparent via-amber-500 to-transparent" />
         <div className="max-w-6xl mx-auto px-6 flex items-center justify-between h-16">
           {/* Logo */}
           <Link href="/">

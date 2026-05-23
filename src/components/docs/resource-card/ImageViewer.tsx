@@ -69,7 +69,7 @@ export const ImageViewer = memo(
         {/* Image area */}
         <div className="relative flex-1 w-full overflow-hidden">
           <div className="relative w-full h-full flex items-center justify-center p-4 md:p-6">
-            <div className="relative w-full h-full max-w-[75vw] max-h-[90vh]">
+            <div className="relative w-full h-full max-w-full md:max-w-[75vw] max-h-[90vh]">
               <Image
                 src={current.src}
                 alt={current.alt}

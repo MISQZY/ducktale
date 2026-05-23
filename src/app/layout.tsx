@@ -38,7 +38,7 @@ export const metadata: Metadata = {
     icon: "/icons/favicon.svg",
   },
   title: {
-    template: "%s",
+    template: "%s | DuckTale",
     default: "DuckTale — Minecraft Network",
   },
   description:
@@ -53,7 +53,7 @@ export const metadata: Metadata = {
     type: "website",
     images: [
       {
-        url: "/icons/favicon.png",
+        url: "/icons/favicon.svg",
         width: 1200,
         height: 630,
         alt: "DuckTale — Minecraft Network",
@@ -71,7 +71,6 @@ export default function RootLayout({
     <html
       lang="ru"
       suppressHydrationWarning
-      data-scroll-behavior="smooth"
       className={cn(
         "scroll-pt-16",
         fontDisplay.variable,
