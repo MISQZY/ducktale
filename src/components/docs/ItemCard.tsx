@@ -1,10 +1,10 @@
 import { cn } from "@/lib/utils";
 import {
-  HoverCard,
-  HoverCardContent,
-  HoverCardTrigger,
-} from "@/components/ui/hover-card";
-import { Badge } from "@/components/ui/badge";
+  DuckHoverCard,
+  DuckHoverCardContent,
+  DuckHoverCardTrigger,
+} from "@/components/ui/duck/hover-card";
+import { DuckBadge } from "@/components/ui/duck/badge";
 import type { ReactNode } from "react";
 
 type Rarity = "common" | "uncommon" | "rare" | "epic" | "legendary";
@@ -42,8 +42,8 @@ export function ItemCard({
   const r = RARITY_STYLES[rarity];
 
   return (
-    <HoverCard openDelay={150}>
-      <HoverCardTrigger asChild>
+    <DuckHoverCard openDelay={150}>
+      <DuckHoverCardTrigger asChild>
         <div
           className={cn(
             "inline-flex items-center gap-2 cursor-default rounded-lg border px-3 py-1.5",
@@ -53,13 +53,13 @@ export function ItemCard({
         >
           <span className="text-lg leading-none">{emoji}</span>
           <span className={cn("text-sm font-medium", r.title)}>{name}</span>
-          <Badge variant="outline" className={cn("text-[10px] ml-1", r.badge)}>
+          <DuckBadge variant="outline" className={cn("text-[10px] ml-1", r.badge)}>
             {r.label}
-          </Badge>
+          </DuckBadge>
         </div>
-      </HoverCardTrigger>
+      </DuckHoverCardTrigger>
 
-      <HoverCardContent
+      <DuckHoverCardContent
         className="w-72 border-amber-900/30 bg-duck-dark/95 backdrop-blur-md p-4 space-y-2"
         align="start"
       >
@@ -67,9 +67,9 @@ export function ItemCard({
           <span className="text-3xl leading-none">{emoji}</span>
           <div className="min-w-0">
             <p className={cn("font-bold text-sm leading-none", r.title)}>{name}</p>
-            <Badge variant="outline" className={cn("mt-1.5 text-[10px]", r.badge)}>
+            <DuckBadge variant="outline" className={cn("mt-1.5 text-[10px]", r.badge)}>
               {r.label}
-            </Badge>
+            </DuckBadge>
           </div>
         </div>
 
@@ -95,7 +95,7 @@ export function ItemCard({
             {obtain}
           </div>
         )}
-      </HoverCardContent>
-    </HoverCard>
+      </DuckHoverCardContent>
+    </DuckHoverCard>
   );
 }

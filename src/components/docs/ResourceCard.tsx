@@ -3,15 +3,15 @@
 import { memo, useState, useCallback, useMemo } from "react";
 import { Package, Download, ChevronLeft, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { DuckBadge } from "@/components/ui/duck/badge";
+import { DuckButton } from "@/components/ui/duck/button";
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+  DuckCard,
+  DuckCardContent,
+  DuckCardDescription,
+  DuckCardHeader,
+  DuckCardTitle,
+} from "@/components/ui/duck/card";
 
 import { DependencyBadge } from "./resource-card/DependencyBadge";
 import { CarouselIndicators } from "./resource-card/CarouselIndicators";
@@ -83,33 +83,33 @@ export const ResourceCard = memo(({
 
   return (
     <>
-      <Card
+      <DuckCard
         className={cn(
           "w-96 shrink-0 flex flex-col border-amber-900/20 bg-duck-stone/40 hover:border-amber-700/30 transition-colors",
           className
         )}
       >
-        <CardHeader className="pb-3">
+        <DuckCardHeader className="pb-3">
           <div className="flex items-start justify-between gap-3 flex-wrap">
-            <CardTitle className="flex items-center gap-2 text-amber-100">
+            <DuckCardTitle className="flex items-center gap-2 text-amber-100">
               <Package size={15} className="text-amber-500/60 shrink-0" aria-hidden="true" />
               {name}
-            </CardTitle>
+            </DuckCardTitle>
             {version && (
-              <Badge
+              <DuckBadge
                 variant="outline"
                 className="text-xs bg-amber-900/30 text-amber-400 border-amber-700/30"
               >
                 v{version}
-              </Badge>
+              </DuckBadge>
             )}
           </div>
-          <CardDescription className="text-amber-100/60 mt-2">
+          <DuckCardDescription className="text-amber-100/60 mt-2">
             {description}
-          </CardDescription>
-        </CardHeader>
+          </DuckCardDescription>
+        </DuckCardHeader>
 
-        <CardContent className="space-y-4 pt-0 flex flex-col flex-1">
+        <DuckCardContent className="space-y-4 pt-0 flex flex-col flex-1">
           {hasImages && (
             <div className="space-y-2">
               <p className="text-xs text-amber-100/40 uppercase tracking-wider">
@@ -200,7 +200,7 @@ export const ResourceCard = memo(({
 
           <div className="flex-1" aria-hidden="true" />
 
-          <Button
+          <DuckButton
             asChild
             size="lg"
             className="border border-amber-900/30 bg-amber-950/30 text-amber-200 hover:bg-amber-900/40 hover:text-amber-100 hover:border-amber-700/50"
@@ -214,9 +214,9 @@ export const ResourceCard = memo(({
               <Download size={16} className="mr-2" aria-hidden="true" />
               Скачать
             </a>
-          </Button>
-        </CardContent>
-      </Card>
+          </DuckButton>
+        </DuckCardContent>
+      </DuckCard>
 
       {hasImages && (
         <ImageViewer

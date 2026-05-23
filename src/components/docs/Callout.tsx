@@ -1,5 +1,5 @@
 import { cn } from "@/lib/utils";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { DuckAlert, DuckAlertDescription, DuckAlertTitle } from "@/components/ui/duck";
 import { Info, AlertTriangle, XOctagon, Lightbulb, Sword } from "lucide-react";
 import type { ReactNode } from "react";
 
@@ -53,12 +53,12 @@ export function Callout({ variant = "info", title, children, className }: Callou
   const { icon: Icon, containerCn, titleCn, iconCn } = CONFIG[variant];
 
   return (
-    <Alert className={cn("my-4", containerCn, className)}>
+    <DuckAlert className={cn("my-4", containerCn, className)}>
       <Icon size={15} className={iconCn} />
-      {title && <AlertTitle className={cn("font-semibold", titleCn)}>{title}</AlertTitle>}
-      <AlertDescription className="text-amber-100/70 text-sm [&>p]:mt-0">
+      {title && <DuckAlertTitle className={cn("font-semibold", titleCn)}>{title}</DuckAlertTitle>}
+      <DuckAlertDescription className="text-amber-100/70 text-sm [&>p]:mt-0">
         {children}
-      </AlertDescription>
-    </Alert>
+      </DuckAlertDescription>
+    </DuckAlert>
   );
 }

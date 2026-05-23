@@ -2,13 +2,13 @@
 
 import { cn } from "@/lib/utils";
 import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
+  DuckCard,
+  DuckCardContent,
+  DuckCardHeader,
+  DuckCardTitle,
+} from "@/components/ui/duck/card";
+import { DuckBadge } from "@/components/ui/duck/badge";
+import { DuckSeparator } from "@/components/ui/duck/separator";
 import {
   Collapsible,
   CollapsibleContent,
@@ -36,26 +36,26 @@ export function ServerStatusWidget({ host, serverName, className }: ServerStatus
 
   if (result.state === "loading") {
     return (
-      <Card className={cn("border-amber-900/20 bg-duck-stone/30 animate-pulse", className)}>
-        <CardHeader className="py-3">
+      <DuckCard className={cn("border-amber-900/20 bg-duck-stone/30 animate-pulse", className)}>
+        <DuckCardHeader className="py-3">
           <div className="h-4 w-32 rounded bg-amber-900/20" />
-        </CardHeader>
-        <CardContent>
+        </DuckCardHeader>
+        <DuckCardContent>
           <div className="h-3 w-20 rounded bg-amber-900/20" />
-        </CardContent>
-      </Card>
+        </DuckCardContent>
+      </DuckCard>
     );
   }
 
   if (result.state === "error") {
     return (
-      <Card className={cn("border-red-900/20 bg-duck-stone/30", className)}>
-        <CardContent className="py-3">
+      <DuckCard className={cn("border-red-900/20 bg-duck-stone/30", className)}>
+        <DuckCardContent className="py-3">
           <p className="text-xs text-red-400/70">
             Не удалось получить статус сервера. Попробуйте обновить страницу.
           </p>
-        </CardContent>
-      </Card>
+        </DuckCardContent>
+      </DuckCard>
     );
   }
 
@@ -64,13 +64,13 @@ export function ServerStatusWidget({ host, serverName, className }: ServerStatus
   const hasPlayers = status.online && (status.players?.online ?? 0) > 0 && playerList.length > 0;
 
   return (
-    <Card className={cn("border-amber-900/20 bg-duck-stone/30 my-4", className)}>
-      <CardHeader className="py-3 pb-2">
+    <DuckCard className={cn("border-amber-900/20 bg-duck-stone/30 my-4", className)}>
+      <DuckCardHeader className="py-3 pb-2">
         <div className="flex items-center justify-between">
-          <CardTitle className="text-sm text-amber-100/80 font-medium">
+          <DuckCardTitle className="text-sm text-amber-100/80 font-medium">
             {serverName ?? host}
-          </CardTitle>
-          <Badge
+          </DuckCardTitle>
+          <DuckBadge
             variant="outline"
             className={cn(
               "gap-1.5 text-xs",
@@ -86,11 +86,11 @@ export function ServerStatusWidget({ host, serverName, className }: ServerStatus
               )}
             />
             {status.online ? "Онлайн" : "Офлайн"}
-          </Badge>
+          </DuckBadge>
         </div>
-      </CardHeader>
+      </DuckCardHeader>
 
-      <CardContent className="pt-0 space-y-2">
+      <DuckCardContent className="pt-0 space-y-2">
         {status.online ? (
           <>
             <div className="flex items-center gap-4 text-xs text-amber-100/50">
@@ -107,7 +107,7 @@ export function ServerStatusWidget({ host, serverName, className }: ServerStatus
 
             {hasPlayers && (
               <>
-                <Separator className="bg-amber-900/20" />
+                <DuckSeparator className="bg-amber-900/20" />
                 <Collapsible>
                   <CollapsibleTrigger className="flex items-center gap-1 text-xs text-amber-100/40 hover:text-amber-100/60 transition-colors group">
                     Список игроков
@@ -119,13 +119,13 @@ export function ServerStatusWidget({ host, serverName, className }: ServerStatus
                   <CollapsibleContent>
                     <div className="mt-2 flex flex-wrap gap-1.5">
                       {playerList.map((p) => (
-                        <Badge
+                        <DuckBadge
                           key={p.name}
                           variant="secondary"
                           className="text-xs bg-black/30 text-amber-100/60 border border-amber-900/15"
                         >
                           {p.name}
-                        </Badge>
+                        </DuckBadge>
                       ))}
                     </div>
                   </CollapsibleContent>
@@ -138,7 +138,7 @@ export function ServerStatusWidget({ host, serverName, className }: ServerStatus
             Сервер временно недоступен. Попробуйте позже.
           </p>
         )}
-      </CardContent>
-    </Card>
+      </DuckCardContent>
+    </DuckCard>
   );
 }

@@ -2,7 +2,7 @@
 
 import { useState, useCallback } from "react";
 import { Maximize2, X } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { DuckButton } from "@/components/ui/duck/button";
 import { useFullscreen } from "@/hooks/useFullscreen";
 
 interface PageEmbedProps {
@@ -62,7 +62,7 @@ export function PageEmbed({ src, title = "Embedded page", height = 500 }: PageEm
           loading="lazy"
           allow="fullscreen"
         />
-        <Button
+        <DuckButton
           variant="outline"
           size="sm"
           onClick={() => setOpen(true)}
@@ -71,7 +71,7 @@ export function PageEmbed({ src, title = "Embedded page", height = 500 }: PageEm
         >
           <Maximize2 size={13} aria-hidden="true" />
           Развернуть
-        </Button>
+        </DuckButton>
       </div>
     </>
   );

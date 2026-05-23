@@ -1,5 +1,5 @@
 import { cn } from "@/lib/utils";
-import { Badge } from "@/components/ui/badge";
+import { DuckBadge } from "@/components/ui/duck/badge";
 import {
   Card,
   CardContent,
@@ -80,13 +80,13 @@ export function CommandCard({
           <TooltipProvider delayDuration={200}>
             <Tooltip>
               <TooltipTrigger asChild>
-                <Badge
+                <DuckBadge
                   variant="outline"
                   className={cn("gap-1 text-xs cursor-default", perm.className)}
                 >
                   <Shield size={10} />
                   {perm.label}
-                </Badge>
+                </DuckBadge>
               </TooltipTrigger>
               <TooltipContent className="bg-black/90 border-amber-900/30 text-amber-100/80">
                 Минимальный уровень доступа: {perm.label}
@@ -130,13 +130,13 @@ export function CommandCard({
             <div className="flex items-center gap-2 flex-wrap">
               <span className="text-xs text-amber-100/40">Псевдонимы:</span>
               {aliases.map((a) => (
-                <Badge
+                <DuckBadge
                   key={a}
                   variant="secondary"
                   className="font-mono text-xs bg-black/30 text-amber-100/50 border border-amber-900/15"
                 >
                   {a}
-                </Badge>
+                </DuckBadge>
               ))}
             </div>
           )}
