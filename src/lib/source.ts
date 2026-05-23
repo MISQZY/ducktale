@@ -32,7 +32,14 @@ function buildSource(collection: FumadocsCollection, baseUrl: string) {
 }
 
 export const docsSources = Object.fromEntries(
-  SERVERS.map((s) => [s.id, buildSource(collections[s.id], `/docs/${s.id}`)])
+  SERVERS.flatMap((s) => {
+    const collection = collections[s.id];
+    if (!collection) {
+      console.warn(`[source] Can't found MDX-collection for server "${s.id}" — pages /docs/${s.id} will return 404`);
+      return [];
+    }
+    return [[s.id, buildSource(collection, `/docs/${s.id}`)]];
+  })
 ) as Record<string, ReturnType<typeof loader>>;
 
 export function getDocsSource(id: string) {

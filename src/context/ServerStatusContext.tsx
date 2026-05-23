@@ -8,28 +8,35 @@ type StatusMap = Record<string, ServerStatus>;
 type StatusState = {
   statuses: StatusMap;
   loading: boolean;
+  refreshing: boolean;
   error: boolean;
 };
 
 const ServerStatusContext = createContext<StatusState>({
   statuses: {},
   loading: true,
+  refreshing: false,
   error: false,
 });
 
 const POLL_INTERVAL_MS = 90_000;
 
 export function ServerStatusProvider({ children }: { children: React.ReactNode }) {
-  const [state, setState] = useState<StatusState>({ statuses: {}, loading: true, error: false });
+  const [state, setState] = useState<StatusState>({ statuses: {}, loading: true, refreshing: false, error: false });
 
   const fetchStatuses = useCallback(async () => {
+    setState((prev) =>
+      prev.loading
+        ? prev
+        : { ...prev, refreshing: true }
+    );
     try {
       const r = await fetch("/api/server-status/all");
       if (!r.ok) throw new Error("non-ok");
       const data = await r.json();
-      setState({ statuses: data, loading: false, error: false });
+      setState({ statuses: data, loading: false, refreshing: false, error: false });
     } catch {
-      setState((prev) => ({ ...prev, loading: false, error: true }));
+      setState((prev) => ({ ...prev, loading: false, refreshing: false, error: true }));
     }
   }, []);
 

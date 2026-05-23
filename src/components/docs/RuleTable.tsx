@@ -53,14 +53,20 @@ function inferSeverity(punishment: string): Severity {
   return "other";
 }
 
+ /* TODO: replace with DOMPurify */
 function sanitizeRuleHtml(html: string): string {
   return html
     .replace(/<script[\s\S]*?<\/script>/gi, "")
-    .replace(/<iframe[\s\S]*?<\/iframe>/gi, "")
     .replace(/<style[\s\S]*?<\/style>/gi, "")
-    .replace(/\s+on\w+="[^"]*"/gi, "")
-    .replace(/\s+on\w+='[^']*'/gi, "")
-    .replace(/href="javascript:[^"]*"/gi, "");
+    .replace(/<iframe[\s\S]*?<\/iframe>/gi, "")
+    .replace(/<object[\s\S]*?<\/object>/gi, "")
+    .replace(/<embed[^>]*>/gi, "")
+    .replace(/<link[^>]*>/gi, "")
+    .replace(/<base[^>]*>/gi, "")
+    .replace(/\s+on\w+\s*=\s*(?:"[^"]*"|'[^']*'|[^\s>]+)/gi, "")
+    .replace(/(?:href|src|action)\s*=\s*(?:"javascript:[^"]*"|'javascript:[^']*')/gi, "")
+    .replace(/(?:href|src|action)\s*=\s*(?:"data:[^"]*"|'data:[^']*')/gi, "")
+    .replace(/expression\s*\([^)]*\)/gi, "");
 }
 
 

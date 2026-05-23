@@ -27,17 +27,11 @@ export default function CopyToClipboard({
   const handleCopy = async () => {
     try {
       await navigator.clipboard.writeText(value);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
     } catch {
-      const el = document.createElement("textarea");
-      el.value = value;
-      document.body.appendChild(el);
-      el.select();
-      document.execCommand("copy");
-      document.body.removeChild(el);
+      window.prompt("Скопируйте адрес вручную:", value);
     }
-
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
   };
 
   return (
