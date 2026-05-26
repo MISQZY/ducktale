@@ -7,6 +7,7 @@ import { StatusBadge } from "@/components/common/StatusBadge";
 import { CtaButton } from "@/components/common/CtaButton";
 import { Shield, Users, ChevronDown, Sword, Flame } from "lucide-react";
 import Logo from "@/components/ui/Logo";
+import NetworkDiagram from "@/components/NetworkDiagram";
 
 const features = [
   {
@@ -145,6 +146,9 @@ export default function HomePage() {
 
         {/* ── SERVERS ── */}
         <ServersSection />
+
+        {/* ── NETWORK DIAGRAM ── */}
+        <NetworkDiagram />
 
         {/* ── FOOTER ── */}
         <footer className="relative border-t border-gold-800/20 py-14 px-6 text-center overflow-hidden">
