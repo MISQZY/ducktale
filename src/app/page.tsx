@@ -2,30 +2,22 @@ import Link from "next/link";
 import Navbar from "@/components/Navbar";
 import ServersSection from "@/components/ServersSection";
 import SectionHeader from "@/components/SectionHeader";
+import SocialSection from "@/components/SocialSection";
 import { PageBackground } from "@/components/common/PageBackground";
 import { StatusBadge } from "@/components/common/StatusBadge";
 import { CtaButton } from "@/components/common/CtaButton";
 import { Shield, Users, ChevronDown, Sword, Flame } from "lucide-react";
 import Logo from "@/components/ui/Logo";
 import NetworkDiagram from "@/components/NetworkDiagram";
+import { SITE, STATS, FEATURES } from "@/config/site";
 
-const features = [
-  {
-    icon: Shield,
-    title: "Защита и стабильность",
-    desc: "Выделенные серверы с защитой от DDoS, ежедневные бэкапы, аптайм 99.9%.",
-  },
-  {
-    icon: Users,
-    title: "Живое сообщество",
-    desc: "Дружный Discord, регулярные ивенты, активные администраторы всегда на связи.",
-  },
-];
+const FEATURES_ICONS = [Shield, Users];
 
-const stats = [
-  { n: "2+", label: "года работы проекта", icon: Flame },
-  { n: "1000+", label: "человек посетило проект", icon: Users },
-];
+const features = FEATURES.map((s, i) => ({ ...s, icon: FEATURES_ICONS[i] }));
+
+const STAT_ICONS = [Flame, Users];
+
+const stats = STATS.map((s, i) => ({ ...s, icon: STAT_ICONS[i] }));
 
 export default function HomePage() {
   return (
@@ -150,6 +142,9 @@ export default function HomePage() {
         {/* ── NETWORK DIAGRAM ── */}
         <NetworkDiagram />
 
+        {/* ── SOCIALS ── */}
+        <SocialSection />
+
         {/* ── FOOTER ── */}
         <footer className="relative border-t border-gold-800/20 py-14 px-6 text-center overflow-hidden">
           <div className="absolute top-0 left-1/4 right-1/4 h-px bg-linear-to-r from-transparent via-gold-600/25 to-transparent" />
@@ -166,9 +161,7 @@ export default function HomePage() {
             </div>
 
             <p className="text-amber-100/20 text-xs tracking-wide leading-relaxed">
-              Существует с 2024 года. Не является официальным сервисом Minecraft.
-              <br />
-              <span className="opacity-60">Не одобрено и не связано с компанией Mojang, Microsoft</span>
+              Существует с {SITE.foundedYear} года.&nbsp;{SITE.legalNotice}
             </p>
           </div>
         </footer>
