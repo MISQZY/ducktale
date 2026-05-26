@@ -20,6 +20,8 @@ import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 const navLinks = [
   { href: "/#about",   label: "О проекте" },
   { href: "/#servers", label: "Серверы" },
+  { href: "/#infrastructure",   label: "Инфраструктура" },
+  { href: "/#community", label: "Сообщество" },
   ...SERVERS.map((s) => ({ href: s.href, label: s.name })),
 ];
 

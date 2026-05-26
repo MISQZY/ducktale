@@ -97,7 +97,7 @@ function DiagramHeader() {
 
 export default function NetworkDiagram() {
   return (
-    <section className="py-28 px-6 relative">
+    <section id="infrastructure" className="py-28 px-6 relative">
       <div className="absolute top-0 left-1/4 right-1/4 h-px bg-linear-to-r from-transparent via-gold-700/20 to-transparent" />
 
       <div className="max-w-5xl mx-auto">
