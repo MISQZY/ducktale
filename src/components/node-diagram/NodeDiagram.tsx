@@ -377,7 +377,7 @@ export function NodeDiagram({ nodes, edges, initOffsets, title, header }: NodeDi
 
         {title}
 
-        <div className="absolute top-4 right-5 z-50 pointer-events-none
+        {/* <div className="absolute top-4 right-5 z-50 pointer-events-none
                 rounded-lg border border-gold-800/20 bg-stone-950/80 px-3 py-2 font-mono"
           style={{ fontSize: "0.55rem", backdropFilter: "blur(8px)" }}>
           {Object.entries(positions).map(([id, pos]) => (
@@ -385,7 +385,7 @@ export function NodeDiagram({ nodes, edges, initOffsets, title, header }: NodeDi
               {id}: x: {Math.round(pos.x - CX)}, y: {Math.round(pos.y - CY)}
             </div>
           ))}
-        </div>
+        </div> */}
       </div>
     </div>
   );
