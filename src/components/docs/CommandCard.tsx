@@ -38,7 +38,7 @@ export interface CommandCardProps {
 
 const GLOBAL_PERMS: Record<
   GlobalPermission,
-  { label: string; text: string; bg: string; border: string; }
+  { label: string; text: string; bg: string; border: string }
 > = {
   all: {
     label: "Все игроки",
@@ -98,17 +98,19 @@ export function CommandCard({
   const [copied, setCopied] = useState(false);
   const [open, setOpen] = useState(false);
 
-
   const hasArgs =
     (required && required.length > 0) || (optional && optional.length > 0);
+  const hasRequired = required && required.length > 0;
+  const hasOptional = optional && optional.length > 0;
   const perm = GLOBAL_PERMS[permission];
 
 
   const handleCopy = async (e: React.MouseEvent) => {
     e.stopPropagation();
     const commandText = command.trim();
-    const textToCopy = commandText.startsWith("/") ? commandText : "/" + commandText;
-
+    const textToCopy = commandText.startsWith("/")
+      ? commandText
+      : "/" + commandText;
 
     try {
       await navigator.clipboard.writeText(textToCopy);
@@ -148,25 +150,40 @@ export function CommandCard({
               {command.replace(/^\//, "")}
             </code>
           </div>
-
+          
           <p className="mt-1 text-xs text-stone-400 leading-snug">
             {description}
           </p>
         </div>
 
-        {/* Right: permission + roles */}
+        {/* Right: argument badges + permission + roles */}
         <div className="flex flex-col items-end gap-1 shrink-0 pt-0.5">
-          <span
-            className={cn(
-              "inline-flex items-center gap-1.5 text-xs font-medium px-2 py-0.5 rounded border whitespace-nowrap",
-              perm.text,
-              perm.bg,
-              perm.border
+          <div className="flex items-center gap-1.5">
+            {hasRequired && (
+              <span
+                className="w-2 h-2 rounded-full bg-rose-500 border border-rose-400/60 shrink-0 inline-block"
+                title="Обязательные параметры"
+              />
             )}
-          >
-            {perm.label}
-          </span>
+            {hasOptional && (
+              <span
+                className="w-2 h-2 rounded-full bg-sky-500 border border-sky-400/60 shrink-0 inline-block"
+                title="Необязательные параметры"
+              />
+            )}
+            <span
+              className={cn(
+                "inline-flex items-center gap-1.5 text-xs font-medium px-2 py-0.5 rounded border whitespace-nowrap",
+                perm.text,
+                perm.bg,
+                perm.border
+              )}
+            >
+              {perm.label}
+            </span>
+          </div>
 
+          {/* Roles badge (optional) */}
           {roles && roles.length > 0 && (
             <span className="inline-flex items-center gap-1 text-[11px] text-stone-400 bg-stone-800 border border-stone-700/60 rounded px-1.5 py-0.5 whitespace-nowrap">
               <Lock size={9} className="text-stone-500" />
@@ -175,7 +192,7 @@ export function CommandCard({
           )}
         </div>
 
-        {/* Right actions */}
+        {/* Right actions (copy + expand) */}
         <div className="flex items-center gap-2 shrink-0 pt-0.5 ml-1 min-w-12">
           <button
             onClick={handleCopy}
@@ -214,33 +231,39 @@ export function CommandCard({
               {buildUsage(command, required, optional)}
             </code>
 
-            {required && required.length > 0 && (
+            {hasRequired && (
               <div className="space-y-1.5">
                 <p className="text-[10px] uppercase tracking-widest font-semibold text-rose-400/70">
                   Обязательные
                 </p>
-                {required.map((arg) => (
+                {required!.map((arg) => (
                   <div key={arg.name} className="flex items-baseline gap-2">
                     <code className="text-xs font-mono text-rose-300 shrink-0">
-                      {"<"}{arg.name}{">"}
+                      {"<"}
+                      {arg.name}
+                      {">"}
                     </code>
-                    <span className="text-xs text-stone-400">{arg.description}</span>
+                    <span className="text-xs text-stone-400">
+                      {arg.description}
+                    </span>
                   </div>
                 ))}
               </div>
             )}
 
-            {optional && optional.length > 0 && (
+            {hasOptional && (
               <div className="space-y-1.5">
                 <p className="text-[10px] uppercase tracking-widest font-semibold text-sky-400/70">
                   Необязательные
                 </p>
-                {optional.map((arg) => (
+                {optional!.map((arg) => (
                   <div key={arg.name} className="flex items-baseline gap-2">
                     <code className="text-xs font-mono text-sky-300 shrink-0">
                       [{arg.name}]
                     </code>
-                    <span className="text-xs text-stone-400">{arg.description}</span>
+                    <span className="text-xs text-stone-400">
+                      {arg.description}
+                    </span>
                   </div>
                 ))}
               </div>
