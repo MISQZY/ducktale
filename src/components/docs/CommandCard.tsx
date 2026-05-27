@@ -1,153 +1,270 @@
+"use client";
+
+
+import { useState } from "react";
 import { cn } from "@/lib/utils";
-import { DuckBadge } from "@/components/ui/duck/badge";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
-import { Terminal, Shield } from "lucide-react";
-import CopyToClipboard from "@/components/ui/CopyToClipboard";
-import { Callout } from "@/components/docs/Callout";
+import { Check, Copy, Lock, ChevronDown } from "lucide-react";
 
-type PermissionLevel = "all" | "old" | "admin";
 
-interface CommandCardProps {
+// ─── Types ────────────────────────────────────────────────────────────────────
+
+
+type GlobalPermission = "all" | "old" | "supporter" | "admin";
+
+
+export interface CommandArg {
+  name: string;
+  description: string;
+}
+
+
+export interface CommandCardProps {
   command: string;
   description: string;
+  required?: CommandArg[];
+  optional?: CommandArg[];
+  permission?: GlobalPermission;
+  roles?: string[];
+  /** @deprecated */
   usage?: string;
+  /** @deprecated */
   aliases?: string[];
-  permission?: PermissionLevel;
-  warning?: string;
   className?: string;
 }
 
-const PERMISSION_LABELS: Record<
-  PermissionLevel,
-  { label: string; className: string }
+
+// ─── Config ───────────────────────────────────────────────────────────────────
+
+
+const GLOBAL_PERMS: Record<
+  GlobalPermission,
+  { label: string; text: string; bg: string; border: string; }
 > = {
   all: {
     label: "Все игроки",
-    className: "bg-green-900/50 text-green-300 border-green-700/30",
+    text: "text-emerald-300",
+    bg: "bg-emerald-950/60",
+    border: "border-emerald-700/40",
   },
   old: {
-    label: "VIP+",
-    className: "bg-amber-900/50 text-amber-300 border-amber-700/30",
+    label: "Олд",
+    text: "text-amber-300",
+    bg: "bg-amber-950/60",
+    border: "border-amber-700/40",
+  },
+  supporter: {
+    label: "Донат",
+    text: "text-gold-300",
+    bg: "bg-gold-950/60",
+    border: "border-gold-700/40",
   },
   admin: {
     label: "Администратор",
-    className: "bg-blue-900/50 text-blue-300 border-blue-700/30",
+    text: "text-sky-300",
+    bg: "bg-sky-950/60",
+    border: "border-sky-700/40",
   },
 };
 
-function stripAngleArgs(value: string) {
-  return value.replace(/\s*(<[^>]*>|\[[^\]]*\]|\{[^}]*\})\s*.*$/, "").trim();
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
+
+function buildUsage(
+  command: string,
+  required?: CommandArg[],
+  optional?: CommandArg[]
+): string {
+  const parts: string[] = [command];
+  required?.forEach((a) => parts.push(`<${a.name}>`));
+  optional?.forEach((a) => parts.push(`[${a.name}]`));
+  return parts.join(" ");
 }
+
+
+// ─── Main Component ───────────────────────────────────────────────────────────
+
 
 export function CommandCard({
   command,
   description,
-  usage,
-  aliases,
+  required,
+  optional,
   permission = "all",
-  warning,
+  roles,
+  aliases,
   className,
 }: CommandCardProps) {
-  const perm = PERMISSION_LABELS[permission];
-  const copyValue = usage ? stripAngleArgs(usage) : "";
+  const [copied, setCopied] = useState(false);
+  const [open, setOpen] = useState(false);
+
+
+  const hasArgs =
+    (required && required.length > 0) || (optional && optional.length > 0);
+  const perm = GLOBAL_PERMS[permission];
+
+
+  const handleCopy = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    const commandText = command.trim();
+    const textToCopy = commandText.startsWith("/") ? commandText : "/" + commandText;
+
+
+    try {
+      await navigator.clipboard.writeText(textToCopy);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      window.prompt("Скопируйте вручную:", textToCopy);
+    }
+  };
+
 
   return (
-    <Card
+    <div
       className={cn(
-        "mb-3 border-amber-900/20 bg-duck-stone/40 hover:border-amber-700/30 transition-colors",
+        "group relative mb-2 rounded-lg border overflow-hidden transition-colors duration-150",
+        "bg-stone-900/80 border-stone-700/50",
+        open ? "border-amber-800/50" : "hover:border-stone-600/70",
         className
       )}
     >
-      <CardHeader className="pb-3">
-        <div className="flex items-start justify-between gap-3 flex-wrap">
-          <CardTitle className="flex items-center gap-2 font-mono text-amber-300 text-base">
-            <Terminal size={15} className="text-amber-500/60 shrink-0" />
-            {command}
-          </CardTitle>
+      {/* Main row */}
+      <div
+        className={cn(
+          "flex items-start gap-3 px-3 py-2.5",
+          hasArgs && "cursor-pointer"
+        )}
+        onClick={hasArgs ? () => setOpen((v) => !v) : undefined}
+      >
+        {/* Left: command + description */}
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2 min-w-0">
+            <span className="text-amber-600/60 font-mono text-sm shrink-0 select-none leading-none">
+              /
+            </span>
 
-          <TooltipProvider delayDuration={200}>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <DuckBadge
-                  variant="outline"
-                  className={cn("gap-1 text-xs cursor-default", perm.className)}
-                >
-                  <Shield size={10} />
-                  {perm.label}
-                </DuckBadge>
-              </TooltipTrigger>
-              <TooltipContent className="bg-black/90 border-amber-900/30 text-amber-100/80">
-                Минимальный уровень доступа: {perm.label}
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
+            <code className="font-mono text-sm text-amber-100 font-medium tracking-wide leading-tight whitespace-nowrap">
+              {command.replace(/^\//, "")}
+            </code>
+          </div>
+
+          <p className="mt-1 text-xs text-stone-400 leading-snug">
+            {description}
+          </p>
         </div>
 
-        <CardDescription className="text-amber-100/60 mt-2">
-          {description}
-        </CardDescription>
-      </CardHeader>
+        {/* Right: permission + roles */}
+        <div className="flex flex-col items-end gap-1 shrink-0 pt-0.5">
+          <span
+            className={cn(
+              "inline-flex items-center gap-1.5 text-xs font-medium px-2 py-0.5 rounded border whitespace-nowrap",
+              perm.text,
+              perm.bg,
+              perm.border
+            )}
+          >
+            {perm.label}
+          </span>
 
-      {(usage || (aliases && aliases.length > 0) || warning) && (
-        <CardContent className="space-y-3 pt-0">
-          {usage && (
-            <TooltipProvider delayDuration={200}>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <div>
-                    <CopyToClipboard value={copyValue} className="block w-full">
-                      <div className="rounded-lg bg-black/40 border border-amber-900/15 px-3 py-3 cursor-pointer select-none">
-                        <p className="text-xs text-amber-100/40 uppercase tracking-wider">
-                          Использование
-                        </p>
-                        <code className="block whitespace-pre-wrap text-sm leading-relaxed font-mono text-amber-200/80">
-                          {usage}
-                        </code>
-                      </div>
-                    </CopyToClipboard>
+          {roles && roles.length > 0 && (
+            <span className="inline-flex items-center gap-1 text-[11px] text-stone-400 bg-stone-800 border border-stone-700/60 rounded px-1.5 py-0.5 whitespace-nowrap">
+              <Lock size={9} className="text-stone-500" />
+              {roles.join(", ")}
+            </span>
+          )}
+        </div>
+
+        {/* Right actions */}
+        <div className="flex items-center gap-2 shrink-0 pt-0.5 ml-1 min-w-12">
+          <button
+            onClick={handleCopy}
+            title={`Скопировать ${command}`}
+            className={cn(
+              "p-1.5 rounded transition-all duration-150",
+              "text-stone-500 hover:text-amber-400 hover:bg-amber-400/10",
+              copied && "text-emerald-400! hover:text-emerald-400!"
+            )}
+          >
+            {copied ? <Check size={13} /> : <Copy size={13} />}
+          </button>
+
+          {hasArgs && (
+            <ChevronDown
+              size={13}
+              className={cn(
+                "text-stone-500 transition-transform duration-200",
+                open && "rotate-180 text-amber-500"
+              )}
+            />
+          )}
+        </div>
+      </div>
+
+      {/* Args panel */}
+      {hasArgs && (
+        <div
+          className={cn(
+            "overflow-hidden transition-all duration-200",
+            open ? "max-h-96 opacity-100" : "max-h-0 opacity-0"
+          )}
+        >
+          <div className="border-t border-stone-700/50 bg-stone-950/60 px-3 py-2.5 space-y-2.5">
+            <code className="block text-xs font-mono text-amber-400/70">
+              {buildUsage(command, required, optional)}
+            </code>
+
+            {required && required.length > 0 && (
+              <div className="space-y-1.5">
+                <p className="text-[10px] uppercase tracking-widest font-semibold text-rose-400/70">
+                  Обязательные
+                </p>
+                {required.map((arg) => (
+                  <div key={arg.name} className="flex items-baseline gap-2">
+                    <code className="text-xs font-mono text-rose-300 shrink-0">
+                      {"<"}{arg.name}{">"}
+                    </code>
+                    <span className="text-xs text-stone-400">{arg.description}</span>
                   </div>
-                </TooltipTrigger>
-                <TooltipContent className="bg-black/90 border-amber-900/30 text-amber-100/80">
-                  Скопировать команду {copyValue ? `(${copyValue})` : ""}
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-          )}
+                ))}
+              </div>
+            )}
 
-          {aliases && aliases.length > 0 && (
-            <div className="flex items-center gap-2 flex-wrap">
-              <span className="text-xs text-amber-100/40">Псевдонимы:</span>
-              {aliases.map((a) => (
-                <DuckBadge
-                  key={a}
-                  variant="secondary"
-                  className="font-mono text-xs bg-black/30 text-amber-100/50 border border-amber-900/15"
-                >
-                  {a}
-                </DuckBadge>
-              ))}
-            </div>
-          )}
-
-          {warning && (
-            <Callout variant="warning" className="my-0">
-              {warning}
-            </Callout>
-          )}
-        </CardContent>
+            {optional && optional.length > 0 && (
+              <div className="space-y-1.5">
+                <p className="text-[10px] uppercase tracking-widest font-semibold text-sky-400/70">
+                  Необязательные
+                </p>
+                {optional.map((arg) => (
+                  <div key={arg.name} className="flex items-baseline gap-2">
+                    <code className="text-xs font-mono text-sky-300 shrink-0">
+                      [{arg.name}]
+                    </code>
+                    <span className="text-xs text-stone-400">{arg.description}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
       )}
-    </Card>
+
+      {/* Legacy: aliases */}
+      {aliases && aliases.length > 0 && (
+        <div className="border-t border-stone-700/50 px-3 py-2 flex items-center gap-1.5 flex-wrap bg-stone-950/40">
+          <span className="text-[10px] text-stone-500 uppercase tracking-widest">
+            Сокращения:
+          </span>
+          {aliases.map((a) => (
+            <code
+              key={a}
+              className="text-[11px] font-mono text-stone-400 border border-stone-700 bg-stone-900 px-1.5 py-0.5 rounded"
+            >
+              {a}
+            </code>
+          ))}
+        </div>
+      )}
+    </div>
   );
 }

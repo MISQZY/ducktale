@@ -347,3 +347,13 @@ body {
     linear-gradient(90deg, rgba(212,160,23,0.04) 1px, transparent 1px);
   background-size: 60px 60px;
 }
+
+[data-roles-badge] {
+  display: inline-flex !important;
+  color: rgb(168 162 158) !important;
+  background-color: rgb(23 23 23) !important;
+  border: 1px solid rgb(63 63 63 / 0.6) !important;
+  border-radius: 0.25rem !important;
+  padding: 0.125rem 0.375rem !important;
+  font-size: 11px !important;
+}

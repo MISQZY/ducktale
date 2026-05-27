@@ -4,527 +4,945 @@ description: Полный справочник команд плагина Towny
 ---
 
 <Callout variant="info">
-  Описание механик городов и наций — в разделе [Плагины → Towny](/docs/duckburg/plugins/towny).
+  Описание механик городов и наций — в разделе [Плагины → Towny](/docs/duckburg/pluginstowny).
 </Callout>
 
 ---
 
-## `/towny` — Общая информация
+## `towny` — Общая информация
 
 <CommandCard
-  command="/towny map"
-  description="Показать карту мира с отмеченными городами прямо в чате."
+  command="towny map"
+  description="Показать карту мира с отмеченными городами прямо в чате (27×7 чанков)."
   permission="all"
 />
 
 <CommandCard
-  command="/towny hud"
+  command="towny map big"
+  description="Показать увеличенную карту мира (27×18 чанков)."
+  permission="all"
+/>
+
+<CommandCard
+  command="towny map hud"
+  description="Показать живую карту на scoreboard (19×10 чанков с автообновлением)."
+  permission="all"
+/>
+
+<CommandCard
+  command="towny hud"
   description="Включить/выключить карту в боковой панели (scoreboard)."
   permission="all"
 />
 
 <CommandCard
-  command="/towny prices"
-  description="Показать актуальные налоги и стоимость содержания города."
+  command="towny prices"
+  description="Показать актуальные налоги и стоимость содержания города/нации."
   permission="all"
 />
 
 <CommandCard
-  command="/towny time"
+  command="towny prices"
+  description="Показать налоги и цены для указанного города."
+  permission="all"
+  required={[{ name: "town name", description: "Имя города" }]}
+/>
+
+<CommandCard
+  command="towny time"
   description="Показать время до следующего дня (момента сбора налогов)."
   permission="all"
 />
 
 <CommandCard
-  command="/towny universe"
-  description="Глобальная статистика сети: количество городов, наций и жителей."
+  command="towny universe"
+  description="Глобальная статистика сети: игроки, города, нации, миры, версии."
   permission="all"
 />
 
 <CommandCard
-  command="/towny top residents {all/town/nation}"
-  description="Рейтинг городов и наций по количеству жителей."
+  command="towny top balance"
+  description="Топ-10 городов и наций по деньгам в банке."
   permission="all"
+  optional={[{ name: "allnationtown", description: "Тип рейтинга" }]}
 />
 
 <CommandCard
-  command="/towny top land {all/resident/town}"
-  description="Рейтинг по количеству застолблённой земли."
+  command="towny top land"
+  description="Топ-10 жителей/городов по количеству застолблённой земли."
   permission="all"
+  optional={[{ name: "allResidenttown", description: "Тип рейтинга" }]}
 />
 
 <CommandCard
-  command="/towny spy"
+  command="towny top Residents"
+  description="Топ-10 городов/наций по количеству жителей."
+  permission="all"
+  optional={[{ name: "allnationtown", description: "Тип рейтинга" }]}
+/>
+
+<CommandCard
+  command="towny spy"
   description="Следить за всеми каналами чата. Только для администрации."
   permission="admin"
 />
 
----
-
-## `/plot` — Управление участками
-
 <CommandCard
-  command="/plot claim"
-  description="Лично купить участок, выставленный мэром на продажу."
-  usage="/plot claim [auto]"
-  aliases={["/plot claim auto"]}
+  command="towny version"
+  description="Показать версию Towny и уведомить об обновлениях."
   permission="all"
 />
 
 <CommandCard
-  command="/plot unclaim"
+  command="towny farmblocks"
+  description="Открыть меню блоков, разрешённых в фермерских участках."
+  permission="all"
+/>
+
+<CommandCard
+  command="towny switches"
+  description="Открыть меню блоков для типа разрешения `switch`."
+  permission="all"
+/>
+
+<CommandCard
+  command="towny itemuse"
+  description="Открыть меню предметов для типа разрешения `itemuse`."
+  permission="all"
+/>
+
+---
+
+## `plot` — Управление участками
+
+<CommandCard
+  command="plot claim"
+  description="Лично купить участок, выставленный мэром на продажу (для себя)."
+  permission="all"
+/>
+
+<CommandCard
+  command="plot claim auto"
+  description="Автопокупка всех доступных участков вокруг."
+  permission="all"
+/>
+
+<CommandCard
+  command="plot unclaim"
   description="Отказаться от личного участка, вернув его городу."
   permission="all"
 />
 
 <CommandCard
-  command="/plot forsale"
+  command="plot forsale"
   description="Выставить участок на продажу по указанной цене."
-  usage="/plot forsale <цена>"
   permission="all"
+  required={[{ name: "цена", description: "Цена продажи" }]}
+  aliases={["plot fs"]}
 />
 
 <CommandCard
-  command="/plot notforsale"
+  command="plot notforsale"
   description="Убрать участок с продажи."
   permission="all"
+  aliases={["plot nfs"]}
 />
 
 <CommandCard
-  command="/plot evict"
+  command="plot evict"
   description="Выселить жителя с его личного участка."
-  usage="/plot evict [forsale]"
   permission="all"
+  optional={[{ name: "forsale", description: "Выставить на продажу после выселения" }]}
 />
 
 <CommandCard
-  command="/plot set"
+  command="plot set"
   description="Установить тип участка или его название."
-  usage="/plot set <shop|embassy|arena|farm|jail|wilds|inn|bank|outpost|reset|name>"
+  permission="all"
+  required={[{ name: "тип", description: "shop|embassy|arena|farm|jail|wilds|inn|bank|outpost|reset|name" }]}
+/>
+
+<CommandCard
+  command="plot set name"
+  description="Установить название участка."
+  permission="all"
+  required={[{ name: "название", description: "Имя участка" }]}
+/>
+
+<CommandCard
+  command="plot toggle"
+  description="Переключить параметр участка."
+  permission="all"
+  required={[{ name: "параметр", description: "fire|pvp|explosion|mob" }]}
+/>
+
+<CommandCard
+  command="plot toggle pvp"
+  description="Включить/выключить PvP на участке."
   permission="all"
 />
 
 <CommandCard
-  command="/plot toggle"
-  description="Переключить параметр участка: огонь, PvP, взрывы, спавн мобов."
-  usage="/plot toggle <fire|pvp|explosion|mob>"
+  command="plot toggle explosion"
+  description="Включить/выключить взрывы на участке."
   permission="all"
 />
 
 <CommandCard
-  command="/plot trust add"
+  command="plot toggle fire"
+  description="Включить/выключить распространение огня."
+  permission="all"
+/>
+
+<CommandCard
+  command="plot toggle mob"
+  description="Включить/выключить спавн враждебных мобов."
+  permission="all"
+/>
+
+<CommandCard
+  command="plot trust add"
   description="Добавить игрока как доверенного — он сможет строить на твоём участке."
-  usage="/plot trust add <игрок>"
   permission="all"
+  required={[{ name: "игрок", description: "Имя игрока" }]}
 />
 
 <CommandCard
-  command="/plot trust remove"
+  command="plot trust remove"
   description="Убрать игрока из доверенных на участке."
-  usage="/plot trust remove <игрок>"
   permission="all"
+  required={[{ name: "игрок", description: "Имя игрока" }]}
 />
 
 <CommandCard
-  command="/plot perm gui"
+  command="plot perm gui"
   description="Открыть графический интерфейс для тонкой настройки прав участка."
   permission="all"
 />
 
 <CommandCard
-  command="/plot district create"
+  command="plot district create"
   description="Создать именованный район из нескольких участков."
-  usage="/plot district create <название>"
   permission="all"
+  required={[{ name: "название", description: "Имя района" }]}
 />
 
 <CommandCard
-  command="/plot clear"
+  command="plot clear"
   description="Очистить блоки на участке по заданному списку типов."
   permission="all"
-  warning="Действие необратимо. Все блоки указанных типов будут удалены."
 />
 
 ---
 
-## `/resident` — Профиль жителя
+## `Resident` — Профиль жителя
 
 <CommandCard
-  command="/resident"
+  command="Resident"
   description="Показать свой профиль жителя: город, участки, налоги, статус."
-  usage="/resident [игрок]"
   permission="all"
 />
 
 <CommandCard
-  command="/resident list"
+  command="Resident"
+  description="Показать профиль другого игрока."
+  permission="all"
+  required={[{ name: "игрок", description: "Имя игрока" }]}
+/>
+
+<CommandCard
+  command="Resident list"
   description="Список всех жителей, находящихся онлайн."
   permission="all"
+  aliases={["/res list"]}
 />
 
 <CommandCard
-  command="/resident friend add"
+  command="Resident friend add"
   description="Добавить игрока в личный список друзей."
-  usage="/resident friend add <игрок>"
   permission="all"
+  required={[{ name: "игрок", description: "Имя игрока" }]}
 />
 
 <CommandCard
-  command="/resident friend remove"
+  command="Resident friend remove"
   description="Убрать игрока из списка друзей."
-  usage="/resident friend remove <игрок>"
   permission="all"
+  required={[{ name: "игрок", description: "Имя игрока" }]}
 />
 
 <CommandCard
-  command="/resident plotlist"
+  command="Resident plotlist"
   description="Показать список всех участков, принадлежащих тебе."
   permission="all"
 />
 
 <CommandCard
-  command="/resident jail paybail"
+  command="Resident jail paybail"
   description="Заплатить залог для досрочного выхода из тюрьмы."
   permission="all"
 />
 
 <CommandCard
-  command="/resident spawn"
+  command="Resident spawn"
   description="Телепортироваться к своей кровати или точке спавна."
   permission="all"
 />
 
 <CommandCard
-  command="/resident set perm"
+  command="Resident set perm"
   description="Настроить права доступа по умолчанию на всех своих участках."
-  usage="/resident set perm ..."
   permission="all"
 />
 
 <CommandCard
-  command="/resident toggle map"
+  command="Resident toggle map"
   description="Включить автообновляемую карту при перемещении по миру."
   permission="all"
 />
 
 <CommandCard
-  command="/resident toggle plotborder"
+  command="Resident toggle townclaim"
+  description="Включить режим автозаявки городских участков."
+  permission="all"
+/>
+
+<CommandCard
+  command="Resident toggle plotborder"
   description="Показывать дымовые границы участков при их пересечении."
   permission="all"
 />
 
 <CommandCard
-  command="/resident toggle pvp"
+  command="Resident toggle pvp"
   description="Изменить PvP-статус на своих личных участках."
   permission="all"
 />
 
 <CommandCard
-  command="/resident toggle spy"
+  command="Resident toggle spy"
   description="Следить за всеми каналами чата."
-  permission="admin"
+  permission="supporter"
+/>
+
+<CommandCard
+  command="Resident tax"
+  description="Показать налоги, которые нужно заплатить за статус жителя."
+  permission="all"
 />
 
 ---
 
-## `/town` — Управление городом
+## `town` — Управление городом
 
 <CommandCard
-  command="/town"
+  command="town"
   description="Показать информацию о своём городе: жители, участки, банк, налоги."
-  usage="/town [город]"
+  permission="all"
+  roles={["Житель"]}
+/>
+
+<CommandCard
+  command="town"
+  description="Показать информацию о другом городе."
+  permission="all"
+  required={[{ name: "город", description: "Имя города" }]}
+/>
+
+<CommandCard
+  command="town here"
+  description="Показать информацию о городе, в котором ты находишься."
   permission="all"
 />
 
 <CommandCard
-  command="/town new"
+  command="town new"
   description="Создать новый город. Требует стартового капитала."
-  usage="/town new <название>"
   permission="all"
-  warning="Название нельзя изменить без помощи администрации — выбирай тщательно."
+  required={[{ name: "название", description: "Имя нового города" }]}
+  roles={["Мэр"]}
 />
 
 <CommandCard
-  command="/town list"
+  command="town list"
   description="Список всех городов на сервере."
   permission="all"
 />
 
 <CommandCard
-  command="/town join"
+  command="town online"
+  description="Показать онлайн-жителей своего города."
+  permission="all"
+/>
+
+<CommandCard
+  command="town online"
+  description="Показать онлайн-жителей указанного города."
+  permission="all"
+  required={[{ name: "город", description: "Имя города" }]}
+/>
+
+<CommandCard
+  command="town join"
   description="Вступить в открытый город без приглашения."
-  usage="/town join <город>"
   permission="all"
+  required={[{ name: "город", description: "Имя города" }]}
 />
 
 <CommandCard
-  command="/town leave"
-  description="Покинуть текущий город."
+  command="town leave"
+  description="Покинуть текущий город. Мэр не может использовать эту команду."
   permission="all"
+  roles={["Житель"]}
 />
 
 <CommandCard
-  command="/town invite"
+  command="town add"
   description="Пригласить игрока в город."
-  usage="/town invite <игрок>"
   permission="all"
+  required={[{ name: "игрок", description: "Имя игрока" }]}
+  roles={["Мэр", "Заместитель"]}
 />
 
 <CommandCard
-  command="/town kick"
+  command="town kick"
   description="Исключить жителя из города."
-  usage="/town kick <игрок>"
   permission="all"
+  required={[{ name: "игрок", description: "Имя игрока" }]}
+  roles={["Мэр", "Заместитель"]}
 />
 
 <CommandCard
-  command="/town spawn"
+  command="town spawn"
   description="Телепортироваться к спавну города."
-  usage="/town spawn [город]"
   permission="all"
 />
 
 <CommandCard
-  command="/town claim"
+  command="town spawn"
+  description="Телепортироваться к спавну другого города (если разрешено)."
+  permission="all"
+  required={[{ name: "город", description: "Имя города" }]}
+/>
+
+<CommandCard
+  command="town claim"
   description="Застолбить чанк земли для города. Чанк должен граничить с уже занятыми."
-  usage="/town claim [outpost|auto]"
   permission="all"
+  roles={["Мэр", "Заместитель"]}
 />
 
 <CommandCard
-  command="/town unclaim"
+  command="town claim auto"
+  description="Автоматически застолбить все доступные чанки вокруг."
+  permission="all"
+  roles={["Мэр", "Заместитель"]}
+/>
+
+<CommandCard
+  command="town claim outpost"
+  description="Застолбить чанк как outpost (далёкий пост), не прилегающий к другим."
+  permission="all"
+  roles={["Мэр", "Заместитель"]}
+/>
+
+<CommandCard
+  command="town unclaim"
   description="Освободить чанк или все чанки города."
-  usage="/town unclaim [all]"
   permission="all"
-  warning="Освобождённые чанки теряют защиту мгновенно."
+  optional={[{ name: "all", description: "Освободить все чанки" }]}
+  roles={["Мэр", "Заместитель"]}
 />
 
 <CommandCard
-  command="/town deposit"
+  command="town deposit"
   description="Положить Дукаты в банк города."
-  usage="/town deposit <сумма>"
   permission="all"
+  required={[{ name: "сумма", description: "Количество дукатов" }]}
 />
 
 <CommandCard
-  command="/town withdraw"
+  command="town withdraw"
   description="Снять Дукаты из банка города."
-  usage="/town withdraw <сумма>"
   permission="all"
+  required={[{ name: "сумма", description: "Количество дукатов" }]}
+  roles={["Мэр"]}
 />
 
 <CommandCard
-  command="/town set mayor"
+  command="town set board"
+  description="Установить приветственное сообщение города."
+  permission="all"
+  required={[{ name: "сообщение", description: "Текст доски объявлений" }]}
+  roles={["Мэр", "Заместитель"]}
+/>
+
+<CommandCard
+  command="town set Мэр"
   description="Передать пост мэра другому жителю."
-  usage="/town set mayor <игрок>"
   permission="all"
-  warning="Действие необратимо без участия администрации."
+  required={[{ name: "игрок", description: "Имя нового мэра" }]}
+  roles={["Мэр"]}
 />
 
 <CommandCard
-  command="/town set taxes"
+  command="town set homeblock"
+  description="Установить текущий чанк как homeblock (домашний блок города)."
+  permission="all"
+  roles={["Мэр", "Заместитель"]}
+/>
+
+<CommandCard
+  command="town set spawn"
+  description="Установить точку спавна города (внутри homeblock)."
+  permission="all"
+  roles={["Мэр", "Заместитель"]}
+/>
+
+<CommandCard
+  command="town set taxes"
   description="Установить ежедневный налог с жителей."
-  usage="/town set taxes <сумма>"
   permission="all"
+  required={[{ name: "сумма", description: "Размер налога" }]}
+  roles={["Мэр"]}
 />
 
 <CommandCard
-  command="/town set plottax"
+  command="town set plottax"
   description="Установить налог за личные участки."
-  usage="/town set plottax <сумма>"
   permission="all"
+  required={[{ name: "сумма", description: "Размер налога" }]}
+  roles={["Мэр"]}
 />
 
 <CommandCard
-  command="/town set plotprice"
+  command="town set plotprice"
   description="Установить цену участка по умолчанию при продаже."
-  usage="/town set plotprice <сумма>"
   permission="all"
+  required={[{ name: "сумма", description: "Цена участка" }]}
+  roles={["Мэр", "Заместитель"]}
 />
 
 <CommandCard
-  command="/town toggle"
-  description="Переключить параметры города: PvP, огонь, мобы, открытость, публичный спавн, взрывы."
-  usage="/town toggle <pvp|fire|mobs|open|public|explosion|taxpercent>"
+  command="town toggle explosion"
+  description="Включить/выключить взрывы в городе."
   permission="all"
+  roles={["Мэр"]}
 />
 
 <CommandCard
-  command="/town rank add"
+  command="town toggle fire"
+  description="Включить/выключить распространение огня в городе."
+  permission="all"
+  roles={["Мэр"]}
+/>
+
+<CommandCard
+  command="town toggle mobs"
+  description="Включить/выключить спавн враждебных мобов в городе."
+  permission="all"
+  roles={["Мэр"]}
+/>
+
+<CommandCard
+  command="town toggle pvp"
+  description="Включить/выключить PvP в городе."
+  permission="all"
+  roles={["Мэр"]}
+/>
+
+<CommandCard
+  command="town toggle open"
+  description="Разрешить/запретить свободное вступление в город без приглашения."
+  permission="all"
+  roles={["Мэр"]}
+/>
+
+<CommandCard
+  command="town toggle public"
+  description="Разрешить/запретить публичный спавн и координаты в `town`."
+  permission="all"
+  roles={["Мэр"]}
+/>
+
+<CommandCard
+  command="town rank add"
   description="Выдать жителю внутренний ранг (помощник, страж, казначей и т.д.)."
-  usage="/town rank add <игрок> <ранг>"
+  permission="all"
+  required={[
+    { name: "игрок", description: "Имя игрока" },
+    { name: "ранг", description: "Название ранга" }
+  ]}
+  roles={["Мэр", "Заместитель"]}
+/>
+
+<CommandCard
+  command="town rank remove"
+  description="Убрать ранг у жителя города."
+  permission="all"
+  required={[
+    { name: "игрок", description: "Имя игрока" },
+    { name: "ранг", description: "Название ранга" }
+  ]}
+  roles={["Мэр", "Заместитель"]}
+/>
+
+<CommandCard
+  command="town outlaw add"
+  description="Добавить игрока в список преступников города — его можно атаковать на территории."
+  permission="all"
+  required={[{ name: "игрок", description: "Имя игрока" }]}
+  roles={["Мэр", "Заместитель"]}
+/>
+
+<CommandCard
+  command="town outlaw remove"
+  description="Убрать игрока из списка преступников города."
+  permission="all"
+  required={[{ name: "игрок", description: "Имя игрока" }]}
+  roles={["Мэр", "Заместитель"]}
+/>
+
+<CommandCard
+  command="town outlawlist"
+  description="Показать список преступников города."
   permission="all"
 />
 
 <CommandCard
-  command="/town outlaw add"
-  description="Добавить игрока в список преступников города — его можно будет атаковать на территории."
-  usage="/town outlaw add <игрок>"
+  command="town jail"
+  description="Посадить жителя в городскую тюрьму на 1 час."
+  permission="all"
+  required={[{ name: "игрок", description: "Имя игрока" }]}
+  roles={["Мэр", "Заместитель"]}
+/>
+
+<CommandCard
+  command="town jail"
+  description="Посадить жителя в тюрьму на указанное количество часов."
+  permission="all"
+  required={[
+    { name: "игрок", description: "Имя игрока" },
+    { name: "часы", description: "Длительность заключения" }
+  ]}
+  roles={["Мэр", "Заместитель"]}
+/>
+
+<CommandCard
+  command="town jail list"
+  description="Показать список тюремных участков города."
   permission="all"
 />
 
 <CommandCard
-  command="/town jail"
-  description="Посадить жителя в городскую тюрьму на указанное количество часов."
-  usage="/town jail <игрок> <часы>"
-  permission="all"
-/>
-
-<CommandCard
-  command="/town merge"
+  command="town merge"
   description="Запросить слияние другого города в свой."
-  usage="/town merge <город>"
   permission="all"
+  required={[{ name: "город", description: "Имя города для слияния" }]}
+  roles={["Мэр"]}
 />
 
 <CommandCard
-  command="/town delete"
+  command="town delete"
   description="Удалить город. Все чанки освобождаются, жители становятся бездомными."
-  usage="/town delete <город>"
   permission="all"
-  warning="Операция необратима. Восстановление возможно только силами администрации."
+  roles={["Мэр"]}
 />
 
 <CommandCard
-  command="/town nearby"
-  description="Показать ближайшие города и расстояние до них."
+  command="town reclaim"
+  description="Восстановить разрушенный город (как бывший Resident)."
+  permission="all"
+  roles={["Быв.Житель"]}
+/>
+
+<CommandCard
+  command="town buy bonus"
+  description="Купить дополнительные чанки земли сверх лимита."
+  permission="all"
+  required={[{ name: "количество", description: "Число чанков" }]}
+  roles={["Мэр"]}
+/>
+
+<CommandCard
+  command="town outpost"
+  description="Телепортироваться к outpost №1 города."
   permission="all"
 />
 
 <CommandCard
-  command="/town say"
+  command="town outpost"
+  description="Телепортироваться к указанному outpost."
+  permission="all"
+  optional={[{ name: "номер|название", description: "Номер или имя outpost" }]}
+/>
+
+<CommandCard
+  command="town outpost list"
+  description="Показать список всех outpost города."
+  permission="all"
+/>
+
+<CommandCard
+  command="town plots"
+  description="Показать статистику участков города (типы, продажи, доход)."
+  permission="all"
+/>
+
+<CommandCard
+  command="town baltop"
+  description="Показать топ жителей города по балансу."
+  permission="all"
+/>
+
+<CommandCard
+  command="town reslist"
+  description="Показать список всех жителей города."
+  permission="all"
+/>
+
+<CommandCard
+  command="town ranklist"
+  description="Показать жителей с рангами и доверенных игроков."
+  permission="all"
+/>
+
+<CommandCard
+  command="town say"
   description="Отправить сообщение всем онлайн-жителям города."
-  usage="/town say <сообщение>"
   permission="all"
+  required={[{ name: "сообщение", description: "Текст сообщения" }]}
+/>
+
+<CommandCard
+  command="town purge"
+  description="Исключить неактивных жителей старше указанного числа дней."
+  permission="all"
+  required={[{ name: "дни", description: "Количество дней" }]}
+  roles={["Мэр"]}
 />
 
 ---
 
-## `/invite` — Приглашения
+## `invite` — Приглашения
 
 <CommandCard
-  command="/invite list"
+  command="invite list"
   description="Показать все полученные приглашения в города."
   permission="all"
 />
 
 <CommandCard
-  command="/invite accept"
-  description="Принять приглашение в конкретный город."
-  usage="/invite accept <город>"
+  command="invite accept"
+  description="Принять приглашение в город."
   permission="all"
+  required={[{ name: "город", description: "Имя города" }]}
 />
 
 <CommandCard
-  command="/invite deny"
+  command="invite deny"
   description="Отклонить приглашение в город или все сразу."
-  usage="/invite deny <город|all>"
   permission="all"
+  required={[{ name: "город|all", description: "Имя города или all" }]}
 />
 
 ---
 
-## `/nation` — Управление нацией
+## `nation` — Управление нацией
 
 <CommandCard
-  command="/nation"
+  command="nation"
   description="Показать информацию о своей нации: города, банк, союзники, враги."
-  usage="/nation [нация]"
   permission="all"
+  roles={["Житель"]}
 />
 
 <CommandCard
-  command="/nation new"
+  command="nation"
+  description="Показать информацию о другой нации."
+  permission="all"
+  required={[{ name: "нация", description: "Имя нации" }]}
+/>
+
+<CommandCard
+  command="nation new"
   description="Создать новую нацию. Мэр основавшего города становится королём."
-  usage="/nation new <название>"
   permission="all"
+  required={[{ name: "название", description: "Имя новой нации" }]}
+  roles={["Король"]}
 />
 
 <CommandCard
-  command="/nation list"
+  command="nation list"
   description="Список всех наций на сервере."
   permission="all"
 />
 
 <CommandCard
-  command="/nation add"
+  command="nation online"
+  description="Показать онлайн-участников нации."
+  permission="all"
+/>
+
+<CommandCard
+  command="nation add"
   description="Пригласить город в нацию."
-  usage="/nation add <город>"
   permission="all"
+  required={[{ name: "город", description: "Имя города" }]}
+  roles={["Король", "Заместитель"]}
 />
 
 <CommandCard
-  command="/nation kick"
+  command="nation kick"
   description="Исключить город из нации."
-  usage="/nation kick <город>"
+  permission="all"
+  required={[{ name: "город", description: "Имя города" }]}
+  roles={["Король", "Заместитель"]}
+/>
+
+<CommandCard
+  command="nation leave"
+  description="Покинуть текущую нацию."
   permission="all"
 />
 
 <CommandCard
-  command="/nation ally add"
-  description="Добавить нацию в союзники."
-  usage="/nation ally add <нация>"
+  command="nation spawn"
+  description="Телепортироваться к спавну нации."
   permission="all"
 />
 
 <CommandCard
-  command="/nation enemy add"
-  description="Объявить нацию врагом."
-  usage="/nation enemy add <нация>"
+  command="nation spawn"
+  description="Телепортироваться к спавну другой нации (если разрешено)."
   permission="all"
+  required={[{ name: "нация", description: "Имя нации" }]}
 />
 
 <CommandCard
-  command="/nation set king"
+  command="nation deposit"
+  description="Положить Дукаты в банк нации."
+  permission="all"
+  required={[{ name: "сумма", description: "Количество дукатов" }]}
+  roles={["Король"]}
+/>
+
+<CommandCard
+  command="nation withdraw"
+  description="Снять Дукаты из банка нации."
+  permission="all"
+  required={[{ name: "сумма", description: "Количество дукатов" }]}
+  roles={["Король"]}
+/>
+
+<CommandCard
+  command="nation set king"
   description="Передать корону другому игроку."
-  usage="/nation set king <житель>"
   permission="all"
-  warning="Действие необратимо без помощи администрации."
+  required={[{ name: "Resident", description: "Имя нового короля" }]}
+  roles={["Король"]}
 />
 
 <CommandCard
-  command="/nation set capital"
+  command="nation set capital"
   description="Изменить столицу нации."
-  usage="/nation set capital <город>"
   permission="all"
+  required={[{ name: "город", description: "Имя столицы" }]}
+  roles={["Король"]}
 />
 
 <CommandCard
-  command="/nation set taxes"
+  command="nation set taxes"
   description="Установить ежедневный налог для городов нации."
-  usage="/nation set taxes <сумма>"
   permission="all"
+  required={[{ name: "сумма", description: "Размер налога" }]}
+  roles={["Король"]}
 />
 
 <CommandCard
-  command="/nation toggle neutral"
+  command="nation set tag"
+  description="Установить короткий тег нации (до 4 символов)."
+  permission="all"
+  required={[{ name: "тег", description: "Тег нации" }]}
+  roles={["Король"]}
+/>
+
+<CommandCard
+  command="nation toggle neutral"
   description="Объявить нацию нейтральной — она не может участвовать в войнах. Требует ежедневной оплаты."
   permission="all"
+  roles={["Король"]}
 />
 
 <CommandCard
-  command="/nation toggle open"
+  command="nation toggle open"
   description="Открыть нацию для свободного вступления городов без приглашения."
   permission="all"
+  roles={["Король"]}
 />
 
 <CommandCard
-  command="/nation merge"
-  description="Запросить слияние другой нации в свою."
-  usage="/nation merge <нация>"
+  command="nation ally add"
+  description="Добавить нацию в союзники."
+  permission="all"
+  required={[{ name: "нация", description: "Имя нации" }]}
+  roles={["Король", "Заместитель"]}
+/>
+
+<CommandCard
+  command="nation ally remove"
+  description="Убрать нацию из союзников."
+  permission="all"
+  required={[{ name: "нация", description: "Имя нации" }]}
+  roles={["Король", "Заместитель"]}
+/>
+
+<CommandCard
+  command="nation enemy add"
+  description="Объявить нацию врагом."
+  permission="all"
+  required={[{ name: "нация", description: "Имя нации" }]}
+  roles={["Король", "Заместитель"]}
+/>
+
+<CommandCard
+  command="nation enemy remove"
+  description="Убрать статус врага у нации."
+  permission="all"
+  required={[{ name: "нация", description: "Имя нации" }]}
+  roles={["Король", "Заместитель"]}
+/>
+
+<CommandCard
+  command="nation allylist"
+  description="Показать список союзных наций."
   permission="all"
 />
 
 <CommandCard
-  command="/nation delete"
+  command="nation enemylist"
+  description="Показать список вражеских наций."
+  permission="all"
+/>
+
+<CommandCard
+  command="nation merge"
+  description="Запросить слияние другой нации в свою."
+  permission="all"
+  required={[{ name: "нация", description: "Имя нации для слияния" }]}
+  roles={["Король"]}
+/>
+
+<CommandCard
+  command="nation delete"
   description="Распустить нацию. Города остаются, но теряют принадлежность к нации."
   permission="all"
-  warning="Операция необратима."
+  roles={["Король"]}
 />
 
 ---
 
-## `/townyadmin` — Администрирование
+## `townyadmin` — Администрирование
 
 <Callout variant="danger" title="Только для администрации">
   Все команды этого раздела доступны исключительно администраторам сервера. Использование рядовыми игроками невозможно.
@@ -533,50 +951,58 @@ description: Полный справочник команд плагина Towny
 <CommandCard
   command="/ta town new"
   description="Создать город для указанного игрока бесплатно."
-  usage="/ta town new <название> <мэр>"
   permission="admin"
+  required={[
+    { name: "название", description: "Имя города" },
+    { name: "мэр", description: "Имя мэра" }
+  ]}
 />
 
 <CommandCard
-  command="/ta town {город} delete"
+  command="/ta town delete"
   description="Удалить любой город принудительно."
-  usage="/ta town <город> delete"
   permission="admin"
+  required={[{ name: "город", description: "Имя города" }]}
 />
 
 <CommandCard
-  command="/ta town {город} set mayor"
+  command="/ta town set Мэр"
   description="Назначить нового мэра вручную."
-  usage="/ta town <город> set mayor <игрок>"
   permission="admin"
+  required={[
+    { name: "город", description: "Имя города" },
+    { name: "игрок", description: "Имя нового мэра" }
+  ]}
 />
 
 <CommandCard
-  command="/ta town {город} unruin"
+  command="/ta town unruin"
   description="Восстановить разрушенный (руинированный) город."
-  usage="/ta town <город> unruin"
   permission="admin"
+  required={[{ name: "город", description: "Имя города" }]}
 />
 
 <CommandCard
   command="/ta givebonus"
   description="Выдать городу дополнительные блоки земли сверх лимита."
-  usage="/ta givebonus <город> <количество>"
   permission="admin"
+  required={[
+    { name: "город", description: "Имя города" },
+    { name: "количество", description: "Число блоков" }
+  ]}
 />
 
 <CommandCard
   command="/ta newday"
   description="Принудительно запустить новый день — немедленный сбор налогов."
   permission="admin"
-  warning="Запустит списание налогов со всех городов прямо сейчас."
 />
 
 <CommandCard
   command="/ta purge"
   description="Удалить профили неактивных жителей старше N дней."
-  usage="/ta purge <дни>"
   permission="admin"
+  required={[{ name: "дни", description: "Количество дней" }]}
 />
 
 <CommandCard
@@ -585,9 +1011,26 @@ description: Полный справочник команд плагина Towny
   permission="admin"
 />
 
+<CommandCard
+  command="/ta Resident delete"
+  description="Удалить профиль жителя."
+  permission="admin"
+  required={[{ name: "игрок", description: "Имя игрока" }]}
+/>
+
+<CommandCard
+  command="/ta town set name"
+  description="Переименовать город."
+  permission="admin"
+  required={[
+    { name: "город", description: "Имя города" },
+    { name: "новое_имя", description: "Новое имя города" }
+  ]}
+/>
+
 ---
 
-## `/townyworld` — Настройки мира
+## `townyworld` — Настройки мира
 
 <Callout variant="info">
   Команды `/tw` применяются к конкретному игровому миру и доступны только администраторам.
@@ -621,4 +1064,17 @@ description: Полный справочник команд плагина Towny
   command="/tw toggle warallowed"
   description="Разрешить или запретить войны в мире."
   permission="admin"
+/>
+
+<CommandCard
+  command="/tw toggle town Crystal"
+  description="Включить/выключить использование кристаллов в мире."
+  permission="admin"
+/>
+
+<CommandCard
+  command="/tw set worldmode"
+  description="Установить режим мира (safe/build/pvp/war)."
+  permission="admin"
+  required={[{ name: "режим", description: "safe|build|pvp|war" }]}
 />
