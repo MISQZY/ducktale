@@ -28,9 +28,9 @@ const fontMono = JetBrains_Mono({
 });
 
 const siteURL = new URL(
-    process.env.NEXT_PUBLIC_SITE_URL ??
-      (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000")
-  )
+  process.env.NEXT_PUBLIC_SITE_URL ??
+    (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000")
+);
 
 export const metadata: Metadata = {
   metadataBase: siteURL,
@@ -71,9 +71,8 @@ export default function RootLayout({
     <html
       lang="ru"
       suppressHydrationWarning
-      data-scroll-behavior="smooth" 
       className={cn(
-        "scroll-pt-16",
+        "scroll-smooth scroll-pt-16",
         fontDisplay.variable,
         fontBody.variable,
         fontMono.variable
@@ -81,7 +80,6 @@ export default function RootLayout({
     >
       <body>
         <RootProvider theme={{ defaultTheme: "dark", forcedTheme: "dark" }}>
-          {/* ServerStatusProvider*/}
           <ServerStatusProvider>{children}</ServerStatusProvider>
         </RootProvider>
       </body>
