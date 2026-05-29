@@ -19,20 +19,21 @@ const INIT_OFFSET: Record<string, Vec2> = {
 const NODES: NodeDef[] = [
   { id: "client", label: "Игрок", sublabel: "Minecraft клиент", icon: Users, color: "gold", tooltip: "Клиент подключается с Minecraft Java Edition ≥ 1.21.x" },
   { id: "proxy", label: "Velocity", sublabel: "Единая точка входа", icon: Globe, color: "violet", tooltip: "Proxy-сервер Velocity — точка входа в сеть DuckTale. Маршрутизирует трафик между всеми серверами." },
-  { id: "auth", label: "Auth", sublabel: "Авторизация", icon: Shield, color: "rose", tooltip: "Система авторизации игроков перед допуском на серверы." },
+  { id: "auth", label: "Auth", sublabel: "Авторизация", icon: Shield, dashed: true, color: "rose", tooltip: "Система авторизации игроков перед допуском на серверы." },
   { id: "hub", label: "Hub", sublabel: "Лобби серверов", icon: Home, color: "amber", tooltip: "Сервер-лобби для выбора игрового сервера." },
   { id: "duckburg", label: "DuckBurg", sublabel: "Выживание", icon: Server, color: "emerald", tooltip: "Игровой сервер выживания" },
   { id: "duckhood", label: "DuckHood", sublabel: "Креатив", icon: Server, color: "sky", tooltip: "Игровой творческий сервер" },
-  { id: "backup", label: "Бэкапы", sublabel: "Ежедневно", icon: RefreshCw, color: "gold", tooltip: "Ежедневные резервные копии всех игровых данных." },
-  { id: "voice", label: "Voice-Chat", sublabel: "Голосовой чат сервера", icon: Mic, color: "gold", tooltip: "Голосовой внутриигровой чат." },
+  { id: "backup", label: "Бэкапы", sublabel: "Ежедневно", icon: RefreshCw, dashed: true, color: "gold", tooltip: "Ежедневные резервные копии всех игровых данных." },
+  { id: "voice", label: "Voice-Chat", sublabel: "Голосовой чат сервера", icon: Mic, dashed: true, color: "gold", tooltip: "Голосовой внутриигровой чат." },
 ];
 
 const EDGES: EdgeDef[] = [
   { from: "client", to: "proxy", color: "white", tooltip: "Подключение игрока к точке входа сети" },
   { from: "proxy", to: "auth", color: "gold", tooltip: "Velocity направляет на сервис авторизации" },
   { from: "auth", to: "hub", color: "gold", tooltip: "При успешной авторизации перенаправляет на HUB" },
-  { from: "hub", to: "duckhood", color: "gold", tooltip: "Перенаправление между HUB и DuckHood" },
-  { from: "hub", to: "duckburg", color: "gold", tooltip: "Перенаправление между HUB и DuckBurg" },
+  { from: "hub", to: "duckhood", color: "gold", direction: "both", tooltip: "Перенаправление между HUB и DuckHood" },
+  { from: "hub", to: "duckburg", color: "gold", direction: "both", tooltip: "Перенаправление между HUB и DuckBurg" },
+  { from: "duckhood", to: "duckburg", color: "gold", direction: "both", tooltip: "Перенаправление между DuckHood и DuckBurg" },
   { from: "backup", to: "duckburg", color: "violet", dashed: true, tooltip: "Автоматическое резервное копирование DuckBurg" },
   { from: "backup", to: "duckhood", color: "violet", dashed: true, tooltip: "Автоматическое резервное копирование DuckHood" },
   { from: "voice", to: "duckburg", color: "violet", dashed: true, tooltip: "Предоставление голосового чата для сервера DuckBurg" },

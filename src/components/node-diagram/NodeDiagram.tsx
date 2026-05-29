@@ -8,6 +8,13 @@ import type { NodeDef, EdgeDef, Vec2, TooltipState, NodeDiagramProps } from "./t
 
 export type { NodeDef, EdgeDef, Vec2, TooltipState, NodeDiagramProps };
 
+// Arrow directions supported via EdgeDef:
+//   direction?: "forward" | "backward" | "both" | "none"
+//   - "forward"  (default) — arrowhead at `to`
+//   - "backward"           — arrowhead at `from`
+//   - "both"               — arrowheads at both ends
+//   - "none"               — plain line, no arrowheads
+
 export function NodeDiagram({ nodes, edges, initOffsets, title, header }: NodeDiagramProps) {
   const frameRef = useRef<HTMLDivElement>(null);
   const [frameDims, setFrameDims] = useState({ w: 800, h: 460 });
@@ -52,12 +59,10 @@ export function NodeDiagram({ nodes, edges, initOffsets, title, header }: NodeDi
     return () => ro.disconnect();
   }, [clampPanMemo]);
 
-
   const getCanvasOffset = useCallback(() => ({
     left: frameDims.w / 2 - CX + panRef.current.x,
     top: frameDims.h / 2 - CY + panRef.current.y,
   }), [frameDims]);
-
 
   const moveNodeTo = useCallback((clientX: number, clientY: number) => {
     const d = dragging.current;
@@ -186,7 +191,6 @@ export function NodeDiagram({ nodes, edges, initOffsets, title, header }: NodeDi
     };
   }, [moveNodeTo, movePanTo]);
 
-
   const toFramePos = useCallback(
     (v: Vec2) => toFrame(v, frameDims, pan),
     [frameDims, pan]
@@ -211,10 +215,59 @@ export function NodeDiagram({ nodes, edges, initOffsets, title, header }: NodeDi
     setActiveEdge(null);
   };
 
-  const edgeMidFrame = (edge: EdgeDef): Vec2 | null => {
-    const fp = positions[edge.from], tp = positions[edge.to];
+  const ARROW_INSET = 4;
+
+  /**
+   * Returns the point where the line from `other` to `target` first touches
+   * the rectangular boundary of the card centred at `target`.
+   *
+   * @param target centre of the card we are computing the edge for
+   * @param other centre of the opposite card
+   * @param inset extra gap to pull the point back along the normal (for arrowheads)
+   */
+  const cardEdgePoint = (target: Vec2, other: Vec2, inset = 0): Vec2 => {
+    const hw = CARD_W / 2;
+    const hh = CARD_H / 2;
+    const dx = other.x - target.x;
+    const dy = other.y - target.y;
+    const dist = Math.sqrt(dx * dx + dy * dy);
+    if (dist === 0) return target;
+
+    const nx = dx / dist;
+    const ny = dy / dist;
+
+    const tx = hw / Math.abs(nx || 1e-9);
+    const ty = hh / Math.abs(ny || 1e-9);
+    const t = Math.min(tx, ty);
+
+    return {
+      x: target.x + nx * (t + inset),
+      y: target.y + ny * (t + inset),
+    };
+  };
+
+  const edgeEndpoints = (edge: EdgeDef): { lineStart: Vec2; lineEnd: Vec2 } | null => {
+    const fp = positions[edge.from];
+    const tp = positions[edge.to];
     if (!fp || !tp) return null;
-    return toFramePos({ x: (fp.x + tp.x) / 2, y: (fp.y + tp.y) / 2 });
+
+    const dir = edge.direction ?? "forward";
+    const hasArrowEnd = dir === "forward" || dir === "both";
+    const hasArrowStart = dir === "backward" || dir === "both";
+
+    const lineStart = cardEdgePoint(fp, tp, hasArrowStart ? ARROW_INSET : 0);
+    const lineEnd = cardEdgePoint(tp, fp, hasArrowEnd ? ARROW_INSET : 0);
+
+    return { lineStart, lineEnd };
+  };
+
+  const edgeMidFrame = (edge: EdgeDef): Vec2 | null => {
+    const ep = edgeEndpoints(edge);
+    if (!ep) return null;
+    return toFramePos({
+      x: (ep.lineStart.x + ep.lineEnd.x) / 2,
+      y: (ep.lineStart.y + ep.lineEnd.y) / 2,
+    });
   };
 
   const canvasLeft = frameDims.w / 2 - CX + pan.x;
@@ -249,6 +302,7 @@ export function NodeDiagram({ nodes, edges, initOffsets, title, header }: NodeDi
           className="absolute pointer-events-none"
           style={{ left: canvasLeft, top: canvasTop, width: CANVAS_W, height: CANVAS_H }}
         >
+          {/* Grid */}
           <svg width={CANVAS_W} height={CANVAS_H} className="absolute inset-0 opacity-[0.035]">
             <defs>
               <pattern id="nd-grid" width="48" height="48" patternUnits="userSpaceOnUse">
@@ -258,40 +312,95 @@ export function NodeDiagram({ nodes, edges, initOffsets, title, header }: NodeDi
             <rect width="100%" height="100%" fill="url(#nd-grid)" />
           </svg>
 
+          {/* Edges */}
           <svg width={CANVAS_W} height={CANVAS_H} className="absolute inset-0">
             <defs>
-              {(["gold", "emerald", "sky"] as const).map((c) => (
-                <marker key={c} id={`nd-arr-${c}`} markerWidth="7" markerHeight="7" refX="5.5" refY="3.5" orient="auto">
-                  <polygon points="0 0,7 3.5,0 7" fill={LINE[c]} opacity="0.75" />
+              {(["gold", "emerald", "sky", "white"] as const).map((c) => (
+                <marker
+                  key={c}
+                  id={`nd-arr-${c}`}
+                  viewBox="0 0 10 10"
+                  refX="2"
+                  refY="5"
+                  markerWidth="8"
+                  markerHeight="8"
+                  orient="auto"
+                  markerUnits="userSpaceOnUse"
+                >
+                  <path
+                    d="M2 1L8 5L2 9"
+                    fill="none"
+                    stroke={LINE[c] ?? "#ffffff"}
+                    strokeWidth="1.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
                 </marker>
               ))}
+
+              {(["gold", "emerald", "sky", "white"] as const).map((c) => (
+                <marker
+                  key={`${c}-rev`}
+                  id={`nd-arr-rev-${c}`}
+                  viewBox="0 0 10 10"
+                  refX="2"
+                  refY="5"
+                  markerWidth="8"
+                  markerHeight="8"
+                  orient="auto-start-reverse"
+                  markerUnits="userSpaceOnUse"
+                >
+                  <path
+                    d="M2 1L8 5L2 9"
+                    fill="none"
+                    stroke={LINE[c] ?? "#ffffff"}
+                    strokeWidth="1.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </marker>
+              ))}
+
               <filter id="nd-gl">
-                <feGaussianBlur stdDeviation="2.5" result="b" />
+                <feGaussianBlur stdDeviation="2" result="b" />
                 <feMerge><feMergeNode in="b" /><feMergeNode in="SourceGraphic" /></feMerge>
               </filter>
             </defs>
 
             {edges.map((edge, idx) => {
-              const fp = positions[edge.from], tp = positions[edge.to];
-              if (!fp || !tp) return null;
+              const ep = edgeEndpoints(edge);
+              if (!ep) return null;
+              const { lineStart, lineEnd } = ep;
+
               const col = edge.color ?? "gold";
+              const dir = edge.direction ?? "forward";
               const isActive = activeEdge === idx || activeNode === edge.from || activeNode === edge.to;
+
+              const markerEnd = (dir === "forward" || dir === "both") ? `url(#nd-arr-${col})` : undefined;
+              const markerStart = (dir === "backward" || dir === "both") ? `url(#nd-arr-rev-${col})` : undefined;
+
               return (
-                <line key={idx}
-                  x1={fp.x} y1={fp.y} x2={tp.x} y2={tp.y}
+                <line
+                  key={idx}
+                  x1={lineStart.x}
+                  y1={lineStart.y}
+                  x2={lineEnd.x}
+                  y2={lineEnd.y}
                   stroke={LINE[col]}
                   strokeWidth={isActive ? 2.5 : 1.5}
                   strokeDasharray={edge.dashed ? "7 5" : undefined}
                   strokeOpacity={isActive ? 0.9 : 0.28}
-                  markerEnd={!edge.dashed ? `url(#nd-arr-${col})` : undefined}
+                  markerEnd={markerEnd}
+                  markerStart={markerStart}
                   filter={isActive ? "url(#nd-gl)" : undefined}
-                  style={{ transition: "stroke-opacity .2s,stroke-width .2s" }}
+                  style={{ transition: "stroke-opacity .2s, stroke-width .2s" }}
                 />
               );
             })}
           </svg>
         </div>
 
+        {/* Edge hover targets */}
         {edges.map((edge, idx) => {
           if (!edge.tooltip) return null;
           const mid = edgeMidFrame(edge);
@@ -306,6 +415,7 @@ export function NodeDiagram({ nodes, edges, initOffsets, title, header }: NodeDi
           );
         })}
 
+        {/* Nodes */}
         {nodes.map((node) => {
           const vpos = positions[node.id];
           if (!vpos) return null;
@@ -320,7 +430,9 @@ export function NodeDiagram({ nodes, edges, initOffsets, title, header }: NodeDi
               className={cn(
                 "absolute rounded-xl border flex flex-col items-center gap-1 px-3 py-2.5",
                 "transition-shadow duration-200 cursor-grab active:cursor-grabbing select-none",
-                c.bg, c.border,
+                c.bg,
+                c.border,
+                node.dashed && "border-dashed"
               )}
               style={{
                 left: fp.x, top: fp.y,
@@ -356,6 +468,7 @@ export function NodeDiagram({ nodes, edges, initOffsets, title, header }: NodeDi
           );
         })}
 
+        {/* Tooltip */}
         {tooltip && (
           <div className="absolute pointer-events-none z-40"
             style={{
@@ -376,16 +489,6 @@ export function NodeDiagram({ nodes, edges, initOffsets, title, header }: NodeDi
         )}
 
         {title}
-
-        {/* <div className="absolute top-4 right-5 z-50 pointer-events-none
-                rounded-lg border border-gold-800/20 bg-stone-950/80 px-3 py-2 font-mono"
-          style={{ fontSize: "0.55rem", backdropFilter: "blur(8px)" }}>
-          {Object.entries(positions).map(([id, pos]) => (
-            <div key={id} className="text-amber-100/50">
-              {id}: x: {Math.round(pos.x - CX)}, y: {Math.round(pos.y - CY)}
-            </div>
-          ))}
-        </div> */}
       </div>
     </div>
   );

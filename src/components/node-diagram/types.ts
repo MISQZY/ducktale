@@ -2,12 +2,14 @@ export interface NodeDef {
   id: string;
   label: string;
   sublabel?: string;
+  dashed?: boolean;
   icon: React.ElementType;
   color: "gold" | "emerald" | "sky" | "violet" | "rose" | "amber";
   tooltip: string;
 }
 
 export interface EdgeDef {
+  direction?: "forward" | "backward" | "both";
   from: string;
   to: string;
   dashed?: boolean;
