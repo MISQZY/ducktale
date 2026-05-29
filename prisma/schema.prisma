@@ -1,0 +1,145 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "env("DATABASE_PROVIDER")"
+  url      = env("DATABASE_URL")
+}
+
+model fp_fcolor {
+  id               Int                @id @default(autoincrement())
+  name             String             @db.MediumText
+  fp_player_fcolor fp_player_fcolor[]
+}
+
+model fp_ignore {
+  id                                       Int       @id @default(autoincrement())
+  date                                     BigInt
+  initiator                                Int
+  target                                   Int
+  valid                                    Int       @default(1)
+  fp_player_fp_ignore_initiatorTofp_player fp_player @relation("fp_ignore_initiatorTofp_player", fields: [initiator], references: [id], onUpdate: Restrict, map: "fp_ignore_ibfk_1")
+  fp_player_fp_ignore_targetTofp_player    fp_player @relation("fp_ignore_targetTofp_player", fields: [target], references: [id], onUpdate: Restrict, map: "fp_ignore_ibfk_2")
+
+  @@index([initiator, target, valid], map: "idx_fp_ignore_initiator_target_valid")
+  @@index([initiator, valid], map: "idx_fp_ignore_initiator_valid")
+  @@index([target, valid], map: "idx_fp_ignore_target_valid")
+}
+
+model fp_mail {
+  id                                    Int       @id @default(autoincrement())
+  date                                  BigInt
+  sender                                Int
+  receiver                              Int
+  message                               String    @db.MediumText
+  valid                                 Int       @default(1)
+  fp_player_fp_mail_senderTofp_player   fp_player @relation("fp_mail_senderTofp_player", fields: [sender], references: [id], onUpdate: Restrict, map: "fp_mail_ibfk_1")
+  fp_player_fp_mail_receiverTofp_player fp_player @relation("fp_mail_receiverTofp_player", fields: [receiver], references: [id], onUpdate: Restrict, map: "fp_mail_ibfk_2")
+
+  @@index([receiver, valid], map: "idx_fp_mail_receiver_valid")
+  @@index([receiver, valid, date], map: "idx_fp_mail_receiver_valid_date")
+  @@index([sender, valid], map: "idx_fp_mail_sender_valid")
+  @@index([sender, valid, date], map: "idx_fp_mail_sender_valid_date")
+}
+
+model fp_moderation {
+  id                                           Int       @id @default(autoincrement())
+  player                                       Int
+  date                                         BigInt
+  time                                         BigInt
+  reason                                       String?   @db.Text
+  moderator                                    Int
+  type                                         String    @db.VarChar(255)
+  valid                                        Int       @default(1) @db.TinyInt
+  server                                       String?   @db.VarChar(255)
+  fp_player_fp_moderation_playerTofp_player    fp_player @relation("fp_moderation_playerTofp_player", fields: [player], references: [id], onUpdate: Restrict, map: "fp_moderation_ibfk_1")
+  fp_player_fp_moderation_moderatorTofp_player fp_player @relation("fp_moderation_moderatorTofp_player", fields: [moderator], references: [id], onUpdate: Restrict, map: "fp_moderation_ibfk_2")
+
+  @@index([moderator], map: "idx_fp_moderation_moderator")
+  @@index([player, type(length: 32), valid, time], map: "idx_fp_moderation_player_type_valid_time")
+  @@index([type(length: 32), valid, time], map: "idx_fp_moderation_type_valid_time")
+}
+
+model fp_moderation_old {
+  id                                               Int       @id @default(autoincrement())
+  player                                           Int
+  date                                             BigInt
+  time                                             BigInt
+  reason                                           String?   @db.MediumText
+  moderator                                        Int
+  type                                             Int
+  valid                                            Int       @default(1)
+  fp_player_fp_moderation_old_playerTofp_player    fp_player @relation("fp_moderation_old_playerTofp_player", fields: [player], references: [id], onUpdate: Restrict, map: "fp_moderation_old_ibfk_1")
+  fp_player_fp_moderation_old_moderatorTofp_player fp_player @relation("fp_moderation_old_moderatorTofp_player", fields: [moderator], references: [id], onUpdate: Restrict, map: "fp_moderation_old_ibfk_2")
+
+  @@index([moderator], map: "idx_fp_moderation_moderator")
+  @@index([moderator, valid], map: "idx_fp_moderation_moderator_valid")
+  @@index([player, type, valid], map: "idx_fp_moderation_player_type_valid")
+  @@index([player, valid, time], map: "idx_fp_moderation_player_valid_time")
+  @@index([valid, time], map: "idx_fp_moderation_valid_time")
+}
+
+model fp_player {
+  id                                                       Int                 @id @default(autoincrement())
+  online                                                   Int                 @default(0)
+  uuid                                                     String              @unique(map: "uuid") @db.VarChar(36)
+  name                                                     String              @unique(map: "name") @db.VarChar(255)
+  ip                                                       String?             @db.VarChar(39)
+  fp_ignore_fp_ignore_initiatorTofp_player                 fp_ignore[]         @relation("fp_ignore_initiatorTofp_player")
+  fp_ignore_fp_ignore_targetTofp_player                    fp_ignore[]         @relation("fp_ignore_targetTofp_player")
+  fp_mail_fp_mail_senderTofp_player                        fp_mail[]           @relation("fp_mail_senderTofp_player")
+  fp_mail_fp_mail_receiverTofp_player                      fp_mail[]           @relation("fp_mail_receiverTofp_player")
+  fp_moderation_fp_moderation_playerTofp_player            fp_moderation[]     @relation("fp_moderation_playerTofp_player")
+  fp_moderation_fp_moderation_moderatorTofp_player         fp_moderation[]     @relation("fp_moderation_moderatorTofp_player")
+  fp_moderation_old_fp_moderation_old_playerTofp_player    fp_moderation_old[] @relation("fp_moderation_old_playerTofp_player")
+  fp_moderation_old_fp_moderation_old_moderatorTofp_player fp_moderation_old[] @relation("fp_moderation_old_moderatorTofp_player")
+  fp_player_fcolor                                         fp_player_fcolor[]
+  fp_setting                                               fp_setting[]
+  fp_time                                                  fp_time?
+
+  @@index([ip], map: "idx_fp_player_ip")
+  @@index([online], map: "idx_fp_player_online")
+}
+
+model fp_player_fcolor {
+  id        Int       @id @default(autoincrement())
+  number    Int
+  player    Int
+  fcolor    Int
+  type      String    @db.VarChar(255)
+  fp_player fp_player @relation(fields: [player], references: [id], onUpdate: Restrict, map: "fp_player_fcolor_ibfk_1")
+  fp_fcolor fp_fcolor @relation(fields: [fcolor], references: [id], onUpdate: Restrict, map: "fp_player_fcolor_ibfk_2")
+
+  @@unique([number, player, type], map: "fp_player_fcolor_unique")
+  @@index([fcolor], map: "fcolor")
+  @@index([player, type(length: 100)], map: "idx_fp_player_fcolor_player_type")
+  @@index([player, type(length: 100), number], map: "idx_fp_player_fcolor_player_type_number")
+}
+
+model fp_setting {
+  id        Int       @id @default(autoincrement())
+  player    Int
+  type      String    @db.VarChar(255)
+  value     String?   @db.Text
+  fp_player fp_player @relation(fields: [player], references: [id], onUpdate: Restrict, map: "fp_setting_ibfk_1")
+
+  @@unique([player, type], map: "player")
+}
+
+model fp_time {
+  id        Int       @id @default(autoincrement())
+  player    Int       @unique(map: "player")
+  first     BigInt
+  last      BigInt
+  total     BigInt
+  sessions  Int       @default(0)
+  fp_player fp_player @relation(fields: [player], references: [id], onUpdate: Restrict, map: "fp_time_ibfk_1")
+
+  @@index([total], map: "idx_fp_time_total")
+}
+
+model fp_version {
+  id   Int    @id
+  name String @db.MediumText
+}

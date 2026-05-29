@@ -11,6 +11,7 @@ import {
   ServerAddress,
   ServerStatusWidget,
   StepList,
+  WhitelistTable,
 } from "@/components/docs";
 
 import {
@@ -24,12 +25,12 @@ import {
 
 export const docsComponents = {
   ...defaultMdxComponents,
-  table: DocsTable,
-  thead: DocsTableHeader,
-  tbody: DocsTableBody,
-  tr: DocsTableRow,
-  th: DocsTableHead,
-  td: DocsTableCell,
+  table:  DocsTable,
+  thead:  DocsTableHeader,
+  tbody:  DocsTableBody,
+  tr:     DocsTableRow,
+  th:     DocsTableHead,
+  td:     DocsTableCell,
   Callout,
   CommandCard,
   FeatureGrid,
@@ -41,4 +42,5 @@ export const docsComponents = {
   ServerAddress,
   ServerStatusWidget,
   StepList,
+  WhitelistTable,
 };

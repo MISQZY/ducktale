@@ -40,3 +40,6 @@ next-env.d.ts
 Caddyfile
 Dockerfile
 docker-compose.yml
+
+# Prisma
+node_modules/.prisma/
