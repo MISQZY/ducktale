@@ -66,4 +66,4 @@ export const SERVERS: ServerConfig[] = [
   },
 ];
 
-export const NETWORK_HOST = "s6.yufu.su:25569";
+export const NETWORK_HOST = "mc.ducktale.online";
