@@ -3,8 +3,8 @@ generator client {
 }
 
 datasource db {
-  provider = "env("DATABASE_PROVIDER")"
-  url      = env("DATABASE_URL")
+  provider = "mysql"
+  url = env("DATABASE_URL")
 }
 
 model fp_fcolor {
