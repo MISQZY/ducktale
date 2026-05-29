@@ -5,6 +5,7 @@ import { notFound } from "next/navigation";
 import { docsComponents } from "@/lib/mdx-components";
 import type { ExtendedPage } from "@/lib/source";
 import type { TOCItemType } from 'fumadocs-core/toc';
+import { GitHubLastModified } from "@/components/docs/GitHubLastModified";
 
 export default async function DocsServerPage({
   params,
@@ -26,12 +27,15 @@ export default async function DocsServerPage({
 
   if (!MDX) notFound();
 
+  const filePath = `content/${server}/${page.path}`;
+
   return (
     <DocsPage toc={(toc as TOCItemType[]) || []} full={full ?? false}>
       <DocsTitle>{title}</DocsTitle>
       <DocsDescription>{description}</DocsDescription>
       <DocsBody>
         <MDX components={docsComponents} />
+        <GitHubLastModified filePath={filePath} />
       </DocsBody>
     </DocsPage>
   );

@@ -10,3 +10,4 @@ export { ServerBanner } from "./ServerBanner";
 export { ServerStatusWidget } from "./ServerStatusWidget";
 export { StepList } from "./StepList";
 export { WhitelistTable } from "./WhitelistTable";
+export { GitHubLastModified } from "./GitHubLastModified";
