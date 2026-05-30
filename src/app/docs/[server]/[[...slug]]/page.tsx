@@ -35,8 +35,8 @@ export default async function DocsServerPage({
       <DocsDescription>{description}</DocsDescription>
       <DocsBody>
         <MDX components={docsComponents} />
-        <GitHubLastModified filePath={filePath} />
       </DocsBody>
+      <GitHubLastModified filePath={filePath} />
     </DocsPage>
   );
 }
