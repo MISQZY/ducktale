@@ -10,6 +10,11 @@ interface CtaButtonProps {
   icon?: ReactNode;
 }
 
+const SHARED_FONT_STYLE = {
+  fontFamily: "var(--font-display)",
+  fontSize: "0.85rem",
+} as const;
+
 export function CtaButton({
   href,
   children,
@@ -34,7 +39,7 @@ export function CtaButton({
         ],
         className
       )}
-      style={variant === "primary" ? { fontFamily: "var(--font-display)", fontSize: "0.85rem" } : { fontFamily: "var(--font-display)", fontSize: "0.85rem" }}
+      style={SHARED_FONT_STYLE}
     >
       {variant === "primary" && (
         <span className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-700 bg-linear-to-r from-transparent via-white/15 to-transparent skew-x-12" />

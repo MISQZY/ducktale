@@ -11,9 +11,10 @@ const config = {
       { protocol: "https", hostname: "cdn.modrinth.com" },
       { protocol: "https", hostname: "raw.githubusercontent.com" },
       { protocol: "https", hostname: "github.com" },
+      { protocol: "https", hostname: "avatars.githubusercontent.com" },
       { protocol: "https", hostname: "i.imgur.com" },
       { protocol: "https", hostname: "media.forgecdn.net" },
-      { protocol: "https", hostname: "drive.google.com"}
+      { protocol: "https", hostname: "drive.google.com" },
     ],
     deviceSizes: [640, 750, 828, 1080, 1200],
     imageSizes: [16, 32, 48, 64, 96, 128, 256],

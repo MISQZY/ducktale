@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import { cn } from "@/lib/utils";
 import { GoldDivider } from "@/components/common/GoldDivider";
 
@@ -5,6 +6,8 @@ interface SectionHeaderProps {
   label: string;
   title: string;
   description?: string;
+  /** Optional slot rendered after the divider, before the description. */
+  children?: ReactNode;
   className?: string;
 }
 
@@ -12,6 +15,7 @@ export default function SectionHeader({
   label,
   title,
   description,
+  children,
   className,
 }: SectionHeaderProps) {
   return (
@@ -31,9 +35,13 @@ export default function SectionHeader({
 
       <GoldDivider wide className="mb-7" />
 
+      {children}
+
       {description && (
-        <p className="text-amber-100/50 max-w-2xl mx-auto leading-relaxed text-lg"
-           style={{ fontFamily: "var(--font-body)" }}>
+        <p
+          className="text-amber-100/50 max-w-2xl mx-auto leading-relaxed text-lg"
+          style={{ fontFamily: "var(--font-body)" }}
+        >
           {description}
         </p>
       )}

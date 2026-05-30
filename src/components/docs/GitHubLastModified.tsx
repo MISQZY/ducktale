@@ -1,4 +1,4 @@
-// components/GitHubLastModified.tsx
+import Image from "next/image";
 import { fetchLastModified } from "@/lib/github";
 import { Clock, User } from "lucide-react";
 
@@ -28,18 +28,20 @@ export async function GitHubLastModified({ filePath }: Props) {
           </span>
         )}
       </div>
-      
+
       <div className="flex items-center gap-2 ml-auto">
         {result?.author ? (
           <>
             {result.author.avatar_url && (
-              <img 
-                src={result.author.avatar_url} 
+              <Image
+                src={result.author.avatar_url}
                 alt={result.authorName}
-                className="w-5 h-5 rounded-full shrink-0"
+                width={20}
+                height={20}
+                className="rounded-full shrink-0"
               />
             )}
-            <a 
+            <a
               href={`https://github.com/${result.authorName}`}
               target="_blank"
               rel="noopener noreferrer"

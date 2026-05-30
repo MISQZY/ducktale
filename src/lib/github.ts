@@ -1,3 +1,12 @@
+/**
+ * GitHub API helpers for fetching commit metadata.
+ *
+ * We rely on Next.js `fetch` caching (next.revalidate) instead of a manual
+ * in-memory Map. The Map approach breaks in serverless / edge environments
+ * because each cold-start gets a fresh module scope, so the cache is empty
+ * on every request. Next.js fetch-cache persists across invocations correctly.
+ */
+
 interface GitHubAuthor {
   date: string;
   name: string;
@@ -19,22 +28,17 @@ export interface LastModifiedResult {
   authorName: string;
 }
 
-const cache = new Map<string, { data: LastModifiedResult | null; timestamp: number }>();
-const CACHE_DURATION = 60 * 60 * 1000; // 1 час
+/** Revalidation window in seconds (1 hour). */
+const REVALIDATE_SECONDS = 3_600;
 
-export async function fetchLastModified(filePath: string): Promise<LastModifiedResult | null> {
-  const cached = cache.get(filePath);
-  
-  if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
-    return cached.data;
-  }
-
+export async function fetchLastModified(
+  filePath: string
+): Promise<LastModifiedResult | null> {
   const repo = process.env.GITHUB_REPO;
   const token = process.env.GITHUB_TOKEN;
 
   if (!repo) {
-    console.warn("[GitHubLastModified] GITHUB_REPO env var is not set");
-    cache.set(filePath, { data: null, timestamp: Date.now() });
+    console.warn("[github] GITHUB_REPO env var is not set");
     return null;
   }
 
@@ -47,29 +51,27 @@ export async function fetchLastModified(filePath: string): Promise<LastModifiedR
   if (token) headers["Authorization"] = `Bearer ${token}`;
 
   try {
-    const res = await fetch(url, { headers, next: { revalidate: 3600 } });
-    if (!res.ok) {
-      console.warn(`[GitHubLastModified] GitHub API error: ${res.status} ${res.statusText}`);
-      cache.set(filePath, { data: null, timestamp: Date.now() });
-      return null;
-    }
-    const data: GitHubCommit[] = await res.json();
-    if (!data.length) {
-      cache.set(filePath, { data: null, timestamp: Date.now() });
-      return null;
-    }
-    
-    const result: LastModifiedResult = {
-      date: new Date(data[0].commit.author.date),
-      author: data[0].author,
-      authorName: data[0].author?.login || data[0].commit.author.name,
-    };
+    // next.revalidate handles caching at the CDN/Next.js level — no manual Map needed.
+    const res = await fetch(url, {
+      headers,
+      next: { revalidate: REVALIDATE_SECONDS },
+    });
 
-    cache.set(filePath, { data: result, timestamp: Date.now() });
-    return result;
+    if (!res.ok) {
+      console.warn(`[github] API error: ${res.status} ${res.statusText}`);
+      return null;
+    }
+
+    const data: GitHubCommit[] = await res.json();
+    if (!data.length) return null;
+
+    return {
+      date:       new Date(data[0].commit.author.date),
+      author:     data[0].author,
+      authorName: data[0].author?.login ?? data[0].commit.author.name,
+    };
   } catch (e) {
-    console.warn("[GitHubLastModified] fetch failed:", e);
-    cache.set(filePath, { data: null, timestamp: Date.now() });
+    console.warn("[github] fetch failed:", e);
     return null;
   }
 }

@@ -348,6 +348,14 @@ body {
   background-size: 60px 60px;
 }
 
+.nav-desktop {
+  display: none;
+}
+@media (min-width: 768px) {
+  .nav-desktop { display: flex; }
+  .nav-burger  { display: none;  }
+}
+ 
 [data-roles-badge] {
   display: inline-flex !important;
   color: rgb(168 162 158) !important;

@@ -15,22 +15,16 @@ import {
   SheetClose,
 } from "@/components/ui/sheet";
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
+import { NAV_LINKS } from "@/config/navigation";
 
-const navLinks = [
-  { href: "/#about", label: "О проекте" },
-  { href: "/#servers", label: "Серверы" },
-  { href: "/#infrastructure", label: "Инфраструктура" },
-  { href: "/#community", label: "Сообщество" },
-];
+function isActive(pathname: string, href: string): boolean {
+  if (href.startsWith("/#")) return pathname === "/";
+  return pathname.startsWith(href);
+}
 
 export default function Navbar() {
   const pathname = usePathname();
   const [menuOpen, setMenuOpen] = useState(false);
-
-  function isActive(href: string) {
-    if (href.startsWith("/#")) return pathname === "/";
-    return pathname.startsWith(href);
-  }
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50">
@@ -45,35 +39,35 @@ export default function Navbar() {
             <Logo />
           </Link>
 
-          <style>{`
-            .ducktale-nav-links { display: none; }
-            @media (min-width: 768px) { .ducktale-nav-links { display: flex; } }
-            .ducktale-burger { display: flex; }
-            @media (min-width: 768px) { .ducktale-burger { display: none; } }
-          `}</style>
-
-          <div className="ducktale-nav-links items-center gap-1">
-            {navLinks.map((link) => (
+          {/*
+            Desktop nav.
+            Uses .nav-desktop from globals.css instead of Tailwind's `hidden md:flex`
+            because fumadocs injects its own stylesheet that can win the specificity
+            race against Tailwind utility classes.
+          */}
+          <div className="nav-desktop items-center gap-1">
+            {NAV_LINKS.map((link) => (
               <Link
                 key={link.href}
                 href={link.href}
                 className={cn(
                   "relative px-3 py-2 text-sm transition-colors tracking-wide rounded-md",
-                  isActive(link.href)
+                  isActive(pathname, link.href)
                     ? "text-gold-300 font-semibold"
                     : "text-amber-100/55 hover:text-gold-300/90"
                 )}
-                aria-current={isActive(link.href) ? "page" : undefined}
+                aria-current={isActive(pathname, link.href) ? "page" : undefined}
               >
                 {link.label}
-                {isActive(link.href) && (
+                {isActive(pathname, link.href) && (
                   <span className="absolute bottom-0 left-3 right-3 h-px bg-linear-to-r from-transparent via-gold-400/70 to-transparent" />
                 )}
               </Link>
             ))}
           </div>
 
-          <div className="ducktale-burger">
+          {/* Mobile burger — hidden on desktop via .nav-burger in globals.css */}
+          <div className="nav-burger">
             <Sheet open={menuOpen} onOpenChange={setMenuOpen}>
               <SheetTrigger asChild>
                 <Button
@@ -105,17 +99,17 @@ export default function Navbar() {
                 <div className="h-px mx-5 bg-linear-to-r from-transparent via-gold-600/25 to-transparent" />
 
                 <nav className="flex flex-col px-3 py-4 gap-0.5">
-                  {navLinks.map((link) => (
+                  {NAV_LINKS.map((link) => (
                     <SheetClose asChild key={link.href}>
                       <Link
                         href={link.href}
                         className={cn(
                           "flex items-center rounded-lg px-4 py-2.5 text-sm tracking-wide transition-colors",
-                          isActive(link.href)
+                          isActive(pathname, link.href)
                             ? "bg-gold-400/8 text-gold-300 font-semibold border-l-2 border-gold-400/50"
                             : "text-amber-100/50 hover:bg-gold-400/5 hover:text-gold-200/80"
                         )}
-                        aria-current={isActive(link.href) ? "page" : undefined}
+                        aria-current={isActive(pathname, link.href) ? "page" : undefined}
                       >
                         {link.label}
                       </Link>
