@@ -35,7 +35,7 @@ export const docsSources = Object.fromEntries(
   SERVERS.flatMap((s) => {
     const collection = collections[s.id];
     if (!collection) {
-      console.warn(`[source] Can't found MDX-collection for server "${s.id}" — pages /docs/${s.id} will return 404`);
+      console.warn(`[source] No MDX collection found for server "${s.id}" — pages /docs/${s.id} will return 404`);
       return [];
     }
     return [[s.id, buildSource(collection, `/docs/${s.id}`)]];

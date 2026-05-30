@@ -7,7 +7,13 @@ interface Props {
 }
 
 export async function GitHubLastModified({ filePath }: Props) {
-  const result = await fetchLastModified(filePath);
+  // Wrap in try/catch so a GitHub API failure never breaks the docs page render
+  let result;
+  try {
+    result = await fetchLastModified(filePath);
+  } catch {
+    result = null;
+  }
 
   return (
     <div className="mt-6 pt-4 flex border-t border-fd-border text-xs">

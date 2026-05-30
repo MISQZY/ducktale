@@ -1,23 +1,10 @@
 import { NextResponse } from "next/server";
 import { withDb } from "@/lib/db";
 import { Prisma } from "@prisma/client";
+import type { WhitelistPlayer, WhitelistResponse } from "@/types/whitelist";
 
-export interface WhitelistPlayer {
-  id:        number;
-  name:      string;
-  uuid:      string;
-  addedAt:   number;
-  expiresAt: number; // 0 = permanent
-  moderator: string;
-}
-
-export interface WhitelistResponse {
-  players:    WhitelistPlayer[];
-  total:      number;
-  page:       number;
-  pageSize:   number;
-  totalPages: number;
-}
+// Re-export for consumers that still import from this path (backwards compat)
+export type { WhitelistPlayer, WhitelistResponse };
 
 interface RawRow {
   id:        bigint;

@@ -126,7 +126,7 @@ export function usePagedTable<T>({
   const totalPages   = data?.totalPages ?? 1;
   const pageStart    = data ? (data.page - 1) * data.pageSize : 0;
 
-  function pageNumbers(): (number | "…")[] {
+  const pageNumbers = useCallback((): (number | "…")[] => {
     if (totalPages <= 7) return Array.from({ length: totalPages }, (_, i) => i + 1);
     const pages: (number | "…")[] = [1];
     const left  = Math.max(2, page - 1);
@@ -136,7 +136,7 @@ export function usePagedTable<T>({
     if (right < totalPages - 1) pages.push("…");
     pages.push(totalPages);
     return pages;
-  }
+  }, [page, totalPages]);
 
   return {
     state, query, page, data,

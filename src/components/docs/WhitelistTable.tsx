@@ -20,7 +20,7 @@ import {
   HighlightMatch,
 } from "@/components/docs/paged-table";
 import { usePagedTable } from "@/hooks/usePagedTable";
-import type { WhitelistPlayer, WhitelistResponse } from "@/app/api/whitelist/route";
+import type { WhitelistPlayer, WhitelistResponse } from "@/types/whitelist";
 
 // ─── Re-export types so consumers import from one place ────────────────────────
 export type { WhitelistPlayer, WhitelistResponse };

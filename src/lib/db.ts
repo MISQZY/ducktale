@@ -10,7 +10,9 @@ function createClient(): PrismaClient {
         : ["warn", "error"],
   });
   // Eagerly connect so cold-start errors surface immediately rather than on first request
-  client.$connect().catch(() => {});
+  client.$connect().catch((err: unknown) => {
+    console.error("[db] Initial connection failed:", err);
+  });
   return client;
 }
 
