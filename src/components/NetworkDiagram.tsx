@@ -41,11 +41,16 @@ const EDGES: EdgeDef[] = [
   { from: "voice", to: "hub", color: "violet", dashed: true, tooltip: "Предоставление голосового чата для сервера HUB" },
 ];
 
-const LEGEND_ITEMS = [
+const LEGEND_LINES_ITEMS = [
   { color: "white", label: "Общий трафик", dashed: false },
   { color: "gold", label: "Защищенный трафик", dashed: false },
   { color: "violet", label: "Сервисы", dashed: true },
 ];
+
+const LEGEND_NODES_ITEMS = [
+  { dashed: false, label: "Основная инфраструктура" },
+  { dashed: true, label: "Вспомогательный сервис" },
+]
 
 
 function DiagramFooter() {
@@ -54,12 +59,33 @@ function DiagramFooter() {
       <div className="absolute bottom-4 left-5 flex flex-col gap-1.5 z-40 pointer-events-none
                       rounded-lg border border-gold-800/20 bg-stone-950/70 px-3 py-2.5"
         style={{ backdropFilter: "blur(10px)" }}>
-        {LEGEND_ITEMS.map(({ color, label, dashed }) => (
+
+        {LEGEND_LINES_ITEMS.map(({ color, label, dashed }) => (
           <div key={label} className="flex items-center gap-2">
             <svg width="22" height="6" className="shrink-0" style={{ overflow: "visible" }}>
               <line x1="0" y1="3" x2="22" y2="3"
                 stroke={LINE[color]} strokeWidth="1.8" strokeOpacity="0.7"
                 strokeDasharray={dashed ? "5 3" : undefined} />
+            </svg>
+            <span className="text-amber-100/40" style={{ fontFamily: "var(--font-mono)", fontSize: "0.58rem" }}>
+              {label}
+            </span>
+          </div>
+        ))}
+
+        <div className="h-px bg-gold-800/20 my-0.5" />
+
+        {LEGEND_NODES_ITEMS.map(({ dashed, label }) => (
+          <div key={label} className="flex items-center gap-2">
+            <svg width="22" height="14" className="shrink-0" style={{ overflow: "visible" }}>
+              <rect
+                x="1" y="1" width="20" height="12" rx="3"
+                fill="none"
+                stroke="#d4a017"
+                strokeOpacity="0.35"
+                strokeWidth="1.4"
+                strokeDasharray={dashed ? "3 2.5" : undefined}
+              />
             </svg>
             <span className="text-amber-100/40" style={{ fontFamily: "var(--font-mono)", fontSize: "0.58rem" }}>
               {label}

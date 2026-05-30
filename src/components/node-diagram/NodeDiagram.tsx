@@ -8,12 +8,9 @@ import type { NodeDef, EdgeDef, Vec2, TooltipState, NodeDiagramProps } from "./t
 
 export type { NodeDef, EdgeDef, Vec2, TooltipState, NodeDiagramProps };
 
-// Arrow directions supported via EdgeDef:
-//   direction?: "forward" | "backward" | "both" | "none"
-//   - "forward"  (default) — arrowhead at `to`
-//   - "backward"           — arrowhead at `from`
-//   - "both"               — arrowheads at both ends
-//   - "none"               — plain line, no arrowheads
+const MARKER_SIZE_PX = 10;
+const ARROW_GAP = 6;
+const arrowInset = (_strokeWidth: number) => MARKER_SIZE_PX - (8 + ARROW_GAP);
 
 export function NodeDiagram({ nodes, edges, initOffsets, title, header }: NodeDiagramProps) {
   const frameRef = useRef<HTMLDivElement>(null);
@@ -215,16 +212,6 @@ export function NodeDiagram({ nodes, edges, initOffsets, title, header }: NodeDi
     setActiveEdge(null);
   };
 
-  const ARROW_INSET = 4;
-
-  /**
-   * Returns the point where the line from `other` to `target` first touches
-   * the rectangular boundary of the card centred at `target`.
-   *
-   * @param target centre of the card we are computing the edge for
-   * @param other centre of the opposite card
-   * @param inset extra gap to pull the point back along the normal (for arrowheads)
-   */
   const cardEdgePoint = (target: Vec2, other: Vec2, inset = 0): Vec2 => {
     const hw = CARD_W / 2;
     const hh = CARD_H / 2;
@@ -241,12 +228,15 @@ export function NodeDiagram({ nodes, edges, initOffsets, title, header }: NodeDi
     const t = Math.min(tx, ty);
 
     return {
-      x: target.x + nx * (t + inset),
-      y: target.y + ny * (t + inset),
+      x: target.x + nx * (t - inset),
+      y: target.y + ny * (t - inset),
     };
   };
 
-  const edgeEndpoints = (edge: EdgeDef): { lineStart: Vec2; lineEnd: Vec2 } | null => {
+  const edgeEndpoints = (
+    edge: EdgeDef,
+    isActive = false
+  ): { lineStart: Vec2; lineEnd: Vec2 } | null => {
     const fp = positions[edge.from];
     const tp = positions[edge.to];
     if (!fp || !tp) return null;
@@ -255,14 +245,16 @@ export function NodeDiagram({ nodes, edges, initOffsets, title, header }: NodeDi
     const hasArrowEnd = dir === "forward" || dir === "both";
     const hasArrowStart = dir === "backward" || dir === "both";
 
-    const lineStart = cardEdgePoint(fp, tp, hasArrowStart ? ARROW_INSET : 0);
-    const lineEnd = cardEdgePoint(tp, fp, hasArrowEnd ? ARROW_INSET : 0);
+    const inset = arrowInset(0);
+
+    const lineStart = cardEdgePoint(fp, tp, hasArrowStart ? inset : 0);
+    const lineEnd = cardEdgePoint(tp, fp, hasArrowEnd ? inset : 0);
 
     return { lineStart, lineEnd };
   };
 
   const edgeMidFrame = (edge: EdgeDef): Vec2 | null => {
-    const ep = edgeEndpoints(edge);
+    const ep = edgeEndpoints(edge, false);
     if (!ep) return null;
     return toFramePos({
       x: (ep.lineStart.x + ep.lineEnd.x) / 2,
@@ -320,35 +312,12 @@ export function NodeDiagram({ nodes, edges, initOffsets, title, header }: NodeDi
                   key={c}
                   id={`nd-arr-${c}`}
                   viewBox="0 0 10 10"
-                  refX="2"
+                  refX="8"
                   refY="5"
-                  markerWidth="8"
-                  markerHeight="8"
-                  orient="auto"
+                  markerWidth="10"
+                  markerHeight="10"
                   markerUnits="userSpaceOnUse"
-                >
-                  <path
-                    d="M2 1L8 5L2 9"
-                    fill="none"
-                    stroke={LINE[c] ?? "#ffffff"}
-                    strokeWidth="1.5"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </marker>
-              ))}
-
-              {(["gold", "emerald", "sky", "white"] as const).map((c) => (
-                <marker
-                  key={`${c}-rev`}
-                  id={`nd-arr-rev-${c}`}
-                  viewBox="0 0 10 10"
-                  refX="2"
-                  refY="5"
-                  markerWidth="8"
-                  markerHeight="8"
                   orient="auto-start-reverse"
-                  markerUnits="userSpaceOnUse"
                 >
                   <path
                     d="M2 1L8 5L2 9"
@@ -368,16 +337,16 @@ export function NodeDiagram({ nodes, edges, initOffsets, title, header }: NodeDi
             </defs>
 
             {edges.map((edge, idx) => {
-              const ep = edgeEndpoints(edge);
-              if (!ep) return null;
-              const { lineStart, lineEnd } = ep;
-
               const col = edge.color ?? "gold";
               const dir = edge.direction ?? "forward";
               const isActive = activeEdge === idx || activeNode === edge.from || activeNode === edge.to;
 
+              const ep = edgeEndpoints(edge, isActive);
+              if (!ep) return null;
+              const { lineStart, lineEnd } = ep;
+
               const markerEnd = (dir === "forward" || dir === "both") ? `url(#nd-arr-${col})` : undefined;
-              const markerStart = (dir === "backward" || dir === "both") ? `url(#nd-arr-rev-${col})` : undefined;
+              const markerStart = (dir === "backward" || dir === "both") ? `url(#nd-arr-${col})` : undefined;
 
               return (
                 <line
