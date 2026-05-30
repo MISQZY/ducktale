@@ -1,22 +1,19 @@
 "use client";
 
-
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { Check, Copy, Lock, ChevronDown } from "lucide-react";
-
+import { getPermission } from "@/config/permissions";
+import type { GlobalPermission } from "@/config/permissions/types";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-
-type GlobalPermission = "all" | "old" | "supporter" | "admin";
-
+export type { GlobalPermission };
 
 export interface CommandArg {
   name: string;
   description: string;
 }
-
 
 export interface CommandCardProps {
   command: string;
@@ -32,9 +29,7 @@ export interface CommandCardProps {
   className?: string;
 }
 
-
 // ─── Config ───────────────────────────────────────────────────────────────────
-
 
 const GLOBAL_PERMS: Record<
   GlobalPermission,
@@ -66,9 +61,7 @@ const GLOBAL_PERMS: Record<
   },
 };
 
-
 // ─── Helpers ──────────────────────────────────────────────────────────────────
-
 
 function buildUsage(
   command: string,
@@ -81,22 +74,25 @@ function buildUsage(
   return parts.join(" ");
 }
 
-
 // ─── Main Component ───────────────────────────────────────────────────────────
-
 
 export function CommandCard({
   command,
   description,
   required,
   optional,
-  permission = "all",
-  roles,
+  permission: permissionProp,
+  roles: rolesProp,
   aliases,
   className,
 }: CommandCardProps) {
   const [copied, setCopied] = useState(false);
   const [open, setOpen] = useState(false);
+
+  // Resolve permission and roles: prop > registry > default
+  const registered = getPermission(command);
+  const permission: GlobalPermission = permissionProp ?? registered?.permission ?? "all";
+  const roles: string[] | undefined = rolesProp ?? registered?.roles;
 
   const hasArgs =
     (required && required.length > 0) || (optional && optional.length > 0);
@@ -150,7 +146,7 @@ export function CommandCard({
               {command.replace(/^\//, "")}
             </code>
           </div>
-          
+
           <p className="mt-1 text-xs text-stone-400 leading-snug">
             {description}
           </p>
@@ -183,7 +179,7 @@ export function CommandCard({
             </span>
           </div>
 
-          {/* Roles badge (optional) */}
+          {/* Roles badge */}
           {roles && roles.length > 0 && (
             <span className="inline-flex items-center gap-1 text-[11px] text-stone-400 bg-stone-800 border border-stone-700/60 rounded px-1.5 py-0.5 whitespace-nowrap">
               <Lock size={9} className="text-stone-500" />
@@ -192,7 +188,7 @@ export function CommandCard({
           )}
         </div>
 
-        {/* Right actions (copy + expand) */}
+        {/* Copy + expand */}
         <div className="flex items-center gap-2 shrink-0 pt-0.5 ml-1 min-w-12">
           <button
             onClick={handleCopy}
