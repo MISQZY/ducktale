@@ -1,16 +1,347 @@
----
-title: FlectonePulse — Команды
-description: Справочник команд плагина FlectonePulse
----
-
-<Callout variant="info">
-  Описание плагина и принцип работы каналов — в разделе [Плагины → FlectonePulse](/docs/duckburg/plugins/flectonepulse).
-</Callout>
-
-## Настройки чата
+## Чат и сообщения
 
 <CommandCard
   command="/chatsetting"
   description="Открывает интерактивное меню управления уведомлениями и настройками чата: звуки, системные события, формат отображения."
   permission="all"
+/>
+
+<CommandCard
+  command="/chatcolor"
+  description="Устанавливает цвет твоих сообщений в чате."
+  permission="all"
+/>
+
+<CommandCard
+  command="/clearchat"
+  description="Очищает чат для всех игроков на сервере."
+  permission="admin"
+/>
+
+<CommandCard
+  command="/deletemessage"
+  description="Удаляет конкретное сообщение из чата."
+  permission="admin"
+/>
+
+<CommandCard
+  command="/broadcast"
+  description="Отправляет объявление всем игрокам сети с особым форматированием."
+  permission="admin"
+/>
+
+---
+
+## Личные сообщения
+
+<CommandCard
+  command="/tell"
+  description="Отправляет личное сообщение конкретному игроку. Сообщение видно только вам двоим."
+  permission="all"
+  aliases={["pm", "msg"]}
+  required={[
+    { name: "игрок", description: "Получатель сообщения" },
+    { name: "сообщение", description: "Текст сообщения" }
+  ]}
+/>
+
+<CommandCard
+  command="/reply"
+  description="Отвечает на последнее полученное личное сообщение."
+  permission="all"
+  required={[{ name: "сообщение", description: "Текст ответа" }]}
+/>
+
+<CommandCard
+  command="/ignore"
+  description="Добавляет игрока в список игнорируемых — его сообщения перестанут отображаться в чате."
+  permission="all"
+  required={[{ name: "игрок", description: "Игрок для игнорирования" }]}
+/>
+
+<CommandCard
+  command="/ignorelist"
+  description="Показывает список игроков, которых ты игнорируешь."
+  permission="all"
+/>
+
+---
+
+## Почта
+
+<CommandCard
+  command="/mail"
+  description="Отправляет офлайн-сообщение игроку. Он получит его при следующем входе на сервер."
+  permission="all"
+  required={[
+    { name: "игрок", description: "Получатель сообщения" },
+    { name: "сообщение", description: "Текст сообщения" }
+  ]}
+/>
+
+<CommandCard
+  command="/clearmail"
+  description="Удаляет все накопившиеся сообщения из твоего почтового ящика."
+  permission="all"
+/>
+
+---
+
+## Статус и информация
+
+<CommandCard
+  command="/afk"
+  description="Переключает режим AFK (отошёл от клавиатуры). Остальные игроки увидят соответствующий статус рядом с твоим именем."
+  permission="all"
+/>
+
+<CommandCard
+  command="/online"
+  description="Показывает список игроков, находящихся на сервере в данный момент."
+  permission="all"
+/>
+
+<CommandCard
+  command="/toponline"
+  description="Показывает статистику посещаемости сервера — рекорды онлайна."
+  permission="all"
+/>
+
+<CommandCard
+  command="/ping"
+  description="Показывает твой текущий пинг или пинг указанного игрока."
+  permission="all"
+  optional={[{ name: "игрок", description: "Игрок, чей пинг нужно проверить" }]}
+/>
+
+---
+
+## Никнейм и внешний вид
+
+<CommandCard
+  command="/nickname"
+  description="Устанавливает отображаемое имя в чате. Не меняет ник аккаунта."
+  permission="all"
+  required={[{ name: "ник", description: "Новое отображаемое имя" }]}
+/>
+
+<CommandCard
+  command="/symbol"
+  description="Открывает браузер Unicode-символов. Найденный символ можно скопировать и вставить в сообщение."
+  permission="all"
+/>
+
+<CommandCard
+  command="/sprite"
+  description="Показывает список доступных спрайтов из текстурных атласов Minecraft. Спрайты можно вставлять в текст чата."
+  permission="admin"
+  required={[{ name: "атлас", description: "Название текстурного атласа" }]}
+  optional={[{ name: "страница", description: "Номер страницы списка" }]}
+/>
+
+---
+
+## Ролевые и анонимные
+
+<CommandCard
+  command="/anon"
+  description="Отправляет сообщение в чат анонимно — без указания имени отправителя."
+  permission="all"
+  required={[{ name: "сообщение", description: "Текст сообщения" }]}
+/>
+
+<CommandCard
+  command="/me"
+  description="Отправляет ролевое сообщение от третьего лица. Например: «Стив смотрит на закат»."
+  permission="all"
+  required={[{ name: "действие", description: "Описание действия персонажа" }]}
+/>
+
+<CommandCard
+  command="/do"
+  description="Описывает действие или событие в мире — используется для ролевых игр."
+  permission="all"
+  required={[{ name: "описание", description: "Описание происходящего события" }]}
+/>
+
+<CommandCard
+  command="/emit"
+  description="Воспроизводит звук от имени персонажа в ролевом стиле."
+  permission="admin"
+  required={[{ name: "звук", description: "Идентификатор звука" }]}
+/>
+
+---
+
+## Развлечения
+
+<CommandCard
+  command="/ball"
+  description="Задаёт вопрос Магическому Шару и получает случайный ответ типа «Бесспорно» или «Весьма сомнительно»."
+  permission="all"
+  required={[{ name: "вопрос", description: "Вопрос для Магического Шара" }]}
+/>
+
+<CommandCard
+  command="/coin"
+  description="Подбрасывает монету. Результат — орёл или решка."
+  permission="all"
+/>
+
+<CommandCard
+  command="/dice"
+  description="Бросает кубик. По умолчанию шестигранный, можно указать любое количество граней."
+  permission="all"
+  optional={[{ name: "количество граней", description: "Число граней кубика" }]}
+/>
+
+<CommandCard
+  command="/try"
+  description="Пытается совершить действие и выдаёт случайный результат успеха или провала в процентах."
+  permission="all"
+  required={[{ name: "действие", description: "Описание совершаемого действия" }]}
+/>
+
+<CommandCard
+  command="/rockpaperscissors"
+  description="Предлагает игроку сыграть в «Камень, ножницы, бумага»."
+  permission="all"
+  required={[{ name: "игрок", description: "Противник для игры" }]}
+/>
+
+<CommandCard
+  command="/tictactoe"
+  description="Предлагает игроку сыграть в крестики-нолики прямо в чате."
+  permission="all"
+  required={[{ name: "игрок", description: "Противник для игры" }]}
+/>
+
+---
+
+## Голосование
+
+<CommandCard
+  command="/poll"
+  description="Создаёт голосование для всех игроков сервера. Результаты видны всем в реальном времени."
+  permission="admin"
+  required={[{ name: "вопрос", description: "Тема голосования" }]}
+/>
+
+---
+
+## Трансляции
+
+<CommandCard
+  command="/stream"
+  description="Объявляет о начале стрима — рассылает оповещение по всей сети со ссылкой. Повторный вызов завершает трансляцию."
+  permission="all"
+  roles={["Медиа"]}
+  required={[{ name: "ссылка", description: "Ссылка на трансляцию" }]}
+/>
+
+---
+
+## Модерация
+
+<CommandCard
+  command="/ban"
+  description="Блокирует игрока на сервере. Заблокированный не сможет войти."
+  permission="admin"
+  required={[{ name: "игрок", description: "Цель блокировки" }]}
+  optional={[{ name: "причина", description: "Причина блокировки" }]}
+/>
+
+<CommandCard
+  command="/banlist"
+  description="Показывает список заблокированных игроков."
+  permission="admin"
+/>
+
+<CommandCard
+  command="/unban"
+  description="Снимает блокировку с игрока."
+  permission="admin"
+  required={[{ name: "игрок", description: "Игрок для разблокировки" }]}
+/>
+
+<CommandCard
+  command="/mute"
+  description="Запрещает игроку писать в чат на указанное время."
+  permission="admin"
+  required={[{ name: "игрок", description: "Цель заглушки" }]}
+  optional={[
+    { name: "время", description: "Длительность заглушки" },
+    { name: "причина", description: "Причина заглушки" }
+  ]}
+/>
+
+<CommandCard
+  command="/mutelist"
+  description="Показывает список заглушённых игроков."
+  permission="admin"
+/>
+
+<CommandCard
+  command="/unmute"
+  description="Снимает заглушку с игрока."
+  permission="admin"
+  required={[{ name: "игрок", description: "Игрок для снятия заглушки" }]}
+/>
+
+<CommandCard
+  command="/warn"
+  description="Выдаёт игроку предупреждение."
+  permission="admin"
+  required={[{ name: "игрок", description: "Цель предупреждения" }]}
+  optional={[{ name: "причина", description: "Причина предупреждения" }]}
+/>
+
+<CommandCard
+  command="/warnlist"
+  description="Показывает список игроков с предупреждениями."
+  permission="admin"
+/>
+
+<CommandCard
+  command="/unwarn"
+  description="Снимает предупреждение с игрока."
+  permission="admin"
+  required={[{ name: "игрок", description: "Игрок для снятия предупреждения" }]}
+/>
+
+<CommandCard
+  command="/kick"
+  description="Выкидывает игрока с сервера без бана."
+  permission="admin"
+  required={[{ name: "игрок", description: "Цель кика" }]}
+  optional={[{ name: "причина", description: "Причина кика" }]}
+/>
+
+<CommandCard
+  command="/helper"
+  description="Отправляет запрос о помощи онлайн-администраторам."
+  permission="all"
+  required={[{ name: "сообщение", description: "Суть запроса" }]}
+/>
+
+<CommandCard
+  command="/spy"
+  description="Включает режим слежки: позволяет администраторам видеть личные сообщения игроков."
+  permission="admin"
+/>
+
+<CommandCard
+  command="/maintenance"
+  description="Переключает режим технического обслуживания — закрывает вход на сервер для обычных игроков."
+  permission="admin"
+/>
+
+---
+
+## Прочее
+
+<CommandCard
+  command="/flectonepulse"
+  description="Служебная команда плагина: информация о версии, перезагрузка конфигурации."
+  permission="admin"
 />
