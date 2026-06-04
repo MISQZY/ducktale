@@ -5,7 +5,6 @@ import { cn } from "@/lib/utils";
 import { LoadingSpinner } from "./LoadingSpinner";
 import type { ResourceImage } from "./types";
 
-const IMAGE_QUALITY = 80;
 const TRANSITION_DURATION = 300;
 
 interface CarouselImageProps {
@@ -44,16 +43,17 @@ export const CarouselImage = memo(({
           alt={image.alt}
           title={image.title}
           fill
-          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+          sizes="(max-width: 640px) 100vw, 384px"
           className={cn(
-            "object-cover object-center transition-opacity",
+            "object-contain object-center transition-opacity",
             isActive ? "opacity-100" : "opacity-0"
           )}
           style={{ transitionDuration: `${TRANSITION_DURATION}ms` }}
           onLoad={onLoad}
           onError={onError}
           priority={isActive}
-          quality={IMAGE_QUALITY}
+          quality={100}
+          unoptimized={image.unoptimized}
           loading={isActive ? "eager" : "lazy"}
           placeholder="blur"
           blurDataURL="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHJlY3Qgd2lkdGg9IjIwIiBoZWlnaHQ9IjIwIiBmaWxsPSIjMzMzIi8+PC9zdmc+"
@@ -77,7 +77,7 @@ export const CarouselImage = memo(({
           <div className={cn(
             "flex items-center gap-2 px-3 py-2 rounded-full",
             "bg-black/60 border border-white/10 text-white/80 text-xs",
-            "backdrop-blur-sm scale-90 group-hover:scale-100 transition-transform duration-200 text-amber-400" 
+            "backdrop-blur-sm scale-90 group-hover:scale-100 transition-transform duration-200 text-amber-400"
           )}>
             <ZoomIn size={14} aria-hidden="true" />
             <span>Просмотр</span>

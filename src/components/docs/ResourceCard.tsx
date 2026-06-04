@@ -1,7 +1,15 @@
 "use client";
 
 import { memo, useState, useCallback, useMemo } from "react";
-import { Package, Download, ChevronLeft, ChevronRight } from "lucide-react";
+import {
+  Package,
+  Download,
+  ChevronLeft,
+  ChevronRight,
+  Loader2,
+  AlertCircle,
+  ExternalLink,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 import { DuckBadge } from "@/components/ui/duck/badge";
 import { DuckButton } from "@/components/ui/duck/button";
@@ -17,7 +25,15 @@ import { DependencyBadge } from "./resource-card/DependencyBadge";
 import { CarouselIndicators } from "./resource-card/CarouselIndicators";
 import { CarouselImage } from "./resource-card/CarouselImage";
 import { ImageViewer } from "./resource-card/ImageViewer";
-import type { ResourceCardProps, ResourceCardGridProps } from "./resource-card/types";
+import { VersionSelector } from "./resource-card/VersionSelector";
+import { useModrinth } from "./resource-card/useModrinth";
+import type {
+  ResourceCardProps,
+  ResourceCardGridProps,
+  ResourceImage,
+  Dependency,
+  ModrinthVersion,
+} from "./resource-card/types";
 
 export type { ResourceCardProps, ResourceCardGridProps } from "./resource-card/types";
 
@@ -31,47 +47,121 @@ export const ResourceCardGrid = memo(({ children, className }: ResourceCardGridP
 ));
 ResourceCardGrid.displayName = "ResourceCardGrid";
 
-export const ResourceCard = memo(({
+const SkeletonCard = memo(({ className }: { className?: string }) => (
+  <DuckCard
+    className={cn(
+      "w-96 shrink-0 flex flex-col border-amber-900/20 bg-duck-stone/40",
+      className
+    )}
+  >
+    <DuckCardHeader className="pb-3">
+      <div className="flex items-center gap-2">
+        <Loader2 size={15} className="text-amber-500/60 shrink-0 animate-spin" />
+        <div className="h-4 w-40 rounded bg-amber-900/30 animate-pulse" />
+      </div>
+      <div className="mt-2 space-y-2">
+        <div className="h-3 w-full rounded bg-amber-900/20 animate-pulse" />
+        <div className="h-3 w-3/4 rounded bg-amber-900/20 animate-pulse" />
+      </div>
+    </DuckCardHeader>
+    <DuckCardContent className="pt-0 space-y-3">
+      <div
+        className="rounded-xl border border-amber-900/20 bg-black/30 animate-pulse"
+        style={{ height: `${CAROUSEL_HEIGHT}px` }}
+      />
+      <div className="h-10 w-full rounded-lg bg-amber-900/30 animate-pulse" />
+      <div className="h-10 w-full rounded-lg bg-amber-900/20 animate-pulse" />
+    </DuckCardContent>
+  </DuckCard>
+));
+SkeletonCard.displayName = "SkeletonCard";
+
+const ErrorCard = memo(({ message, className }: { message: string; className?: string }) => (
+  <DuckCard
+    className={cn(
+      "w-96 shrink-0 flex flex-col border-red-900/30 bg-duck-stone/40",
+      className
+    )}
+  >
+    <DuckCardHeader className="pb-3">
+      <DuckCardTitle className="flex items-center gap-2 text-red-400">
+        <AlertCircle size={15} className="shrink-0" />
+        Ошибка загрузки
+      </DuckCardTitle>
+      <DuckCardDescription className="text-red-400/60 mt-2 text-xs">
+        {message}
+      </DuckCardDescription>
+    </DuckCardHeader>
+  </DuckCard>
+));
+ErrorCard.displayName = "ErrorCard";
+
+// ─── Card body ────────────────────────────────────────────────────────────────
+
+interface ResourceCardBodyProps {
+  name: string;
+  description: string;
+  version?: string;
+  modrinthVersions?: ModrinthVersion[];
+  dependencies: Dependency[];
+  images: ResourceImage[];
+  downloadUrl?: string;
+  modrinthUrl?: string;
+  className?: string;
+}
+
+const ResourceCardBody = memo(({
   name,
   description,
   version,
-  dependencies = [],
-  images = [],
+  modrinthVersions,
+  dependencies,
+  images,
   downloadUrl,
+  modrinthUrl,
   className,
-}: ResourceCardProps) => {
+}: ResourceCardBodyProps) => {
   const hasImages = images.length > 0;
   const hasDependencies = dependencies.length > 0;
   const hasMultipleImages = images.length > 1;
+  const hasVersionSelector = !!modrinthVersions && modrinthVersions.length > 0;
 
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [imageStates, setImageStates] = useState<Map<string, { loaded: boolean; error: boolean }>>(
-    () => new Map()
-  );
+  const [imageStates, setImageStates] = useState<
+    Map<string, { loaded: boolean; error: boolean }>
+  >(() => new Map());
   const [viewerOpen, setViewerOpen] = useState(false);
+  const [selectedVersionId, setSelectedVersionId] = useState<string>(
+    () => modrinthVersions?.[0]?.id ?? ""
+  );
 
-  const navigateCarousel = useCallback((direction: "prev" | "next") => {
-    setCurrentIndex(prev =>
-      direction === "prev"
-        ? (prev - 1 + images.length) % images.length
-        : (prev + 1) % images.length
-    );
-  }, [images.length]);
+  const navigateCarousel = useCallback(
+    (direction: "prev" | "next") => {
+      setCurrentIndex((prev) =>
+        direction === "prev"
+          ? (prev - 1 + images.length) % images.length
+          : (prev + 1) % images.length
+      );
+    },
+    [images.length]
+  );
 
   const handleImageLoad = useCallback((src: string) => {
-    setImageStates(prev => new Map(prev).set(src, { loaded: true, error: false }));
+    setImageStates((prev) => new Map(prev).set(src, { loaded: true, error: false }));
   }, []);
 
   const handleImageError = useCallback((src: string) => {
-    setImageStates(prev => new Map(prev).set(src, { loaded: false, error: true }));
-    console.error(`Failed to load image: ${src}`);
+    setImageStates((prev) => new Map(prev).set(src, { loaded: false, error: true }));
   }, []);
 
-  const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
-    if (!hasMultipleImages) return;
-    if (e.key === "ArrowLeft") { e.preventDefault(); navigateCarousel("prev"); }
-    if (e.key === "ArrowRight") { e.preventDefault(); navigateCarousel("next"); }
-  }, [hasMultipleImages, navigateCarousel]);
+  const handleKeyDown = useCallback(
+    (e: React.KeyboardEvent) => {
+      if (!hasMultipleImages) return;
+      if (e.key === "ArrowLeft") { e.preventDefault(); navigateCarousel("prev"); }
+      if (e.key === "ArrowRight") { e.preventDefault(); navigateCarousel("next"); }
+    },
+    [hasMultipleImages, navigateCarousel]
+  );
 
   const imagesToPreload = useMemo(() => {
     const set = new Set<number>();
@@ -80,6 +170,11 @@ export const ResourceCard = memo(({
     }
     return set;
   }, [currentIndex, images.length]);
+
+  const versionLabel =
+    hasVersionSelector
+      ? modrinthVersions!.find((v) => v.id === selectedVersionId)?.version_number
+      : version;
 
   return (
     <>
@@ -95,12 +190,12 @@ export const ResourceCard = memo(({
               <Package size={15} className="text-amber-500/60 shrink-0" aria-hidden="true" />
               {name}
             </DuckCardTitle>
-            {version && (
+            {versionLabel && (
               <DuckBadge
                 variant="outline"
                 className="text-xs bg-amber-900/30 text-amber-400 border-amber-700/30"
               >
-                v{version}
+                v{versionLabel}
               </DuckBadge>
             )}
           </div>
@@ -115,7 +210,6 @@ export const ResourceCard = memo(({
               <p className="text-xs text-amber-100/40 uppercase tracking-wider">
                 Изображения
               </p>
-
               <div
                 className="not-prose relative group overflow-hidden rounded-xl border border-amber-900/20 bg-black/30"
                 style={{ height: `${CAROUSEL_HEIGHT}px` }}
@@ -141,9 +235,14 @@ export const ResourceCard = memo(({
 
                 {hasMultipleImages && (
                   <>
-                    <div className="absolute inset-y-0 left-0 w-16 bg-linear-to-r from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" aria-hidden="true" />
-                    <div className="absolute inset-y-0 right-0 w-16 bg-linear-to-l from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" aria-hidden="true" />
-
+                    <div
+                      className="absolute inset-y-0 left-0 w-16 bg-linear-to-r from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"
+                      aria-hidden="true"
+                    />
+                    <div
+                      className="absolute inset-y-0 right-0 w-16 bg-linear-to-l from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"
+                      aria-hidden="true"
+                    />
                     <button
                       onClick={() => navigateCarousel("prev")}
                       className={cn(
@@ -158,7 +257,6 @@ export const ResourceCard = memo(({
                     >
                       <ChevronLeft size={18} aria-hidden="true" />
                     </button>
-
                     <button
                       onClick={() => navigateCarousel("next")}
                       className={cn(
@@ -173,7 +271,6 @@ export const ResourceCard = memo(({
                     >
                       <ChevronRight size={18} aria-hidden="true" />
                     </button>
-
                     <CarouselIndicators
                       total={images.length}
                       current={currentIndex}
@@ -200,21 +297,65 @@ export const ResourceCard = memo(({
 
           <div className="flex-1" aria-hidden="true" />
 
-          <DuckButton
-            asChild
-            size="lg"
-            className="border border-amber-900/30 bg-amber-950/30 text-amber-200 hover:bg-amber-900/40 hover:text-amber-100 hover:border-amber-700/50"
-          >
+          {hasVersionSelector && (
+            <VersionSelector
+              versions={modrinthVersions!}
+              selectedVersionId={selectedVersionId}
+              onSelectVersion={setSelectedVersionId}
+            />
+          )}
+
+          {!hasVersionSelector && downloadUrl && (
+            <div className="flex gap-2">
+              <DuckButton
+                asChild
+                size="lg"
+                className="flex-1 border border-amber-900/30 bg-amber-950/30 text-amber-200 hover:bg-amber-900/40 hover:text-amber-100 hover:border-amber-700/50"
+              >
+                <a
+                  href={downloadUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label={`Скачать ${name}`}
+                >
+                  <Download size={16} className="mr-2" aria-hidden="true" />
+                  Скачать
+                </a>
+              </DuckButton>
+
+              {modrinthUrl && (
+                <DuckButton
+                  asChild
+                  size="lg"
+                  variant="outline"
+                  className="border border-amber-900/30 bg-transparent text-amber-400/70 hover:bg-amber-900/20 hover:text-amber-300 hover:border-amber-700/40 px-3"
+                >
+                  <a
+                    href={modrinthUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label={`Открыть ${name} на Modrinth`}
+                    title="Открыть на Modrinth"
+                  >
+                    <ExternalLink size={16} aria-hidden="true" />
+                  </a>
+                </DuckButton>
+              )}
+            </div>
+          )}
+
+          {/* ── Modrinth link below version selector ── */}
+          {hasVersionSelector && modrinthUrl && (
             <a
-              href={downloadUrl}
+              href={modrinthUrl}
               target="_blank"
               rel="noopener noreferrer"
-              aria-label={`Скачать ${name}`}
+              className="flex items-center justify-center gap-1.5 text-xs text-amber-400/40 hover:text-amber-400/70 transition-colors"
             >
-              <Download size={16} className="mr-2" aria-hidden="true" />
-              Скачать
+              <ExternalLink size={11} aria-hidden="true" />
+              Modrinth
             </a>
-          </DuckButton>
+          )}
         </DuckCardContent>
       </DuckCard>
 
@@ -227,6 +368,73 @@ export const ResourceCard = memo(({
         />
       )}
     </>
+  );
+});
+ResourceCardBody.displayName = "ResourceCardBody";
+
+// ─── Public export ────────────────────────────────────────────────────────────
+
+export const ResourceCard = memo((props: ResourceCardProps) => {
+  const {
+    modrinthId,
+    name,
+    description,
+    version,
+    dependencies = [],
+    images = [],
+    downloadUrl,
+    className,
+  } = props;
+
+  const { data, status, error } = useModrinth(modrinthId);
+
+  // ── Modrinth mode ──────────────────────────────────────────────────────────
+  if (modrinthId) {
+    if (status === "loading" || status === "idle") {
+      return <SkeletonCard className={className} />;
+    }
+    if (status === "error") {
+      return (
+        <ErrorCard
+          message={error ?? "Не удалось загрузить данные с Modrinth"}
+          className={className}
+        />
+      );
+    }
+    if (status === "success" && data) {
+      return (
+        <ResourceCardBody
+          name={name ?? data.name}
+          description={description ?? data.description}
+          modrinthVersions={data.versions}
+          dependencies={dependencies.length > 0 ? dependencies : data.dependencies}
+          images={images.length > 0 ? images : data.images}
+          modrinthUrl={`https://modrinth.com/project/${data.slug}`}
+          className={className}
+        />
+      );
+    }
+  }
+
+  if (!name || !description || !downloadUrl) {
+    return (
+      <ErrorCard
+        message="Укажите modrinthId или заполните name, description и downloadUrl вручную."
+        className={className}
+      />
+    );
+  }
+
+  return (
+    <ResourceCardBody
+      name={name}
+      description={description}
+      version={version}
+      dependencies={dependencies}
+      images={images}
+      downloadUrl={downloadUrl}
+      className={className}
+    />
   );
 });
 ResourceCard.displayName = "ResourceCard";
