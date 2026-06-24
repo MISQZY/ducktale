@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Menu } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Logo from "./ui/Logo";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -16,15 +16,59 @@ import {
 } from "@/components/ui/sheet";
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 import { NAV_LINKS } from "@/config/navigation";
+import { getDuckyVisible, setDuckyVisible } from "@/components/DuckyPet";
 
 function isActive(pathname: string, href: string): boolean {
   if (href.startsWith("/#")) return pathname === "/";
   return pathname.startsWith(href);
 }
 
+// Simple duck icon (pixel-style svg)
+function DuckIcon({ visible }: { visible: boolean }) {
+  return (
+    <svg
+      width="18" height="18" viewBox="0 0 18 18" fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      style={{ opacity: visible ? 1 : 0.45, transition: "opacity 0.3s" }}
+    >
+      {/* body */}
+      <ellipse cx="8" cy="11" rx="5" ry="4" fill="currentColor" opacity="0.9" />
+      {/* head */}
+      <circle cx="12" cy="7" r="3" fill="currentColor" opacity="0.9" />
+      {/* beak */}
+      <rect x="14.5" y="6.5" width="2.5" height="1.5" rx="0.5" fill="#d4a017" />
+      {/* eye */}
+      <circle cx="13" cy="6.2" r="0.7" fill="#1a160a" />
+      {/* wing hint */}
+      <ellipse cx="7" cy="11" rx="2.5" ry="1.5" fill="currentColor" opacity="0.5" />
+      {/* crossed out line when hidden */}
+      {!visible && (
+        <line x1="2" y1="2" x2="16" y2="16" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" opacity="0.7" />
+      )}
+    </svg>
+  );
+}
+
 export default function Navbar() {
-  const pathname = usePathname();
-  const [menuOpen, setMenuOpen] = useState(false);
+  const pathname  = usePathname();
+  const [menuOpen,      setMenuOpen]      = useState(false);
+  const [duckyVisible,  setDuckyVisibleS] = useState(true);
+
+  // Sync with localStorage on mount + listen to external toggle events
+  useEffect(() => {
+    setDuckyVisibleS(getDuckyVisible());
+    const handler = (e: Event) => setDuckyVisibleS((e as CustomEvent<boolean>).detail);
+    window.addEventListener("ducky-toggle", handler);
+    return () => window.removeEventListener("ducky-toggle", handler);
+  }, []);
+
+  function toggleDucky() {
+    const next = !duckyVisible;
+    setDuckyVisibleS(next);
+    setDuckyVisible(next);
+  }
+
+  const duckyBtnTitle = duckyVisible ? "Скрыть уточку" : "Показать уточку";
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50">
@@ -39,12 +83,7 @@ export default function Navbar() {
             <Logo />
           </Link>
 
-          {/*
-            Desktop nav.
-            Uses .nav-desktop from globals.css instead of Tailwind's `hidden md:flex`
-            because fumadocs injects its own stylesheet that can win the specificity
-            race against Tailwind utility classes.
-          */}
+          {/* Desktop nav */}
           <div className="nav-desktop items-center gap-1">
             {NAV_LINKS.map((link) => (
               <Link
@@ -64,10 +103,44 @@ export default function Navbar() {
                 )}
               </Link>
             ))}
+
+            {/* Duck toggle — desktop */}
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={toggleDucky}
+              title={duckyBtnTitle}
+              aria-label={duckyBtnTitle}
+              className={cn(
+                "ml-1 transition-colors",
+                duckyVisible
+                  ? "text-gold-400/70 hover:text-gold-300 hover:bg-gold-400/8"
+                  : "text-amber-100/30 hover:text-amber-100/60 hover:bg-gold-400/5"
+              )}
+            >
+              <DuckIcon visible={duckyVisible} />
+            </Button>
           </div>
 
-          {/* Mobile burger — hidden on desktop via .nav-burger in globals.css */}
-          <div className="nav-burger">
+          {/* Mobile burger */}
+          <div className="nav-burger flex items-center gap-2">
+            {/* Duck toggle — mobile (outside sheet) */}
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={toggleDucky}
+              title={duckyBtnTitle}
+              aria-label={duckyBtnTitle}
+              className={cn(
+                "transition-colors",
+                duckyVisible
+                  ? "text-gold-400/70 hover:text-gold-300 hover:bg-gold-400/8"
+                  : "text-amber-100/30 hover:text-amber-100/60 hover:bg-gold-400/5"
+              )}
+            >
+              <DuckIcon visible={duckyVisible} />
+            </Button>
+
             <Sheet open={menuOpen} onOpenChange={setMenuOpen}>
               <SheetTrigger asChild>
                 <Button
