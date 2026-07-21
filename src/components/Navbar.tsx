@@ -17,10 +17,16 @@ import {
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 import { NAV_LINKS } from "@/config/navigation";
 import { getDuckyVisible, setDuckyVisible } from "@/components/DuckyPet";
+import { useSyncExternalStore } from "react";
 
 function isActive(pathname: string, href: string): boolean {
   if (href.startsWith("/#")) return pathname === "/";
   return pathname.startsWith(href);
+}
+
+function subscribeDuckyToggle(callback: () => void) {
+  window.addEventListener("ducky-toggle", callback);
+  return () => window.removeEventListener("ducky-toggle", callback);
 }
 
 // Simple duck icon (pixel-style svg)
@@ -50,22 +56,12 @@ function DuckIcon({ visible }: { visible: boolean }) {
 }
 
 export default function Navbar() {
-  const pathname  = usePathname();
-  const [menuOpen,      setMenuOpen]      = useState(false);
-  const [duckyVisible,  setDuckyVisibleS] = useState(true);
-
-  // Sync with localStorage on mount + listen to external toggle events
-  useEffect(() => {
-    setDuckyVisibleS(getDuckyVisible());
-    const handler = (e: Event) => setDuckyVisibleS((e as CustomEvent<boolean>).detail);
-    window.addEventListener("ducky-toggle", handler);
-    return () => window.removeEventListener("ducky-toggle", handler);
-  }, []);
+  const pathname = usePathname();
+  const [menuOpen, setMenuOpen] = useState(false);
+  const duckyVisible = useSyncExternalStore(subscribeDuckyToggle, getDuckyVisible, () => true);
 
   function toggleDucky() {
-    const next = !duckyVisible;
-    setDuckyVisibleS(next);
-    setDuckyVisible(next);
+    setDuckyVisible(!duckyVisible);
   }
 
   const duckyBtnTitle = duckyVisible ? "Скрыть уточку" : "Показать уточку";

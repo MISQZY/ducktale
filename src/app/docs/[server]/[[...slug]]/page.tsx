@@ -4,7 +4,6 @@ import { DocsPage, DocsBody, DocsTitle, DocsDescription } from "fumadocs-ui/page
 import { notFound } from "next/navigation";
 import { docsComponents } from "@/lib/mdx-components";
 import type { ExtendedPage } from "@/lib/source";
-import type { TOCItemType } from 'fumadocs-core/toc';
 import { GitHubLastModified } from "@/components/docs/GitHubLastModified";
 
 export default async function DocsServerPage({
@@ -30,7 +29,7 @@ export default async function DocsServerPage({
   const filePath = `content/${server}/${page.path}`;
 
   return (
-    <DocsPage toc={(toc as TOCItemType[]) || []} full={full ?? false}>
+    <DocsPage toc={(toc) || []} full={full ?? false}>
       <DocsTitle>{title}</DocsTitle>
       <DocsDescription>{description}</DocsDescription>
       <DocsBody>

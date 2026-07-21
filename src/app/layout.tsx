@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { RootProvider } from "fumadocs-ui/provider";
+import { RootProvider } from "fumadocs-ui/provider/next";
 import { Cinzel_Decorative, Crimson_Pro, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import { cn } from "@/lib/utils";

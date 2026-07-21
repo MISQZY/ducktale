@@ -38,6 +38,7 @@ export function useModrinth(projectId: string | undefined) {
     if (!projectId) return;
 
     let cancelled = false;
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- resetting state synchronously when projectId changes, before async fetch starts
     setStatus("loading");
     setError(null);
     setData(null);

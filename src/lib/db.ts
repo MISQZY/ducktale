@@ -1,5 +1,8 @@
-import { PrismaClient, Prisma } from "@prisma/client";
-
+import { PrismaClient} from "@prisma/client";
+import {
+  PrismaClientKnownRequestError,
+  PrismaClientInitializationError,
+} from "@prisma/client/runtime/library";
 
 export type DbKey = string;
 
@@ -67,12 +70,12 @@ function getClient(key: DbKey): PrismaClient {
 
 function isConnectionError(err: unknown): boolean {
   if (
-    err instanceof Prisma.PrismaClientKnownRequestError &&
+    err instanceof PrismaClientKnownRequestError &&
     err.code === "P1017"
   ) return true;
 
   if (
-    err instanceof Prisma.PrismaClientInitializationError &&
+    err instanceof PrismaClientInitializationError &&
     (err.errorCode === "P1017" || err.message.includes("Server has closed the connection"))
   ) return true;
 

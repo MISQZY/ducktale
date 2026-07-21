@@ -46,6 +46,7 @@ export function ServerStatusProvider({ children }: { children: React.ReactNode }
   }, []);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- kicking off polling + initial fetch on mount, standard data-fetching pattern
     fetchStatuses();
     const id = setInterval(fetchStatuses, API.pollIntervalMs);
 

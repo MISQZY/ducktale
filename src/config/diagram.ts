@@ -2,7 +2,7 @@
  * Network topology data for the interactive infrastructure diagram.
  * Add/remove nodes and edges here — the diagram renders them automatically.
  */
-import { Shield, Globe, Server, Cpu, Users, Lock, Zap, RefreshCw, Home, Mic } from "lucide-react";
+import { Shield, Globe, Server, Users, RefreshCw, Home, Mic } from "lucide-react";
 import type { NodeDef, EdgeDef, Vec2 } from "@/components/node-diagram/types";
 
 export const DIAGRAM_INIT_OFFSETS: Record<string, Vec2> = {

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState, useCallback } from "react";
+import { useSyncExternalStore } from "react";
 
 const SPRITE_SIZE = 48;
 const DISPLAY_SCALE = 1.5;
@@ -69,20 +70,16 @@ export default function DuckyPet() {
   const [dir, setDir] = useState<Direction>("right");
   const [isHovered, setIsHovered] = useState(false);
   const [layer, setLayer] = useState<1 | 2>(1);
-  const [visible, setVisible] = useState(true);
+  const visible = useSyncExternalStore(subscribeDuckyToggle, getDuckyVisible, () => true);
 
   useEffect(() => {
-    const v = getDuckyVisible();
-    visibleRef.current = v;
-    setVisible(v);
-    const h = (e: Event) => {
-      const val = (e as CustomEvent<boolean>).detail;
-      visibleRef.current = val;
-      setVisible(val);
-    };
-    window.addEventListener("ducky-toggle", h);
-    return () => window.removeEventListener("ducky-toggle", h);
-  }, []);
+    visibleRef.current = visible;
+  }, [visible]);
+
+  function subscribeDuckyToggle(callback: () => void) {
+    window.addEventListener("ducky-toggle", callback);
+    return () => window.removeEventListener("ducky-toggle", callback);
+  }
 
   const pickNewWander = useCallback(() => {
     const el = sectionRef.current;
@@ -160,6 +157,8 @@ export default function DuckyPet() {
   }, []);
 
   const tickRef = useRef<(now: number) => void>(() => { });
+
+useEffect(() => {
   tickRef.current = (now: number) => {
     if (!visibleRef.current) return;
 
@@ -205,6 +204,7 @@ export default function DuckyPet() {
     drawFrame();
     rafRef.current = requestAnimationFrame((t) => tickRef.current(t));
   };
+});
 
   useEffect(() => {
     if (visible && spritesReady.current) {
@@ -214,7 +214,7 @@ export default function DuckyPet() {
     } else {
       cancelAnimationFrame(rafRef.current);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+
   }, [visible]);
 
   useEffect(() => {

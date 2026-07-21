@@ -9,15 +9,15 @@ export const { GET } = createSearchAPI("advanced", {
     normalizationCache: new Map(),
   },
   indexes: SERVERS.flatMap((s) =>
-    docsSources[s.id].getPages().map((page: Page<PageData>) => ({
+    docsSources[s.id].getPages().map((page) => ({
       title: page.data.title ?? "",
       description: page.data.description ?? "",
       url: page.url,
       id: page.url,
-      structuredData: (page.data as Record<string, unknown>)["structuredData"] as {
-        contents: { heading: string; content: string }[];
-        headings: { id: string; content: string; depth: number }[];
-      } ?? { contents: [], headings: [] },
+      structuredData: {
+        contents: [],
+        headings: [],
+      },
     }))
   ),
 });

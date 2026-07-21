@@ -1,49 +1,48 @@
 import { loader } from "fumadocs-core/source";
-import { duckburg, duckhood } from "@/../.source";
+import { duckburg, duckhood } from "@/.source/server";
 import { SERVERS } from "@/config/servers";
-import { ComponentType } from "react";
-import type { MDXComponents } from "mdx/types";
-import type { VirtualFile, SourceConfig } from "fumadocs-core/source";
 import { notFound } from "next/navigation";
+import { TOCItemType } from "fumadocs-core/toc";
+import type { MDXContent } from "mdx/types";
 
-export interface ExtendedPage {
-  title: string;
-  description?: string;
-  full?: boolean;
-  toc?: unknown;
-  body?: ComponentType<{ components: MDXComponents }>;
-}
+const collections = {
+  duckburg,
+  duckhood,
+} as const;
 
-type FumadocsCollection = typeof duckburg;
+type CollectionKey = keyof typeof collections;
+type Collection = (typeof collections)[CollectionKey];
 
-const collections: Record<string, FumadocsCollection> = { duckburg, duckhood };
-
-function buildSource(collection: FumadocsCollection, baseUrl: string) {
-  const src = collection.toFumadocsSource();
+function buildSource(collection: Collection, baseUrl: string) {
   return loader({
     baseUrl,
-    source: {
-      ...src,
-      files: typeof src.files === "function"
-        ? (src.files as () => VirtualFile<SourceConfig>[])()
-        : (src.files as VirtualFile<SourceConfig>[]),
-    },
+    source: collection.toFumadocsSource(),
   });
 }
 
+export type ExtendedPage = {
+  title: string;
+  description?: string;
+  body: MDXContent;
+  toc?: TOCItemType[];
+  full?: boolean;
+};
+
 export const docsSources = Object.fromEntries(
   SERVERS.flatMap((s) => {
-    const collection = collections[s.id];
+    const collection = collections[s.id as CollectionKey];
     if (!collection) {
-      console.warn(`[source] No MDX collection found for server "${s.id}" — pages /docs/${s.id} will return 404`);
+      console.warn(
+        `[source] No MDX collection found for server "${s.id}" — pages /docs/${s.id} will return 404`
+      );
       return [];
     }
     return [[s.id, buildSource(collection, `/docs/${s.id}`)]];
   })
-) as Record<string, ReturnType<typeof loader>>;
+);
 
 export function getDocsSource(id: string) {
-  const src = docsSources[id];
+  const src = docsSources[id as keyof typeof docsSources];
   if (!src) notFound();
   return src;
 }

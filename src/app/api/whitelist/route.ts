@@ -3,7 +3,6 @@ import { withDb } from "@/lib/db";
 import { Prisma } from "@prisma/client";
 import type { WhitelistPlayer, WhitelistResponse } from "@/types/whitelist";
 
-// Re-export for consumers that still import from this path (backwards compat)
 export type { WhitelistPlayer, WhitelistResponse };
 
 interface RawRow {
@@ -19,7 +18,7 @@ interface RawRow {
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
 
-  const page     = Math.max(1, parseInt(searchParams.get("page")     ?? "1",  10));
+  const page     = Math.max(1, parseInt(searchParams.get("page") ?? "1",  10));
   const pageSize = Math.min(100, Math.max(1, parseInt(searchParams.get("pageSize") ?? "10", 10)));
   const search   = searchParams.get("search")?.trim() ?? "";
   const serverId = searchParams.get("serverId")?.trim() ?? "";
@@ -27,16 +26,16 @@ export async function GET(req: Request) {
   const offset = (page - 1) * pageSize;
 
   try {
-    const rows = await withDb((db) =>
-      db.$queryRaw<RawRow[]>(Prisma.sql`
+    const rows: RawRow[] = await withDb(async (db) => {
+      return await db.$queryRaw(Prisma.sql`
         SELECT
           p.id,
           p.name,
           p.uuid,
-          m.date                                                AS addedAt,
-          m.time                                                AS duration,
+          m.date AS addedAt,
+          m.time AS duration,
           COALESCE(mod_player.name, CAST(m.moderator AS CHAR)) AS moderator,
-          COUNT(*) OVER()                                       AS total
+          COUNT(*) OVER() AS total
         FROM fp_player p
         INNER JOIN fp_moderation m
           ON  m.player = p.id
@@ -57,8 +56,8 @@ export async function GET(req: Request) {
         ORDER BY p.name ASC
         LIMIT  ${pageSize}
         OFFSET ${offset}
-      `)
-    );
+      `) as RawRow[];
+    });
 
     const total = rows.length > 0 ? Number(rows[0].total) : 0;
 
