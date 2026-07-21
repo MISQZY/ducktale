@@ -18,6 +18,7 @@ export default async function DocsServerLayout({
   if (!config) notFound();
 
   const source = getDocsSource(server);
+  if (!source) notFound();
 
   return (
     <DocsLayout

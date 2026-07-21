@@ -1,48 +1,52 @@
-import { loader } from "fumadocs-core/source";
-import { duckburg, duckhood } from "@/.source/server";
-import { SERVERS } from "@/config/servers";
-import { notFound } from "next/navigation";
-import { TOCItemType } from "fumadocs-core/toc";
-import type { MDXContent } from "mdx/types";
+import { duckburgDocs, duckhoodDocs } from "fumadocs-mdx:collections/server";
+import { type InferPageType, loader, type LoaderOutput } from "fumadocs-core/source";
+import { lucideIconsPlugin } from "fumadocs-core/source/lucide-icons";
+import { icons } from "lucide-react";
+import { createElement } from "react";
 
-const collections = {
-  duckburg,
-  duckhood,
-} as const;
-
-type CollectionKey = keyof typeof collections;
-type Collection = (typeof collections)[CollectionKey];
-
-function buildSource(collection: Collection, baseUrl: string) {
-  return loader({
-    baseUrl,
-    source: collection.toFumadocsSource(),
-  });
+function iconResolver(icon?: string) {
+  if (!icon) return;
+  if (icon in icons) return createElement(icons[icon as keyof typeof icons]);
 }
 
-export type ExtendedPage = {
-  title: string;
-  description?: string;
-  body: MDXContent;
-  toc?: TOCItemType[];
-  full?: boolean;
+/**
+ * Each Minecraft server has its own docs collection (see source.config.ts),
+ * so it gets its own fumadocs loader here too. Keys must match `SERVERS[].id`
+ * in `src/config/servers.ts`.
+ */
+export const docsSources = {
+  duckburg: loader({
+    icon: iconResolver,
+    baseUrl: "/docs/duckburg",
+    source: duckburgDocs.toFumadocsSource(),
+    plugins: [lucideIconsPlugin()],
+  }),
+  duckhood: loader({
+    icon: iconResolver,
+    baseUrl: "/docs/duckhood",
+    source: duckhoodDocs.toFumadocsSource(),
+    plugins: [lucideIconsPlugin()],
+  }),
 };
 
-export const docsSources = Object.fromEntries(
-  SERVERS.flatMap((s) => {
-    const collection = collections[s.id as CollectionKey];
-    if (!collection) {
-      console.warn(
-        `[source] No MDX collection found for server "${s.id}" — pages /docs/${s.id} will return 404`
-      );
-      return [];
-    }
-    return [[s.id, buildSource(collection, `/docs/${s.id}`)]];
-  })
-);
+export type DocsSource = LoaderOutput<{
+  meta: (typeof docsSources)["duckburg"]["$infer"]["meta"];
+  page: (typeof docsSources)["duckburg"]["$infer"]["page"];
+  i18n: undefined;
+}>;
 
-export function getDocsSource(id: string) {
-  const src = docsSources[id as keyof typeof docsSources];
-  if (!src) notFound();
-  return src;
+export function getDocsSource(serverId: string) {
+  return docsSources[serverId as keyof typeof docsSources];
+}
+
+export function getPageImage(
+  serverId: string,
+  page: InferPageType<(typeof docsSources)[keyof typeof docsSources]>
+) {
+  const segments = [serverId, ...page.slugs, "image.webp"];
+
+  return {
+    segments,
+    url: `https://flectone.net/og/docs/${segments.join("/")}`,
+  };
 }

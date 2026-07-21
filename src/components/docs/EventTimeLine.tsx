@@ -198,7 +198,7 @@ function FilterTabs({
 function EventCard({ event, now }: { event: ServerEvent; now: number }) {
     const status = getStatus(event, now);
     const style = CATEGORY_STYLE[event.category];
-    const msUntil = event.startAt - now;
+    const msUntil = normalizeMs(event.startAt) - now;
     const isPast = status === "past";
     const isLive = status === "live";
 

@@ -7,17 +7,13 @@ export interface ServerEvent {
   description: string;
   category: EventCategory;
   categoryLabel: string;
-  /** Unix ms — event start */
+  /** Unix seconds — event start */
   startAt: number;
-  /** Unix ms — event end */
+  /** Unix seconds — event end */
   endAt: number;
   /** Optional link to Discord announcement or doc page */
   href?: string;
 }
-
-const now = Date.now();
-const HOUR = 3_600_000;
-const DAY = 24 * HOUR;
 
 export const UPCOMING_EVENTS: ServerEvent[] = [
     {
