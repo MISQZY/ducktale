@@ -1,9 +1,49 @@
 import { PrismaClient, Prisma } from "@prisma/client";
 
-const globalForPrisma = globalThis as unknown as { prisma?: PrismaClient };
 
-function createClient(): PrismaClient {
+export type DbKey = string;
+
+const DEFAULT_DB: DbKey = "default";
+
+/**
+ * Maps a logical db key to its connection-string env var:
+ *   "default"  -> DATABASE_URL
+ *   "duckburg" -> DATABASE_URL_DUCKBURG
+ *   "duckhood" -> DATABASE_URL_DUCKHOOD
+ * This is the only place that needs to change to add a new naming scheme.
+ */
+function envVarFor(key: DbKey): string {
+  return key === DEFAULT_DB ? "DATABASE_URL" : `DATABASE_URL_${key.toUpperCase()}`;
+}
+
+function resolveUrl(key: DbKey): string {
+  const envVar = envVarFor(key);
+  const url = process.env[envVar];
+  if (!url) {
+    throw new Error(
+      `[db] Missing connection string for database "${key}": set ${envVar} in the environment`
+    );
+  }
+  return url;
+}
+
+// Registry of live clients, keyed by db name. Stored on globalThis so hot-reload
+// in dev doesn't spawn a fresh pool of connections for every module reload.
+const globalForPrisma = globalThis as unknown as {
+  prismaClients?: Map<DbKey, PrismaClient>;
+};
+
+const registry: Map<DbKey, PrismaClient> = globalForPrisma.prismaClients ?? new Map();
+
+if (process.env.NODE_ENV !== "production") {
+  globalForPrisma.prismaClients = registry;
+}
+
+function createClient(key: DbKey): PrismaClient {
   const client = new PrismaClient({
+    // Same generated schema/client, pointed at a different connection string per key.
+    // "db" matches the datasource name declared in prisma/schema.prisma.
+    datasources: { db: { url: resolveUrl(key) } },
     log:
       process.env.NODE_ENV === "development"
         ? ["query", "warn", "error"]
@@ -11,20 +51,18 @@ function createClient(): PrismaClient {
   });
   // Eagerly connect so cold-start errors surface immediately rather than on first request
   client.$connect().catch((err: unknown) => {
-    console.error("[db] Initial connection failed:", err);
+    console.error(`[db:${key}] Initial connection failed:`, err);
   });
   return client;
 }
 
-// Use a container object so all callers always read through the same reference.
-// Previously `export let prisma` was re-assigned on reconnect, but any module
-// that had already imported the binding would keep the stale client.
-const db = {
-  client: globalForPrisma.prisma ?? createClient(),
-};
-
-if (process.env.NODE_ENV !== "production") {
-  globalForPrisma.prisma = db.client;
+function getClient(key: DbKey): PrismaClient {
+  let client = registry.get(key);
+  if (!client) {
+    client = createClient(key);
+    registry.set(key, client);
+  }
+  return client;
 }
 
 function isConnectionError(err: unknown): boolean {
@@ -54,30 +92,44 @@ function isConnectionError(err: unknown): boolean {
   return false;
 }
 
-async function reconnect(): Promise<void> {
-  console.warn("[db] Connection lost — reconnecting...");
-  await db.client.$disconnect().catch(() => {});
-  db.client = createClient();
-  if (process.env.NODE_ENV !== "production") {
-    globalForPrisma.prisma = db.client;
-  }
+async function reconnect(key: DbKey): Promise<PrismaClient> {
+  console.warn(`[db:${key}] Connection lost — reconnecting...`);
+  const old = registry.get(key);
+  await old?.$disconnect().catch(() => {});
+  const client = createClient(key);
+  registry.set(key, client);
+  return client;
 }
 
-export async function withDb<T>(fn: (client: PrismaClient) => Promise<T>): Promise<T> {
+/**
+ * Run a query against the default database.
+ *   await withDb((db) => db.fp_player.findMany());
+ */
+export async function withDb<T>(fn: (client: PrismaClient) => Promise<T>): Promise<T>;
+export async function withDb<T>(key: DbKey, fn: (client: PrismaClient) => Promise<T>): Promise<T>;
+export async function withDb<T>(
+  keyOrFn: DbKey | ((client: PrismaClient) => Promise<T>),
+  maybeFn?: (client: PrismaClient) => Promise<T>
+): Promise<T> {
+  const key = typeof keyOrFn === "string" ? keyOrFn : DEFAULT_DB;
+  const fn = typeof keyOrFn === "string" ? maybeFn! : keyOrFn;
+
+  const client = getClient(key);
   try {
-    return await fn(db.client);
+    return await fn(client);
   } catch (err) {
     if (isConnectionError(err)) {
-      await reconnect();
-      return await fn(db.client);
+      const fresh = await reconnect(key);
+      return await fn(fresh);
     }
     throw err;
   }
 }
 
 // Kept for backwards compatibility with any direct imports, but prefer withDb.
+// Always points at the default database.
 export const prisma = new Proxy({} as PrismaClient, {
   get(_target, prop) {
-    return (db.client as unknown as Record<string | symbol, unknown>)[prop];
+    return (getClient(DEFAULT_DB) as unknown as Record<string | symbol, unknown>)[prop];
   },
 });

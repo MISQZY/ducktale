@@ -2,6 +2,7 @@ import { Sword, Paintbrush } from "lucide-react";
 
 export interface ServerConfig {
   id: string;
+  uuid: string;
   host: string;
   name: string;
   tagline: string;
@@ -24,6 +25,7 @@ export interface ServerConfig {
 export const SERVERS: ServerConfig[] = [
   {
     id: "duckburg",
+    uuid: "70ffd283-2f55-45d8-a1d0-3381ccf1af8a",
     host: "s6.yufu.su:25582",
     name: "DuckBurg",
     tagline: "Выживание",
@@ -45,6 +47,7 @@ export const SERVERS: ServerConfig[] = [
   },
   {
     id: "duckhood",
+    uuid: "55d2555c-3269-4bf5-ada6-eba44c1ff6e8",
     host: "s6.yufu.su:25572",
     name: "DuckHood",
     tagline: "Креатив",

@@ -1,52 +1,45 @@
 import { NextResponse } from "next/server";
 import { SERVERS } from "@/config/servers";
-import { API } from "@/config/site";
+import { getAllOnlinePlayers, groupOnlinePlayersByServer } from "@/lib/players";
+import { getCachedPing } from "@/lib/mcsrvstat";
 
-async function fetchServerStatus(host: string): Promise<{ online: boolean }> {
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), API.serverStatusTimeoutMs);
-  try {
-    const res = await fetch(`https://api.mcsrvstat.us/3/${host}`, {
-      signal: controller.signal,
-      // cache: "no-store" instead of next.revalidate —
-      // revalidate inside Route Handler doesn't work as intended and
-      // can conflict with AbortController in some Next.js versions.
-      cache: "no-store",
-    });
-    if (!res.ok) return { online: false };
-    return await res.json();
-  } catch {
-    return { online: false };
-  } finally {
-    clearTimeout(timer);
-  }
+interface ServerStatus {
+  online: boolean;
+  version?: string;
+  players: { online: number; max: number; list: { name: string }[] };
 }
 
 export async function GET() {
-  try {
-    const results = await Promise.allSettled(
-      SERVERS.map((s) => fetchServerStatus(s.host))
-    );
+  const [allPlayers, pings] = await Promise.all([
+    getAllOnlinePlayers().catch((err) => {
+      console.error("[server-status] Failed to load online players:", err);
+      return [];
+    }),
+    Promise.all(SERVERS.map((s) => getCachedPing(s.host))),
+  ]);
 
-    const statuses = Object.fromEntries(
-      SERVERS.map((s, i) => {
-        const result = results[i];
-        return [
-          s.host,
-          result.status === "fulfilled" ? result.value : { online: false },
-        ];
-      })
-    );
+  const grouped = groupOnlinePlayersByServer(allPlayers);
 
-    return NextResponse.json(statuses, {
-      headers: {
-        "Cache-Control": "public, s-maxage=60, stale-while-revalidate=30",
-      },
-    });
-  } catch {
-    return NextResponse.json(
-      Object.fromEntries(SERVERS.map((s) => [s.host, { online: false }])),
-      { status: 200 }
-    );
-  }
+  const statuses: Record<string, ServerStatus> = Object.fromEntries(
+    SERVERS.map((s, i) => {
+      const roster = grouped.get(s.uuid) ?? [];
+      const ping = pings[i];
+      return [
+        s.host,
+        {
+          online: ping.online,
+          version: ping.version,
+          players: {
+            online: roster.length,
+            max: ping.players?.max ?? 0,
+            list: roster.map((p) => ({ name: p.name })),
+          },
+        },
+      ] as const;
+    })
+  );
+
+  return NextResponse.json(statuses, {
+    headers: { "Cache-Control": "public, s-maxage=60, stale-while-revalidate=30" },
+  });
 }
