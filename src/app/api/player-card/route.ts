@@ -1,9 +1,11 @@
 import { NextResponse } from "next/server";
 import { withDb } from "@/lib/db";
 import { withCache } from "@/lib/query-cache";
+import { resolveResidentRole } from "@/lib/towny";
 import { Prisma } from "@prisma/client";
 import { SERVERS } from "@/config/servers";
 import type { Gender, GrowthStatus, PlayerCard, PlayerCardResponse } from "@/types/player-card";
+import type { ResidentRole } from "@/types/towny";
 
 export type { PlayerCard, PlayerCardResponse };
 
@@ -33,6 +35,8 @@ interface IdentityRow {
   name:        string;
   nickname:    string | null;
   playtimeMs:  bigint | null;
+  online:      number | boolean; // raw MySQL boolean from fp_player.online — 0/1, not a JS boolean
+  lastSeenMs:  bigint | null;
   whitelisted: number | boolean; // raw MySQL boolean from EXISTS(...) — 0/1, not a JS boolean
 }
 
@@ -57,6 +61,7 @@ async function resolveIdentityUncached(search: string): Promise<IdentityRow | nu
     const rows = search
       ? await db.$queryRaw(Prisma.sql`
           SELECT p.id, p.uuid, p.name, s.value AS nickname, t.total AS playtimeMs,
+                 p.online AS online, t.last AS lastSeenMs,
                  ${WHITELIST_EXISTS} AS whitelisted
           FROM fp_player p
           LEFT JOIN fp_setting s ON s.player = p.id AND s.type = 'NICKNAME'
@@ -67,6 +72,7 @@ async function resolveIdentityUncached(search: string): Promise<IdentityRow | nu
         `)
       : await db.$queryRaw(Prisma.sql`
           SELECT p.id, p.uuid, p.name, s.value AS nickname, t.total AS playtimeMs,
+                 p.online AS online, t.last AS lastSeenMs,
                  ${WHITELIST_EXISTS} AS whitelisted
           FROM fp_player p
           LEFT JOIN fp_setting s ON s.player = p.id AND s.type = 'NICKNAME'
@@ -175,24 +181,35 @@ async function resolveSkinUrlUncached(uuid: string): Promise<string | null> {
   });
 }
 
-/** City (Towny town) and nationality (Towny nation) from the DuckBurg towns database. */
-async function resolveTownyData(uuid: string): Promise<{ city: string | null; nation: string | null }> {
+interface TownyRow {
+  city:      string | null;
+  nation:    string | null;
+  mayorUuid: string | null;
+  ranks:     string | null;
+}
+
+/** City (Towny town), nationality (Towny nation), and the resident's role within their town. */
+async function resolveTownyData(uuid: string): Promise<{ city: string | null; nation: string | null; role: ResidentRole }> {
   return withCache(`towny:${uuid}`, TOWNY_TTL_MS, () => resolveTownyDataUncached(uuid));
 }
 
-async function resolveTownyDataUncached(uuid: string): Promise<{ city: string | null; nation: string | null }> {
+async function resolveTownyDataUncached(uuid: string): Promise<{ city: string | null; nation: string | null; role: ResidentRole }> {
   const [row] = await withDb("duckburg_towns", async (db) => {
     return await db.$queryRaw(Prisma.sql`
-      SELECT t.name AS city, n.name AS nation
+      SELECT t.name AS city, n.name AS nation, t.mayor AS mayorUuid, r.\`town-ranks\` AS ranks
       FROM TOWNY_RESIDENTS r
       LEFT JOIN TOWNY_TOWNS t ON t.uuid = r.town
       LEFT JOIN TOWNY_NATIONS n ON n.uuid = t.nation
       WHERE r.uuid = ${uuid}
       LIMIT 1
-    `) as { city: string | null; nation: string | null }[];
+    `) as TownyRow[];
   });
 
-  return { city: row?.city ?? null, nation: row?.nation ?? null };
+  return {
+    city:   row?.city ?? null,
+    nation: row?.nation ?? null,
+    role:   row?.city ? resolveResidentRole(uuid, row.mayorUuid, row.ranks) : null,
+  };
 }
 
 export async function GET(req: Request) {
@@ -205,7 +222,7 @@ export async function GET(req: Request) {
       return NextResponse.json<PlayerCardResponse>({ player: null });
     }
 
-    const [{ gender, growth }, skinUrl, { city, nation }] = await Promise.all([
+    const [{ gender, growth }, skinUrl, { city, nation, role }] = await Promise.all([
       resolveGrowthData(identity.uuid),
       resolveSkinUrl(identity.uuid),
       resolveTownyData(identity.uuid),
@@ -216,13 +233,16 @@ export async function GET(req: Request) {
       nickname:   identity.nickname ?? FALLBACK_NICKNAME,
       skinUrl,
       playtimeMs: Number(identity.playtimeMs ?? 0),
+      // $queryRaw returns MySQL's EXISTS(...)/boolean result as a plain 0/1
+      // number, not a JS boolean — coerce explicitly (see the growth-status
+      // bug this exact gotcha caused earlier).
+      online:     Boolean(identity.online),
+      lastSeenMs: Number(identity.lastSeenMs ?? 0),
       gender,
       growth,
       city,
       nation,
-      // $queryRaw returns MySQL's EXISTS(...)/boolean result as a plain 0/1
-      // number, not a JS boolean — coerce explicitly (see the growth-status
-      // bug this exact gotcha caused earlier).
+      role,
       whitelisted: Boolean(identity.whitelisted),
     };
 

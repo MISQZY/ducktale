@@ -1,34 +1,61 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useLocale, useTranslations } from "next-intl";
 import { cn } from "@/lib/utils";
 import {
-  Clock, Sprout, Castle, Flag, VenusAndMars, UserRound, AlertCircle, CircleCheck, RefreshCw,
+  Clock, Sprout, Castle, Flag, VenusAndMars, UserRound, AlertCircle, CircleCheck, RefreshCw, LogIn, BadgeCheck,
 } from "lucide-react";
 import { DuckCard, DuckCardContent } from "@/components/ui/duck/card";
 import { TableSearch } from "@/components/docs/paged-table";
+import { RESIDENT_ROLE_COLOR } from "@/lib/towny";
 import type {
-  Gender, GrowthStatus, PlayerCard as PlayerCardData, PlayerCardResponse,
+  GrowthStatus, PlayerCard as PlayerCardData, PlayerCardResponse,
   PlayerSearchResponse, PlayerSuggestion,
 } from "@/types/player-card";
+import type { ResidentRole } from "@/types/towny";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 const MIN_SEARCH_LENGTH = 3;
 
-const GENDER_LABEL: Record<NonNullable<Gender>, string> = {
-  male:   "Мужской",
-  female: "Женский",
-};
+// Remembers which player was last shown so a page reload re-fetches that
+// same player (with fresh data) instead of the initial GET picking a new
+// random one — only the refresh button should ever change who's shown.
+const LAST_PLAYER_STORAGE_KEY = "playercard:lastPlayer";
 
-function formatDurationMs(ms: number): string {
+function getStoredPlayer(): string {
+  try { return localStorage.getItem(LAST_PLAYER_STORAGE_KEY) ?? ""; } catch { return ""; }
+}
+
+function setStoredPlayer(name: string) {
+  try { localStorage.setItem(LAST_PLAYER_STORAGE_KEY, name); } catch { /* */ }
+}
+
+type PlayerCardT = ReturnType<typeof useTranslations>;
+
+function dateLocale(locale: string): string {
+  return locale === "ru" ? "ru-RU" : "en-US";
+}
+
+function formatDurationMs(ms: number, t: PlayerCardT): string {
   const totalMinutes = Math.floor(ms / 60_000);
   const days = Math.floor(totalMinutes / 1440);
   const hours = Math.floor((totalMinutes % 1440) / 60);
   const minutes = totalMinutes % 60;
-  if (days > 0) return `${days} д ${hours} ч ${minutes} м`;
-  if (hours > 0) return `${hours} ч ${minutes} м`;
-  return `${minutes} м`;
+  if (days > 0) return t("unit.daysHours", { days, hours });
+  if (hours > 0) return t("unit.hoursMinutes", { hours, minutes });
+  return t("unit.minutes", { minutes });
+}
+
+function formatLastSeen(ms: number, locale: string): string {
+  return new Date(ms).toLocaleString(dateLocale(locale), {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
 }
 
 // ─── Skin face (CSS-cropped from the 64×64 Minecraft skin texture) ────────────
@@ -77,26 +104,42 @@ function InfoRow({ icon: Icon, label, children }: { icon: React.ElementType; lab
   return (
     <div className="flex items-start gap-2 text-sm">
       <Icon size={14} className="text-primary/60 shrink-0 mt-0.5" />
-      <span className="text-foreground/45 w-20 shrink-0">{label}</span>
-      <span className="text-foreground/85 font-medium break-words min-w-0">{children}</span>
+      <span className="text-foreground/45 w-28 shrink-0 whitespace-nowrap">{label}</span>
+      <span className="text-foreground/85 font-medium wrap-break-word min-w-0">{children}</span>
     </div>
   );
 }
 
 function GrowthValue({ growth }: { growth: GrowthStatus }) {
-  if (growth.state === "unknown") return <span className="text-foreground/40 italic font-normal">Нет данных</span>;
-  if (growth.state === "complete") return <span className="text-emerald-700 dark:text-emerald-400">Рост завершён</span>;
-  return <span>Осталось {formatDurationMs(growth.secondsRemaining * 1000)}</span>;
+  const t = useTranslations("PlayerCard");
+  if (growth.state === "unknown") return <span className="text-foreground/40 italic font-normal">{t("noData")}</span>;
+  if (growth.state === "complete") return <span className="text-emerald-700 dark:text-emerald-400">{t("growth.complete")}</span>;
+  return <span>{t("growth.remaining", { time: formatDurationMs(growth.secondsRemaining * 1000, t) })}</span>;
+}
+
+function LastLoginValue({ online, lastSeenMs }: { online: boolean; lastSeenMs: number }) {
+  const t = useTranslations("PlayerCard");
+  const locale = useLocale();
+  if (online) return <span className="text-emerald-600 dark:text-emerald-400 font-semibold">{t("online")}</span>;
+  if (!lastSeenMs) return <span className="text-foreground/40 italic font-normal">{t("noData")}</span>;
+  return <span>{formatLastSeen(lastSeenMs, locale)}</span>;
+}
+
+function PositionValue({ role }: { role: ResidentRole }) {
+  const t = useTranslations("PlayerCard");
+  if (!role) return <span>{t("resident")}</span>;
+  return <span className={RESIDENT_ROLE_COLOR[role]}>{t(`role.${role}`)}</span>;
 }
 
 // ─── Card ─────────────────────────────────────────────────────────────────────
 
-const CARD_BODY_HEIGHT = 168; // px — shared height for the head/info split row
+const CARD_BODY_HEIGHT = 168; // px — base size for the head image
 
 function PlayerCardView({ player }: { player: PlayerCardData }) {
+  const t = useTranslations("PlayerCard");
   return (
-    <DuckCard className="border-primary/20 bg-duck-stone/40">
-      <DuckCardContent className="pt-4">
+    <DuckCard className="border-primary/20 bg-duck-stone/40 min-h-70">
+      <DuckCardContent className="pt-4 flex-1 flex flex-col">
         <div className="flex items-center justify-center gap-1.5 min-w-0">
           <h3
             className="text-lg font-bold text-foreground leading-none truncate"
@@ -105,38 +148,52 @@ function PlayerCardView({ player }: { player: PlayerCardData }) {
             {player.nickname}
           </h3>
           {player.whitelisted && (
-            <span title="В вайтлисте сервера">
-              <CircleCheck size={16} className="text-emerald-500 shrink-0" aria-label="В вайтлисте сервера" />
+            <span title={t("whitelistedTitle")}>
+              <CircleCheck size={16} className="text-emerald-500 shrink-0" aria-label={t("whitelistedTitle")} />
             </span>
           )}
         </div>
 
-        <div className="flex gap-2 mt-3" style={{ height: CARD_BODY_HEIGHT }}>
-          {/* Left half: head */}
-          <div className="w-1/2 flex items-center justify-center">
+        {/* flex-1: fills the remaining height of the card (min-h-[280px]) instead of a fixed px height */}
+        <div className="flex-1 flex gap-5 mt-3">
+          {/* Left: head, sized to its own content so the info column keeps whatever's left */}
+          <div className="shrink-0 flex items-center justify-center" style={{ width: CARD_BODY_HEIGHT - 24 }}>
             <SkinFace skinUrl={player.skinUrl} size={CARD_BODY_HEIGHT - 24} />
           </div>
 
-          {/* Right half: info, scrolls if it overflows the shared height */}
-          <div className="w-1/2 flex flex-col gap-1.5 overflow-y-auto pr-1">
-            <InfoRow icon={UserRound} label="Игрок">
+          {/* Right: info, stretches to the row's full height and takes all remaining width; scrolls if it overflows */}
+          <div className="flex-1 min-w-0 flex flex-col gap-1.5 overflow-y-auto pr-1">
+            <InfoRow icon={UserRound} label={t("labels.player")}>
               {player.username}
             </InfoRow>
-            <InfoRow icon={Clock} label="Игровое время">
-              {formatDurationMs(player.playtimeMs)}
+            <InfoRow icon={LogIn} label={t("labels.lastLogin")}>
+              <LastLoginValue online={player.online} lastSeenMs={player.lastSeenMs} />
             </InfoRow>
-            <InfoRow icon={VenusAndMars} label="Пол">
-              {player.gender ? GENDER_LABEL[player.gender] : <span className="text-foreground/40 italic font-normal">Нет данных</span>}
+            <InfoRow icon={Clock} label={t("labels.playtime")}>
+              {formatDurationMs(player.playtimeMs, t)}
             </InfoRow>
-            <InfoRow icon={Sprout} label="Рост">
+            <InfoRow icon={VenusAndMars} label={t("labels.gender")}>
+              {player.gender ? t(`gender.${player.gender}`) : <span className="text-foreground/40 italic font-normal">{t("noData")}</span>}
+            </InfoRow>
+            <InfoRow icon={Sprout} label={t("labels.growth")}>
               <GrowthValue growth={player.growth} />
             </InfoRow>
-            <InfoRow icon={Castle} label="Город">
-              {player.city ?? <span className="text-foreground/40 italic font-normal">—</span>}
-            </InfoRow>
-            <InfoRow icon={Flag} label="Нация">
-              {player.nation ?? <span className="text-foreground/40 italic font-normal">{player.city ? "Независимый" : "—"}</span>}
-            </InfoRow>
+            {/* City/position/nation are optional — the whole line is omitted when the player has no data for it */}
+            {player.city && (
+              <InfoRow icon={Castle} label={t("labels.city")}>
+                {player.city}
+              </InfoRow>
+            )}
+            {player.city && (
+              <InfoRow icon={BadgeCheck} label={t("labels.position")}>
+                <PositionValue role={player.role} />
+              </InfoRow>
+            )}
+            {player.nation && (
+              <InfoRow icon={Flag} label={t("labels.nation")}>
+                {player.nation}
+              </InfoRow>
+            )}
           </div>
         </div>
       </DuckCardContent>
@@ -145,12 +202,13 @@ function PlayerCardView({ player }: { player: PlayerCardData }) {
 }
 
 function NotFoundCard({ query }: { query: string }) {
+  const t = useTranslations("PlayerCard");
   return (
     <DuckCard className="border-red-900/30 bg-duck-stone/40">
       <DuckCardContent className="flex items-center gap-3 py-6 justify-center text-center">
         <AlertCircle size={18} className="text-red-600/70 dark:text-red-400/70 shrink-0" />
         <p className="text-sm text-red-600/70 dark:text-red-400/70">
-          {query ? `Игрок «${query}» не найден` : "Игрок не найден"}
+          {query ? t("notFoundQuery", { query }) : t("notFound")}
         </p>
       </DuckCardContent>
     </DuckCard>
@@ -159,15 +217,15 @@ function NotFoundCard({ query }: { query: string }) {
 
 function SkeletonCard() {
   return (
-    <DuckCard className="border-primary/20 bg-duck-stone/40">
-      <DuckCardContent className="pt-4 animate-pulse">
+    <DuckCard className="border-primary/20 bg-duck-stone/40 min-h-70">
+      <DuckCardContent className="pt-4 flex-1 flex flex-col animate-pulse">
         <div className="h-5 w-40 mx-auto rounded bg-muted" />
-        <div className="flex gap-2 mt-3" style={{ height: CARD_BODY_HEIGHT }}>
-          <div className="w-1/2 flex items-center justify-center">
+        <div className="flex-1 flex gap-5 mt-3">
+          <div className="shrink-0 flex items-center justify-center" style={{ width: CARD_BODY_HEIGHT - 24 }}>
             <div className="rounded-xl bg-muted" style={{ width: CARD_BODY_HEIGHT - 24, height: CARD_BODY_HEIGHT - 24 }} />
           </div>
-          <div className="w-1/2 flex flex-col gap-2.5 pt-1">
-            {Array.from({ length: 6 }).map((_, i) => (
+          <div className="flex-1 min-w-0 flex flex-col gap-2.5 pt-1">
+            {Array.from({ length: 8 }).map((_, i) => (
               <div key={i} className="h-3.5 w-full max-w-40 rounded bg-muted" />
             ))}
           </div>
@@ -211,8 +269,14 @@ export interface PlayerCardProps {
 // ─── Component ────────────────────────────────────────────────────────────────
 
 export function PlayerCard({ className }: PlayerCardProps) {
+  const t = useTranslations("PlayerCard");
+  // Both start empty to match the server-rendered markup — localStorage
+  // isn't available during SSR, so reading it here would cause a hydration
+  // mismatch. The stored player (if any) is restored client-side by the
+  // fetch effect below, on its first run.
   const [input, setInput] = useState("");
   const [query, setQuery] = useState("");
+  const restoredRef = useRef(false);
   // Bumped on every refresh-button click so the fetch effect re-runs even
   // when query is already "" (setting state to an unchanged value wouldn't
   // otherwise trigger the [query] effect below).
@@ -221,20 +285,19 @@ export function PlayerCard({ className }: PlayerCardProps) {
   const [status, setStatus] = useState<"loading" | "success" | "error">("loading");
   const [suggestions, setSuggestions] = useState<PlayerSuggestion[]>([]);
   const [showDropdown, setShowDropdown] = useState(false);
-  const searchDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const suggestDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
   const handleInput = (value: string) => {
     setInput(value);
-    if (searchDebounceRef.current) clearTimeout(searchDebounceRef.current);
     if (suggestDebounceRef.current) clearTimeout(suggestDebounceRef.current);
 
     const trimmed = value.trim();
 
     if (trimmed.length === 0) {
-      // Cleared entirely — revert to a random player, hide the dropdown.
-      searchDebounceRef.current = setTimeout(() => setQuery(""), 300);
+      // Cleared entirely — just hide the dropdown. Whatever player is
+      // currently shown (random or explicitly picked) stays put; only the
+      // refresh button should ever pick a new random player.
       setSuggestions([]);
       setShowDropdown(false);
       return;
@@ -264,7 +327,6 @@ export function PlayerCard({ className }: PlayerCardProps) {
   };
 
   const submitSearch = (value: string) => {
-    if (searchDebounceRef.current) clearTimeout(searchDebounceRef.current);
     if (suggestDebounceRef.current) clearTimeout(suggestDebounceRef.current);
     setQuery(value.trim());
     setSuggestions([]);
@@ -279,11 +341,12 @@ export function PlayerCard({ className }: PlayerCardProps) {
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key !== "Enter") return;
     const trimmed = input.trim();
-    if (trimmed.length === 0 || trimmed.length >= MIN_SEARCH_LENGTH) submitSearch(trimmed);
+    // Enter on an empty box no longer picks a random player — only the
+    // refresh button does that now. A real search still submits on Enter.
+    if (trimmed.length >= MIN_SEARCH_LENGTH) submitSearch(trimmed);
   };
 
   const handleRefresh = () => {
-    if (searchDebounceRef.current) clearTimeout(searchDebounceRef.current);
     if (suggestDebounceRef.current) clearTimeout(suggestDebounceRef.current);
     setInput("");
     setQuery("");
@@ -304,8 +367,21 @@ export function PlayerCard({ className }: PlayerCardProps) {
   }, []);
 
   useEffect(() => {
+    // On the very first run, restore whichever player was last shown
+    // (persisted client-side) instead of fetching a random one — this
+    // update to `query` re-triggers the effect below with that value.
+    if (!restoredRef.current) {
+      restoredRef.current = true;
+      const stored = getStoredPlayer();
+      if (stored) {
+        // eslint-disable-next-line react-hooks/set-state-in-effect -- restoring persisted state from localStorage (an external system) on mount; re-triggers this effect with the restored value
+        setInput(stored);
+        setQuery(stored);
+        return;
+      }
+    }
+
     let cancelled = false;
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- resetting state synchronously when query changes, before async fetch starts
     setStatus("loading");
 
     const params = query ? `?search=${encodeURIComponent(query)}` : "";
@@ -318,6 +394,10 @@ export function PlayerCard({ className }: PlayerCardProps) {
         if (cancelled) return;
         setData(res);
         setStatus("success");
+        // Persist whoever ended up being shown — random pick or search —
+        // so the next page load restores this same player instead of
+        // re-rolling a new random one.
+        setStoredPlayer(res.player?.username ?? "");
       })
       .catch(() => {
         if (!cancelled) setStatus("error");
@@ -332,12 +412,12 @@ export function PlayerCard({ className }: PlayerCardProps) {
         <TableSearch
           value={input}
           onChange={handleInput}
-          placeholder="Поиск по нику или имени…"
+          placeholder={t("searchPlaceholder")}
           className="w-full"
           trailingAction={{
             icon: <RefreshCw size={13} />,
             onClick: handleRefresh,
-            label: "Случайный игрок",
+            label: t("refreshLabel"),
           }}
         />
         {showDropdown && suggestions.length > 0 && (
@@ -350,7 +430,7 @@ export function PlayerCard({ className }: PlayerCardProps) {
       {status === "error" && (
         <DuckCard className="border-red-900/30 bg-duck-stone/40">
           <DuckCardContent className="py-6 text-center">
-            <p className="text-sm text-red-600/70 dark:text-red-400/70">Не удалось загрузить данные игрока</p>
+            <p className="text-sm text-red-600/70 dark:text-red-400/70">{t("loadError")}</p>
           </DuckCardContent>
         </DuckCard>
       )}

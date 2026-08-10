@@ -55,6 +55,45 @@
       }
     }
   },
+  "PlayerCard": {
+    "searchPlaceholder": "Поиск по нику или имени…",
+    "refreshLabel": "Случайный игрок",
+    "whitelistedTitle": "В вайтлисте сервера",
+    "loadError": "Не удалось загрузить данные игрока",
+    "notFound": "Игрок не найден",
+    "notFoundQuery": "Игрок «{query}» не найден",
+    "noData": "Нет данных",
+    "online": "Онлайн",
+    "resident": "Житель",
+    "labels": {
+      "player": "Игрок",
+      "lastLogin": "Последний вход",
+      "playtime": "Игровое время",
+      "gender": "Пол",
+      "growth": "Рост",
+      "city": "Город",
+      "position": "Должность",
+      "nation": "Нация"
+    },
+    "gender": {
+      "male": "Мужской",
+      "female": "Женский"
+    },
+    "role": {
+      "mayor": "Мэр",
+      "deputy": "Заместитель"
+    },
+    "growth": {
+      "complete": "Рост завершён",
+      "remaining": "Осталось {time}"
+    },
+    "unit": {
+      "daysHours": "{days} д {hours} ч",
+      "days": "{days} д",
+      "hoursMinutes": "{hours} ч {minutes} м",
+      "minutes": "{minutes} м"
+    }
+  },
   "Nav": {
     "about": "О проекте",
     "servers": "Серверы",

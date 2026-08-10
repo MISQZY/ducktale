@@ -55,6 +55,45 @@
       }
     }
   },
+  "PlayerCard": {
+    "searchPlaceholder": "Search by nickname or username…",
+    "refreshLabel": "Random player",
+    "whitelistedTitle": "Whitelisted on the server",
+    "loadError": "Failed to load player data",
+    "notFound": "Player not found",
+    "notFoundQuery": "Player \"{query}\" not found",
+    "noData": "No data",
+    "online": "Online",
+    "resident": "Resident",
+    "labels": {
+      "player": "Player",
+      "lastLogin": "Last login",
+      "playtime": "Playtime",
+      "gender": "Gender",
+      "growth": "Growth",
+      "city": "City",
+      "position": "Position",
+      "nation": "Nation"
+    },
+    "gender": {
+      "male": "Male",
+      "female": "Female"
+    },
+    "role": {
+      "mayor": "Mayor",
+      "deputy": "Deputy"
+    },
+    "growth": {
+      "complete": "Growth complete",
+      "remaining": "{time} left"
+    },
+    "unit": {
+      "daysHours": "{days}d {hours}h",
+      "days": "{days}d",
+      "hoursMinutes": "{hours}h {minutes}m",
+      "minutes": "{minutes}m"
+    }
+  },
   "Nav": {
     "about": "About",
     "servers": "Servers",
