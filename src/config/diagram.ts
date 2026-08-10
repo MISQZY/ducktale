@@ -1,9 +1,11 @@
 /**
  * Network topology data for the interactive infrastructure diagram.
  * Add/remove nodes and edges here — the diagram renders them automatically.
+ * Copy (label/sublabel/tooltip) lives in the `Infrastructure` message
+ * namespace, keyed by `id` (nodes) / `key` (edges); see NetworkDiagram.tsx.
  */
 import { Shield, Globe, Server, Users, RefreshCw, Home, Mic } from "lucide-react";
-import type { NodeDef, EdgeDef, Vec2 } from "@/components/node-diagram/types";
+import type { Vec2 } from "@/components/node-diagram/types";
 
 export const DIAGRAM_INIT_OFFSETS: Record<string, Vec2> = {
   client:   { x: -366, y: -220 },
@@ -16,38 +18,55 @@ export const DIAGRAM_INIT_OFFSETS: Record<string, Vec2> = {
   voice:    { x: -244, y: 125  },
 };
 
-export const DIAGRAM_NODES: NodeDef[] = [
-  { id: "client",   label: "Игрок",      sublabel: "Minecraft клиент",     icon: Users,     color: "gold",    tooltip: "Клиент подключается с Minecraft Java Edition ≥ 1.21.x" },
-  { id: "proxy",    label: "Velocity",   sublabel: "Единая точка входа",   icon: Globe,     color: "violet",  tooltip: "Proxy-сервер Velocity — точка входа в сеть DuckTale. Маршрутизирует трафик между всеми серверами." },
-  { id: "auth",     label: "Auth",       sublabel: "Авторизация",          icon: Shield,    dashed: true, color: "rose",    tooltip: "Система авторизации игроков перед допуском на серверы." },
-  { id: "hub",      label: "Hub",        sublabel: "Лобби серверов",       icon: Home,      color: "amber",   tooltip: "Сервер-лобби для выбора игрового сервера." },
-  { id: "duckburg", label: "DuckBurg",   sublabel: "Выживание",            icon: Server,    color: "emerald", tooltip: "Игровой сервер выживания" },
-  { id: "duckhood", label: "DuckHood",   sublabel: "Креатив",              icon: Server,    color: "sky",     tooltip: "Игровой творческий сервер" },
-  { id: "backup",   label: "Бэкапы",     sublabel: "Ежедневно",            icon: RefreshCw, dashed: true, color: "gold",    tooltip: "Ежедневные резервные копии всех игровых данных." },
-  { id: "voice",    label: "Voice-Chat", sublabel: "Голосовой чат сервера",icon: Mic,       dashed: true, color: "gold",    tooltip: "Голосовой внутриигровой чат." },
+export interface DiagramNodeDef {
+  id: string;
+  icon: React.ElementType;
+  color: "gold" | "emerald" | "sky" | "violet" | "rose" | "amber";
+  dashed?: boolean;
+}
+
+export const DIAGRAM_NODE_DEFS: DiagramNodeDef[] = [
+  { id: "client",   icon: Users,     color: "gold" },
+  { id: "proxy",    icon: Globe,     color: "violet" },
+  { id: "auth",     icon: Shield,    color: "rose", dashed: true },
+  { id: "hub",      icon: Home,      color: "amber" },
+  { id: "duckburg", icon: Server,    color: "emerald" },
+  { id: "duckhood", icon: Server,    color: "sky" },
+  { id: "backup",   icon: RefreshCw, color: "gold", dashed: true },
+  { id: "voice",    icon: Mic,       color: "gold", dashed: true },
 ];
 
-export const DIAGRAM_EDGES: EdgeDef[] = [
-  { from: "client",   to: "proxy",    color: "white",  tooltip: "Подключение игрока к точке входа сети" },
-  { from: "proxy",    to: "auth",     color: "gold",   tooltip: "Velocity направляет на сервис авторизации" },
-  { from: "auth",     to: "hub",      color: "gold",   tooltip: "При успешной авторизации перенаправляет на HUB" },
-  { from: "hub",      to: "duckhood", color: "gold",   direction: "both", tooltip: "Перенаправление между HUB и DuckHood" },
-  { from: "hub",      to: "duckburg", color: "gold",   direction: "both", tooltip: "Перенаправление между HUB и DuckBurg" },
-  { from: "duckhood", to: "duckburg", color: "gold",   direction: "both", tooltip: "Перенаправление между DuckHood и DuckBurg" },
-  { from: "backup",   to: "duckburg", color: "violet", dashed: true, tooltip: "Автоматическое резервное копирование DuckBurg" },
-  { from: "backup",   to: "duckhood", color: "violet", dashed: true, tooltip: "Автоматическое резервное копирование DuckHood" },
-  { from: "voice",    to: "duckburg", color: "violet", dashed: true, tooltip: "Предоставление голосового чата для сервера DuckBurg" },
-  { from: "voice",    to: "duckhood", color: "violet", dashed: true, tooltip: "Предоставление голосового чата для сервера DuckHood" },
-  { from: "voice",    to: "hub",      color: "violet", dashed: true, tooltip: "Предоставление голосового чата для сервера HUB" },
+export interface DiagramEdgeDef {
+  /** Key into `Infrastructure.edges` for the tooltip. */
+  key: string;
+  from: string;
+  to: string;
+  color: "gold" | "white" | "emerald" | "sky" | "violet" | "amber";
+  dashed?: boolean;
+  direction?: "forward" | "backward" | "both";
+}
+
+export const DIAGRAM_EDGE_DEFS: DiagramEdgeDef[] = [
+  { key: "clientToProxy",      from: "client",   to: "proxy",    color: "white" },
+  { key: "proxyToAuth",        from: "proxy",    to: "auth",     color: "gold" },
+  { key: "authToHub",          from: "auth",     to: "hub",      color: "gold" },
+  { key: "hubToDuckhood",      from: "hub",      to: "duckhood", color: "gold", direction: "both" },
+  { key: "hubToDuckburg",      from: "hub",      to: "duckburg", color: "gold", direction: "both" },
+  { key: "duckhoodToDuckburg", from: "duckhood", to: "duckburg", color: "gold", direction: "both" },
+  { key: "backupToDuckburg",   from: "backup",   to: "duckburg", color: "violet", dashed: true },
+  { key: "backupToDuckhood",   from: "backup",   to: "duckhood", color: "violet", dashed: true },
+  { key: "voiceToDuckburg",    from: "voice",    to: "duckburg", color: "violet", dashed: true },
+  { key: "voiceToDuckhood",    from: "voice",    to: "duckhood", color: "violet", dashed: true },
+  { key: "voiceToHub",         from: "voice",    to: "hub",      color: "violet", dashed: true },
 ];
 
-export const DIAGRAM_LEGEND_LINES = [
-  { color: "white",  label: "Общий трафик",       dashed: false },
-  { color: "gold",   label: "Защищенный трафик",  dashed: false },
-  { color: "violet", label: "Сервисы",            dashed: true  },
+export const DIAGRAM_LEGEND_LINE_DEFS = [
+  { key: "public",   color: "white",  dashed: false },
+  { key: "secure",   color: "gold",   dashed: false },
+  { key: "services", color: "violet", dashed: true  },
 ] as const;
 
-export const DIAGRAM_LEGEND_NODES = [
-  { dashed: false, label: "Основная инфраструктура" },
-  { dashed: true,  label: "Вспомогательный сервис"  },
+export const DIAGRAM_LEGEND_NODE_DEFS = [
+  { key: "core", dashed: false },
+  { key: "aux",  dashed: true  },
 ] as const;

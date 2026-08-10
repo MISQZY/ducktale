@@ -33,16 +33,16 @@ export const SERVERS: ServerConfig[] = [
       "Классическое выживание с уникальной экономикой, кланами, аукционом и сотнями часов контента.",
     icon: Sword,
     emoji: "⚔️",
-    color: "from-green-900/40 to-emerald-900/20",
-    border: "border-green-700/30 hover:border-green-500/60",
-    badge: "bg-green-900/50 text-green-300",
-    glow: "hover:shadow-green-900/30",
+    color: "from-emerald-900/40 to-emerald-800/20",
+    border: "border-emerald-700/30 hover:border-emerald-500/60",
+    badge: "bg-emerald-900/50 text-emerald-300",
+    glow: "hover:shadow-emerald-900/30",
     href: "/docs/duckburg",
     features: ["Экономика", "Города", "Без вайпов", "PvE", "Квесты"],
     docs: {
-      sidebarBorderColor: "border-green-700/30",
-      sidebarBgColor: "bg-green-950/30",
-      sidebarTextColor: "text-green-400",
+      sidebarBorderColor: "border-emerald-700/30",
+      sidebarBgColor: "bg-emerald-950/30",
+      sidebarTextColor: "text-emerald-400",
     },
   },
   {
@@ -70,3 +70,6 @@ export const SERVERS: ServerConfig[] = [
 ];
 
 export const NETWORK_HOST = "mc.ducktale.online";
+
+/** Hidden destination the animated duck easter egg (DuckyPet) links to. */
+export const DUCKY_EASTER_EGG_HOST = "duckeldor.ducktale.online";
