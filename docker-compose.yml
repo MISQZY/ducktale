@@ -14,27 +14,8 @@ services:
     expose:
       - "3000"
     networks:
-      - web
-
-  caddy:
-    image: caddy:2-alpine
-    container_name: ducktale_caddy
-    restart: unless-stopped
-    ports:
-      - "80:80"
-      - "443:443"
-      - "443:443/udp"
-    volumes:
-      - ./Caddyfile:/etc/caddy/Caddyfile
-      - caddy_data:/data
-      - caddy_config:/config
-    networks:
-      - web
+      - ducktale-network
 
 networks:
-  web:
-    driver: bridge
-
-volumes:
-  caddy_data:
-  caddy_config:
+  ducktale-network:
+    external: true
