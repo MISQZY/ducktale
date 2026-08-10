@@ -61,7 +61,7 @@ jobs:
     if: github.event_name == 'release' || github.event_name == 'workflow_dispatch'
     environment:
       name: production
-      url: https://ducktale.misqzy.site
+      url: ${{ vars.NEXT_PUBLIC_SITE_URL }}
     steps:
       - name: Setup SSH key
         env:
