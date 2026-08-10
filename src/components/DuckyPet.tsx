@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState, useCallback } from "react";
 import { useSyncExternalStore } from "react";
+import { DUCKY_EASTER_EGG_HOST } from "@/config/servers";
 
 const SPRITE_SIZE = 48;
 const DISPLAY_SCALE = 1.5;
@@ -12,7 +13,6 @@ const WALK_FRAMES = 4;
 const FRAME_MS = 200;
 
 const SPEED_PX_PER_SEC = 45;
-const TARGET_URL = "duckeldor.ducktale.online";
 const STORAGE_KEY = "duckyVisible";
 
 type Direction = "left" | "right";
@@ -156,92 +156,106 @@ export default function DuckyPet() {
     ctx.restore();
   }, []);
 
-  const tickRef = useRef<(now: number) => void>(() => { });
+  const startLoop = useCallback(() => {
+    if (rafRef.current) cancelAnimationFrame(rafRef.current);
+    lastTimeRef.current = 0;
+    const loop = (now: number) => {
+      if (!visibleRef.current) return;
 
-useEffect(() => {
-  tickRef.current = (now: number) => {
-    if (!visibleRef.current) return;
+      const dt = Math.min(now - (lastTimeRef.current || now), 100);
+      lastTimeRef.current = now;
 
-    const dt = Math.min(now - (lastTimeRef.current || now), 100);
-    lastTimeRef.current = now;
+      if (!isHoveredRef.current) {
+        wanderTimerRef.current -= dt;
+        if (wanderTimerRef.current <= 0) pickNewWander();
 
-    if (!isHoveredRef.current) {
-      wanderTimerRef.current -= dt;
-      if (wanderTimerRef.current <= 0) pickNewWander();
+        const el = sectionRef.current;
+        const W = (el?.offsetWidth ?? window.innerWidth) - DISPLAY_SIZE;
+        const H = (el?.offsetHeight ?? window.innerHeight) - DISPLAY_SIZE;
+        const cur = posRef.current ?? { x: 0, y: 0 };
 
-      const el = sectionRef.current;
-      const W = (el?.offsetWidth ?? window.innerWidth) - DISPLAY_SIZE;
-      const H = (el?.offsetHeight ?? window.innerHeight) - DISPLAY_SIZE;
-      const cur = posRef.current ?? { x: 0, y: 0 };
+        let nx = cur.x + velRef.current.x * (dt / 1000);
+        let ny = cur.y + velRef.current.y * (dt / 1000);
 
-      let nx = cur.x + velRef.current.x * (dt / 1000);
-      let ny = cur.y + velRef.current.y * (dt / 1000);
+        if (nx < 0) { nx = 0; velRef.current.x = Math.abs(velRef.current.x); dirRef.current = "right"; setDir("right"); }
+        if (nx > W) { nx = W; velRef.current.x = -Math.abs(velRef.current.x); dirRef.current = "left"; setDir("left"); }
+        if (ny < 0) { ny = 0; velRef.current.y = Math.abs(velRef.current.y); }
+        if (ny > H) { ny = H; velRef.current.y = -Math.abs(velRef.current.y); }
 
-      if (nx < 0) { nx = 0; velRef.current.x = Math.abs(velRef.current.x); dirRef.current = "right"; setDir("right"); }
-      if (nx > W) { nx = W; velRef.current.x = -Math.abs(velRef.current.x); dirRef.current = "left"; setDir("left"); }
-      if (ny < 0) { ny = 0; velRef.current.y = Math.abs(velRef.current.y); }
-      if (ny > H) { ny = H; velRef.current.y = -Math.abs(velRef.current.y); }
+        posRef.current = { x: nx, y: ny };
+        setPos({ x: nx, y: ny });
 
-      posRef.current = { x: nx, y: ny };
-      setPos({ x: nx, y: ny });
+        const sH = el?.offsetHeight ?? window.innerHeight;
+        setLayer(ny > sH * 0.6 ? 2 : 1);
 
-      const sH = el?.offsetHeight ?? window.innerHeight;
-      setLayer(ny > sH * 0.6 ? 2 : 1);
-
-      frameMsRef.current += dt;
-      if (frameMsRef.current >= FRAME_MS) {
-        frameMsRef.current = 0;
-        frameRef.current = (frameRef.current + 1) % WALK_FRAMES;
+        frameMsRef.current += dt;
+        if (frameMsRef.current >= FRAME_MS) {
+          frameMsRef.current = 0;
+          frameRef.current = (frameRef.current + 1) % WALK_FRAMES;
+        }
+      } else {
+        frameMsRef.current += dt;
+        if (frameMsRef.current >= FRAME_MS * 1.5) {
+          frameMsRef.current = 0;
+          frameRef.current = (frameRef.current + 1) % IDLE_FRAMES;
+        }
       }
-    } else {
-      frameMsRef.current += dt;
-      if (frameMsRef.current >= FRAME_MS * 1.5) {
-        frameMsRef.current = 0;
-        frameRef.current = (frameRef.current + 1) % IDLE_FRAMES;
-      }
+
+      drawFrame();
+      rafRef.current = requestAnimationFrame(loop);
+    };
+    rafRef.current = requestAnimationFrame(loop);
+  }, [drawFrame, pickNewWander]);
+
+  const stopLoop = useCallback(() => {
+    if (rafRef.current) {
+      cancelAnimationFrame(rafRef.current);
+      rafRef.current = 0;
     }
-
-    drawFrame();
-    rafRef.current = requestAnimationFrame((t) => tickRef.current(t));
-  };
-});
+  }, []);
 
   useEffect(() => {
     if (visible && spritesReady.current) {
-      lastTimeRef.current = 0;
-      cancelAnimationFrame(rafRef.current);
-      rafRef.current = requestAnimationFrame((t) => tickRef.current(t));
+      startLoop();
     } else {
-      cancelAnimationFrame(rafRef.current);
+      stopLoop();
     }
-
-  }, [visible]);
+    return () => stopLoop();
+  }, [visible, startLoop, stopLoop]);
 
   useEffect(() => {
+    let mounted = true;
     Promise.all([
       loadImage("/sprites/ducky-idle.png"),
       loadImage("/sprites/ducky-walk.png"),
-    ]).then(([idle, walk]) => {
-      idleImgRef.current = idle;
-      walkImgRef.current = walk;
-      spritesReady.current = true;
+    ])
+      .then(([idle, walk]) => {
+        if (!mounted) return;
+        idleImgRef.current = idle;
+        walkImgRef.current = walk;
+        spritesReady.current = true;
 
-      const el = sectionRef.current;
-      const W = el?.offsetWidth ?? window.innerWidth;
-      const H = el?.offsetHeight ?? window.innerHeight;
-      const spawn = randomSpawn(W, H);
-      posRef.current = spawn;
-      setPos(spawn);
-      pickNewWander();
+        const el = sectionRef.current;
+        const W = el?.offsetWidth ?? window.innerWidth;
+        const H = el?.offsetHeight ?? window.innerHeight;
+        const spawn = randomSpawn(W, H);
+        posRef.current = spawn;
+        setPos(spawn);
+        pickNewWander();
 
-      if (visibleRef.current) {
-        lastTimeRef.current = 0;
-        rafRef.current = requestAnimationFrame((t) => tickRef.current(t));
-      }
-    });
-    return () => cancelAnimationFrame(rafRef.current);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+        if (visibleRef.current) {
+          startLoop();
+        }
+      })
+      .catch((err) => {
+        console.warn("[DuckyPet] Failed to load duck sprite images:", err);
+      });
+
+    return () => {
+      mounted = false;
+      stopLoop();
+    };
+  }, [pickNewWander, startLoop, stopLoop]);
 
   if (!pos) return null;
 
@@ -267,7 +281,7 @@ useEffect(() => {
         }}
         onMouseEnter={() => { isHoveredRef.current = true; setIsHovered(true); frameRef.current = 0; frameMsRef.current = 0; }}
         onMouseLeave={() => { isHoveredRef.current = false; setIsHovered(false); frameRef.current = 0; frameMsRef.current = 0; }}
-        onClick={() => window.open("https://" + TARGET_URL, "_blank", "noopener,noreferrer")}
+        onClick={() => window.open("https://" + DUCKY_EASTER_EGG_HOST, "_blank", "noopener,noreferrer")}
       >
         <canvas
           ref={canvasRef}

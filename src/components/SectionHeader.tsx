@@ -20,15 +20,15 @@ export default function SectionHeader({
 }: SectionHeaderProps) {
   return (
     <div className={cn("text-center mb-16", className)}>
-      <p className="text-gold-500/60 text-xs tracking-[0.4em] uppercase mb-4 flex items-center justify-center gap-3">
-        <span className="h-px w-6 bg-linear-to-r from-transparent to-gold-500/40 inline-block" />
+      <p className="text-primary/60 text-xs tracking-[0.4em] uppercase mb-4 flex items-center justify-center gap-3">
+        <span className="h-px w-6 bg-linear-to-r from-transparent to-primary/40 inline-block" />
         {label}
-        <span className="h-px w-6 bg-linear-to-l from-transparent to-gold-500/40 inline-block" />
+        <span className="h-px w-6 bg-linear-to-l from-transparent to-primary/40 inline-block" />
       </p>
 
       <h2
-        className="text-4xl md:text-5xl text-amber-100/90 mb-5 leading-tight"
-        style={{ fontFamily: "var(--font-display)" }}
+        className="text-4xl md:text-5xl text-primary/90 mb-5 leading-tight"
+        style={{ fontFamily: "var(--font-body)" }}
       >
         {title}
       </h2>
@@ -39,7 +39,7 @@ export default function SectionHeader({
 
       {description && (
         <p
-          className="text-amber-100/50 max-w-2xl mx-auto leading-relaxed text-lg"
+          className="text-foreground/50 max-w-2xl mx-auto leading-relaxed text-lg"
           style={{ fontFamily: "var(--font-body)" }}
         >
           {description}

@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import { cn } from "@/lib/utils";
 import { SOCIALS } from "@/config/site";
 import { SOCIAL_ICON_MAP } from "@/components/ui/social-icons";
@@ -31,15 +32,17 @@ function CornerOrnament({
 const CORNERS = ["tl", "tr", "bl", "br"] as const;
 
 export default function SocialSection() {
+  const t = useTranslations("Social");
+
   return (
     <section id="community" className="py-28 px-6 relative">
-      <div className="absolute top-0 left-1/4 right-1/4 h-px bg-linear-to-r from-transparent via-gold-700/20 to-transparent" />
+      <div className="absolute top-0 left-1/4 right-1/4 h-px bg-linear-to-r from-transparent via-primary/20 to-transparent" />
 
       <div className="max-w-5xl mx-auto">
         <SectionHeader
-          label="Сообщество"
-          title="Мы в соцсетях"
-          description="Вступай в наши каналы — следи за новостями, участвуй в ивентах и общайся с другими игроками."
+          label={t("label")}
+          title={t("title")}
+          description={t("description")}
         />
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-12">
@@ -86,16 +89,16 @@ export default function SocialSection() {
 
                 <div className="text-center">
                   <p
-                    className="text-amber-100/90 font-semibold text-sm tracking-wide mb-1"
-                    style={{ fontFamily: "var(--font-display)" }}
+                    className="text-foreground/90 font-semibold text-sm tracking-wide mb-1"
+                    style={{ fontFamily: "var(--font-body)" }}
                   >
                     {social.label}
                   </p>
                   <p
-                    className="text-amber-100/35 text-xs"
+                    className="text-foreground/35 text-xs"
                     style={{ fontFamily: "var(--font-mono)" }}
                   >
-                    {social.sublabel}
+                    {t(`items.${social.id}.sublabel`)}
                   </p>
                 </div>
 
@@ -106,7 +109,7 @@ export default function SocialSection() {
                   )}
                   style={{ fontFamily: "var(--font-mono)", fontSize: "0.6rem" }}
                 >
-                  Перейти →
+                  {t("visit")}
                 </span>
               </Link>
             );
@@ -114,10 +117,10 @@ export default function SocialSection() {
         </div>
 
         <p
-          className="text-center text-amber-100/20 text-xs mt-10 tracking-wider"
+          className="text-center text-foreground/20 text-xs mt-10 tracking-wider"
           style={{ fontFamily: "var(--font-mono)" }}
         >
-          ✦ &nbsp; Присоединяйся, с нами весело &nbsp; ✦
+          ✦ &nbsp; {t("footerNote")} &nbsp; ✦
         </p>
       </div>
     </section>

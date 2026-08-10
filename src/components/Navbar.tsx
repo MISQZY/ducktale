@@ -1,9 +1,11 @@
 "use client";
 
-import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { ThemeToggle } from "./ThemeToggle";
+import { LanguageSwitcher } from "./LanguageSwitcher";
+import { Link, usePathname } from "@/i18n/navigation";
 import { Menu } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState } from "react";
+import { useTranslations } from "next-intl";
 import Logo from "./ui/Logo";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -42,9 +44,9 @@ function DuckIcon({ visible }: { visible: boolean }) {
       {/* head */}
       <circle cx="12" cy="7" r="3" fill="currentColor" opacity="0.9" />
       {/* beak */}
-      <rect x="14.5" y="6.5" width="2.5" height="1.5" rx="0.5" fill="#d4a017" />
+      <rect x="14.5" y="6.5" width="2.5" height="1.5" rx="0.5" fill="var(--color-accent-gold)" />
       {/* eye */}
-      <circle cx="13" cy="6.2" r="0.7" fill="#1a160a" />
+      <circle cx="13" cy="6.2" r="0.7" fill="var(--background)" />
       {/* wing hint */}
       <ellipse cx="7" cy="11" rx="2.5" ry="1.5" fill="currentColor" opacity="0.5" />
       {/* crossed out line when hidden */}
@@ -56,6 +58,7 @@ function DuckIcon({ visible }: { visible: boolean }) {
 }
 
 export default function Navbar() {
+  const t = useTranslations("Nav");
   const pathname = usePathname();
   const [menuOpen, setMenuOpen] = useState(false);
   const duckyVisible = useSyncExternalStore(subscribeDuckyToggle, getDuckyVisible, () => true);
@@ -64,18 +67,29 @@ export default function Navbar() {
     setDuckyVisible(!duckyVisible);
   }
 
-  const duckyBtnTitle = duckyVisible ? "Скрыть уточку" : "Показать уточку";
+  const duckyBtnTitle = duckyVisible ? t("duckHide") : t("duckShow");
+
+  const handleNavClick = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
+    if (href.includes("#")) {
+      const id = href.split("#")[1];
+      const el = document.getElementById(id);
+      if (el) {
+        e.preventDefault();
+        el.scrollIntoView({ behavior: "smooth" });
+      }
+    }
+  };
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50">
       <nav
-        className="backdrop-blur-md border-b border-gold-800/25"
+        className="backdrop-blur-md border-b border-primary/25"
         style={{ boxShadow: "0 1px 0 rgba(212,160,23,0.04), 0 4px 30px rgba(0,0,0,0.4)" }}
       >
         <div className="h-px bg-linear-to-r from-transparent via-gold-500/70 to-transparent" />
 
         <div className="max-w-6xl mx-auto px-6 flex items-center justify-between h-16">
-          <Link href="/" aria-label="DuckTale — на главную">
+          <Link href="/" aria-label={t("home")}>
             <Logo />
           </Link>
 
@@ -85,20 +99,24 @@ export default function Navbar() {
               <Link
                 key={link.href}
                 href={link.href}
+                onClick={(e) => handleNavClick(e, link.href)}
                 className={cn(
                   "relative px-3 py-2 text-sm transition-colors tracking-wide rounded-md",
                   isActive(pathname, link.href)
-                    ? "text-gold-300 font-semibold"
-                    : "text-amber-100/55 hover:text-gold-300/90"
+                    ? "text-primary font-semibold"
+                    : "text-foreground/60 hover:text-primary/90"
                 )}
                 aria-current={isActive(pathname, link.href) ? "page" : undefined}
               >
-                {link.label}
+                {t(link.key)}
                 {isActive(pathname, link.href) && (
-                  <span className="absolute bottom-0 left-3 right-3 h-px bg-linear-to-r from-transparent via-gold-400/70 to-transparent" />
+                  <span className="absolute bottom-0 left-3 right-3 h-px bg-linear-to-r from-transparent via-primary/70 to-transparent" />
                 )}
               </Link>
             ))}
+
+            <LanguageSwitcher className="ml-1" />
+            <ThemeToggle />
 
             {/* Duck toggle — desktop */}
             <Button
@@ -108,10 +126,10 @@ export default function Navbar() {
               title={duckyBtnTitle}
               aria-label={duckyBtnTitle}
               className={cn(
-                "ml-1 transition-colors",
+                "transition-colors",
                 duckyVisible
-                  ? "text-gold-400/70 hover:text-gold-300 hover:bg-gold-400/8"
-                  : "text-amber-100/30 hover:text-amber-100/60 hover:bg-gold-400/5"
+                  ? "text-primary/70 hover:text-primary hover:bg-primary/10"
+                  : "text-primary/40 hover:text-primary/70 hover:bg-primary/5"
               )}
             >
               <DuckIcon visible={duckyVisible} />
@@ -120,6 +138,9 @@ export default function Navbar() {
 
           {/* Mobile burger */}
           <div className="nav-burger flex items-center gap-2">
+            <LanguageSwitcher />
+            <ThemeToggle />
+
             {/* Duck toggle — mobile (outside sheet) */}
             <Button
               variant="ghost"
@@ -130,8 +151,8 @@ export default function Navbar() {
               className={cn(
                 "transition-colors",
                 duckyVisible
-                  ? "text-gold-400/70 hover:text-gold-300 hover:bg-gold-400/8"
-                  : "text-amber-100/30 hover:text-amber-100/60 hover:bg-gold-400/5"
+                  ? "text-primary/70 hover:text-primary hover:bg-primary/10"
+                  : "text-foreground/40 hover:text-foreground/70 hover:bg-primary/5"
               )}
             >
               <DuckIcon visible={duckyVisible} />
@@ -142,8 +163,8 @@ export default function Navbar() {
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="text-gold-400/70 hover:text-gold-300 hover:bg-gold-400/8"
-                  aria-label={menuOpen ? "Закрыть меню" : "Открыть меню"}
+                  className="text-primary/70 hover:text-primary hover:bg-primary/10"
+                  aria-label={menuOpen ? t("closeMenu") : t("openMenu")}
                   aria-expanded={menuOpen}
                 >
                   <Menu size={22} />
@@ -153,34 +174,35 @@ export default function Navbar() {
               <SheetContent
                 side="right"
                 className={cn(
-                  "w-64 border-l border-gold-800/25",
-                  "bg-stone-950/97 backdrop-blur-lg",
+                  "w-64 border-l border-border",
+                  "bg-background/97 backdrop-blur-lg",
                   "flex flex-col pt-0"
                 )}
               >
                 <VisuallyHidden>
-                  <SheetTitle>Навигация</SheetTitle>
+                  <SheetTitle>{t("menuTitle")}</SheetTitle>
                 </VisuallyHidden>
 
-                <div className="flex items-center h-16 px-5 border-b border-gold-800/20 shrink-0">
+                <div className="flex items-center h-16 px-5 border-b border-border shrink-0">
                   <Logo />
                 </div>
-                <div className="h-px mx-5 bg-linear-to-r from-transparent via-gold-600/25 to-transparent" />
+                <div className="h-px mx-5 bg-linear-to-r from-transparent via-primary/25 to-transparent" />
 
                 <nav className="flex flex-col px-3 py-4 gap-0.5">
                   {NAV_LINKS.map((link) => (
                     <SheetClose asChild key={link.href}>
                       <Link
                         href={link.href}
+                        onClick={(e) => handleNavClick(e, link.href)}
                         className={cn(
                           "flex items-center rounded-lg px-4 py-2.5 text-sm tracking-wide transition-colors",
                           isActive(pathname, link.href)
-                            ? "bg-gold-400/8 text-gold-300 font-semibold border-l-2 border-gold-400/50"
-                            : "text-amber-100/50 hover:bg-gold-400/5 hover:text-gold-200/80"
+                            ? "bg-primary/10 text-primary font-semibold border-l-2 border-primary/50"
+                            : "text-foreground/60 hover:bg-primary/5 hover:text-primary/90"
                         )}
                         aria-current={isActive(pathname, link.href) ? "page" : undefined}
                       >
-                        {link.label}
+                        {t(link.key)}
                       </Link>
                     </SheetClose>
                   ))}

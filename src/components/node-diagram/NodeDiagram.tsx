@@ -10,7 +10,7 @@ export type { NodeDef, EdgeDef, Vec2, TooltipState, NodeDiagramProps };
 
 const MARKER_SIZE_PX = 10;
 const ARROW_GAP = 6;
-const arrowInset = (_strokeWidth: number) => MARKER_SIZE_PX - (8 + ARROW_GAP);
+const arrowInset = () => MARKER_SIZE_PX - (8 + ARROW_GAP);
 
 export function NodeDiagram({ nodes, edges, initOffsets, title, header }: NodeDiagramProps) {
   const frameRef = useRef<HTMLDivElement>(null);
@@ -234,8 +234,7 @@ export function NodeDiagram({ nodes, edges, initOffsets, title, header }: NodeDi
   };
 
   const edgeEndpoints = (
-    edge: EdgeDef,
-    isActive = false
+    edge: EdgeDef
   ): { lineStart: Vec2; lineEnd: Vec2 } | null => {
     const fp = positions[edge.from];
     const tp = positions[edge.to];
@@ -245,7 +244,7 @@ export function NodeDiagram({ nodes, edges, initOffsets, title, header }: NodeDi
     const hasArrowEnd = dir === "forward" || dir === "both";
     const hasArrowStart = dir === "backward" || dir === "both";
 
-    const inset = arrowInset(0);
+    const inset = arrowInset();
 
     const lineStart = cardEdgePoint(fp, tp, hasArrowStart ? inset : 0);
     const lineEnd = cardEdgePoint(tp, fp, hasArrowEnd ? inset : 0);
@@ -254,7 +253,7 @@ export function NodeDiagram({ nodes, edges, initOffsets, title, header }: NodeDi
   };
 
   const edgeMidFrame = (edge: EdgeDef): Vec2 | null => {
-    const ep = edgeEndpoints(edge, false);
+    const ep = edgeEndpoints(edge);
     if (!ep) return null;
     return toFramePos({
       x: (ep.lineStart.x + ep.lineEnd.x) / 2,
@@ -267,12 +266,12 @@ export function NodeDiagram({ nodes, edges, initOffsets, title, header }: NodeDi
 
   return (
     <div
-      className="relative rounded-2xl border border-gold-700/25 bg-stone-900/60 overflow-hidden"
+      className="relative rounded-2xl border border-primary/25 bg-card/60 overflow-hidden"
       style={{ boxShadow: "0 0 60px rgba(0,0,0,0.6), inset 0 1px 0 rgba(212,160,23,0.06)" }}
     >
       {(["tl", "tr", "bl", "br"] as const).map((p) => (
         <div key={p} className={cn(
-          "absolute w-6 h-6 pointer-events-none z-20 border-gold-500/40",
+          "absolute w-6 h-6 pointer-events-none z-20 border-primary/40",
           p === "tl" && "top-0 left-0 border-t-2 border-l-2 rounded-tl-2xl",
           p === "tr" && "top-0 right-0 border-t-2 border-r-2 rounded-tr-2xl",
           p === "bl" && "bottom-0 left-0 border-b-2 border-l-2 rounded-bl-2xl",
@@ -298,7 +297,7 @@ export function NodeDiagram({ nodes, edges, initOffsets, title, header }: NodeDi
           <svg width={CANVAS_W} height={CANVAS_H} className="absolute inset-0 opacity-[0.035]">
             <defs>
               <pattern id="nd-grid" width="48" height="48" patternUnits="userSpaceOnUse">
-                <path d="M 48 0 L 0 0 0 48" fill="none" stroke="#d4a017" strokeWidth="0.6" />
+                <path d="M 48 0 L 0 0 0 48" fill="none" stroke="var(--color-accent-gold)" strokeWidth="0.6" />
               </pattern>
             </defs>
             <rect width="100%" height="100%" fill="url(#nd-grid)" />
@@ -341,7 +340,7 @@ export function NodeDiagram({ nodes, edges, initOffsets, title, header }: NodeDi
               const dir = edge.direction ?? "forward";
               const isActive = activeEdge === idx || activeNode === edge.from || activeNode === edge.to;
 
-              const ep = edgeEndpoints(edge, isActive);
+              const ep = edgeEndpoints(edge);
               if (!ep) return null;
               const { lineStart, lineEnd } = ep;
 
@@ -423,12 +422,12 @@ export function NodeDiagram({ nodes, edges, initOffsets, title, header }: NodeDi
               <div className={cn("w-8 h-8 rounded-lg flex items-center justify-center border", c.bg, c.border)}>
                 <Icon size={15} className={c.icon} />
               </div>
-              <span className="text-amber-100/90 font-semibold text-center leading-tight"
-                style={{ fontFamily: "var(--font-display)", fontSize: "0.65rem" }}>
+              <span className="text-foreground/90 font-semibold text-center leading-tight"
+                style={{ fontFamily: "var(--font-body)", fontSize: "0.65rem" }}>
                 {node.label}
               </span>
               {node.sublabel && (
-                <span className="text-amber-100/35 text-center leading-tight"
+                <span className="text-foreground/35 text-center leading-tight"
                   style={{ fontSize: "0.57rem", fontFamily: "var(--font-mono)" }}>
                   {node.sublabel}
                 </span>
@@ -445,7 +444,7 @@ export function NodeDiagram({ nodes, edges, initOffsets, title, header }: NodeDi
               top: Math.min(Math.max(tooltip.fy - 60, 8), frameDims.h - 72),
             }}
           >
-            <div className="rounded-lg border border-gold-600/30 bg-stone-950/96 px-3.5 py-2.5 text-amber-100/80 text-xs leading-relaxed"
+            <div className="rounded-lg border border-primary/30 bg-card/96 px-3.5 py-2.5 text-foreground/80 text-xs leading-relaxed"
               style={{
                 maxWidth: 232,
                 boxShadow: "0 4px 24px rgba(0,0,0,0.75),0 0 12px rgba(212,160,23,0.1)",
