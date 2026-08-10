@@ -281,3 +281,65 @@ model TOWNY_TOWNBLOCKS {
 
   @@id([world, x, z])
 }
+
+// ─── FlectoneGrowth / "newbie" (DuckBurg) ──────────────────────────────────
+// Lives in a separate database, connected via withDb("duckburg_newbie", ...)
+// (DATABASE_URL_DUCKBURG_NEWBIE). Only actively tracks newer players — most
+// rows in flectonegrowth_player have no matching genders/growth_time/scales
+// row at all, which just means that player isn't tracked by this system.
+
+model flectonegrowth_player {
+  id                         Int                         @id @default(autoincrement())
+  uuid                       String                      @unique(map: "uuid") @db.VarChar(36)
+  username                   String?                     @db.VarChar(16)
+  flectonegrowth_genders     flectonegrowth_genders?
+  flectonegrowth_growth_time flectonegrowth_growth_time?
+  flectonegrowth_playtime    flectonegrowth_playtime[]
+  flectonegrowth_scales      flectonegrowth_scales?
+}
+
+model flectonegrowth_genders {
+  gender_key             String                @default("male") @db.VarChar(32)
+  valid                  Boolean               @default(true)
+  player_id              Int                   @id
+  flectonegrowth_player  flectonegrowth_player @relation(fields: [player_id], references: [id], onUpdate: Restrict, map: "fk_flectonegrowth_genders_player")
+}
+
+model flectonegrowth_growth_time {
+  growth_seconds         BigInt
+  valid                  Boolean               @default(true)
+  player_id              Int                   @id
+  flectonegrowth_player  flectonegrowth_player @relation(fields: [player_id], references: [id], onUpdate: Restrict, map: "fk_flectonegrowth_growth_time_player")
+}
+
+model flectonegrowth_playtime {
+  server                  String                @default("") @db.VarChar(64)
+  first_seen              BigInt
+  last_seen               BigInt
+  total_seconds           BigInt                @default(0)
+  sessions                Int                   @default(0)
+  player_id               Int
+  flectonegrowth_player   flectonegrowth_player @relation(fields: [player_id], references: [id], onUpdate: Restrict, map: "fk_flectonegrowth_playtime_player")
+
+  @@id([player_id, server])
+}
+
+model flectonegrowth_scales {
+  scale                   Float
+  valid                   Boolean               @default(true)
+  player_id               Int                   @id
+  flectonegrowth_player   flectonegrowth_player @relation(fields: [player_id], references: [id], onUpdate: Restrict, map: "fk_flectonegrowth_scales_player")
+}
+
+// ─── SkinRestorer (DuckBurg) ────────────────────────────────────────────────
+// Lives in a separate database, connected via withDb("duckburg_skinrestorer",
+// ...) (DATABASE_URL_DUCKBURG_SKINRESTORER). `value` is a base64-encoded
+// Mojang session-server profile blob containing the actual skin texture URL.
+
+model sr_player_skins {
+  uuid            String  @id @db.VarChar(36)
+  last_known_name String? @db.VarChar(16)
+  value           String  @db.MediumText
+  signature       String  @db.MediumText
+  timestamp       BigInt
+}

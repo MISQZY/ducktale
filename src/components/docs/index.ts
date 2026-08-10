@@ -3,6 +3,7 @@ export { CommandCard } from "./CommandCard";
 export { FeatureGrid } from "./FeatureGrid";
 export { ItemCard } from "./ItemCard";
 export { PageEmbed } from "./PageEmbed";
+export { PlayerCard } from "./PlayerCard";
 export { ResourceCard, ResourceCardGrid } from "./ResourceCard";
 export { RuleTable } from "./RuleTable";
 export { ServerAddress } from "./ServerAddress";

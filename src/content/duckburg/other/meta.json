@@ -2,7 +2,8 @@
   "title": "Прочее",
   "defaultOpen": false,
   "pages": [
-    "resource-packs", 
-    "mods"
+    "resource-packs",
+    "mods",
+    "player-card"
   ]
 }

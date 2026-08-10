@@ -3,6 +3,7 @@
   "defaultOpen": false,
   "pages": [
     "resource-packs",
-    "mods"
+    "mods",
+    "player-card"
   ]
 }
