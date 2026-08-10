@@ -3,7 +3,7 @@ FROM node:22-alpine AS base
 # --- deps ---
 FROM base AS deps
 WORKDIR /app
-COPY package.json package-lock.json source.config.ts ./
+COPY package.json package-lock.json source.config.ts next.config.mjs ./
 # Копируем схему Prisma чтобы postinstall (prisma generate) сработал
 COPY src/prisma ./src/prisma
 RUN npm ci
