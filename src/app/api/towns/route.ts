@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { withDb } from "@/lib/db";
 import { withCache } from "@/lib/query-cache";
+import { resolveResidentRole } from "@/lib/towny";
 import { Prisma } from "@prisma/client";
 import type { Resident, ResidentRole, Town, TownyResponse } from "@/types/towny";
 
@@ -25,7 +26,6 @@ interface ResidentRow {
 }
 
 const FALLBACK_NICKNAME = "Путник";
-const DEPUTY_RANK = "vice";
 
 /** Looks up FlectonePulse nicknames for a batch of usernames in one query. */
 async function resolveNicknames(usernames: string[]): Promise<Map<string, string | null>> {
@@ -41,12 +41,6 @@ async function resolveNicknames(usernames: string[]): Promise<Map<string, string
   });
 
   return new Map(rows.map((r) => [r.name, r.nickname]));
-}
-
-function roleOf(resident: ResidentRow, mayorUuid: string | null): ResidentRole {
-  if (mayorUuid && resident.uuid === mayorUuid) return "mayor";
-  if (resident.ranks?.split(",").includes(DEPUTY_RANK)) return "deputy";
-  return null;
 }
 
 const ROLE_ORDER: Record<Exclude<ResidentRole, null>, number> = { mayor: 0, deputy: 1 };
@@ -101,7 +95,7 @@ async function buildTownsResponse(page: number, pageSize: number, search: string
   const result: TownyResponse = {
     towns: townRows.map((t): Town => {
       const residents: Resident[] = (residentsByTown.get(t.uuid) ?? [])
-        .map((r) => ({ row: r, role: roleOf(r, t.mayorUuid) }))
+        .map((r) => ({ row: r, role: resolveResidentRole(r.uuid, t.mayorUuid, r.ranks) }))
         .sort((a, b) => {
           const rank = (role: ResidentRole) => role === null ? 2 : ROLE_ORDER[role];
           const byRole = rank(a.role) - rank(b.role);

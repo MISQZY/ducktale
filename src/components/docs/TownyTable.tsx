@@ -21,6 +21,7 @@ import {
 } from "@/components/docs/paged-table";
 import { usePagedTable } from "@/hooks/usePagedTable";
 import { resolveMinecraftColor } from "@/lib/minecraft-colors";
+import { RESIDENT_ROLE_COLOR } from "@/lib/towny";
 import type { Resident, ResidentRole, Town, TownyResponse } from "@/types/towny";
 
 // ─── Re-export types so consumers import from one place ────────────────────────
@@ -28,9 +29,11 @@ export type { Town, TownyResponse };
 
 const SKELETON_WIDTHS = ["w-40", "w-24", "w-16"];
 
+// Badge chrome (border/bg) layered on top of the role's shared text color —
+// see RESIDENT_ROLE_COLOR in @/lib/towny, also used by the player card.
 const RESIDENT_BADGE_STYLE: Record<Exclude<ResidentRole, null>, string> = {
-  mayor:  "border-gold-500/40 bg-gold-500/10 text-gold-700 dark:text-gold-300 font-semibold",
-  deputy: "border-slate-400/40 bg-slate-400/10 text-slate-700 dark:text-slate-300 font-semibold",
+  mayor:  cn("border-gold-500/40 bg-gold-500/10", RESIDENT_ROLE_COLOR.mayor),
+  deputy: cn("border-slate-400/40 bg-slate-400/10", RESIDENT_ROLE_COLOR.deputy),
 };
 
 // ─── Props ────────────────────────────────────────────────────────────────────
@@ -173,7 +176,7 @@ export function TownyTable({
                           )}
                         />
                       ) : (
-                        <span className="w-[13px] shrink-0" />
+                        <span className="w-3.25 shrink-0" />
                       )}
                       <span
                         className="w-2.5 h-2.5 rounded-full border border-black/20 shrink-0"
