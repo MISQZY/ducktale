@@ -20,8 +20,8 @@ function DuckSeparator({
         "data-horizontal:h-px data-horizontal:w-full",
         "data-vertical:w-px data-vertical:self-stretch",
         orientation === "vertical"
-          ? "bg-linear-to-b from-transparent via-gold-700/30 to-transparent"
-          : "bg-linear-to-r from-transparent via-gold-700/30 to-transparent",
+          ? "bg-linear-to-b from-transparent via-primary/30 to-transparent"
+          : "bg-linear-to-r from-transparent via-primary/30 to-transparent",
         className
       )}
       {...props}

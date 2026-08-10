@@ -20,7 +20,7 @@ export function HighlightMatch({ text, query, className }: HighlightMatchProps) 
   return (
     <span className={base}>
       {text.slice(0, idx)}
-      <mark className="bg-[#FFCA28]/20 text-[#FFE289] rounded-sm px-0.5 not-italic">
+      <mark className={cn(DOCS_TABLE_THEME.markBg, DOCS_TABLE_THEME.accent, "rounded-sm px-0.5 not-italic")}>
         {text.slice(idx, idx + len)}
       </mark>
       {text.slice(idx + len)}

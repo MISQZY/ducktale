@@ -49,14 +49,14 @@ export default function CopyToClipboard({
             )}
           >
             {children ?? (
-              <div className="w-full flex items-center justify-center gap-3 rounded-lg bg-black/40 border border-amber-900/20 px-6 py-4 cursor-pointer">
-                <span className="font-mono text-2xl text-amber-300 tracking-wide">
+              <div className="w-full flex items-center justify-center gap-3 rounded-lg bg-muted border border-primary/20 px-6 py-4 cursor-pointer">
+                <span className="font-mono text-2xl text-foreground tracking-wide">
                   {value}
                 </span>
                 {copied ? (
-                  <Check size={18} className="text-green-400 shrink-0" />
+                  <Check size={18} className="text-emerald-400 shrink-0" />
                 ) : (
-                  <Copy size={18} className="text-amber-500/50 shrink-0" />
+                  <Copy size={18} className="text-foreground/50 shrink-0" />
                 )}
               </div>
             )}
@@ -65,8 +65,8 @@ export default function CopyToClipboard({
         <TooltipContent
           className={cn(
             copied
-              ? "bg-green-500/90 text-white border-green-500/50"
-              : "bg-black/80 text-amber-200 border-amber-500/30"
+              ? "bg-emerald-500/90 text-white border-emerald-500/50"
+              : "bg-popover text-popover-foreground border-primary/30"
           )}
         >
           {copied ? "✓ Скопировано!" : "Нажмите, чтобы скопировать"}

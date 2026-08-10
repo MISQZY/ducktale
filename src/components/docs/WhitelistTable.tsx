@@ -46,7 +46,7 @@ const SKELETON_WIDTHS = ["w-6", "w-28", "w-20", "w-16", "w-16"];
 function ExpiryCell({ expiresAt }: { expiresAt: number }) {
   if (expiresAt === 0) {
     return (
-      <span className="inline-flex items-center gap-1 text-xs text-emerald-400/70">
+      <span className="inline-flex items-center gap-1 text-xs text-emerald-600/70 dark:text-emerald-400/70">
         <InfinityIcon size={12} />
         навсегда
       </span>
@@ -55,7 +55,7 @@ function ExpiryCell({ expiresAt }: { expiresAt: number }) {
   return (
     <span className={cn(
       "text-xs tabular-nums",
-      isExpired(expiresAt) ? "text-red-400/60 line-through" : "text-amber-300/70",
+      isExpired(expiresAt) ? "text-red-600/60 dark:text-red-400/60 line-through" : "text-foreground/70",
     )}>
       {formatDate(expiresAt)}
     </span>
@@ -111,15 +111,15 @@ export function WhitelistTable({
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div className="flex items-center gap-2">
-          <ShieldCheck size={15} className="text-emerald-400/80 shrink-0" />
+          <ShieldCheck size={15} className="text-emerald-600/80 dark:text-emerald-400/80 shrink-0" />
           <span
-            className="text-sm font-semibold text-amber-100/80 tracking-wide"
-            style={{ fontFamily: "var(--font-display)" }}
+            className="text-sm font-semibold text-foreground/80 tracking-wide"
+            style={{ fontFamily: "var(--font-body)" }}
           >
             {title ?? "Вайтлист"}
           </span>
           {total !== null && (
-            <DuckBadge variant="outline" className="gap-1 border-emerald-700/35 text-emerald-300/80 bg-emerald-950/20">
+            <DuckBadge variant="outline" className="gap-1 border-emerald-700/35 text-emerald-700 dark:text-emerald-300/80 bg-emerald-950/20">
               <Users size={10} />
               {total}
             </DuckBadge>
@@ -151,7 +151,7 @@ export function WhitelistTable({
           {state.status === "error" && (
             <DocsTableRow>
               <DocsTableCell colSpan={5} className="text-center py-10">
-                <p className="text-sm text-red-400/70">Не удалось загрузить список: {state.message}</p>
+                <p className="text-sm text-red-600/70 dark:text-red-400/70">Не удалось загрузить список: {state.message}</p>
               </DocsTableCell>
             </DocsTableRow>
           )}

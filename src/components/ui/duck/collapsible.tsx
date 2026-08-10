@@ -25,9 +25,9 @@ function DuckCollapsibleTrigger({
     <CollapsiblePrimitive.CollapsibleTrigger
       data-slot="collapsible-trigger"
       className={cn(
-        "flex items-center gap-1.5 text-xs text-amber-100/45",
-        "hover:text-amber-100/70 transition-colors",
-        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold-500/50 rounded-sm",
+        "flex items-center gap-1.5 text-xs text-foreground/45",
+        "hover:text-foreground/70 transition-colors",
+        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 rounded-sm",
         "[&_svg]:transition-transform [&_svg]:duration-200",
         "data-[state=open]:[&_svg.collapsible-chevron]:rotate-90",
         className

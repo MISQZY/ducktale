@@ -63,6 +63,15 @@ export function usePagedTable<T>({
 
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const cacheRef    = useRef<Map<string, CacheEntry<T>>>(new Map());
+  const mountedRef  = useRef(true);
+
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+    };
+  }, []);
 
   // ── Core fetch ──────────────────────────────────────────────────────────────
 
@@ -72,27 +81,31 @@ export function usePagedTable<T>({
     const entry = cacheRef.current.get(key);
 
     if (entry && entry.expiresAt > now) {
-      setState({ status: "ok", data: entry.data });
+      if (mountedRef.current) setState({ status: "ok", data: entry.data });
       return;
     }
 
-    setState((prev) =>
-      prev.status === "ok" || prev.status === "refreshing"
-        ? { status: "refreshing", data: prev.data }
-        : { status: "loading" },
-    );
+    if (mountedRef.current) {
+      setState((prev) =>
+        prev.status === "ok" || prev.status === "refreshing"
+          ? { status: "refreshing", data: prev.data }
+          : { status: "loading" },
+      );
+    }
 
     fetcher(p, q)
       .then((data) => {
+        if (!mountedRef.current) return;
         cacheRef.current.set(key, { data, expiresAt: now + cacheTtlMs });
         setState({ status: "ok", data });
       })
-      .catch((err: unknown) =>
+      .catch((err: unknown) => {
+        if (!mountedRef.current) return;
         setState({
           status:  "error",
           message: err instanceof Error ? err.message : "Unknown error",
-        })
-      );
+        });
+      });
   }, [fetcher, cacheTtlMs]);
 
   useEffect(() => { fetchPage(1, ""); }, [fetchPage]);
@@ -103,7 +116,9 @@ export function usePagedTable<T>({
     setQueryState(value);
     setPage(1);
     if (debounceRef.current) clearTimeout(debounceRef.current);
-    debounceRef.current = setTimeout(() => fetchPage(1, value), debounceMs);
+    debounceRef.current = setTimeout(() => {
+      if (mountedRef.current) fetchPage(1, value);
+    }, debounceMs);
   }, [fetchPage, debounceMs]);
 
   // ── Pagination ──────────────────────────────────────────────────────────────

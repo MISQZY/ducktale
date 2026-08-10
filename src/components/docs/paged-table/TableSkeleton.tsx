@@ -2,10 +2,11 @@ import { cn } from "@/lib/utils";
 import {
   DocsTableRow,
   DocsTableCell,
+  DOCS_TABLE_THEME,
 } from "@/components/ui/docs-table";
 
 function SkeletonCell({ w }: { w: string }) {
-  return <div className={cn("h-3 rounded bg-[#BFA246]/10 animate-pulse", w)} />;
+  return <div className={cn("h-3 rounded animate-pulse", DOCS_TABLE_THEME.skeletonBg, w)} />;
 }
 
 interface TableSkeletonProps {

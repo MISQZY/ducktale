@@ -19,32 +19,32 @@ const CONFIG: Record<
   info: {
     icon: Info,
     containerCn: "border-blue-700/30 bg-blue-950/20",
-    titleCn: "text-blue-300",
-    iconCn: "text-blue-400",
+    titleCn: "text-blue-700 dark:text-blue-300",
+    iconCn: "text-blue-600 dark:text-blue-400",
   },
   warning: {
     icon: AlertTriangle,
-    containerCn: "border-amber-600/40 bg-amber-950/20",
-    titleCn: "text-amber-300",
-    iconCn: "text-amber-400",
+    containerCn: "border-amber-600/40 bg-primary/20",
+    titleCn: "text-foreground",
+    iconCn: "text-foreground",
   },
   danger: {
     icon: XOctagon,
     containerCn: "border-red-700/40 bg-red-950/20",
-    titleCn: "text-red-300",
-    iconCn: "text-red-400",
+    titleCn: "text-red-700 dark:text-red-300",
+    iconCn: "text-red-600 dark:text-red-400",
   },
   tip: {
     icon: Lightbulb,
     containerCn: "border-green-700/30 bg-green-950/20",
-    titleCn: "text-green-300",
-    iconCn: "text-green-400",
+    titleCn: "text-green-700 dark:text-green-300",
+    iconCn: "text-green-600 dark:text-green-400",
   },
   lore: {
     icon: Sword,
-    containerCn: "border-amber-500/20 bg-amber-950/10",
-    titleCn: "text-amber-400",
-    iconCn: "text-amber-500",
+    containerCn: "border-amber-500/20 bg-primary/10",
+    titleCn: "text-foreground",
+    iconCn: "text-foreground",
   },
 };
 
@@ -56,7 +56,7 @@ export function Callout({ variant = "info", title, children, className }: Callou
     <DuckAlert className={cn("my-4", containerCn, className)}>
       <Icon size={15} className={iconCn} />
       {title && <DuckAlertTitle className={cn("font-semibold", titleCn)}>{title}</DuckAlertTitle>}
-      <DuckAlertDescription className="text-amber-100/70 text-sm [&>p]:mt-0">
+      <DuckAlertDescription className="text-foreground/70 text-sm [&>p]:mt-0">
         {children}
       </DuckAlertDescription>
     </DuckAlert>

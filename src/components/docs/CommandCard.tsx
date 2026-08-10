@@ -37,25 +37,25 @@ const GLOBAL_PERMS: Record<
 > = {
   all: {
     label: "Все игроки",
-    text: "text-emerald-300",
+    text: "text-emerald-700 dark:text-emerald-300",
     bg: "bg-emerald-950/60",
     border: "border-emerald-700/40",
   },
   old: {
     label: "Олд",
-    text: "text-amber-300",
-    bg: "bg-amber-950/60",
+    text: "text-foreground",
+    bg: "bg-primary/60",
     border: "border-amber-700/40",
   },
   supporter: {
     label: "Донат",
-    text: "text-gold-300",
-    bg: "bg-gold-950/60",
-    border: "border-gold-700/40",
+    text: "text-primary",
+    bg: "bg-primary/60",
+    border: "border-primary/40",
   },
   admin: {
     label: "Администратор",
-    text: "text-sky-300",
+    text: "text-sky-700 dark:text-sky-300",
     bg: "bg-sky-950/60",
     border: "border-sky-700/40",
   },
@@ -122,8 +122,8 @@ export function CommandCard({
     <div
       className={cn(
         "group relative mb-2 rounded-lg border overflow-hidden transition-colors duration-150",
-        "bg-stone-900/80 border-stone-700/50",
-        open ? "border-amber-800/50" : "hover:border-stone-600/70",
+        "bg-card/80 border-border/50",
+        open ? "border-amber-800/50" : "hover:border-border/70",
         className
       )}
     >
@@ -138,16 +138,16 @@ export function CommandCard({
         {/* Left: command + description */}
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 min-w-0">
-            <span className="text-amber-600/60 font-mono text-sm shrink-0 select-none leading-none">
+            <span className="text-foreground/60 font-mono text-sm shrink-0 select-none leading-none">
               /
             </span>
 
-            <code className="font-mono text-sm text-amber-100 font-medium tracking-wide leading-tight whitespace-nowrap">
+            <code className="font-mono text-sm text-foreground font-medium tracking-wide leading-tight whitespace-nowrap">
               {command.replace(/^\//, "")}
             </code>
           </div>
 
-          <p className="mt-1 text-xs text-stone-400 leading-snug">
+          <p className="mt-1 text-xs text-muted-foreground leading-snug">
             {description}
           </p>
         </div>
@@ -181,8 +181,8 @@ export function CommandCard({
 
           {/* Roles badge */}
           {roles && roles.length > 0 && (
-            <span className="inline-flex items-center gap-1 text-[11px] text-stone-400 bg-stone-800 border border-stone-700/60 rounded px-1.5 py-0.5 whitespace-nowrap">
-              <Lock size={9} className="text-stone-500" />
+            <span className="inline-flex items-center gap-1 text-[11px] text-muted-foreground bg-muted border border-border/60 rounded px-1.5 py-0.5 whitespace-nowrap">
+              <Lock size={9} className="text-muted-foreground" />
               {roles.join(", ")}
             </span>
           )}
@@ -195,7 +195,7 @@ export function CommandCard({
             title={`Скопировать ${command}`}
             className={cn(
               "p-1.5 rounded transition-all duration-150",
-              "text-stone-500 hover:text-amber-400 hover:bg-amber-400/10",
+              "text-muted-foreground hover:text-foreground hover:bg-primary/10",
               copied && "text-emerald-400! hover:text-emerald-400!"
             )}
           >
@@ -206,8 +206,8 @@ export function CommandCard({
             <ChevronDown
               size={13}
               className={cn(
-                "text-stone-500 transition-transform duration-200",
-                open && "rotate-180 text-amber-500"
+                "text-muted-foreground transition-transform duration-200",
+                open && "rotate-180 text-foreground"
               )}
             />
           )}
@@ -222,24 +222,24 @@ export function CommandCard({
             open ? "max-h-96 opacity-100" : "max-h-0 opacity-0"
           )}
         >
-          <div className="border-t border-stone-700/50 bg-stone-950/60 px-3 py-2.5 space-y-2.5">
-            <code className="block text-xs font-mono text-amber-400/70">
+          <div className="border-t border-border/50 bg-card/60 px-3 py-2.5 space-y-2.5">
+            <code className="block text-xs font-mono text-foreground/70">
               {buildUsage(command, required, optional)}
             </code>
 
             {hasRequired && (
               <div className="space-y-1.5">
-                <p className="text-[10px] uppercase tracking-widest font-semibold text-rose-400/70">
+                <p className="text-[10px] uppercase tracking-widest font-semibold text-rose-600/70 dark:text-rose-400/70">
                   Обязательные
                 </p>
                 {required!.map((arg) => (
                   <div key={arg.name} className="flex items-baseline gap-2">
-                    <code className="text-xs font-mono text-rose-300 shrink-0">
+                    <code className="text-xs font-mono text-rose-700 dark:text-rose-300 shrink-0">
                       {"<"}
                       {arg.name}
                       {">"}
                     </code>
-                    <span className="text-xs text-stone-400">
+                    <span className="text-xs text-muted-foreground">
                       {arg.description}
                     </span>
                   </div>
@@ -249,15 +249,15 @@ export function CommandCard({
 
             {hasOptional && (
               <div className="space-y-1.5">
-                <p className="text-[10px] uppercase tracking-widest font-semibold text-sky-400/70">
+                <p className="text-[10px] uppercase tracking-widest font-semibold text-sky-600/70 dark:text-sky-400/70">
                   Необязательные
                 </p>
                 {optional!.map((arg) => (
                   <div key={arg.name} className="flex items-baseline gap-2">
-                    <code className="text-xs font-mono text-sky-300 shrink-0">
+                    <code className="text-xs font-mono text-sky-700 dark:text-sky-300 shrink-0">
                       [{arg.name}]
                     </code>
-                    <span className="text-xs text-stone-400">
+                    <span className="text-xs text-muted-foreground">
                       {arg.description}
                     </span>
                   </div>
@@ -270,14 +270,14 @@ export function CommandCard({
 
       {/* Legacy: aliases */}
       {aliases && aliases.length > 0 && (
-        <div className="border-t border-stone-700/50 px-3 py-2 flex items-center gap-1.5 flex-wrap bg-stone-950/40">
-          <span className="text-[10px] text-stone-500 uppercase tracking-widest">
+        <div className="border-t border-border/50 px-3 py-2 flex items-center gap-1.5 flex-wrap bg-card/40">
+          <span className="text-[10px] text-muted-foreground uppercase tracking-widest">
             Сокращения:
           </span>
           {aliases.map((a) => (
             <code
               key={a}
-              className="text-[11px] font-mono text-stone-400 border border-stone-700 bg-stone-900 px-1.5 py-0.5 rounded"
+              className="text-[11px] font-mono text-muted-foreground border border-border bg-card px-1.5 py-0.5 rounded"
             >
               {a}
             </code>

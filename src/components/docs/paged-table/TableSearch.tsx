@@ -3,6 +3,7 @@
 import { useRef } from "react";
 import { cn } from "@/lib/utils";
 import { Search, X } from "lucide-react";
+import { DOCS_TABLE_THEME } from "@/components/ui/docs-table";
 
 interface TableSearchProps {
   value:        string;
@@ -16,7 +17,7 @@ export function TableSearch({ value, onChange, placeholder = "Поиск…", cl
 
   return (
     <div className={cn("relative w-full sm:w-56", className)}>
-      <Search size={13} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[#BFA246]/50" />
+      <Search size={13} className={cn("pointer-events-none absolute left-3 top-1/2 -translate-y-1/2", DOCS_TABLE_THEME.iconMuted)} />
       <input
         ref={inputRef}
         type="text"
@@ -26,16 +27,21 @@ export function TableSearch({ value, onChange, placeholder = "Поиск…", cl
         spellCheck={false}
         autoComplete="off"
         className={cn(
-          "w-full rounded-lg border bg-[#12100c] py-1.5 pl-8 pr-8",
-          "text-sm text-[#FFF4CC]/88 placeholder:text-[#BFA246]/35",
-          "border-[#BFA246]/18 focus:border-[#BFA246]/45 focus:outline-none",
+          "w-full rounded-lg border py-1.5 pl-8 pr-8",
+          DOCS_TABLE_THEME.surfaceBg,
+          "text-sm",
+          DOCS_TABLE_THEME.text,
+          DOCS_TABLE_THEME.placeholder,
+          DOCS_TABLE_THEME.border,
+          DOCS_TABLE_THEME.borderFocus,
+          "focus:outline-none",
           "transition-colors duration-150",
         )}
       />
       {value && (
         <button
           onClick={() => { onChange(""); inputRef.current?.focus(); }}
-          className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[#BFA246]/40 hover:text-[#BFA246]/70 transition-colors"
+          className={cn("absolute right-2.5 top-1/2 -translate-y-1/2 transition-colors", DOCS_TABLE_THEME.iconFaint, DOCS_TABLE_THEME.iconFaintHover)}
           aria-label="Очистить поиск"
         >
           <X size={13} />

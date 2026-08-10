@@ -12,13 +12,13 @@ const duckAlertVariants = cva(
   {
     variants: {
       variant: {
-        default: "bg-stone-900/70 border-gold-800/25 text-amber-100/80",
+        default: "bg-card/70 border-primary/25 text-foreground/80",
         destructive:
-          "bg-red-950/40 border-red-800/35 text-red-300 *:data-[slot=alert-description]:text-red-300/70 *:[svg]:text-red-400",
+          "bg-destructive/10 border-destructive/35 text-destructive *:data-[slot=alert-description]:text-destructive/70 *:[svg]:text-destructive",
         warning:
-          "bg-amber-950/40 border-amber-700/35 text-amber-200 *:data-[slot=alert-description]:text-amber-200/70 *:[svg]:text-amber-400",
+          "bg-primary/40 border-primary/35 text-foreground *:data-[slot=alert-description]:text-foreground/70 *:[svg]:text-foreground",
         success:
-          "bg-emerald-950/40 border-emerald-800/35 text-emerald-300 *:data-[slot=alert-description]:text-emerald-300/70 *:[svg]:text-emerald-400",
+          "bg-emerald-950/40 border-emerald-800/35 text-emerald-700 dark:text-emerald-300 *:data-[slot=alert-description]:text-emerald-700/70 dark:*:data-[slot=alert-description]:text-emerald-300/70 *:[svg]:text-emerald-600 dark:*:[svg]:text-emerald-400",
       },
     },
     defaultVariants: {
@@ -47,10 +47,10 @@ function DuckAlertTitle({ className, ...props }: React.ComponentProps<"div">) {
     <div
       data-slot="alert-title"
       className={cn(
-        "font-semibold tracking-wide text-amber-100/90 group-has-[>svg]/alert:col-start-2",
+        "font-semibold tracking-wide text-foreground/90 group-has-[>svg]/alert:col-start-2",
         className
       )}
-      style={{ fontFamily: "var(--font-display)" }}
+      style={{ fontFamily: "var(--font-body)" }}
       {...props}
     />
   )
@@ -61,8 +61,8 @@ function DuckAlertDescription({ className, ...props }: React.ComponentProps<"div
     <div
       data-slot="alert-description"
       className={cn(
-        "text-sm text-amber-100/50 leading-relaxed group-has-[>svg]/alert:col-start-2",
-        "[&_a]:text-gold-400 [&_a]:underline [&_a]:underline-offset-3 [&_a]:hover:text-gold-300",
+        "text-sm text-foreground/50 leading-relaxed group-has-[>svg]/alert:col-start-2",
+        "[&_a]:text-primary [&_a]:underline [&_a]:underline-offset-3 [&_a]:hover:text-primary",
         "[&_p:not(:last-child)]:mb-3",
         className
       )}

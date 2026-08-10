@@ -1,6 +1,7 @@
 'use client';
 
 import Image from "next/image";
+import { EXTERNAL_APIS } from "@/config/external-apis";
 
 export function Authors({ ids }: { ids: string[] }) {
   if (ids.length === 0) return null;
@@ -14,7 +15,7 @@ export function Authors({ ids }: { ids: string[] }) {
         {ids.map((username) => (
           <a
             key={username}
-            href={`https://github.com/${username}`}
+            href={EXTERNAL_APIS.github.profileUrl(username)}
             target="_blank"
             rel="noreferrer noopener"
             className="flex items-center gap-2 group p-1 -ml-1 rounded-md hover:bg-accent transition-colors"
@@ -22,11 +23,11 @@ export function Authors({ ids }: { ids: string[] }) {
             <Image
               width={32}
               height={32}
-              src={`https://github.com/${username}.png?size=64`}
+              src={EXTERNAL_APIS.github.avatarUrl(username)}
               alt={username}
               className="w-8 h-8 rounded-full border border-border group-hover:border-primary/50 transition-colors"
               onError={(e) => {
-                (e.currentTarget as HTMLImageElement).src = `https://ui-avatars.com/api/?name=${username}&background=random`;
+                (e.currentTarget as HTMLImageElement).src = EXTERNAL_APIS.uiAvatars.fallbackUrl(username);
               }}
             />
             <span className="text-sm text-muted-foreground group-hover:text-foreground transition-colors">

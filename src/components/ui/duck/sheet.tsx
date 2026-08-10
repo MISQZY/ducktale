@@ -65,10 +65,10 @@ function DuckSheetContent({
         data-side={side}
         className={cn(
           "fixed z-50 flex flex-col gap-4 text-sm",
-          "bg-stone-950/97 backdrop-blur-md",
+          "bg-card/97 backdrop-blur-md",
           "transition duration-200 ease-in-out outline-none",
           "data-[side=right]:border-l data-[side=left]:border-r data-[side=top]:border-b data-[side=bottom]:border-t",
-          "border-gold-800/25",
+          "border-primary/25",
           "shadow-[0_0_60px_rgba(0,0,0,0.8)]",
           "data-[side=right]:inset-y-0 data-[side=right]:right-0 data-[side=right]:h-full data-[side=right]:w-3/4 data-[side=right]:sm:max-w-sm",
           "data-[side=left]:inset-y-0 data-[side=left]:left-0 data-[side=left]:h-full data-[side=left]:w-3/4 data-[side=left]:sm:max-w-sm",
@@ -88,7 +88,7 @@ function DuckSheetContent({
         )}
         {...props}
       >
-        <div className="h-px bg-linear-to-r from-transparent via-gold-600/30 to-transparent shrink-0" />
+        <div className="h-px bg-linear-to-r from-transparent via-primary/30 to-transparent shrink-0" />
         {children}
         {showCloseButton && (
           <SheetPrimitive.Close data-slot="sheet-close" asChild>
@@ -123,7 +123,7 @@ function DuckSheetFooter({ className, ...props }: React.ComponentProps<"div">) {
       data-slot="sheet-footer"
       className={cn(
         "mt-auto flex flex-col gap-2 px-5 py-4",
-        "border-t border-gold-800/20 bg-stone-900/40",
+        "border-t border-primary/20 bg-card/40",
         className
       )}
       {...props}
@@ -139,7 +139,7 @@ function DuckSheetTitle({
     <SheetPrimitive.Title
       data-slot="sheet-title"
       className={cn(
-        "text-base font-semibold text-amber-100/90 tracking-wide",
+        "text-base font-semibold text-foreground/90 tracking-wide",
         className
       )}
       style={{ fontFamily: "var(--font-display)" }}
@@ -155,7 +155,7 @@ function DuckSheetDescription({
   return (
     <SheetPrimitive.Description
       data-slot="sheet-description"
-      className={cn("text-sm text-amber-100/45 leading-relaxed", className)}
+      className={cn("text-sm text-foreground/45 leading-relaxed", className)}
       {...props}
     />
   )

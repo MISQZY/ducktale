@@ -19,8 +19,8 @@ function PageButton({ onClick, disabled, active, children }: PageButtonProps) {
       className={cn(
         "inline-flex items-center justify-center min-w-7 h-7 px-1.5 rounded text-xs font-mono transition-colors",
         active
-          ? "bg-[#BFA246]/20 text-[#FFE289] border border-[#BFA246]/40"
-          : "text-[#BFA246]/55 border border-transparent hover:border-[#BFA246]/20 hover:text-[#FFE289]/80",
+          ? cn(DOCS_TABLE_THEME.activeBg, DOCS_TABLE_THEME.activeText, "border", DOCS_TABLE_THEME.activeBorder)
+          : cn(DOCS_TABLE_THEME.inactiveText, "border border-transparent", DOCS_TABLE_THEME.borderHover, DOCS_TABLE_THEME.inactiveHoverText),
         disabled && "pointer-events-none opacity-30",
       )}
     >

@@ -1,4 +1,5 @@
 import { API } from "@/config/site";
+import { EXTERNAL_APIS } from "@/config/external-apis";
 
 interface McsrvstatPing {
   online: boolean;
@@ -17,7 +18,7 @@ async function fetchPing(host: string): Promise<McsrvstatPing> {
   const timer = setTimeout(() => controller.abort(), API.serverStatusTimeoutMs);
 
   try {
-    const res = await fetch(`https://api.mcsrvstat.us/3/${host}`, {
+    const res = await fetch(EXTERNAL_APIS.mcsrvstat.pingUrl(host), {
       signal: controller.signal,
       cache: "no-store",
     });

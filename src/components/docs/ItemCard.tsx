@@ -22,11 +22,11 @@ interface ItemCardProps {
 }
 
 const RARITY_STYLES: Record<Rarity, { badge: string; title: string; label: string }> = {
-  common:    { badge: "bg-stone-800/60 text-stone-300 border-stone-600/30", title: "text-amber-100",  label: "Обычный" },
-  uncommon:  { badge: "bg-green-900/50 text-green-300 border-green-700/30", title: "text-green-300",  label: "Необычный" },
-  rare:      { badge: "bg-blue-900/50 text-blue-300 border-blue-700/30",    title: "text-blue-300",   label: "Редкий" },
-  epic:      { badge: "bg-purple-900/50 text-purple-300 border-purple-700/30", title: "text-purple-300", label: "Эпический" },
-  legendary: { badge: "bg-amber-900/50 text-amber-300 border-amber-700/30", title: "text-amber-300",  label: "Легендарный" },
+  common:    { badge: "bg-muted/60 text-muted-foreground border-border/30", title: "text-foreground",  label: "Обычный" },
+  uncommon:  { badge: "bg-green-900/50 text-green-700 dark:text-green-300 border-green-700/30", title: "text-green-700 dark:text-green-300",  label: "Необычный" },
+  rare:      { badge: "bg-blue-900/50 text-blue-700 dark:text-blue-300 border-blue-700/30",    title: "text-blue-700 dark:text-blue-300",   label: "Редкий" },
+  epic:      { badge: "bg-purple-900/50 text-purple-700 dark:text-purple-300 border-purple-700/30", title: "text-purple-700 dark:text-purple-300", label: "Эпический" },
+  legendary: { badge: "bg-primary/50 text-foreground border-amber-700/30", title: "text-foreground",  label: "Легендарный" },
 };
 
 export function ItemCard({
@@ -74,24 +74,24 @@ export function ItemCard({
         </div>
 
         {description && (
-          <p className="text-xs text-amber-100/60 leading-relaxed">{description}</p>
+          <p className="text-xs text-foreground/60 leading-relaxed">{description}</p>
         )}
 
         {children && (
-          <div className="text-xs text-amber-100/70 leading-relaxed border-t border-amber-900/20 pt-2">
+          <div className="text-xs text-foreground/70 leading-relaxed border-t border-amber-900/20 pt-2">
             {children}
           </div>
         )}
 
         {lore && (
-          <p className="text-xs italic text-amber-100/40 border-t border-amber-900/20 pt-2">
+          <p className="text-xs italic text-foreground/40 border-t border-amber-900/20 pt-2">
             {lore}
           </p>
         )}
 
         {obtain && (
-          <div className="text-xs text-amber-100/50 border-t border-amber-900/20 pt-2">
-            <span className="text-amber-400/70 font-medium">Получение: </span>
+          <div className="text-xs text-foreground/50 border-t border-amber-900/20 pt-2">
+            <span className="text-foreground/70 font-medium">Получение: </span>
             {obtain}
           </div>
         )}

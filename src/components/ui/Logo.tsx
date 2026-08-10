@@ -3,13 +3,13 @@
 export default function Logo() {
   return (
     <div className="flex items-center gap-3 group" aria-label="DuckTale home">
-      <div className="flex h-9 w-9 items-center justify-center text-xl transition-colors group-hover:border-amber-400/70">
+      <div className="flex h-9 w-9 items-center justify-center text-xl">
         <svg
           width={36}
           height={36}
           viewBox="0 0 512 512"
           fill="currentColor"
-          className="text-amber-400"
+          className="text-primary"
           aria-hidden="true"
         >
           <g transform="translate(0,512) scale(0.1,-0.1)" fill="currentColor" stroke="none">
@@ -52,7 +52,7 @@ export default function Logo() {
 
       </div>
       <span
-        className="text-lg font-bold tracking-wider text-amber-400"
+        className="text-lg font-bold tracking-wider text-primary"
         style={{ fontFamily: "var(--font-display)" }}
       >
         DuckTale

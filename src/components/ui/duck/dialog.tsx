@@ -65,7 +65,7 @@ function DuckDialogContent({
         className={cn(
           "fixed top-1/2 left-1/2 z-50 grid w-full max-w-[calc(100%-2rem)] -translate-x-1/2 -translate-y-1/2",
           "gap-4 rounded-xl p-5 text-sm outline-none",
-          "bg-stone-950 border border-gold-800/30",
+          "bg-card border border-primary/30",
           "shadow-[0_0_60px_rgba(0,0,0,0.8),0_0_20px_rgba(212,160,23,0.06)]",
           "sm:max-w-md",
           "duration-150",
@@ -77,11 +77,11 @@ function DuckDialogContent({
       >
         {/* corner ornaments */}
         <span
-          className="pointer-events-none absolute top-0 left-0 block w-3 h-3 border-t-2 border-l-2 border-gold-500/30 rounded-tl-xl"
+          className="pointer-events-none absolute top-0 left-0 block w-3 h-3 border-t-2 border-l-2 border-primary/30 rounded-tl-xl"
           aria-hidden="true"
         />
         <span
-          className="pointer-events-none absolute bottom-0 right-0 block w-3 h-3 border-b-2 border-r-2 border-gold-500/30 rounded-br-xl"
+          className="pointer-events-none absolute bottom-0 right-0 block w-3 h-3 border-b-2 border-r-2 border-primary/30 rounded-br-xl"
           aria-hidden="true"
         />
         {children}
@@ -118,7 +118,7 @@ function DuckDialogFooter({ className, ...props }: React.ComponentProps<"div">) 
       data-slot="dialog-footer"
       className={cn(
         "-mx-5 -mb-5 flex flex-col-reverse gap-2 rounded-b-xl",
-        "border-t border-gold-800/20 bg-stone-900/50 px-5 py-4",
+        "border-t border-primary/20 bg-card/50 px-5 py-4",
         "sm:flex-row sm:justify-end",
         className
       )}
@@ -135,7 +135,7 @@ function DuckDialogTitle({
     <DialogPrimitive.Title
       data-slot="dialog-title"
       className={cn(
-        "text-base font-semibold leading-snug text-amber-100/90 tracking-wide",
+        "text-base font-semibold leading-snug text-foreground/90 tracking-wide",
         className
       )}
       style={{ fontFamily: "var(--font-display)" }}
@@ -152,8 +152,8 @@ function DuckDialogDescription({
     <DialogPrimitive.Description
       data-slot="dialog-description"
       className={cn(
-        "text-sm text-amber-100/50 leading-relaxed",
-        "[&_a]:text-gold-400 [&_a]:underline [&_a]:underline-offset-3 [&_a]:hover:text-gold-300",
+        "text-sm text-foreground/50 leading-relaxed",
+        "[&_a]:text-primary [&_a]:underline [&_a]:underline-offset-3 [&_a]:hover:text-primary",
         className
       )}
       {...props}

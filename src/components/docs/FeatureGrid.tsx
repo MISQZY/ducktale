@@ -37,13 +37,13 @@ export function FeatureGrid({ features, columns = 3, className }: FeatureGridPro
             className="border-amber-900/20 bg-duck-stone/30 hover:border-amber-700/40 hover:bg-duck-stone/50 transition-all duration-200 group"
           >
             <DuckCardHeader className="pb-2">
-              <div className="mb-2 inline-flex h-9 w-9 items-center justify-center rounded-lg border border-amber-500/20 bg-amber-950/30 text-amber-400 transition-colors group-hover:border-amber-500/40 group-hover:text-amber-300">
+              <div className="mb-2 inline-flex h-9 w-9 items-center justify-center rounded-lg border border-amber-500/20 bg-primary/30 text-foreground transition-colors group-hover:border-amber-500/40 group-hover:text-foreground">
                 <Icon size={18} />
               </div>
-              <DuckCardTitle className="text-sm text-amber-100">{f.title}</DuckCardTitle>
+              <DuckCardTitle className="text-sm text-foreground">{f.title}</DuckCardTitle>
             </DuckCardHeader>
             <DuckCardContent className="pt-0">
-              <DuckCardDescription className="text-amber-100/50 text-xs leading-relaxed">
+              <DuckCardDescription className="text-foreground/50 text-xs leading-relaxed">
                 {f.description}
               </DuckCardDescription>
             </DuckCardContent>

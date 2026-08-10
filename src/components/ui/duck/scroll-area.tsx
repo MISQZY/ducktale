@@ -17,7 +17,7 @@ function DuckScrollArea({
     >
       <ScrollAreaPrimitive.Viewport
         data-slot="scroll-area-viewport"
-        className="size-full rounded-[inherit] transition-[color,box-shadow] outline-none focus-visible:ring-2 focus-visible:ring-gold-500/50 focus-visible:outline-1"
+        className="size-full rounded-[inherit] transition-[color,box-shadow] outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:outline-1"
       >
         {children}
       </ScrollAreaPrimitive.Viewport>
@@ -47,7 +47,7 @@ function DuckScrollBar({
     >
       <ScrollAreaPrimitive.ScrollAreaThumb
         data-slot="scroll-area-thumb"
-        className="relative flex-1 rounded-full bg-gold-700/30 hover:bg-gold-600/45 transition-colors"
+        className="relative flex-1 rounded-full bg-primary/30 hover:bg-primary/45 transition-colors"
       />
     </ScrollAreaPrimitive.ScrollAreaScrollbar>
   )

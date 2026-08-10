@@ -1,5 +1,6 @@
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
+import { RULE_SEVERITY_STYLE, type RuleSeverity } from "@/config/site";
 import {
   DocsTable,
   DocsTableHeader,
@@ -11,7 +12,7 @@ import {
 } from "@/components/ui/docs-table";
 
 
-type Severity = "warn" | "ban-temp" | "ban-perm" | "prison" | "rollback" | "other";
+type Severity = RuleSeverity;
 
 interface Punishment {
   grade: number;
@@ -31,17 +32,6 @@ interface RuleTableProps {
   rules: Rule[];
   className?: string;
 }
-
-
-const SEVERITY: Record<Severity, { badge: string; dot: string }> = {
-  warn:      { dot: "bg-[#FFCA28]", badge: "bg-[#2a2415] text-[#FFE289] border-[#BFA246]/30" },
-  "ban-temp":{ dot: "bg-[#BFA246]", badge: "bg-[#241d12] text-[#FFF0B8] border-[#BFA246]/24" },
-  "ban-perm":{ dot: "bg-[#A6800D]", badge: "bg-[#21160d] text-[#FFE289] border-[#A6800D]/26" },
-  prison:    { dot: "bg-[#8f79c9]", badge: "bg-[#211a2a] text-[#E9DBFF] border-[#8f79c9]/26" },
-  rollback:  { dot: "bg-[#6ea8ff]", badge: "bg-[#17212b] text-[#DCEBFF] border-[#6ea8ff]/24" },
-  other:     { dot: "bg-[#FFD75E]", badge: "bg-[#241f16] text-[#FFF0B8] border-[#BFA246]/26" },
-};
-
 
 function inferSeverity(punishment: string): Severity {
   const p = punishment.toLowerCase();
@@ -71,7 +61,7 @@ function sanitizeRuleHtml(html: string): string {
 
 
 function PunishmentBadge({ type, label }: { type: Severity; label: string }) {
-  const s = SEVERITY[type];
+  const s = RULE_SEVERITY_STYLE[type];
   return (
     <Badge
       variant="outline"
@@ -121,8 +111,7 @@ export function RuleTable({ rules, className }: RuleTableProps) {
           return (
             <DocsTableRow key={r.id}>
               <DocsTableCell
-                className="font-mono text-xs whitespace-nowrap"
-                style={{ color: `color-mix(in srgb, #FFE289 42%, transparent)` }}
+                className={cn("font-mono text-xs whitespace-nowrap", DOCS_TABLE_THEME.textFaint)}
                 withRightBorder
               >
                 {r.id}
@@ -131,9 +120,9 @@ export function RuleTable({ rules, className }: RuleTableProps) {
               <DocsTableCell
                 className={cn(
                   "text-sm leading-relaxed whitespace-normal",
-                  "[&_strong]:font-semibold [&_strong]:text-[#FFE289]",
-                  "[&_em]:italic [&_em]:text-[#FFF4CC]/68",
-                  "[&_code]:rounded [&_code]:bg-[#201b12] [&_code]:px-1.5 [&_code]:py-0.5 [&_code]:font-mono [&_code]:text-xs [&_code]:text-[#FFCA28]"
+                  `[&_strong]:font-semibold [&_strong]:${DOCS_TABLE_THEME.accent}`,
+                  `[&_em]:italic [&_em]:${DOCS_TABLE_THEME.textSoft}`,
+                  `[&_code]:rounded [&_code]:${DOCS_TABLE_THEME.codeBg} [&_code]:px-1.5 [&_code]:py-0.5 [&_code]:font-mono [&_code]:text-xs [&_code]:${DOCS_TABLE_THEME.codeText}`
                 )}
                 withRightBorder
                 dangerouslySetInnerHTML={{ __html: sanitizeRuleHtml(r.rule) }}

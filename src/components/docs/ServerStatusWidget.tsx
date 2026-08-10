@@ -38,10 +38,10 @@ export function ServerStatusWidget({ host, serverName, className }: ServerStatus
     return (
       <DuckCard className={cn("border-amber-900/20 bg-duck-stone/30 animate-pulse", className)}>
         <DuckCardHeader className="py-3">
-          <div className="h-4 w-32 rounded bg-amber-900/20" />
+          <div className="h-4 w-32 rounded bg-primary/20" />
         </DuckCardHeader>
         <DuckCardContent>
-          <div className="h-3 w-20 rounded bg-amber-900/20" />
+          <div className="h-3 w-20 rounded bg-primary/20" />
         </DuckCardContent>
       </DuckCard>
     );
@@ -51,7 +51,7 @@ export function ServerStatusWidget({ host, serverName, className }: ServerStatus
     return (
       <DuckCard className={cn("border-red-900/20 bg-duck-stone/30", className)}>
         <DuckCardContent className="py-3">
-          <p className="text-xs text-red-400/70">
+          <p className="text-xs text-red-600/70 dark:text-red-400/70">
             Не удалось получить статус сервера. Попробуйте обновить страницу.
           </p>
         </DuckCardContent>
@@ -67,7 +67,7 @@ export function ServerStatusWidget({ host, serverName, className }: ServerStatus
     <DuckCard className={cn("border-amber-900/20 bg-duck-stone/30 my-4", className)}>
       <DuckCardHeader className="py-3 pb-2">
         <div className="flex items-center justify-between">
-          <DuckCardTitle className="text-sm text-amber-100/80 font-medium">
+          <DuckCardTitle className="text-sm text-foreground/80 font-medium">
             {serverName ?? host}
           </DuckCardTitle>
           <DuckBadge
@@ -75,8 +75,8 @@ export function ServerStatusWidget({ host, serverName, className }: ServerStatus
             className={cn(
               "gap-1.5 text-xs",
               status.online
-                ? "border-green-700/40 bg-green-950/30 text-green-300"
-                : "border-red-700/40 bg-red-950/30 text-red-300"
+                ? "border-green-700/40 bg-green-950/30 text-green-700 dark:text-green-300"
+                : "border-red-700/40 bg-red-950/30 text-red-700 dark:text-red-300"
             )}
           >
             <span
@@ -93,7 +93,7 @@ export function ServerStatusWidget({ host, serverName, className }: ServerStatus
       <DuckCardContent className="pt-0 space-y-2">
         {status.online ? (
           <>
-            <div className="flex items-center gap-4 text-xs text-amber-100/50">
+            <div className="flex items-center gap-4 text-xs text-foreground/50">
               {status.players && (
                 <span className="flex items-center gap-1.5">
                   <Users size={11} />
@@ -107,9 +107,9 @@ export function ServerStatusWidget({ host, serverName, className }: ServerStatus
 
             {hasPlayers && (
               <>
-                <DuckSeparator className="bg-amber-900/20" />
+                <DuckSeparator className="bg-primary/20" />
                 <Collapsible>
-                  <CollapsibleTrigger className="flex items-center gap-1 text-xs text-amber-100/40 hover:text-amber-100/60 transition-colors group">
+                  <CollapsibleTrigger className="flex items-center gap-1 text-xs text-foreground/40 hover:text-foreground/60 transition-colors group">
                     Список игроков
                     <ChevronDown
                       size={12}
@@ -122,7 +122,7 @@ export function ServerStatusWidget({ host, serverName, className }: ServerStatus
                         <DuckBadge
                           key={p.name}
                           variant="secondary"
-                          className="text-xs bg-black/30 text-amber-100/60 border border-amber-900/15"
+                          className="text-xs bg-muted text-foreground/60 border border-primary/15"
                         >
                           {p.name}
                         </DuckBadge>
@@ -134,7 +134,7 @@ export function ServerStatusWidget({ host, serverName, className }: ServerStatus
             )}
           </>
         ) : (
-          <p className="text-xs text-amber-100/30">
+          <p className="text-xs text-foreground/30">
             Сервер временно недоступен. Попробуйте позже.
           </p>
         )}

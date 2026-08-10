@@ -8,6 +8,9 @@ export const { GET } = createSearchAPI("advanced", {
     normalizationCache: new Map(),
   },
   indexes: SERVERS.flatMap((s) =>
+    // No lang arg = pages for all configured locales. Only `ru` exists today;
+    // once another locale is added, results should probably be filtered by
+    // the active UI locale here.
     docsSources[s.id as keyof typeof docsSources].getPages().map((page) => ({
       title: page.data.title ?? "",
       description: page.data.description ?? "",

@@ -31,9 +31,9 @@ function DuckHoverCardContent({
         sideOffset={sideOffset}
         className={cn(
           "z-50 w-64 rounded-xl p-4 text-sm",
-          "bg-stone-950 border border-gold-800/30",
+          "bg-card border border-primary/30",
           "shadow-[0_0_40px_rgba(0,0,0,0.7),0_0_12px_rgba(212,160,23,0.06)]",
-          "text-amber-100/80",
+          "text-foreground/80",
           "origin-(--radix-hover-card-content-transform-origin)",
           "data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2",
           "data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2",

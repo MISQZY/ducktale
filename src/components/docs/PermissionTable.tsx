@@ -45,22 +45,22 @@ export interface PermissionTableProps {
 const ROLE_META: Record<Role, { shortLabel: string; headerCn: string; dotCn: string }> = {
   all: {
     shortLabel: "Игрок",
-    headerCn: "text-stone-300",
-    dotCn: "bg-stone-400",
+    headerCn: "text-muted-foreground",
+    dotCn: "bg-muted",
   },
   old: {
     shortLabel: "Олд",
-    headerCn: "text-amber-300",
-    dotCn: "bg-amber-400",
+    headerCn: "text-foreground",
+    dotCn: "bg-primary",
   },
   supporter: {
     shortLabel: "Донат",
-    headerCn: "text-yellow-300",
+    headerCn: "text-yellow-700 dark:text-yellow-300",
     dotCn: "bg-yellow-400",
   },
   admin: {
     shortLabel: "Админ",
-    headerCn: "text-sky-300",
+    headerCn: "text-sky-700 dark:text-sky-300",
     dotCn: "bg-sky-400",
   },
 };
@@ -79,14 +79,14 @@ function AccessCell({ value }: { value: AccessValue }) {
   if (value === false) {
     return (
       <span className="inline-flex items-center justify-center">
-        <X size={12} strokeWidth={2.5} className="text-stone-600" aria-label="Недоступно" />
+        <X size={12} strokeWidth={2.5} className="text-muted-foreground" aria-label="Недоступно" />
       </span>
     );
   }
 
   return (
-    <span className="inline-flex items-center gap-1 text-[11px] font-medium text-amber-300/80 whitespace-nowrap" aria-label={value}>
-      <Minus size={9} className="text-amber-500/60 shrink-0" />
+    <span className="inline-flex items-center gap-1 text-[11px] font-medium text-foreground/80 whitespace-nowrap" aria-label={value}>
+      <Minus size={9} className="text-foreground/60 shrink-0" />
       {value}
     </span>
   );
@@ -98,12 +98,12 @@ function GroupHeader({ title, colSpan }: { title: string; colSpan: number }) {
       <DocsTableCell colSpan={colSpan} className="pt-5 pb-1.5 px-4">
         <div className="flex items-center gap-2">
           <span
-            className="text-[10px] uppercase tracking-widest font-semibold text-amber-500/70"
+            className="text-[10px] uppercase tracking-widest font-semibold text-foreground/70"
             style={{ fontFamily: "var(--font-mono)" }}
           >
             {title}
           </span>
-          <div className="flex-1 h-px bg-amber-900/25" />
+          <div className="flex-1 h-px bg-primary/25" />
         </div>
       </DocsTableCell>
     </DocsTableRow>
@@ -127,7 +127,7 @@ export function PermissionTable({
         <DocsTableRow>
           <DocsTableHead withRightBorder className="w-full">
             <span className="inline-flex items-center gap-1.5">
-              <Lock size={10} className="text-amber-700/70" />
+              <Lock size={10} className="text-foreground/70" />
               Возможность
             </span>
           </DocsTableHead>
@@ -158,7 +158,7 @@ export function PermissionTable({
             {group.rows.map((row) => (
               <DocsTableRow key={row.label}>
                 <DocsTableCell withRightBorder className="py-2.5">
-                  <span className="text-sm text-amber-100/80 leading-snug">
+                  <span className="text-sm text-foreground/80 leading-snug">
                     {row.label}
                   </span>
                   {row.description && (

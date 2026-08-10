@@ -6,8 +6,10 @@ export { PageEmbed } from "./PageEmbed";
 export { ResourceCard, ResourceCardGrid } from "./ResourceCard";
 export { RuleTable } from "./RuleTable";
 export { ServerAddress } from "./ServerAddress";
-export { ServerBanner } from "./ServerBanner";
 export { ServerStatusWidget } from "./ServerStatusWidget";
 export { StepList } from "./StepList";
 export { WhitelistTable } from "./WhitelistTable";
 export { GitHubLastModified } from "./GitHubLastModified";
+export { EventTimeline } from "./EventTimeLine";
+export { PermissionTable } from "./PermissionTable";
+

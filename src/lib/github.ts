@@ -7,6 +7,9 @@
  * on every request. Next.js fetch-cache persists across invocations correctly.
  */
 
+import { REPO } from "@/config/site";
+import { EXTERNAL_APIS } from "@/config/external-apis";
+
 interface GitHubAuthor {
   date: string;
   name: string;
@@ -34,7 +37,7 @@ const REVALIDATE_SECONDS = 3_600;
 export async function fetchLastModified(
   filePath: string
 ): Promise<LastModifiedResult | null> {
-  const repo = process.env.GITHUB_REPO;
+  const repo = REPO.slug;
   const token = process.env.GITHUB_TOKEN;
 
   if (!repo) {
@@ -42,7 +45,7 @@ export async function fetchLastModified(
     return null;
   }
 
-  const url = `https://api.github.com/repos/${repo}/commits?path=${encodeURIComponent(filePath)}&per_page=1`;
+  const url = `${EXTERNAL_APIS.github.apiBase}/repos/${repo}/commits?path=${encodeURIComponent(filePath)}&per_page=1`;
 
   const headers: HeadersInit = {
     Accept: "application/vnd.github+json",

@@ -42,7 +42,7 @@ function DuckTooltipContent({
         sideOffset={sideOffset}
         className={cn(
           "z-50 inline-flex w-fit max-w-xs items-center gap-1.5 rounded-md px-3 py-1.5 text-xs",
-          "bg-stone-900 border border-gold-700/30 text-amber-100/85",
+          "bg-card border border-primary/30 text-foreground/85",
           "shadow-[0_0_12px_rgba(0,0,0,0.6),0_0_4px_rgba(212,160,23,0.08)]",
           "origin-(--radix-tooltip-content-transform-origin)",
           "data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2",
@@ -55,7 +55,7 @@ function DuckTooltipContent({
         {...props}
       >
         {children}
-        <TooltipPrimitive.Arrow className="z-50 size-2.5 translate-y-[calc(-50%-2px)] rotate-45 rounded-xs bg-stone-900 fill-stone-900 border-t border-l border-gold-700/30" />
+        <TooltipPrimitive.Arrow className="z-50 size-2.5 translate-y-[calc(-50%-2px)] rotate-45 rounded-xs bg-card fill-stone-900 border-t border-l border-primary/30" />
       </TooltipPrimitive.Content>
     </TooltipPrimitive.Portal>
   )

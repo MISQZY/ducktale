@@ -8,23 +8,23 @@ const duckBadgeVariants = cva(
   [
     "inline-flex items-center justify-center gap-1 shrink-0 whitespace-nowrap",
     "text-xs font-medium tracking-wide transition-all",
-    "focus-visible:ring-2 focus-visible:ring-gold-500/50",
+    "focus-visible:ring-2 focus-visible:ring-primary/50",
     "[&>svg]:pointer-events-none [&>svg]:size-3!",
   ].join(" "),
   {
     variants: {
       variant: {
         default:
-          "h-5 px-2 rounded-full bg-gold-500/15 text-gold-300 border border-gold-500/30",
+          "h-5 px-2 rounded-full bg-primary/15 text-primary border border-primary/30",
         secondary:
-          "h-5 px-2 rounded-full bg-stone-700/60 text-amber-100/70 border border-stone-600/40",
+          "h-5 px-2 rounded-full bg-muted/60 text-foreground/70 border border-border/40",
         destructive:
-          "h-5 px-2 rounded-full bg-red-900/25 text-red-400 border border-red-800/40",
+          "h-5 px-2 rounded-full bg-destructive/15 text-destructive border border-destructive/40",
         outline:
-          "h-5 px-2 rounded-full border border-gold-700/35 text-amber-100/60 bg-transparent",
+          "h-5 px-2 rounded-full border border-primary/35 text-foreground/60 bg-transparent",
         ghost:
-          "h-5 px-2 rounded-full text-amber-100/50 hover:bg-stone-700/40",
-        link: "text-gold-400 underline-offset-3 hover:underline px-0",
+          "h-5 px-2 rounded-full text-foreground/50 hover:bg-muted/40",
+        link: "text-primary underline-offset-3 hover:underline px-0",
       },
     },
     defaultVariants: {

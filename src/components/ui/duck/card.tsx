@@ -13,7 +13,7 @@ function DuckCard({
       data-size={size}
       className={cn(
         "group/card relative flex flex-col gap-4 overflow-hidden rounded-xl text-sm",
-        "bg-stone-900/60 border border-gold-800/20",
+        "bg-card/60 border border-primary/20",
         "shadow-[0_0_0_1px_rgba(212,160,23,0.04),inset_0_1px_0_rgba(212,160,23,0.06)]",
         "data-[size=sm]:gap-3",
         className
@@ -21,11 +21,11 @@ function DuckCard({
       {...props}
     >
       <span
-        className="pointer-events-none absolute top-0 left-0 block w-3 h-3 border-t-2 border-l-2 border-gold-500/30 rounded-tl-xl"
+        className="pointer-events-none absolute top-0 left-0 block w-3 h-3 border-t-2 border-l-2 border-primary/30 rounded-tl-xl"
         aria-hidden="true"
       />
       <span
-        className="pointer-events-none absolute bottom-0 right-0 block w-3 h-3 border-b-2 border-r-2 border-gold-500/30 rounded-br-xl"
+        className="pointer-events-none absolute bottom-0 right-0 block w-3 h-3 border-b-2 border-r-2 border-primary/30 rounded-br-xl"
         aria-hidden="true"
       />
       {props.children}
@@ -55,11 +55,11 @@ function DuckCardTitle({ className, ...props }: React.ComponentProps<"div">) {
     <div
       data-slot="card-title"
       className={cn(
-        "text-base font-semibold leading-snug text-amber-100/90 tracking-wide",
+        "text-base font-semibold leading-snug text-foreground/90 tracking-wide",
         "group-data-[size=sm]/card:text-sm",
         className
       )}
-      style={{ fontFamily: "var(--font-display)" }}
+      style={{ fontFamily: "var(--font-body)" }}
       {...props}
     />
   )
@@ -69,7 +69,7 @@ function DuckCardDescription({ className, ...props }: React.ComponentProps<"div"
   return (
     <div
       data-slot="card-description"
-      className={cn("text-sm text-amber-100/45 leading-relaxed", className)}
+      className={cn("text-sm text-foreground/45 leading-relaxed", className)}
       {...props}
     />
   )
@@ -100,7 +100,7 @@ function DuckCardFooter({ className, ...props }: React.ComponentProps<"div">) {
     <div
       data-slot="card-footer"
       className={cn(
-        "flex items-center rounded-b-xl border-t border-gold-800/20 bg-stone-900/40 px-5 py-4",
+        "flex items-center rounded-b-xl border-t border-primary/20 bg-card/40 px-5 py-4",
         "group-data-[size=sm]/card:px-4 group-data-[size=sm]/card:py-3",
         className
       )}
