@@ -48,10 +48,7 @@ export const EVENT_CATEGORY_STYLE: Record<EventCategory, EventCategoryStyle> = {
 export interface ServerEvent {
   id: string;
   emoji: string;
-  name: string;
-  description: string;
   category: EventCategory;
-  categoryLabel: string;
   /** Unix seconds — event start */
   startAt: number;
   /** Unix seconds — event end */
@@ -60,15 +57,15 @@ export interface ServerEvent {
   href?: string;
 }
 
+/**
+ * Structural data only — name/description are localized and live in
+ * src/i18n/messages/{locale}.json under Events.items.<id>, keyed by `id`.
+ */
 export const UPCOMING_EVENTS: ServerEvent[] = [
-    {
+  {
     id: "invite-system",
     emoji: "👥",
-    name: "Проход на сервер",
-    description:
-      "Попади в мир DuckBurg, путешествуй, исследуй, развивайся. Не забудь пригласить друзей поиграть вместе с тобой!",
     category: "world",
-    categoryLabel: "Мировые",
     startAt: 1767250800,
     endAt: 1790838000,
     href: "",
@@ -76,11 +73,7 @@ export const UPCOMING_EVENTS: ServerEvent[] = [
   {
     id: "nether-world-open",
     emoji: "🌑",
-    name: "Открытие Незер мира",
-    description:
-      "Открытие порталов в мир Незера откроет перед игроками больше возможностей в развитии на просторах мира DuckBurg.",
     category: "world",
-    categoryLabel: "Мировые",
     startAt: 1718002800,
     endAt: 1718002800,
     href: "",
@@ -88,11 +81,7 @@ export const UPCOMING_EVENTS: ServerEvent[] = [
   {
     id: "end-world-open",
     emoji: "🌕",
-    name: "Открытие мира Края",
-    description:
-      "Открытие порталов в мир Края откроет перед игроками возможность сразиться с Черным Драконом и доказать, что летать тоже нужно уметь.",
     category: "world",
-    categoryLabel: "Мировые",
     startAt: 1718002800,
     endAt: 1718002800,
     href: "",

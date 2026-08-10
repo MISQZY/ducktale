@@ -12,6 +12,49 @@
   "Docs": {
     "lastModifiedUnknown": "Last updated date unknown"
   },
+  "Events": {
+    "eyebrow": "Events",
+    "title": "Upcoming events",
+    "refreshNote": "↻ every minute",
+    "categories": {
+      "all": "All",
+      "pvp": "PvP",
+      "world": "World",
+      "pve": "PvE",
+      "economy": "Economy"
+    },
+    "status": {
+      "live": "Live now",
+      "upcoming": "Starts in",
+      "past": "Ended"
+    },
+    "until": "until {time}",
+    "unit": {
+      "daysHours": "{days}d {hours}h",
+      "days": "{days}d",
+      "hoursMinutes": "{hours}h {minutes}m",
+      "minutes": "{minutes}m"
+    },
+    "empty": {
+      "all": "No events",
+      "category": "No events in the \"{category}\" category"
+    },
+    "overflow": "+ {count, plural, one {# more event} other {# more events}} — check Discord",
+    "items": {
+      "invite-system": {
+        "name": "Server access",
+        "description": "Step into the world of DuckBurg, travel, explore, and grow. Don't forget to invite friends to play with you!"
+      },
+      "nether-world-open": {
+        "name": "Nether world opening",
+        "description": "Opening portals to the Nether gives players more ways to grow and develop across DuckBurg."
+      },
+      "end-world-open": {
+        "name": "End world opening",
+        "description": "Opening portals to the End lets players face the Ender Dragon and prove that flying takes skill too."
+      }
+    }
+  },
   "Nav": {
     "about": "About",
     "servers": "Servers",

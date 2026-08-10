@@ -1,12 +1,19 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useLocale, useTranslations } from "next-intl";
 import { cn } from "@/lib/utils";
 import { UPCOMING_EVENTS, EVENT_CATEGORY_STYLE } from "@/config/events";
 import type { ServerEvent, EventCategory } from "@/config/events";
 
 // Re-export types для обратной совместимости
 export type { ServerEvent, EventCategory };
+
+type EventsT = ReturnType<typeof useTranslations>;
+
+function dateLocale(locale: string): string {
+  return locale === "ru" ? "ru-RU" : "en-US";
+}
 
 // ─── Props ────────────────────────────────────────────────────────────────────
 
@@ -38,34 +45,34 @@ type FilterKey = "all" | EventCategory;
 
 // ─── Static config ────────────────────────────────────────────────────────────
 
-const FILTER_TABS: { key: FilterKey; label: string; emoji: string }[] = [
-    { key: "all", label: "Все", emoji: "📋" },
-    { key: "pvp", label: "PvP", emoji: "⚔️" },
-    { key: "world", label: "Мировые", emoji: "🌍" },
-    { key: "pve", label: "PvE", emoji: "🐉" },
-    { key: "economy", label: "Экономика", emoji: "💰" },
+const FILTER_TABS: { key: FilterKey; emoji: string }[] = [
+    { key: "all", emoji: "📋" },
+    { key: "pvp", emoji: "⚔️" },
+    { key: "world", emoji: "🌍" },
+    { key: "pve", emoji: "🐉" },
+    { key: "economy", emoji: "💰" },
 ];
 
 // CATEGORY_STYLE moved to @/config/events as EVENT_CATEGORY_STYLE (see import above).
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-function formatCountdown(msUntil: number): string {
+function formatCountdown(msUntil: number, t: EventsT, locale: string): string {
     const h = Math.floor(msUntil / 3_600_000);
     const m = Math.floor((msUntil % 3_600_000) / 60_000);
     const d = Math.floor(h / 24);
     const remainH = h % 24;
 
     if (d >= 30) {
-        return new Date(Date.now() + msUntil).toLocaleDateString("ru-RU", {
+        return new Date(Date.now() + msUntil).toLocaleDateString(dateLocale(locale), {
             day: "numeric",
             month: "short",
             year: "numeric",
         });
     }
-    if (d >= 1) return remainH > 0 ? `${d} д ${remainH} ч` : `${d} д`;
-    if (h > 0) return `${h} ч ${m} мин`;
-    return `${m} мин`;
+    if (d >= 1) return remainH > 0 ? t("unit.daysHours", { days: d, hours: remainH }) : t("unit.days", { days: d });
+    if (h > 0) return t("unit.hoursMinutes", { hours: h, minutes: m });
+    return t("unit.minutes", { minutes: m });
 }
 
 type EventStatus = "upcoming" | "live" | "past";
@@ -117,6 +124,7 @@ function FilterTabs({
     onChange: (key: FilterKey) => void;
     counts: Record<FilterKey, number>;
 }) {
+    const t = useTranslations("Events");
     return (
         <div className="flex flex-wrap items-center gap-1.5 mb-5">
             {FILTER_TABS.map((tab) => {
@@ -137,7 +145,7 @@ function FilterTabs({
                         style={{ fontFamily: "var(--font-body)" }}
                     >
                         <span className="text-sm leading-none">{tab.emoji}</span>
-                        {tab.label}
+                        {t(`categories.${tab.key}`)}
                         {count > 0 && (
                             <span
                                 className={cn(
@@ -158,6 +166,8 @@ function FilterTabs({
 }
 
 function EventCard({ event, now }: { event: ServerEvent; now: number }) {
+    const t = useTranslations("Events");
+    const locale = useLocale();
     const status = getStatus(event, now);
     const style = EVENT_CATEGORY_STYLE[event.category];
     const msUntil = normalizeMs(event.startAt) - now;
@@ -197,10 +207,10 @@ function EventCard({ event, now }: { event: ServerEvent; now: number }) {
                     className="text-sm font-semibold text-foreground/90 leading-5 mb-1"
                     style={{ fontFamily: "var(--font-body)" }}
                 >
-                    {event.name}
+                    {t(`items.${event.id}.name`)}
                 </p>
                 <p className="text-xs leading-relaxed text-foreground/45 line-clamp-2">
-                    {event.description}
+                    {t(`items.${event.id}.description`)}
                 </p>
             </div>
 
@@ -214,39 +224,39 @@ function EventCard({ event, now }: { event: ServerEvent; now: number }) {
                         style.badgeText
                     )}
                 >
-                    {event.categoryLabel}
+                    {t(`categories.${event.category}`)}
                 </span>
 
                 {isLive && (
                     <span className="flex items-center gap-1.5 text-[11px] text-foreground/55">
                         <LivePulse color={style.liveDot} />
-                        Идёт сейчас
+                        {t("status.live")}
                     </span>
                 )}
                 {!isLive && !isPast && msUntil > 0 && (
                     <span className="flex items-center gap-1.5 text-[11px] text-foreground/35">
-                        До начала
+                        {t("status.upcoming")}
                     </span>
                 )}
                 {isPast && (
                     <span className="flex items-center gap-1.5 text-[11px] text-foreground/35">
-                        Завершено
+                        {t("status.past")}
                     </span>
                 )}
 
                 {isLive && (
                     <span className="text-[11px] text-foreground/35 tabular-nums text-right leading-4">
-                        до {formatCountdown(normalizeMs(event.endAt) - now)}
+                        {t("until", { time: formatCountdown(normalizeMs(event.endAt) - now, t, locale) })}
                     </span>
                 )}
                 {!isLive && !isPast && msUntil > 0 && (
                     <span className="text-[11px] text-foreground/35 tabular-nums text-right leading-4">
-                        {formatCountdown(msUntil)}
+                        {formatCountdown(msUntil, t, locale)}
                     </span>
                 )}
                 {isPast && (
                     <span className="text-[11px] text-foreground/25 tabular-nums text-right leading-4">
-                        {new Date(normalizeMs(event.endAt)).toLocaleDateString("ru-RU", {
+                        {new Date(normalizeMs(event.endAt)).toLocaleDateString(dateLocale(locale), {
                             day: "numeric",
                             month: "long",
                             year: "numeric",
@@ -259,14 +269,15 @@ function EventCard({ event, now }: { event: ServerEvent; now: number }) {
 }
 
 function EmptyState({ filter }: { filter: FilterKey }) {
-    const tab = FILTER_TABS.find((t) => t.key === filter);
+    const t = useTranslations("Events");
+    const tab = FILTER_TABS.find((tab) => tab.key === filter);
     return (
         <div className="flex flex-col items-center justify-center py-12 gap-2 rounded-xl border border-dashed border-primary/15">
             <span className="text-2xl opacity-30">{tab?.emoji ?? "📭"}</span>
             <p className="text-xs text-foreground/25">
                 {filter === "all"
-                    ? "Нет событий"
-                    : `Нет событий в категории «${tab?.label}»`}
+                    ? t("empty.all")
+                    : t("empty.category", { category: t(`categories.${filter}`) })}
             </p>
         </div>
     );
@@ -282,6 +293,7 @@ export function EventTimeline({
     hideHeader = false,
     className,
 }: EventTimelineProps) {
+    const t = useTranslations("Events");
     const [now, setNow] = useState(() => Date.now());
     const [filter, setFilter] = useState<FilterKey>(defaultFilter);
 
@@ -320,17 +332,17 @@ export function EventTimeline({
                             className="text-[10px] tracking-[0.3em] uppercase text-primary/70 mb-2"
                             style={{ fontFamily: "var(--font-body)" }}
                         >
-                            Ивенты
+                            {t("eyebrow")}
                         </p>
                         <h2
                             className="text-2xl text-foreground/90"
                             style={{ fontFamily: "var(--font-body)" }}
                         >
-                            Ближайшие события
+                            {t("title")}
                         </h2>
                     </div>
                     <span className="text-[10px] text-foreground/25 hidden sm:block tabular-nums">
-                        ↻ каждую минуту
+                        {t("refreshNote")}
                     </span>
                 </div>
             )}
@@ -351,7 +363,7 @@ export function EventTimeline({
 
             {overflow > 0 && (
                 <p className="mt-4 text-center text-[11px] text-foreground/25">
-                    + ещё {overflow} {overflow === 1 ? "событие" : "события"} — смотрите в Discord
+                    {t("overflow", { count: overflow })}
                 </p>
             )}
         </section>
