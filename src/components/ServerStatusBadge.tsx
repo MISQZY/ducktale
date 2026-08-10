@@ -3,6 +3,11 @@
 import { useTranslations } from "next-intl";
 import { useServerStatus } from "@/hooks/useServerStatus";
 import { cn } from "@/lib/utils";
+import {
+  DuckHoverCard,
+  DuckHoverCardTrigger,
+  DuckHoverCardContent,
+} from "@/components/ui/duck/hover-card";
 
 export default function ServerStatusBadge({ host }: { host: string }) {
   const t = useTranslations("Servers.status");
@@ -44,18 +49,24 @@ export default function ServerStatusBadge({ host }: { host: string }) {
       </div>
 
       {status.online && status.players && (
-        <div className="relative group/players text-foreground/50 cursor-default">
-          <span>
+        status.players.list && status.players.list.length > 0 ? (
+          <DuckHoverCard openDelay={150}>
+            <DuckHoverCardTrigger asChild>
+              <span className="text-foreground/50 cursor-default">
+                {t("players", { count: `${status.players.online}/${status.players.max}` })}
+              </span>
+            </DuckHoverCardTrigger>
+            <DuckHoverCardContent align="start" className="w-auto min-w-32 p-2 space-y-1">
+              {status.players.list.map((p) => (
+                <div key={p.name} className="text-xs text-foreground/80">{p.name}</div>
+              ))}
+            </DuckHoverCardContent>
+          </DuckHoverCard>
+        ) : (
+          <span className="text-foreground/50 cursor-default">
             {t("players", { count: `${status.players.online}/${status.players.max}` })}
           </span>
-          {status.players.list && status.players.list.length > 0 && (
-            <div className="absolute left-0 top-full mt-1 z-10 hidden group-hover/players:block bg-popover border border-border rounded px-2 py-1.5 min-w-max shadow-md">
-              {status.players.list.map((p) => (
-                <div key={p.name} className="text-popover-foreground/80">{p.name}</div>
-              ))}
-            </div>
-          )}
-        </div>
+        )
       )}
 
       {status.version && (
