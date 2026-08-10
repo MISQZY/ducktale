@@ -67,7 +67,7 @@ export default async function Page(props: {
         />
       </DocsBody>
       <div className="mt-auto pt-4 border-t border-border flex justify-between items-center gap-4 text-xs">
-        <GitHubLastModified date={page.data.lastModified} filePath={filePath} />
+        <GitHubLastModified filePath={filePath} />
         <EditOnGitHub href={REPO.editUrl(filePath)} />
       </div>
     </DocsPage>

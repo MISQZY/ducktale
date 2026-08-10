@@ -1,5 +1,4 @@
 import { defineDocs, defineConfig } from "fumadocs-mdx/config";
-import lastModified from 'fumadocs-mdx/plugins/last-modified';
 import { z } from 'zod';
 
 const pageSchema = z.object({
@@ -23,6 +22,4 @@ export const duckhoodDocs = defineDocs({
   docs: { schema: pageSchema },
 });
 
-export default defineConfig({
-  plugins: [lastModified()],
-});
+export default defineConfig({});
