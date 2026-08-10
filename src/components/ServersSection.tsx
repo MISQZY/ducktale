@@ -68,7 +68,8 @@ export default function ServersSection() {
                     <span
                       key={f}
                       className="text-xs px-2.5 py-1 rounded-md bg-muted text-foreground/55 border border-border/40
-                                 group-hover:border-border/70 transition-colors"
+                                 group-hover:border-border/70 transition-colors
+                                 hover:border-primary/50 hover:bg-primary/10 hover:text-foreground"
                     >
                       {f}
                     </span>
@@ -107,11 +108,11 @@ export default function ServersSection() {
           <div className="absolute bottom-3 left-3 w-5 h-5 border-b border-l border-primary/20" />
 
           <div className="flex items-center justify-center gap-2 mb-4">
-            <Sword size={12} className="text-primary/40 -rotate-45" />
+            <Sword size={12} className="text-primary/40 rotate-45" />
             <p className="text-foreground/40 text-xs tracking-[0.35em] uppercase">
               {t("connect.label")}
             </p>
-            <Sword size={12} className="text-primary/40 rotate-135" />
+            <Sword size={12} className="text-primary/40 -rotate-135" />
           </div>
 
           <CopyToClipboard value={NETWORK_HOST} />

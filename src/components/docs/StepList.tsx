@@ -25,7 +25,7 @@ function StepItem({ number, title, isLast, children }: StepItemProps) {
       <div className="relative flex flex-col items-center">
         <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full
                         border border-primary/40 bg-linear-to-b from-primary/60 to-stone-900/80
-                        text-sm font-bold text-primary font-mono z-10 relative
+                        text-sm font-bold text-gold-700 dark:text-primary font-mono z-10 relative
                         shadow-[0_0_12px_rgba(212,160,23,0.1)]">
           {number}
         </div>

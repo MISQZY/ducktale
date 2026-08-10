@@ -65,11 +65,11 @@ export default function NotFound() {
           <div className="rounded-2xl border border-primary/20 bg-card/50 overflow-hidden relative">
             <div className="absolute top-0 left-8 right-8 h-px bg-linear-to-r from-transparent via-primary/20 to-transparent" />
             <div className="flex items-center justify-center gap-2 px-6 pt-5 pb-3">
-              <Sword size={11} className="text-primary/40 -rotate-45" />
+              <Sword size={11} className="text-primary/40 rotate-45" />
               <p className="text-foreground/30 text-xs tracking-[0.35em] uppercase">
                 {t("docsHint")}
               </p>
-              <Sword size={11} className="text-primary/40 rotate-135" />
+              <Sword size={11} className="text-primary/40 -rotate-135" />
             </div>
             <div className="grid sm:grid-cols-2 divide-y sm:divide-y-0 sm:divide-x divide-gold-900/25">
               {SERVERS.map((server) => (

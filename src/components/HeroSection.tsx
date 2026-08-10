@@ -48,7 +48,7 @@ export default function HeroSection() {
         {/* Divider */}
         <div className="flex items-center justify-center gap-4 mb-8 fade-up fade-up-2">
           <div className="h-px flex-1 max-w-24 bg-linear-to-r from-transparent via-primary/50 to-primary/50" />
-          <Sword size={14} className="text-primary/50 rotate-45" />
+          <Sword size={14} className="text-primary/50 -rotate-45" />
           <div className="h-px flex-1 max-w-24 bg-linear-to-l from-transparent via-primary/50 to-primary/50" />
         </div>
 

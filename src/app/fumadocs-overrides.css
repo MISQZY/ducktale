@@ -128,3 +128,35 @@ nav[aria-label="Breadcrumb"] a,
 #nd-page {
   min-height: auto;
 }
+
+/*
+  Fumadocs' search / language / theme controls ship with their own
+  fd-secondary pill styling (rounded-full theme switch, bg-fd-secondary/50
+  triggers). Restyle them to the project's actual input-field convention
+  (rounded-lg, border-border, bg-card, hover:border-primary/50 — see
+  TableSearch.tsx / DOCS_TABLE_THEME) instead of adding one-off component
+  overrides, since these are internal fumadocs-ui slots without a stable
+  className passthrough for every render path (sidebar.tsx hardcodes extra
+  classes on some of them, which a top-level className prop would clobber
+  rather than merge with).
+*/
+[data-search-full],
+[data-search],
+[data-theme-toggle],
+button:has(> svg.lucide-languages),
+div:has(> [data-theme-toggle]) {
+  background-color: var(--color-card);
+  border-width: 1px;
+  border-style: solid;
+  border-color: var(--color-border);
+  border-radius: var(--radius-lg);
+  transition: border-color 0.15s ease;
+}
+[data-search-full]:hover,
+[data-search]:hover,
+button:has(> svg.lucide-languages):hover {
+  border-color: color-mix(in srgb, var(--color-primary) 50%, transparent);
+}
+[data-theme-toggle] > * {
+  border-radius: var(--radius-md);
+}
