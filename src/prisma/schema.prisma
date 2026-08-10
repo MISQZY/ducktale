@@ -143,3 +143,141 @@ model fp_version {
   id   Int    @id
   name String @db.MediumText
 }
+
+// ─── Towny (DuckBurg) ───────────────────────────────────────────────────────
+// Lives in a separate database, connected via withDb("duckburg_towns", ...)
+// (DATABASE_URL_DUCKBURG_TOWNS). References between these tables are plain
+// UUID strings (no DB-level foreign keys), so joins are done in raw SQL.
+
+model TOWNY_TOWNS {
+  name                String  @id @db.VarChar(32)
+  mayor               String? @db.LongText
+  nation              String? @db.LongText
+  townBoard           String? @db.LongText
+  tag                 String? @db.LongText
+  founder             String? @db.LongText
+  protectionStatus    String? @db.LongText
+  bonus               Int?    @default(0)
+  purchased           Int?    @default(0)
+  taxpercent          Boolean @default(false)
+  maxPercentTaxAmount Float?  @db.Float
+  taxes               Float?  @default(0) @db.Float
+  hasUpkeep           Boolean @default(false)
+  plotPrice           Float?  @db.Float
+  plotTax             Float?  @db.Float
+  commercialPlotPrice Float?  @db.Float
+  commercialPlotTax   Float   @db.Float
+  embassyPlotPrice    Float   @db.Float
+  embassyPlotTax      Float   @db.Float
+  open                Boolean @default(false)
+  public              Boolean @default(false)
+  adminEnabledMobs    Boolean @default(false)
+  admindisabledpvp    Boolean @default(false)
+  adminenabledpvp     Boolean @default(false)
+  allowedToWar        Boolean @default(true)
+  homeblock           String  @db.LongText
+  spawn               String  @db.LongText
+  outpostSpawns       String? @db.LongText
+  outlaws             String? @db.LongText
+  uuid                String? @db.VarChar(36)
+  registered          BigInt?
+  spawnCost           Float   @db.Float
+  mapColorHexCode     String? @db.LongText
+  metadata            String? @db.LongText
+  conqueredDays       Int?    @db.MediumInt
+  conquered           Boolean @default(false)
+  ruined              Boolean @default(false)
+  ruinedTime          BigInt? @default(0)
+  neutral             Boolean @default(false)
+  debtBalance         Float   @db.Float
+  joinedNationAt      BigInt
+  primaryJail         String? @db.VarChar(36)
+  movedHomeBlockAt    BigInt
+  trustedResidents    String? @db.LongText
+  trustedTowns        String  @db.LongText
+  nationZoneOverride  Int?    @default(0)
+  nationZoneEnabled   Boolean @default(true)
+  allies              String  @db.LongText
+  enemies             String  @db.LongText
+  hasUnlimitedClaims  Boolean @default(false)
+  manualTownLevel     BigInt? @default(-1)
+  forSale             Boolean @default(false)
+  forSalePrice        Float   @db.Float
+  forSaleTime         BigInt? @default(0)
+  visibleOnTopLists   Boolean @default(true)
+  hasActiveWar        Boolean @default(false)
+}
+
+model TOWNY_NATIONS {
+  name                String  @id @db.VarChar(32)
+  capital             String  @db.LongText
+  tag                 String  @db.LongText
+  allies              String  @db.LongText
+  enemies             String  @db.LongText
+  taxes               Float   @db.Float
+  taxpercent          Boolean @default(false)
+  maxPercentTaxAmount Float?  @db.Float
+  spawnCost           Float   @db.Float
+  neutral             Boolean @default(false)
+  uuid                String? @db.VarChar(36)
+  registered          BigInt?
+  nationBoard         String? @db.LongText
+  mapColorHexCode     String? @db.LongText
+  nationSpawn         String? @db.LongText
+  isPublic            Boolean @default(true)
+  isOpen              Boolean @default(true)
+  metadata            String? @db.LongText
+  conqueredTax        Float   @db.Float
+  sanctionedTowns     String? @db.LongText
+  hasActiveWar        Boolean @default(false)
+  manualNationLevel   BigInt? @default(-1)
+}
+
+model TOWNY_RESIDENTS {
+  name             String  @id @db.VarChar(32)
+  town             String? @db.LongText
+  town_ranks       String? @map("town-ranks") @db.LongText
+  nation_ranks     String? @map("nation-ranks") @db.LongText
+  lastOnline       BigInt
+  registered       BigInt
+  joinedTownAt     BigInt
+  isNPC            Boolean @default(false)
+  jailUUID         String? @db.VarChar(36)
+  jailCell         Int?    @db.MediumInt
+  jailHours        Int?    @db.MediumInt
+  jailBail         Float?  @db.Float
+  title            String? @db.LongText
+  surname          String? @db.LongText
+  protectionStatus String? @db.LongText
+  friends          String? @db.LongText
+  metadata         String? @db.LongText
+  uuid             String  @db.VarChar(36)
+  about            String? @db.LongText
+}
+
+model TOWNY_TOWNBLOCKS {
+  world                 String  @db.VarChar(36)
+  x                     Int     @db.MediumInt
+  z                     Int     @db.MediumInt
+  name                  String? @db.LongText
+  price                 Float?  @default(-1) @db.Float
+  taxed                 Boolean @default(true)
+  town                  String? @db.LongText
+  resident              String? @db.LongText
+  type                  Int     @default(0) @db.TinyInt
+  typeName              String? @db.LongText
+  outpost               Boolean @default(false)
+  permissions           String  @db.LongText
+  locked                Boolean @default(false)
+  changed               Boolean @default(false)
+  metadata              String? @db.LongText
+  groupID               String? @db.VarChar(36)
+  districtID            String? @db.VarChar(36)
+  claimedAt             BigInt
+  trustedResidents      String? @db.LongText
+  customPermissionData  String? @db.LongText
+  minTownMembershipDays Int     @default(-1) @db.SmallInt
+  maxTownMembershipDays Int     @default(-1) @db.SmallInt
+
+  @@id([world, x, z])
+}
