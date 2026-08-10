@@ -1,4 +1,3 @@
-
 article,
 [class*="nd-prose"],
 [class*="prose"],
@@ -11,56 +10,25 @@ article h1, article h2, article h3, article h4,
   letter-spacing: -0.01em;
 }
 
-aside {
-  border-right-color: rgba(212, 160, 23, 0.15) !important;
-}
-
 aside nav a,
 aside a[href] {
-  color: rgba(245, 232, 192, 0.52);
   letter-spacing: 0.012em;
-  transition: color 0.15s ease, background-color 0.15s ease;
-}
-
-aside nav a:hover,
-aside a[href]:hover {
-  color: rgba(212, 160, 23, 0.9);
-  background-color: rgba(212, 160, 23, 0.05) !important;
 }
 
 aside a[data-active="true"],
 aside [aria-current="page"] {
-  color: var(--color-accent-gold) !important;
-  background-color: rgba(212, 160, 23, 0.09) !important;
-  border-color: rgba(212, 160, 23, 0.55) !important;
   font-weight: 600;
 }
 
 aside button:not([aria-label]),
 aside [data-type="folder"] > button {
-  color: rgba(255, 244, 200, 0.42);
   letter-spacing: 0.015em;
-  transition: color 0.15s;
-}
-aside button:not([aria-label]):hover,
-aside [data-type="folder"] > button:hover {
-  color: rgba(212, 160, 23, 0.85) !important;
-}
-
-aside button svg {
-  color: rgba(212, 160, 23, 0.35);
-}
-
-aside hr,
-aside [role="separator"] {
-  border-color: rgba(212, 160, 23, 0.1) !important;
 }
 
 [data-toc] > p,
 [data-toc] > div > p,
 nav[aria-label*="page" i] > p,
 nav[aria-label*="table" i] > p {
-  color: rgba(255, 244, 200, 0.28);
   font-size: 0.65rem;
   letter-spacing: 0.12em;
   text-transform: uppercase;
@@ -70,133 +38,93 @@ nav[aria-label*="table" i] > p {
 [data-toc] a,
 nav[aria-label*="page" i] a,
 nav[aria-label*="table" i] a {
-  color: rgba(245, 232, 192, 0.38);
   font-size: 0.8rem;
   letter-spacing: 0.012em;
-  transition: color 0.15s;
-}
-
-[data-toc] a:hover,
-nav[aria-label*="page" i] a:hover,
-nav[aria-label*="table" i] a:hover {
-  color: rgba(212, 160, 23, 0.85) !important;
 }
 
 [data-toc] a[data-active="true"],
 [data-toc] a[aria-current],
 nav[aria-label*="page" i] a[data-active="true"],
 nav[aria-label*="table" i] a[data-active="true"] {
-  color: var(--color-accent-gold) !important;
   font-weight: 600;
-}
-
-[data-toc] {
-  border-left-color: rgba(212, 160, 23, 0.12) !important;
-}
-
-[data-dialog-overlay],
-[role="dialog"][aria-label*="Search" i],
-[role="dialog"][aria-label*="Поиск" i] {
-  background: rgba(0, 0, 0, 0.7) !important;
 }
 
 [role="dialog"] input[type="search"],
 [role="dialog"] input[type="text"] {
-  background: rgba(20, 18, 9, 0.9) !important;
-  border-color: rgba(212, 160, 23, 0.25) !important;
-  color: var(--color-text-primary) !important;
   letter-spacing: 0.015em;
 }
 
 [role="dialog"] [role="option"],
 [role="dialog"] [role="listbox"] li {
-  color: rgba(245, 232, 192, 0.7);
   letter-spacing: 0.012em;
-  transition: background-color 0.1s;
-}
-[role="dialog"] [role="option"][aria-selected="true"],
-[role="dialog"] [role="option"]:hover {
-  background-color: rgba(212, 160, 23, 0.08) !important;
-  color: rgba(212, 160, 23, 0.9) !important;
 }
 
 nav[aria-label="breadcrumb"] a,
 nav[aria-label="Breadcrumb"] a,
 [aria-label="breadcrumb"] a {
-  color: rgba(245, 232, 192, 0.45);
   letter-spacing: 0.015em;
-  transition: color 0.15s;
-}
-nav[aria-label="breadcrumb"] a:hover,
-[aria-label="breadcrumb"] a:hover {
-  color: rgba(212, 160, 23, 0.85);
-}
-nav[aria-label="breadcrumb"] [aria-hidden="true"],
-[aria-label="breadcrumb"] [aria-hidden="true"] {
-  color: rgba(212, 160, 23, 0.25);
 }
 
+/*
+  `opacity` on ::-webkit-scrollbar-thumb is ignored by most browsers, so
+  this used to render at full brightness regardless of the value here —
+  encode the transparency into the color itself instead (color-mix keeps
+  the gold hue while actually reducing alpha, unlike a plain transparent
+  fade which would shift towards black/white — see PageBackground.tsx).
+*/
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 4px;
+  height: 4px;
 }
 ::-webkit-scrollbar-track {
-  background: var(--color-bg-page);
+  background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: rgba(212,160,23,0.25);
+  background: color-mix(in srgb, var(--color-fd-primary) 25%, transparent);
   border-radius: 3px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(212,160,23,0.45);
+  background: color-mix(in srgb, var(--color-fd-primary) 45%, transparent);
 }
 
-::selection {
-  background: rgba(212,160,23,0.25);
-  color: #fdf8e8;
+/*
+  Removed hardcoded colors (rgba, hex) that broke light mode.
+  Fumadocs will now inherit standard colors from `--fd-primary`,
+  `--fd-background`, `--fd-foreground` etc. defined in globals.css!
+*/
+
+/*
+  The docs layout's default grid-template-areas already gives "toc" TWO
+  columns — a fixed `--fd-toc-width` track plus a flexible trailing gutter
+  (reserved so the whole layout stays centered on ultra-wide screens), e.g.
+  `"sidebar sidebar main toc toc"`. So `grid-area: toc` on #nd-toc already
+  spans both columns; the only reason its background stopped short of the
+  real edge is that #nd-toc also has an explicit `w-(--fd-toc-width)`
+  (268px) class, which overrides the grid's default item-stretch behavior.
+  Just remove that constraint here so #nd-toc fills the area it's already
+  given — do NOT touch the grid template itself (an earlier attempt at that
+  merged the two "toc" columns into one, which changed how leftover space
+  is distributed between the leading and trailing gutters and silently
+  shifted the whole sidebar+content block off-center).
+*/
+#nd-toc {
+  width: 100%;
+}
+#nd-toc > * {
+  max-width: var(--fd-toc-width, 268px);
 }
 
-#nd-sidebar [data-state="open"] > div {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  margin-top: 4px;
-}
-
-#nd-sidebar [data-state="open"] > div.relative::before {
-  background: linear-gradient(
-    180deg,
-    rgba(212,160,23,0.18),
-    rgba(212,160,23,0.85),
-    rgba(212,160,23,0.18)
-  ) !important;
-}
-
-#nd-sidebar [data-state="open"] a[data-active="true"]::before {
-  background: rgba(245, 232, 192, 0.8) !important;
-}
-
-#nd-toc .border-s {
-  border-left-color: rgba(212, 160, 23, 0.12) !important;
-}
-
-#nd-toc a[data-active="true"] {
-  color: var(--color-accent-gold) !important;
-  font-weight: 600;
-  position: relative;
-}
-
-#nd-toc a[data-active="true"]::before {
-  content: "";
-  position: absolute;
-  left: 0;
-  top: 0.2rem;
-  bottom: 0.2rem;
-  width: 1px;
-  background: var(--color-accent-gold) !important;
-  border-radius: 999px;
-}
-
-#nd-toc [role="none"] {
-  display: none !important;
+/*
+  #nd-page (the <article> "main" content column) is a grid item that
+  stretches to match the row's height (sidebar/toc can be tall), then
+  is *also* a flex column internally. Without resetting min-height here,
+  that stretch can fight with the natural content flow, leaving the
+  GitHubLastModified/EditOnGitHub footer row (which uses margin-top:auto
+  in page.tsx to stick to the bottom) sized inconsistently between pages
+  of different content length. min-height: auto lets it size to content
+  while the grid's default align-self: stretch still gives it room for
+  the footer to push into.
+*/
+#nd-page {
+  min-height: auto;
 }

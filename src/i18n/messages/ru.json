@@ -1,0 +1,148 @@
+{
+  "Metadata": {
+    "Home": {
+      "title": "DuckTale — Minecraft Network",
+      "description": "DuckTale — сеть Minecraft серверов. DuckBurg — сервер выживания, DuckHood — сервер творчества."
+    },
+    "NotFound": {
+      "title": "Страница не найдена",
+      "description": "Эта страница не существует. Вернитесь на главную DuckTale."
+    }
+  },
+  "Docs": {
+    "lastModifiedUnknown": "Дата последнего обновления неизвестна"
+  },
+  "Nav": {
+    "about": "О проекте",
+    "servers": "Серверы",
+    "infrastructure": "Инфраструктура",
+    "community": "Сообщество",
+    "home": "DuckTale — на главную",
+    "menuTitle": "Навигация",
+    "openMenu": "Открыть меню",
+    "closeMenu": "Закрыть меню",
+    "duckShow": "Показать уточку",
+    "duckHide": "Скрыть уточку",
+    "switchLanguage": "Переключить язык"
+  },
+  "Hero": {
+    "badge": "Minecraft • Java Edition",
+    "tagline": "Сеть серверов",
+    "description": "{siteName} — это сеть Minecraft серверов, объединяющая сервер выживания <duckburg>DuckBurg</duckburg> и сервер творчества <duckhood>DuckHood</duckhood>. Каждый найдёт здесь свой путь.",
+    "ctaPrimary": "Выбрать сервер",
+    "ctaSecondary": "Узнать больше"
+  },
+  "About": {
+    "label": "О проекте",
+    "title": "Что такое DuckTale?",
+    "description": "DuckTale — это не просто Minecraft. Это сообщество людей, которые любят строить, исследовать и создавать. Мы работаем с {year} года и за это время вырастили теплое и дружное комьюнити.",
+    "features": {
+      "protection": {
+        "title": "Защита и стабильность",
+        "desc": "Выделенные серверы с защитой от DDoS, ежедневные бэкапы, аптайм 99.9%."
+      },
+      "community": {
+        "title": "Живое сообщество",
+        "desc": "Дружный Discord, регулярные ивенты, активные администраторы всегда на связи."
+      }
+    },
+    "stats": {
+      "years": { "n": "2+", "label": "года работы проекта" },
+      "visitors": { "n": "1000+", "label": "человек посетило проект" }
+    }
+  },
+  "Servers": {
+    "label": "Наши серверы",
+    "title": "Выбери свой мир",
+    "detailsCta": "Подробнее",
+    "connect": {
+      "label": "Адрес для подключения",
+      "edition": "Minecraft Java Edition • версии {version}"
+    },
+    "status": {
+      "loading": "Загрузка...",
+      "unavailable": "Недоступно",
+      "online": "Онлайн",
+      "offline": "Офлайн",
+      "players": "{count} игроков"
+    },
+    "items": {
+      "duckburg": {
+        "tagline": "Выживание",
+        "description": "Классическое выживание с уникальной экономикой, кланами, аукционом и сотнями часов контента.",
+        "features": ["Экономика", "Города", "Без вайпов", "PvE", "Квесты"]
+      },
+      "duckhood": {
+        "tagline": "Креатив",
+        "description": "Безграничное пространство для ваших идей. Личные участки, общий мир, конкурсы строений.",
+        "features": ["Личные участки", "WorldEdit", "PvE"]
+      }
+    }
+  },
+  "Infrastructure": {
+    "label": "Инфраструктура",
+    "title": "Архитектура сети",
+    "description": "Схема связи между серверами DuckTale. Наведи на узел или линию — узнай подробности. Узлы можно перетаскивать, пространство — двигать.",
+    "titleBar": "DUCKTALE — Топология сети",
+    "hints": {
+      "hover": "Наведи / тапни, чтобы узнать подробнее",
+      "drag": "Потяни, чтобы переместить"
+    },
+    "legendLines": {
+      "public": "Общий трафик",
+      "secure": "Защищенный трафик",
+      "services": "Сервисы"
+    },
+    "legendNodes": {
+      "core": "Основная инфраструктура",
+      "aux": "Вспомогательный сервис"
+    },
+    "nodes": {
+      "client":   { "label": "Игрок",      "sublabel": "Minecraft клиент",      "tooltip": "Клиент подключается с Minecraft Java Edition ≥ 1.21.x" },
+      "proxy":    { "label": "Velocity",   "sublabel": "Единая точка входа",    "tooltip": "Proxy-сервер Velocity — точка входа в сеть DuckTale. Маршрутизирует трафик между всеми серверами." },
+      "auth":     { "label": "Auth",       "sublabel": "Авторизация",           "tooltip": "Система авторизации игроков перед допуском на серверы." },
+      "hub":      { "label": "Hub",        "sublabel": "Лобби серверов",        "tooltip": "Сервер-лобби для выбора игрового сервера." },
+      "duckburg": { "label": "DuckBurg",   "sublabel": "Выживание",             "tooltip": "Игровой сервер выживания" },
+      "duckhood": { "label": "DuckHood",   "sublabel": "Креатив",               "tooltip": "Игровой творческий сервер" },
+      "backup":   { "label": "Бэкапы",     "sublabel": "Ежедневно",             "tooltip": "Ежедневные резервные копии всех игровых данных." },
+      "voice":    { "label": "Voice-Chat", "sublabel": "Голосовой чат сервера", "tooltip": "Голосовой внутриигровой чат." }
+    },
+    "edges": {
+      "clientToProxy":    "Подключение игрока к точке входа сети",
+      "proxyToAuth":      "Velocity направляет на сервис авторизации",
+      "authToHub":        "При успешной авторизации перенаправляет на HUB",
+      "hubToDuckhood":    "Перенаправление между HUB и DuckHood",
+      "hubToDuckburg":    "Перенаправление между HUB и DuckBurg",
+      "duckhoodToDuckburg": "Перенаправление между DuckHood и DuckBurg",
+      "backupToDuckburg": "Автоматическое резервное копирование DuckBurg",
+      "backupToDuckhood": "Автоматическое резервное копирование DuckHood",
+      "voiceToDuckburg":  "Предоставление голосового чата для сервера DuckBurg",
+      "voiceToDuckhood":  "Предоставление голосового чата для сервера DuckHood",
+      "voiceToHub":       "Предоставление голосового чата для сервера HUB"
+    }
+  },
+  "Social": {
+    "label": "Сообщество",
+    "title": "Мы в соцсетях",
+    "description": "Вступай в наши каналы — следи за новостями, участвуй в ивентах и общайся с другими игроками.",
+    "visit": "Перейти →",
+    "footerNote": "Присоединяйся, с нами весело",
+    "items": {
+      "discord": { "sublabel": "Основное сообщество" },
+      "telegram": { "sublabel": "Анонсы стримов на сервере" },
+      "twitch": { "sublabel": "Стримы от создателя сервера" }
+    }
+  },
+  "Footer": {
+    "existsSince": "Существует с {year} года.",
+    "legalNotice": "Не является официальным сервисом Minecraft. Не одобрено и не связано с компанией Mojang, Microsoft."
+  },
+  "NotFound": {
+    "badge": "Страница не найдена",
+    "heading": "Здесь пусто",
+    "description": "Такой страницы не существует. Возможно, ссылка устарела или была удалена.",
+    "ctaHome": "На главную",
+    "ctaServers": "Выбрать сервер",
+    "docsHint": "Или перейдите в документацию"
+  }
+}

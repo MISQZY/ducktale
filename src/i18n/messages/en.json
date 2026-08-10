@@ -1,0 +1,148 @@
+{
+  "Metadata": {
+    "Home": {
+      "title": "DuckTale — Minecraft Network",
+      "description": "DuckTale is a network of Minecraft servers. DuckBurg is a survival server, DuckHood is a creative server."
+    },
+    "NotFound": {
+      "title": "Page not found",
+      "description": "This page doesn't exist. Head back to the DuckTale homepage."
+    }
+  },
+  "Docs": {
+    "lastModifiedUnknown": "Last updated date unknown"
+  },
+  "Nav": {
+    "about": "About",
+    "servers": "Servers",
+    "infrastructure": "Infrastructure",
+    "community": "Community",
+    "home": "DuckTale — home",
+    "menuTitle": "Navigation",
+    "openMenu": "Open menu",
+    "closeMenu": "Close menu",
+    "duckShow": "Show the duck",
+    "duckHide": "Hide the duck",
+    "switchLanguage": "Switch language"
+  },
+  "Hero": {
+    "badge": "Minecraft • Java Edition",
+    "tagline": "Server network",
+    "description": "{siteName} is a network of Minecraft servers, combining the survival server <duckburg>DuckBurg</duckburg> and the creative server <duckhood>DuckHood</duckhood>. Everyone will find their path here.",
+    "ctaPrimary": "Choose a server",
+    "ctaSecondary": "Learn more"
+  },
+  "About": {
+    "label": "About",
+    "title": "What is DuckTale?",
+    "description": "DuckTale is more than just Minecraft. It's a community of people who love building, exploring and creating. We've been running since {year} and have grown a warm, close-knit community.",
+    "features": {
+      "protection": {
+        "title": "Protection & stability",
+        "desc": "Dedicated servers with DDoS protection, daily backups, 99.9% uptime."
+      },
+      "community": {
+        "title": "Living community",
+        "desc": "A friendly Discord, regular events, active admins always around."
+      }
+    },
+    "stats": {
+      "years": { "n": "2+", "label": "years running" },
+      "visitors": { "n": "1000+", "label": "people visited the project" }
+    }
+  },
+  "Servers": {
+    "label": "Our servers",
+    "title": "Choose your world",
+    "detailsCta": "Learn more",
+    "connect": {
+      "label": "Connection address",
+      "edition": "Minecraft Java Edition • versions {version}"
+    },
+    "status": {
+      "loading": "Loading...",
+      "unavailable": "Unavailable",
+      "online": "Online",
+      "offline": "Offline",
+      "players": "{count} players"
+    },
+    "items": {
+      "duckburg": {
+        "tagline": "Survival",
+        "description": "Classic survival with a unique economy, clans, an auction house and hundreds of hours of content.",
+        "features": ["Economy", "Towns", "No wipes", "PvE", "Quests"]
+      },
+      "duckhood": {
+        "tagline": "Creative",
+        "description": "A boundless space for your ideas. Personal plots, a shared world, building contests.",
+        "features": ["Personal plots", "WorldEdit", "PvE"]
+      }
+    }
+  },
+  "Infrastructure": {
+    "label": "Infrastructure",
+    "title": "Network architecture",
+    "description": "A map of how DuckTale's servers connect. Hover a node or line to see details. Nodes can be dragged, the canvas can be panned.",
+    "titleBar": "DUCKTALE — Network topology",
+    "hints": {
+      "hover": "Hover / tap to see details",
+      "drag": "Drag to move"
+    },
+    "legendLines": {
+      "public": "Public traffic",
+      "secure": "Secured traffic",
+      "services": "Services"
+    },
+    "legendNodes": {
+      "core": "Core infrastructure",
+      "aux": "Auxiliary service"
+    },
+    "nodes": {
+      "client":   { "label": "Player",     "sublabel": "Minecraft client",   "tooltip": "The client connects with Minecraft Java Edition ≥ 1.21.x" },
+      "proxy":    { "label": "Velocity",   "sublabel": "Single entry point", "tooltip": "The Velocity proxy is the entry point to the DuckTale network. Routes traffic between all servers." },
+      "auth":     { "label": "Auth",       "sublabel": "Authorization",      "tooltip": "Authorizes players before letting them onto the servers." },
+      "hub":      { "label": "Hub",        "sublabel": "Server lobby",       "tooltip": "The lobby server used to pick a game server." },
+      "duckburg": { "label": "DuckBurg",   "sublabel": "Survival",           "tooltip": "The survival game server" },
+      "duckhood": { "label": "DuckHood",   "sublabel": "Creative",           "tooltip": "The creative game server" },
+      "backup":   { "label": "Backups",    "sublabel": "Daily",              "tooltip": "Daily backups of all game data." },
+      "voice":    { "label": "Voice Chat", "sublabel": "Server voice chat",  "tooltip": "In-game voice chat." }
+    },
+    "edges": {
+      "clientToProxy":    "Player connects to the network's entry point",
+      "proxyToAuth":      "Velocity forwards to the authorization service",
+      "authToHub":        "Redirects to the HUB after successful authorization",
+      "hubToDuckhood":    "Transfer between HUB and DuckHood",
+      "hubToDuckburg":    "Transfer between HUB and DuckBurg",
+      "duckhoodToDuckburg": "Transfer between DuckHood and DuckBurg",
+      "backupToDuckburg": "Automatic backups of DuckBurg",
+      "backupToDuckhood": "Automatic backups of DuckHood",
+      "voiceToDuckburg":  "Provides voice chat for the DuckBurg server",
+      "voiceToDuckhood":  "Provides voice chat for the DuckHood server",
+      "voiceToHub":       "Provides voice chat for the HUB server"
+    }
+  },
+  "Social": {
+    "label": "Community",
+    "title": "Find us online",
+    "description": "Join our channels — follow the news, take part in events and chat with other players.",
+    "visit": "Visit →",
+    "footerNote": "Join us, it's fun here",
+    "items": {
+      "discord": { "sublabel": "Main community" },
+      "telegram": { "sublabel": "Stream announcements" },
+      "twitch": { "sublabel": "Streams from the server's creator" }
+    }
+  },
+  "Footer": {
+    "existsSince": "Running since {year}.",
+    "legalNotice": "Not an official Minecraft service. Not approved by or affiliated with Mojang or Microsoft."
+  },
+  "NotFound": {
+    "badge": "Page not found",
+    "heading": "Nothing here",
+    "description": "This page doesn't exist. The link may be outdated or the page may have been removed.",
+    "ctaHome": "Go home",
+    "ctaServers": "Choose a server",
+    "docsHint": "Or head to the documentation"
+  }
+}

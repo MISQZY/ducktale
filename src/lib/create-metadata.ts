@@ -1,7 +1,7 @@
 import { getTranslations } from "next-intl/server";
 
 type MetadataParams = {
-  params: Promise<{ locale: string }>;
+  params: Promise<{ lang: string }>;
 };
 
 type MetadataConfig = {
@@ -10,7 +10,7 @@ type MetadataConfig = {
 
 export function createMetadata(config: MetadataConfig) {
   return async function generateMetadata({ params }: MetadataParams) {
-    const { locale } = await params;
+    const { lang: locale } = await params;
 
     const t = await getTranslations({
       locale,

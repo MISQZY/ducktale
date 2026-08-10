@@ -5,6 +5,9 @@ import ServersSection from "@/components/ServersSection";
 import NetworkDiagram from "@/components/NetworkDiagram";
 import SocialSection from "@/components/SocialSection";
 import Footer from "@/components/Footer";
+import { createMetadata } from "@/lib/create-metadata";
+
+export const generateMetadata = createMetadata({ namespace: "Home" });
 
 export default function HomePage() {
   return (

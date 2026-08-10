@@ -43,3 +43,7 @@ docker-compose.yml
 
 # Prisma
 node_modules/.prisma/
+
+# Documentation
+/docs/
+

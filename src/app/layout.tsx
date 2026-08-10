@@ -1,23 +1,25 @@
 import type { Metadata } from "next";
-import { RootProvider } from "fumadocs-ui/provider/next";
-import { Cinzel_Decorative, Crimson_Pro, JetBrains_Mono } from "next/font/google";
+import { ThemeProvider } from "next-themes";
+import { Cinzel_Decorative, Lora, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import { cn } from "@/lib/utils";
-import { ServerStatusProvider } from "@/context/ServerStatusContext";
+import { SITE } from "@/config/site";
 
 const fontDisplay = Cinzel_Decorative({
   weight: ["400", "700", "900"],
   subsets: ["latin"],
   variable: "--font-display",
   display: "swap",
+  fallback: ["Georgia", "serif"],
 });
 
-const fontBody = Crimson_Pro({
-  weight: ["300", "400", "600"],
+const fontBody = Lora({
+  weight: ["400", "500", "600"],
   style: ["normal", "italic"],
-  subsets: ["latin", "latin-ext"],
+  subsets: ["latin", "latin-ext", "cyrillic", "cyrillic-ext"],
   variable: "--font-body",
   display: "swap",
+  fallback: ["Georgia", "serif"],
 });
 
 const fontMono = JetBrains_Mono({
@@ -25,12 +27,10 @@ const fontMono = JetBrains_Mono({
   subsets: ["latin"],
   variable: "--font-mono",
   display: "swap",
+  fallback: ["monospace"],
 });
 
-const siteURL = new URL(
-  process.env.NEXT_PUBLIC_SITE_URL ??
-    (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000")
-);
+const siteURL = new URL(SITE.url);
 
 export const metadata: Metadata = {
   metadataBase: siteURL,
@@ -62,15 +62,20 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
+import { getLocale } from "next-intl/server";
+
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const locale = await getLocale();
+
   return (
     <html
-      lang="ru"
+      lang={locale}
       suppressHydrationWarning
+      data-scroll-behavior="smooth"
       className={cn(
         "scroll-smooth scroll-pt-16",
         fontDisplay.variable,
@@ -78,10 +83,16 @@ export default function RootLayout({
         fontMono.variable
       )}
     >
-      <body>
-        <RootProvider theme={{ defaultTheme: "dark", forcedTheme: "dark" }}>
-          <ServerStatusProvider>{children}</ServerStatusProvider>
-        </RootProvider>
+      <body suppressHydrationWarning className="bg-background text-foreground antialiased min-h-screen">
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="dark"
+          enableSystem={false}
+          value={{ light: "light", dark: "dark" }}
+          disableTransitionOnChange
+        >
+          {children}
+        </ThemeProvider>
       </body>
     </html>
   );

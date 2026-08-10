@@ -1,21 +1,22 @@
 import { getPageImage, getDocsSource } from "@/lib/source";
 import { SERVERS } from "@/config/servers";
+import { REPO } from "@/config/site";
 import { notFound } from "next/navigation";
-import { execSync } from "child_process";
 import { Authors } from "@/components/docs/Authors";
+import { GitHubLastModified } from "@/components/docs/GitHubLastModified";
 import {
   DocsBody,
   DocsDescription,
   DocsPage,
   DocsTitle,
   EditOnGitHub,
-  PageLastUpdate,
 } from "fumadocs-ui/layouts/docs/page";
 import { getMDXComponents } from "@/mdx-components";
 import { createRelativeLink } from "fumadocs-ui/mdx";
 import type { Metadata } from "next";
 
 interface Params {
+  lang: string;
   server: string;
   slug?: string[];
 }
@@ -23,7 +24,7 @@ interface Params {
 export default async function Page(props: {
   params: Promise<Params>;
 }) {
-  const { server, slug = [] } = await props.params;
+  const { lang, server, slug = [] } = await props.params;
 
   const config = SERVERS.find((s) => s.id === server);
   if (!config) notFound();
@@ -31,11 +32,10 @@ export default async function Page(props: {
   const source = getDocsSource(server);
   if (!source) notFound();
 
-  const page = source.getPage(slug);
+  const page = source.getPage(slug, lang);
   if (!page) notFound();
 
   const filePath = `src/content/${server}/${page.path}`;
-  const lastModified = getGitLastModified(filePath);
 
   const MDX = page.data.body;
   const filteredToc = page.data.toc.filter((item) => item.depth <= 3);
@@ -44,9 +44,15 @@ export default async function Page(props: {
     <DocsPage
       toc={filteredToc}
       tableOfContent={{
-        footer: page.data.authors ? (
-          <Authors ids={page.data.authors} />
-        ) : null,
+        container: {
+          className: "border-s border-border bg-fd-card ps-6",
+        },
+        header: <div className="docs-toc-container-marker" />,
+        footer: (
+          <div className="flex flex-col gap-4 mt-auto">
+            {page.data.authors && <Authors ids={page.data.authors} />}
+          </div>
+        ),
       }}
     >
       <DocsTitle>{page.data.title}</DocsTitle>
@@ -59,26 +65,13 @@ export default async function Page(props: {
             a: createRelativeLink(source, page),
           })}
         />
-        <div className="flex justify-between items-center">
-          {lastModified && <PageLastUpdate date={lastModified} />}
-          <EditOnGitHub
-            href={`https://github.com/your-org/ducktale/edit/master/${filePath}`}
-          />
-        </div>
       </DocsBody>
+      <div className="mt-auto pt-4 border-t border-border flex justify-between items-center gap-4 text-xs">
+        <GitHubLastModified date={page.data.lastModified} filePath={filePath} />
+        <EditOnGitHub href={REPO.editUrl(filePath)} />
+      </div>
     </DocsPage>
   );
-}
-
-export function getGitLastModified(filePath: string): Date | null {
-  try {
-    const result = execSync(`git log -1 --format="%aI" -- "${filePath}"`, {
-      encoding: "utf8",
-    }).trim();
-    return result ? new Date(result) : null;
-  } catch {
-    return null;
-  }
 }
 
 export async function generateStaticParams() {
@@ -92,7 +85,7 @@ export async function generateStaticParams() {
 export async function generateMetadata(props: {
   params: Promise<Params>;
 }): Promise<Metadata> {
-  const { server, slug = [] } = await props.params;
+  const { lang, server, slug = [] } = await props.params;
 
   const config = SERVERS.find((s) => s.id === server);
   if (!config) notFound();
@@ -100,7 +93,7 @@ export async function generateMetadata(props: {
   const source = getDocsSource(server);
   if (!source) notFound();
 
-  const page = source.getPage(slug);
+  const page = source.getPage(slug, lang);
   if (!page) notFound();
 
   return {

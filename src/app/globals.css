@@ -31,19 +31,27 @@
   --color-duck-muted:  #252318;
 
   --font-display: "Cinzel Decorative", serif;
-  --font-body:    "Crimson Pro", serif;
+  --font-body:    "Lora", serif;
   --font-mono:    "JetBrains Mono", monospace;
 }
 
 :root {
-  --fd-primary:           var(--color-accent-gold);
-  --fd-background:        var(--color-bg-page);
-  --fd-foreground:        var(--color-text-primary);
-  --fd-muted:             var(--color-bg-elevated);
-  --fd-muted-foreground:  var(--color-text-secondary);
-  --fd-border:            #2e2a1a;
-  --fd-card:              var(--color-bg-surface);
-  --fd-card-foreground:   var(--color-text-primary);
+  --color-fd-background: var(--color-bg-page);
+  --color-fd-foreground: var(--color-text-primary);
+  --color-fd-muted: var(--color-bg-elevated);
+  --color-fd-muted-foreground: var(--color-text-secondary);
+  --color-fd-popover: var(--color-bg-page);
+  --color-fd-popover-foreground: var(--color-text-primary);
+  --color-fd-card: var(--color-bg-surface);
+  --color-fd-card-foreground: var(--color-text-primary);
+  --color-fd-border: var(--color-border-subtle);
+  --color-fd-primary: var(--color-accent-gold);
+  --color-fd-primary-foreground: #ffffff;
+  --color-fd-secondary: var(--color-bg-elevated);
+  --color-fd-secondary-foreground: var(--color-text-primary);
+  --color-fd-accent: var(--color-bg-elevated);
+  --color-fd-accent-foreground: var(--color-text-primary);
+  --color-fd-ring: var(--color-accent-gold);
 
   --background:          oklch(0.09 0.015 75);
   --foreground:          oklch(0.94 0.04 80);
@@ -110,8 +118,87 @@
   --color-scrollbar-thumb-hover: rgba(212, 160, 23, 0.45);
 
   --font-display: "Cinzel Decorative", serif;
-  --font-body: "Crimson Pro", serif;
+  --font-body: "Lora", serif;
   --font-mono: "JetBrains Mono", monospace;
+}
+
+.light {
+  --color-fd-background: var(--color-bg-page);
+  --color-fd-foreground: var(--color-text-primary);
+  --color-fd-muted: var(--color-bg-elevated);
+  --color-fd-muted-foreground: var(--color-text-secondary);
+  --color-fd-popover: var(--color-bg-page);
+  --color-fd-popover-foreground: var(--color-text-primary);
+  --color-fd-card: var(--color-bg-surface);
+  --color-fd-card-foreground: var(--color-text-primary);
+  --color-fd-border: #e5e7eb;
+  --color-fd-primary: var(--color-accent-gold);
+  --color-fd-primary-foreground: #ffffff;
+  --color-fd-secondary: var(--color-bg-elevated);
+  --color-fd-secondary-foreground: var(--color-text-primary);
+  --color-fd-accent: var(--color-bg-elevated);
+  --color-fd-accent-foreground: var(--color-text-primary);
+  --color-fd-ring: var(--color-accent-gold);
+
+  --background:          oklch(0.96 0 0);
+  --foreground:          oklch(0.15 0 0);
+  --card:                oklch(1 0 0);
+  --card-foreground:     oklch(0.15 0 0);
+  --popover:             oklch(1 0 0);
+  --popover-foreground:  oklch(0.2 0 0);
+  --primary:             oklch(0.68 0.13 72);
+  --primary-foreground:  oklch(0.99 0.01 80);
+  --secondary:           oklch(0.96 0 0);
+  --secondary-foreground:oklch(0.2 0 0);
+  --muted:               oklch(0.96 0 0);
+  --muted-foreground:    oklch(0.45 0 0);
+  --accent:              oklch(0.96 0 0);
+  --accent-foreground:   oklch(0.2 0 0);
+  --destructive:         oklch(0.5 0.2 22);
+  --border:              oklch(0.9 0 0);
+  --input:               oklch(0.9 0 0);
+  --ring:                oklch(0.68 0.13 72 / 50%);
+
+  --color-bg-page: #fafafa;
+  --color-bg-surface: #ffffff;
+  --color-bg-elevated: #f4f4f5;
+  --color-bg-muted: #e4e4e7;
+  --color-bg-strong: #d4d4d8;
+
+  --color-text-primary: #18181b;
+  --color-text-secondary: #52525b;
+  --color-text-dim: rgba(24, 24, 27, 0.6);
+  --color-text-faint: rgba(24, 24, 27, 0.4);
+  --color-text-ghost: rgba(24, 24, 27, 0.2);
+
+  --color-accent-gold-soft: rgba(212, 160, 23, 0.08);
+  --color-accent-gold-faint: rgba(212, 160, 23, 0.03);
+  --color-accent-gold-muted: rgba(212, 160, 23, 0.12);
+
+  --color-border-subtle: #e4e4e7;
+  --color-border-soft: rgba(212, 160, 23, 0.15);
+  --color-border-weak: rgba(212, 160, 23, 0.08);
+
+  --color-shadow-deep: rgba(0, 0, 0, 0.05);
+  --color-dialog-overlay: rgba(255, 255, 255, 0.8);
+  --color-input-bg: rgba(255, 255, 255, 0.9);
+  --color-input-border: #d4d4d8;
+
+  --color-link-hover-bg: rgba(212, 160, 23, 0.05);
+  --color-link-active-bg: rgba(212, 160, 23, 0.08);
+  --color-selection-bg: rgba(212, 160, 23, 0.15);
+
+  --color-stone-950: #fafafa;
+  --color-stone-900: #ffffff;
+  --color-stone-800: #f4f4f5;
+  --color-stone-700: #e4e4e7;
+  --color-stone-600: #d4d4d8;
+  --color-stone-500: #a1a1aa;
+
+  --color-duck-dark: #fafafa;
+  --color-duck-darker: #f4f4f5;
+  --color-duck-stone: #ffffff;
+  --color-duck-muted: #e4e4e7;
 }
 
 html {

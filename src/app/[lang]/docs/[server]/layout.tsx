@@ -2,31 +2,35 @@ import { DocsLayout } from "fumadocs-ui/layouts/docs";
 import type { ReactNode } from "react";
 import { notFound } from "next/navigation";
 import { SERVERS } from "@/config/servers";
+import { REPO } from "@/config/site";
 import { getDocsSource } from "@/lib/source";
 import Logo from "@/components/ui/Logo";
-import { ServerBanner } from "@/components/docs/ServerBanner";
+import { ServerSwitcher } from "@/components/docs/ServerSwitcher";
 
 export default async function DocsServerLayout({
   children,
   params,
 }: {
   children: ReactNode;
-  params: Promise<{ server: string }>;
+  params: Promise<{ lang: string; server: string }>;
 }) {
-  const { server } = await params;
+  const { lang, server } = await params;
   const config = SERVERS.find((s) => s.id === server);
   if (!config) notFound();
 
   const source = getDocsSource(server);
   if (!source) notFound();
 
+  const tree = source.pageTree[lang];
+  if (!tree) notFound();
+
   return (
     <DocsLayout
-      tree={source.pageTree}
-      themeSwitch={{ enabled: false }}
+      tree={tree}
       nav={{ title: <Logo /> }}
+      githubUrl={REPO.url}
       sidebar={{
-        banner: <ServerBanner config={config} />,
+        banner: <ServerSwitcher current={config} />,
       }}
     >
       {children}

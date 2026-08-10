@@ -3,6 +3,8 @@ import { type InferPageType, loader, type LoaderOutput } from "fumadocs-core/sou
 import { lucideIconsPlugin } from "fumadocs-core/source/lucide-icons";
 import { icons } from "lucide-react";
 import { createElement } from "react";
+import { i18n } from "@/i18n/i18n";
+import { SITE } from "@/config/site";
 
 function iconResolver(icon?: string) {
   if (!icon) return;
@@ -20,19 +22,21 @@ export const docsSources = {
     baseUrl: "/docs/duckburg",
     source: duckburgDocs.toFumadocsSource(),
     plugins: [lucideIconsPlugin()],
+    i18n,
   }),
   duckhood: loader({
     icon: iconResolver,
     baseUrl: "/docs/duckhood",
     source: duckhoodDocs.toFumadocsSource(),
     plugins: [lucideIconsPlugin()],
+    i18n,
   }),
 };
 
 export type DocsSource = LoaderOutput<{
   meta: (typeof docsSources)["duckburg"]["$infer"]["meta"];
   page: (typeof docsSources)["duckburg"]["$infer"]["page"];
-  i18n: undefined;
+  i18n: typeof i18n;
 }>;
 
 export function getDocsSource(serverId: string) {
@@ -47,6 +51,6 @@ export function getPageImage(
 
   return {
     segments,
-    url: `https://flectone.net/og/docs/${segments.join("/")}`,
+    url: `${SITE.url}/og/docs/${segments.join("/")}`,
   };
 }
