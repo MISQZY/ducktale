@@ -7,7 +7,7 @@ import { Sword, Map, Users, ShoppingCart, Shield, Home } from "lucide-react";
 
 <FeatureGrid features={[
   { icon: Sword,        title: "PvP",        description: "Войны между городами, защита территорий и осады" },
-  { icon: Map,          title: "Карта",       description: "Каждый участок — визуально отображается на dynmap" },
+  { icon: Map,          title: "Карта",       description: "Каждый участок — визуально отображается на карте" },
   { icon: Users,        title: "Жители",      description: "Приглашай игроков, назначай роли и налоги" },
   { icon: ShoppingCart, title: "Экономика",   description: "Городская казна, налоги, торговые зоны" },
   { icon: Shield,       title: "Защита",      description: "Участки города защищены от гриферства" },
@@ -22,7 +22,7 @@ import { Sword, Map, Users, ShoppingCart, Shield, Home } from "lucide-react";
     children: (
       <p>
         Город должен располагаться не ближе <strong>300 блоков от спавна</strong>.
-        Используй <code>/t spawn</code> для телепортации или dynmap для разведки карты.
+        Используй <code>/t spawn</code> для телепортации или <a href="/docs/duckburg/map">карту</a> для разведки местности.
       </p>
     ),
   },
