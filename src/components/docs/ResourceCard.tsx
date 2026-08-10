@@ -2,7 +2,6 @@
 
 import { memo, useState, useCallback, useMemo } from "react";
 import {
-  Package,
   Download,
   ChevronLeft,
   ChevronRight,
@@ -11,6 +10,7 @@ import {
   ExternalLink,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { EXTERNAL_APIS } from "@/config/external-apis";
 import { DuckBadge } from "@/components/ui/duck/badge";
 import { DuckButton } from "@/components/ui/duck/button";
 import {
@@ -27,10 +27,12 @@ import { CarouselImage } from "./resource-card/CarouselImage";
 import { ImageViewer } from "./resource-card/ImageViewer";
 import { VersionSelector } from "./resource-card/VersionSelector";
 import { useModrinth } from "./resource-card/useModrinth";
+import { RESOURCE_TYPE_META, DEFAULT_RESOURCE_TYPE } from "./resource-card/resourceTypes";
 import type {
   ResourceCardProps,
   ResourceCardGridProps,
   ResourceImage,
+  ResourceType,
   Dependency,
   ModrinthVersion,
 } from "./resource-card/types";
@@ -39,9 +41,15 @@ export type { ResourceCardProps, ResourceCardGridProps } from "./resource-card/t
 
 const CAROUSEL_HEIGHT = 176;
 const PRELOAD_NEIGHBORS = 2;
+const CARD_WIDTH_CLASS = "w-full";
 
 export const ResourceCardGrid = memo(({ children, className }: ResourceCardGridProps) => (
-  <div className={cn("not-prose flex flex-wrap gap-4", className)}>
+  <div
+    className={cn(
+      "not-prose grid grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-4",
+      className
+    )}
+  >
     {children}
   </div>
 ));
@@ -50,27 +58,28 @@ ResourceCardGrid.displayName = "ResourceCardGrid";
 const SkeletonCard = memo(({ className }: { className?: string }) => (
   <DuckCard
     className={cn(
-      "w-96 shrink-0 flex flex-col border-amber-900/20 bg-duck-stone/40",
+      CARD_WIDTH_CLASS,
+      "flex flex-col border-primary/20 bg-duck-stone/40",
       className
     )}
   >
     <DuckCardHeader className="pb-3">
       <div className="flex items-center gap-2">
-        <Loader2 size={15} className="text-amber-500/60 shrink-0 animate-spin" />
-        <div className="h-4 w-40 rounded bg-amber-900/30 animate-pulse" />
+        <Loader2 size={15} className="text-foreground/60 shrink-0 animate-spin" />
+        <div className="h-4 w-40 rounded bg-primary/30 animate-pulse" />
       </div>
       <div className="mt-2 space-y-2">
-        <div className="h-3 w-full rounded bg-amber-900/20 animate-pulse" />
-        <div className="h-3 w-3/4 rounded bg-amber-900/20 animate-pulse" />
+        <div className="h-3 w-full rounded bg-primary/20 animate-pulse" />
+        <div className="h-3 w-3/4 rounded bg-primary/20 animate-pulse" />
       </div>
     </DuckCardHeader>
     <DuckCardContent className="pt-0 space-y-3">
       <div
-        className="rounded-xl border border-amber-900/20 bg-black/30 animate-pulse"
+        className="rounded-xl border border-primary/20 bg-muted animate-pulse"
         style={{ height: `${CAROUSEL_HEIGHT}px` }}
       />
-      <div className="h-10 w-full rounded-lg bg-amber-900/30 animate-pulse" />
-      <div className="h-10 w-full rounded-lg bg-amber-900/20 animate-pulse" />
+      <div className="h-10 w-full rounded-lg bg-primary/30 animate-pulse" />
+      <div className="h-10 w-full rounded-lg bg-primary/20 animate-pulse" />
     </DuckCardContent>
   </DuckCard>
 ));
@@ -79,16 +88,17 @@ SkeletonCard.displayName = "SkeletonCard";
 const ErrorCard = memo(({ message, className }: { message: string; className?: string }) => (
   <DuckCard
     className={cn(
-      "w-96 shrink-0 flex flex-col border-red-900/30 bg-duck-stone/40",
+      CARD_WIDTH_CLASS,
+      "flex flex-col border-red-900/30 bg-duck-stone/40",
       className
     )}
   >
     <DuckCardHeader className="pb-3">
-      <DuckCardTitle className="flex items-center gap-2 text-red-400">
+      <DuckCardTitle className="flex items-center gap-2 text-red-600 dark:text-red-400">
         <AlertCircle size={15} className="shrink-0" />
         Ошибка загрузки
       </DuckCardTitle>
-      <DuckCardDescription className="text-red-400/60 mt-2 text-xs">
+      <DuckCardDescription className="text-red-600/60 dark:text-red-400/60 mt-2 text-xs">
         {message}
       </DuckCardDescription>
     </DuckCardHeader>
@@ -101,6 +111,7 @@ ErrorCard.displayName = "ErrorCard";
 interface ResourceCardBodyProps {
   name: string;
   description: string;
+  type: ResourceType;
   version?: string;
   modrinthVersions?: ModrinthVersion[];
   dependencies: Dependency[];
@@ -113,6 +124,7 @@ interface ResourceCardBodyProps {
 const ResourceCardBody = memo(({
   name,
   description,
+  type,
   version,
   modrinthVersions,
   dependencies,
@@ -125,6 +137,7 @@ const ResourceCardBody = memo(({
   const hasDependencies = dependencies.length > 0;
   const hasMultipleImages = images.length > 1;
   const hasVersionSelector = !!modrinthVersions && modrinthVersions.length > 0;
+  const { icon: TypeIcon, label: typeLabel } = RESOURCE_TYPE_META[type];
 
   const [currentIndex, setCurrentIndex] = useState(0);
   const [imageStates, setImageStates] = useState<
@@ -171,35 +184,47 @@ const ResourceCardBody = memo(({
     return set;
   }, [currentIndex, images.length]);
 
-  const versionLabel =
-    hasVersionSelector
-      ? modrinthVersions!.find((v) => v.id === selectedVersionId)?.version_number
-      : version;
+  // The version selector already shows the selected version prominently, so
+  // a plain version badge here would just repeat it — only show one for the
+  // manual/static path, where the badge is the only place version appears.
+  // Resource packs don't carry a meaningful "version" the way mods do, so
+  // never show the badge for that type.
+  const staticVersionLabel =
+    hasVersionSelector || type === "resourcepack" ? undefined : version;
 
   return (
     <>
       <DuckCard
         className={cn(
-          "w-96 shrink-0 flex flex-col border-amber-900/20 bg-duck-stone/40 hover:border-amber-700/30 transition-colors",
+          CARD_WIDTH_CLASS,
+          "flex flex-col border-primary/20 bg-duck-stone/40 hover:border-primary/40 transition-colors",
           className
         )}
       >
         <DuckCardHeader className="pb-3">
           <div className="flex items-start justify-between gap-3 flex-wrap">
-            <DuckCardTitle className="flex items-center gap-2 text-amber-100">
-              <Package size={15} className="text-amber-500/60 shrink-0" aria-hidden="true" />
+            <DuckCardTitle className="flex items-center gap-2 text-foreground">
+              <TypeIcon size={15} className="text-foreground/60 shrink-0" aria-hidden="true" />
               {name}
             </DuckCardTitle>
-            {versionLabel && (
+            <div className="flex items-center gap-1.5">
               <DuckBadge
                 variant="outline"
-                className="text-xs bg-amber-900/30 text-amber-400 border-amber-700/30"
+                className="text-xs bg-muted text-foreground/60 border-primary/25"
               >
-                v{versionLabel}
+                {typeLabel}
               </DuckBadge>
-            )}
+              {staticVersionLabel && (
+                <DuckBadge
+                  variant="outline"
+                  className="text-xs bg-primary/30 text-foreground border-primary/40"
+                >
+                  v{staticVersionLabel}
+                </DuckBadge>
+              )}
+            </div>
           </div>
-          <DuckCardDescription className="text-amber-100/60 mt-2">
+          <DuckCardDescription className="text-foreground/60 mt-2">
             {description}
           </DuckCardDescription>
         </DuckCardHeader>
@@ -207,11 +232,11 @@ const ResourceCardBody = memo(({
         <DuckCardContent className="space-y-4 pt-0 flex flex-col flex-1">
           {hasImages && (
             <div className="space-y-2">
-              <p className="text-xs text-amber-100/40 uppercase tracking-wider">
+              <p className="text-xs text-foreground/40 uppercase tracking-wider">
                 Изображения
               </p>
               <div
-                className="not-prose relative group overflow-hidden rounded-xl border border-amber-900/20 bg-black/30"
+                className="not-prose relative group overflow-hidden rounded-xl border border-primary/20 bg-black/30"
                 style={{ height: `${CAROUSEL_HEIGHT}px` }}
                 onKeyDown={handleKeyDown}
                 role="region"
@@ -248,9 +273,9 @@ const ResourceCardBody = memo(({
                       className={cn(
                         "absolute left-2 top-1/2 -translate-y-1/2 z-20",
                         "flex h-8 w-8 items-center justify-center rounded-full",
-                        "bg-black/60 border border-amber-900/30 text-amber-300",
+                        "bg-black/60 border border-primary/30 text-foreground",
                         "opacity-0 group-hover:opacity-100 transition-all hover:bg-black/80 hover:scale-105",
-                        "focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
+                        "focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
                       )}
                       aria-label="Предыдущее изображение"
                       type="button"
@@ -262,9 +287,9 @@ const ResourceCardBody = memo(({
                       className={cn(
                         "absolute right-2 top-1/2 -translate-y-1/2 z-20",
                         "flex h-8 w-8 items-center justify-center rounded-full",
-                        "bg-black/60 border border-amber-900/30 text-amber-300",
+                        "bg-black/60 border border-primary/30 text-foreground",
                         "opacity-0 group-hover:opacity-100 transition-all hover:bg-black/80 hover:scale-105",
-                        "focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
+                        "focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
                       )}
                       aria-label="Следующее изображение"
                       type="button"
@@ -284,7 +309,7 @@ const ResourceCardBody = memo(({
 
           {hasDependencies && (
             <div className="space-y-2">
-              <p className="text-xs text-amber-100/40 uppercase tracking-wider">
+              <p className="text-xs text-foreground/40 uppercase tracking-wider">
                 Зависимости
               </p>
               <div className="flex flex-wrap gap-2">
@@ -310,7 +335,7 @@ const ResourceCardBody = memo(({
               <DuckButton
                 asChild
                 size="lg"
-                className="flex-1 border border-amber-900/30 bg-amber-950/30 text-amber-200 hover:bg-amber-900/40 hover:text-amber-100 hover:border-amber-700/50"
+                className="flex-1 border border-primary/30 bg-primary/30 text-foreground hover:bg-primary/40 hover:text-foreground hover:border-primary/50"
               >
                 <a
                   href={downloadUrl}
@@ -328,7 +353,7 @@ const ResourceCardBody = memo(({
                   asChild
                   size="lg"
                   variant="outline"
-                  className="border border-amber-900/30 bg-transparent text-amber-400/70 hover:bg-amber-900/20 hover:text-amber-300 hover:border-amber-700/40 px-3"
+                  className="border border-primary/30 bg-transparent text-foreground/70 hover:bg-primary/20 hover:text-foreground hover:border-primary/40 px-3"
                 >
                   <a
                     href={modrinthUrl}
@@ -350,7 +375,7 @@ const ResourceCardBody = memo(({
               href={modrinthUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center justify-center gap-1.5 text-xs text-amber-400/40 hover:text-amber-400/70 transition-colors"
+              className="flex items-center justify-center gap-1.5 text-xs text-foreground/40 hover:text-foreground/70 transition-colors"
             >
               <ExternalLink size={11} aria-hidden="true" />
               Modrinth
@@ -377,6 +402,7 @@ ResourceCardBody.displayName = "ResourceCardBody";
 export const ResourceCard = memo((props: ResourceCardProps) => {
   const {
     modrinthId,
+    type,
     name,
     description,
     version,
@@ -406,10 +432,11 @@ export const ResourceCard = memo((props: ResourceCardProps) => {
         <ResourceCardBody
           name={name ?? data.name}
           description={description ?? data.description}
+          type={type ?? data.type}
           modrinthVersions={data.versions}
           dependencies={dependencies.length > 0 ? dependencies : data.dependencies}
           images={images.length > 0 ? images : data.images}
-          modrinthUrl={`https://modrinth.com/project/${data.slug}`}
+          modrinthUrl={EXTERNAL_APIS.modrinth.projectUrl(data.slug)}
           className={className}
         />
       );
@@ -429,6 +456,7 @@ export const ResourceCard = memo((props: ResourceCardProps) => {
     <ResourceCardBody
       name={name}
       description={description}
+      type={type ?? DEFAULT_RESOURCE_TYPE}
       version={version}
       dependencies={dependencies}
       images={images}

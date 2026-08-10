@@ -77,7 +77,7 @@ export const CarouselImage = memo(({
           <div className={cn(
             "flex items-center gap-2 px-3 py-2 rounded-full",
             "bg-black/60 border border-white/10 text-white/80 text-xs",
-            "backdrop-blur-sm scale-90 group-hover:scale-100 transition-transform duration-200 text-amber-400"
+            "backdrop-blur-sm scale-90 group-hover:scale-100 transition-transform duration-200 text-foreground"
           )}>
             <ZoomIn size={14} aria-hidden="true" />
             <span>Просмотр</span>

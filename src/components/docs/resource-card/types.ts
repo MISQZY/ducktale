@@ -1,3 +1,6 @@
+import type { ResourceType } from "./resourceTypes";
+export type { ResourceType } from "./resourceTypes";
+
 export interface Dependency {
   name: string;
   url: string;
@@ -68,6 +71,13 @@ export interface ModrinthGalleryImage {
 export interface ResourceCardProps {
   modrinthId?: string;
 
+  /**
+   * Which kind of resource this is (mod, resource pack, shader, ...) — picks
+   * the icon and label shown on the card. When `modrinthId` is set, this is
+   * auto-detected from Modrinth's own `project_type` and only needs to be
+   * passed to override it; for manual cards it defaults to "mod".
+   */
+  type?: ResourceType;
   name?: string;
   description?: string;
   version?: string;

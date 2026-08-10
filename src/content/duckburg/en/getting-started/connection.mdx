@@ -1,0 +1,65 @@
+---
+title: Connecting to the server
+description: How to connect to DuckBurg
+---
+
+## Requirements
+
+- Minecraft **Java Edition**
+- Game version: <ServerVersion server="duckburg" />
+
+<Callout variant="info">
+  Older versions may not be supported. If unsure, update to the latest version.
+</Callout>
+
+---
+
+## Connection steps
+
+<StepList steps={[
+  {
+    title: "Open Minecraft and select a version",
+    children: <p>Launch the launcher and make sure version <ServerVersion server="duckburg" /> is selected.</p>
+  },
+  {
+    title: "Go to \"Multiplayer\"",
+    children: <p>On the main screen, click <strong>"Multiplayer"</strong> → <strong>"Add Server"</strong>.</p>
+  },
+  {
+    title: "Enter the server address",
+    children: (
+      <>
+        <p className="mb-2">Paste or copy the address into the "Server Address" field:</p>
+        <ServerAddress server="network" />
+      </>
+    )
+  },
+  {
+    title: "Connect",
+    children: <p>Click <strong>"Done"</strong>, then double-click the server in the list.</p>
+  }
+]} />
+
+---
+
+## Authorization
+
+<Callout variant="tip" title="Licensed copy">
+  If you're playing a licensed copy of Minecraft, you can skip this section. Authorization happens automatically.
+</Callout>
+
+On your first login with a **cracked** copy of the game, the server will ask you to register:
+
+```
+/register <Password> <Repeat password>
+```
+
+<Callout variant="warning">
+  Remember your password — you'll need it every time you log in to the server.
+</Callout>
+
+On subsequent logins, use:
+
+```
+/login <Password>
+```

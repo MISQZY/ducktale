@@ -7,6 +7,7 @@ export { ResourceCard, ResourceCardGrid } from "./ResourceCard";
 export { RuleTable } from "./RuleTable";
 export { ServerAddress } from "./ServerAddress";
 export { ServerStatusWidget } from "./ServerStatusWidget";
+export { ServerVersion } from "./ServerVersion";
 export { StepList } from "./StepList";
 export { WhitelistTable } from "./WhitelistTable";
 export { GitHubLastModified } from "./GitHubLastModified";

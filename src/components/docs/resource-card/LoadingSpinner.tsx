@@ -7,7 +7,7 @@ export const LoadingSpinner = memo(() => (
         className="w-9 h-9 border-4 border-amber-500/30 border-t-amber-500 rounded-full animate-spin"
         role="status"
       />
-      <span className="text-amber-400 text-sm font-medium">
+      <span className="text-foreground text-sm font-medium">
         Загрузка...
       </span>
     </div>

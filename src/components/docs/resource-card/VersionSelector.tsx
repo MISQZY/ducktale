@@ -107,7 +107,7 @@ export const VersionSelector = memo(({
 
     return (
         <div className="space-y-2">
-            <p className="text-xs text-amber-100/40 uppercase tracking-wider">Версия</p>
+            <p className="text-xs text-foreground/40 uppercase tracking-wider">Версия</p>
 
             <div className="flex gap-2">
                 {/* Version picker */}
@@ -120,17 +120,17 @@ export const VersionSelector = memo(({
                         aria-expanded={open}
                         className={cn(
                             "w-full flex items-center justify-between gap-2 px-3 py-2 rounded-lg text-sm",
-                            "border border-amber-900/30 bg-black/30 text-amber-200",
-                            "hover:border-amber-700/50 hover:bg-black/40 transition-colors",
+                            "border border-primary/30 bg-muted text-foreground",
+                            "hover:border-primary/50 hover:bg-muted/70 transition-colors",
                             "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500",
-                            open && "border-amber-700/50 bg-black/40"
+                            open && "border-primary/50 bg-muted/70"
                         )}
                     >
                         <span className="flex flex-col items-start min-w-0 text-left">
                             <span className="font-medium truncate w-full">
                                 {selectedVersion.version_number}
                             </span>
-                            <span className="text-xs text-amber-100/40 truncate w-full">
+                            <span className="text-xs text-foreground/40 truncate w-full">
                                 {[
                                     selectedVersion.loaders.map(loaderLabel).join(", "),
                                     selectedVersion.game_versions.slice(-1)[0],
@@ -145,7 +145,7 @@ export const VersionSelector = memo(({
                         <ChevronDown
                             size={15}
                             className={cn(
-                                "shrink-0 text-amber-400/60 transition-transform duration-200",
+                                "shrink-0 text-foreground/60 transition-transform duration-200",
                                 open && "rotate-180"
                             )}
                             aria-hidden="true"
@@ -157,7 +157,7 @@ export const VersionSelector = memo(({
                             ref={dropdownRef}
                             role="listbox"
                             style={dropdownStyle}
-                            className="rounded-xl border border-amber-900/30 bg-[#1a1208]/95 backdrop-blur-sm shadow-xl max-h-64 overflow-y-auto"
+                            className="rounded-xl border border-primary/30 bg-popover/95 backdrop-blur-sm shadow-xl max-h-64 overflow-y-auto"
                         >
                             {versions.map((v) => {
                                 const isSelected = v.id === selectedVersionId;
@@ -181,16 +181,16 @@ export const VersionSelector = memo(({
                                             "w-full flex items-center justify-between gap-3 px-3 py-2.5 text-sm text-left",
                                             "transition-colors first:rounded-t-xl last:rounded-b-xl",
                                             isSelected
-                                                ? "bg-amber-900/30 text-amber-200"
-                                                : "text-amber-100/70 hover:bg-amber-900/20 hover:text-amber-200"
+                                                ? "bg-primary/30 text-foreground"
+                                                : "text-foreground/70 hover:bg-primary/20 hover:text-foreground"
                                         )}
                                     >
                                         <span className="flex flex-col min-w-0">
                                             <span className="font-medium truncate">{v.version_number}</span>
-                                            <span className="text-xs text-amber-100/40 truncate">{label}</span>
+                                            <span className="text-xs text-foreground/40 truncate">{label}</span>
                                         </span>
                                         {isSelected && (
-                                            <span className="shrink-0 h-1.5 w-1.5 rounded-full bg-amber-400" aria-hidden="true" />
+                                            <span className="shrink-0 h-1.5 w-1.5 rounded-full bg-primary" aria-hidden="true" />
                                         )}
                                     </button>
                                 );
@@ -210,13 +210,13 @@ export const VersionSelector = memo(({
                         title={`${primaryFile.filename} · ${formatSize(primaryFile.size)}`}
                         className={cn(
                             "shrink-0 flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm",
-                            "border border-amber-900/30 bg-amber-950/30 text-amber-200",
-                            "hover:bg-amber-900/40 hover:border-amber-700/50 hover:text-amber-100 transition-colors",
+                            "border border-amber-900/30 bg-primary/30 text-foreground",
+                            "hover:bg-primary/40 hover:border-amber-700/50 hover:text-foreground transition-colors",
                             "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
                         )}
                     >
                         <Download size={15} aria-hidden="true" />
-                        <span className="text-xs text-amber-400/70">{formatSize(primaryFile.size)}</span>
+                        <span className="text-xs text-foreground/70">{formatSize(primaryFile.size)}</span>
                     </a>
                 )}
             </div>

@@ -14,8 +14,8 @@ export const DependencyBadge = memo(({ dep }: DependencyBadgeProps) => (
     rel="noopener noreferrer"
     className={cn(
       "inline-flex items-center gap-1 rounded-md border px-2.5 py-1 text-xs font-medium transition-colors",
-      "border-amber-900/20 bg-black/30 text-amber-300/80 hover:text-amber-200",
-      "hover:border-amber-700/40 hover:bg-black/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
+      "border-primary/20 bg-muted text-foreground/80 hover:text-foreground",
+      "hover:border-primary/40 hover:bg-muted/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
     )}
   >
     {dep.name}

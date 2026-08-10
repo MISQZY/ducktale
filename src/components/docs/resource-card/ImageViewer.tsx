@@ -2,9 +2,10 @@
 
 import { memo, useState, useCallback, useEffect } from "react";
 import Image from "next/image";
-import { ChevronLeft, ChevronRight, X } from "lucide-react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useFullscreen } from "@/hooks/useFullscreen";
+import { FullscreenViewerHeader, FULLSCREEN_OVERLAY_CLASS } from "@/components/common";
 import type { ResourceImage } from "./types";
 
 interface ImageViewerProps {
@@ -46,25 +47,16 @@ export const ImageViewer = memo(
 
     return (
       <div
-        className="fixed inset-0 z-50 flex flex-col bg-[#0a0a0a]"
+        className={FULLSCREEN_OVERLAY_CLASS}
         role="dialog"
         aria-modal="true"
         aria-label={current.alt ?? current.title ?? "Просмотр изображения"}
       >
-        {/* Header */}
-        <div className="flex items-center justify-between px-4 py-2 border-b border-amber-900/20 bg-[#111]/80 shrink-0 min-h-10">
-          <span className="text-xs text-amber-400 font-mono truncate pr-4">
-            {current.title ?? current.alt ?? "Просмотр изображения"}
-          </span>
-          <button
-            ref={closeButtonRef}
-            onClick={handleClose}
-            aria-label="Закрыть полноэкранный просмотр"
-            className="shrink-0 flex items-center justify-center h-7 w-7 rounded-md text-amber-500/60 hover:text-amber-300 hover:bg-amber-900/20 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
-          >
-            <X size={16} />
-          </button>
-        </div>
+        <FullscreenViewerHeader
+          ref={closeButtonRef}
+          title={current.title ?? current.alt ?? "Просмотр изображения"}
+          onClose={handleClose}
+        />
 
         {/* Image area */}
         <div className="relative flex-1 w-full overflow-hidden">
@@ -90,9 +82,10 @@ export const ImageViewer = memo(
                 className={cn(
                   "absolute left-3 md:left-4 top-1/2 -translate-y-1/2 z-10",
                   "flex h-10 w-10 items-center justify-center rounded-full",
-                  "bg-black/60 border border-amber-900/30 text-amber-300/70",
-                  "hover:bg-black/80 hover:text-amber-200 transition-all",
-                  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
+                  "bg-black/60 border border-primary/30 text-primary/80 backdrop-blur-sm",
+                  "shadow-[0_0_16px_rgba(212,160,23,0.15)]",
+                  "hover:bg-black/75 hover:text-primary hover:border-primary/55 hover:shadow-[0_0_20px_rgba(212,160,23,0.3)] transition-all",
+                  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
                 )}
                 aria-label="Предыдущее изображение"
               >
@@ -104,9 +97,10 @@ export const ImageViewer = memo(
                 className={cn(
                   "absolute right-3 md:right-4 top-1/2 -translate-y-1/2 z-10",
                   "flex h-10 w-10 items-center justify-center rounded-full",
-                  "bg-black/60 border border-amber-900/30 text-amber-300/70",
-                  "hover:bg-black/80 hover:text-amber-200 transition-all",
-                  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
+                  "bg-black/60 border border-primary/30 text-primary/80 backdrop-blur-sm",
+                  "shadow-[0_0_16px_rgba(212,160,23,0.15)]",
+                  "hover:bg-black/75 hover:text-primary hover:border-primary/55 hover:shadow-[0_0_20px_rgba(212,160,23,0.3)] transition-all",
+                  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
                 )}
                 aria-label="Следующее изображение"
               >
@@ -115,7 +109,10 @@ export const ImageViewer = memo(
 
               {/* Counter */}
               <div className="absolute top-4 left-1/2 -translate-x-1/2 z-10">
-                <span className="px-3 py-1.5 rounded-full bg-black/60 border border-amber-900/30 text-amber-300/70 text-xs backdrop-blur-sm">
+                <span
+                  className="px-3 py-1.5 rounded-full bg-black/60 border border-primary/30 text-primary/80 text-xs backdrop-blur-sm tabular-nums"
+                  style={{ fontFamily: "var(--font-mono)" }}
+                >
                   {index + 1} / {images.length}
                 </span>
               </div>
@@ -128,7 +125,9 @@ export const ImageViewer = memo(
                     onClick={() => setIndex(i)}
                     className={cn(
                       "h-1.5 rounded-full transition-all duration-200",
-                      i === index ? "w-5 bg-amber-400" : "w-1.5 bg-white/30 hover:bg-white/50"
+                      i === index
+                        ? "w-5 bg-primary shadow-[0_0_8px_rgba(212,160,23,0.6)]"
+                        : "w-1.5 bg-white/30 hover:bg-white/50"
                     )}
                     aria-label={`Перейти к изображению ${i + 1}`}
                   />

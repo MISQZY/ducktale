@@ -6,13 +6,14 @@ import type {
   ModrinthVersion,
   Dependency,
   ResourceImage,
+  ResourceType,
 } from "./types";
-
-const MODRINTH_API = "https://api.modrinth.com/v2";
+import { EXTERNAL_APIS } from "@/config/external-apis";
 
 export interface ModrinthData {
   name: string;
   description: string;
+  type: ResourceType;
   versions: ModrinthVersion[];
   dependencies: Dependency[];
   images: ResourceImage[];
@@ -46,8 +47,8 @@ export function useModrinth(projectId: string | undefined) {
     async function load() {
       try {
         const [project, allVersions] = await Promise.all([
-          fetchJson<ModrinthProject>(`${MODRINTH_API}/project/${projectId}`),
-          fetchJson<ModrinthVersion[]>(`${MODRINTH_API}/project/${projectId}/version`),
+          fetchJson<ModrinthProject>(`${EXTERNAL_APIS.modrinth.apiBase}/project/${projectId}`),
+          fetchJson<ModrinthVersion[]>(`${EXTERNAL_APIS.modrinth.apiBase}/project/${projectId}/version`),
         ]);
 
         if (cancelled) return;
@@ -65,14 +66,14 @@ export function useModrinth(projectId: string | undefined) {
               const depProjects = await fetchJson<
                 { id: string; title: string; slug: string }[]
               >(
-                `${MODRINTH_API}/projects?ids=${encodeURIComponent(
+                `${EXTERNAL_APIS.modrinth.apiBase}/projects?ids=${encodeURIComponent(
                   JSON.stringify(ids)
                 )}`
               );
               if (!cancelled) {
                 dependencies = depProjects.map((p) => ({
                   name: p.title,
-                  url: `https://modrinth.com/project/${p.slug}`,
+                  url: EXTERNAL_APIS.modrinth.projectUrl(p.slug),
                 }));
               }
             } catch {
@@ -105,9 +106,12 @@ export function useModrinth(projectId: string | undefined) {
           })),
         ];
 
+        if (cancelled) return;
+
         setData({
           name: project.title,
           description: project.description,
+          type: project.project_type,
           versions: allVersions,
           dependencies,
           images,

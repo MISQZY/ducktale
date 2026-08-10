@@ -16,8 +16,8 @@ export const CarouselIndicators = memo(({ total, current, onSelect }: CarouselIn
         className={cn(
           "h-1.5 rounded-full transition-all duration-200",
           index === current
-            ? "w-5 bg-amber-400"
-            : "w-1.5 bg-amber-400/40 hover:bg-amber-400/70"
+            ? "w-5 bg-primary"
+            : "w-1.5 bg-primary/40 hover:bg-primary/70"
         )}
         role="tab"
         aria-label={`Перейти к изображению ${index + 1}`}
