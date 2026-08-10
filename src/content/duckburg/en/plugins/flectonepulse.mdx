@@ -1,0 +1,55 @@
+---
+title: FlectonePulse
+description: The chat and notification system on DuckBurg
+---
+
+**FlectonePulse** is the plugin responsible for all chat on the server. It determines who sees your messages, within what radius, how your name looks, and what notifications you receive. By default you can only message nearby players — that's intentional, to keep communication lively and tied to location.
+
+Official documentation: [FlectonePulse Docs](https://flectone.net/en/pulse/docs/command)
+
+---
+
+## Chat channels
+
+Chat on DuckBurg is split into several channels with different reach. The channel is determined by a **prefix** at the start of the message.
+
+| Prefix | Channel | Who sees it |
+|---------|-------|-----------|
+| *(no prefix)* | Local | Players within 150 blocks on the same server |
+| `!` | Global | All players on the current server |
+| `!!` | Cross-server | All players across the entire DuckTale network |
+| `.a` | Admin | Staff only (all servers) |
+
+Example: to message everyone on the server, start your message with `!`: <code>! Selling iron, DM me</code>
+
+<Callout variant="tip" title="Why local chat exists">
+  Local range isn't a limitation, it's a feature. Only people nearby hear a town's conversations. It creates a living atmosphere: the market has its own chatter, the mine has its own. Global chat is for important announcements, local chat is for everyday life.
+</Callout>
+
+---
+
+## Private messages
+
+You can message a specific player with `/msg`. Reply to the last private message with `/reply`. The conversation is only visible to the two of you, regardless of which server you're on.
+
+---
+
+## Notification settings
+
+FlectonePulse sends system notifications: who joined the server, who left, who died and how. This can be useful or annoying — it's up to you.
+
+Open the settings menu: <code>/chatsetting</code>
+
+In the menu you can manage:
+
+- **Join and leave notifications** — whether you see when players join and leave
+- **Death notifications** — messages like "Player burned in lava"
+- **Stream notifications** — a notification when a media player starts streaming on their channel
+- **Info panel** — a sidebar with extended info and statistics
+- **Automatic notifications** — automatic messages with useful info about server mechanics
+
+All changes apply immediately and persist between sessions.
+
+<Callout variant="info">
+  All FlectonePulse commands are in the [Commands → FlectonePulse](/docs/duckburg/commands/flectonepulse) section.
+</Callout>

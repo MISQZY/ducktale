@@ -1,0 +1,10 @@
+{
+  "title": "Rules",
+  "defaultOpen": false,
+  "pages": [
+    "index",
+    "game-process",
+    "communicate",
+    "farms"
+  ]
+}

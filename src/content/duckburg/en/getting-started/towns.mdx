@@ -1,0 +1,111 @@
+---
+title: Towns — Towny
+description: Everything about founding towns, managing them, and the economy on DuckBurg.
+---
+
+import { Sword, Map, Users, ShoppingCart, Shield, Home } from "lucide-react";
+
+<FeatureGrid features={[
+  { icon: Sword,        title: "PvP",        description: "Wars between towns, territory defense, and sieges" },
+  { icon: Map,          title: "Map",       description: "Every plot is shown visually on the dynmap" },
+  { icon: Users,        title: "Residents",      description: "Invite players, assign roles and taxes" },
+  { icon: ShoppingCart, title: "Economy",   description: "Town treasury, taxes, trade zones" },
+  { icon: Shield,       title: "Protection",       description: "Town plots are protected from griefing" },
+  { icon: Home,         title: "Plots",     description: "Every resident gets their own designated plot" },
+]} />
+
+## Getting started
+
+<StepList steps={[
+  {
+    title: "Choose a location for your town",
+    children: (
+      <p>
+        The town must be located no closer than <strong>300 blocks from spawn</strong>.
+        Use <code>/t spawn</code> to teleport or the dynmap to scout the map.
+      </p>
+    ),
+  },
+  {
+    title: "Found the town",
+    children: (
+      <>
+        <p>Stand at the desired spot and run the command:</p>
+        <code className="block mt-1 rounded bg-black/40 px-3 py-1.5 text-amber-300 font-mono text-sm">
+          /t new &lt;name&gt;
+        </code>
+      </>
+    ),
+  },
+  {
+    title: "Expand your territory",
+    children: (
+      <p>
+        While standing on the desired chunk: <code>/t claim</code>. Each chunk costs gold from the treasury.
+      </p>
+    ),
+  },
+  {
+    title: "Invite residents",
+    children: (
+      <p>
+        <code>/t invite &lt;player&gt;</code> — the player will get a notification and can accept the invite.
+      </p>
+    ),
+  },
+]} />
+
+---
+
+## Main commands
+
+<CommandCard
+  command="/t new"
+  description="Found a new town. Requires starting capital in the treasury."
+  usage="/t new <name>"
+  permission="all"
+  warning="The name can't be changed after creation — choose carefully."
+/>
+
+<CommandCard
+  command="/t claim"
+  description="Add the current chunk to the town's territory. The chunk must border already-claimed land."
+  usage="/t claim [radius]"
+  aliases={["/town claim"]}
+  permission="all"
+/>
+
+<CommandCard
+  command="/t set mayor"
+  description="Hand mayoral rights to another player."
+  usage="/t set mayor <player>"
+  permission="admin"
+  warning="This action is irreversible. The new mayor gets full control of the town."
+/>
+
+---
+
+## Important restrictions
+
+<Callout variant="warning" title="Building too close">
+  It's forbidden to build a base **closer than 70 blocks** to someone else's territory without the owner's consent.
+  Violations lead to a rollback and a warning.
+</Callout>
+
+<Callout variant="danger" title="Lag machines">
+  Building constructs that intentionally strain the server is punished with a ban from 1 day up to permanent.
+</Callout>
+
+<Callout variant="tip" title="Mayor's advice">
+  Keep a 7+ day tax reserve in the treasury. If the treasury runs dry, the town will be disbanded automatically.
+</Callout>
+
+---
+
+## Server status
+
+<ServerStatusWidget host="s6.yufu.su:25582" serverName="DuckBurg" />
+
+## Connection
+
+<ServerAddress server="duckburg" />

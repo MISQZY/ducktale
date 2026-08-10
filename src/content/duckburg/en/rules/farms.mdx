@@ -1,0 +1,52 @@
+---
+title: 3. Farms
+description: Rules for building and using farms on DuckBurg
+---
+
+## Farm status by distance from spawn
+
+| Distance from spawn | Status | Description |
+|---|---|---|
+| **< 2000 blocks** | 🟡 Public | Staff may modify or demolish the farm if necessary |
+| **> 2000 blocks** | 🟢 Private | The owner sets the restrictions |
+
+<Callout variant="info">
+  Distance is calculated from the center of world spawn on the XZ plane. Use `/t spawn` or the Dynmap to orient yourself.
+</Callout>
+
+---
+
+## Rules
+
+<RuleTable rules={[
+  {
+    id: "3.1",
+    rule: "<strong>Using someone else's private farm</strong> without the owner's permission",
+    punishments: [
+      { grade: 1, type: "warn",  label: "⚠️ Warning" },
+      { grade: 2, type: "other", label: "💰 Fine" },
+      { grade: 3, type: "ban-temp", label: "🔨 1-day ban" }
+    ]
+  },
+  {
+    id: "3.2",
+    rule: "<strong>Destroying a private farm</strong> (&gt; 2000 blocks) without permission — treated as griefing",
+    punishments: [
+      { grade: 1, type: "warn",     label: "⚠️ Warning" },
+      { grade: 2, type: "rollback", label: "🔄 Rollback" },
+      { grade: 3, type: "ban-temp", label: "🔨 3-day ban" }
+    ]
+  },
+  {
+    id: "3.3",
+    rule: "<strong>Mob farms</strong> — building sky pillar platforms is forbidden",
+    punishments: [
+      { grade: 1, type: "other",  label: "🔧 Demolition without warning" },
+      { grade: 2, type: "prison", label: "🔒 Prison" }
+    ]
+  }
+]} />
+
+<Callout variant="danger" title="Mob farms">
+  Sky pillar platforms put a critical strain on the server. Such constructs are demolished without warning, and the owner is sent to prison.
+</Callout>

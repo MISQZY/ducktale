@@ -1,0 +1,97 @@
+---
+title: 1. Gameplay
+description: Rules of in-game conduct on DuckBurg
+---
+
+<RuleTable rules={[
+  {
+    id: "1.1",
+    rule: "<strong>Griefing</strong> — deliberately destroying other players' territory",
+    punishments: [
+      { grade: 1, type: "warn",     label: "⚠️ Warning" },
+      { grade: 2, type: "rollback", label: "🔄 Rollback" },
+      { grade: 3, type: "ban-temp", label: "🔨 3-day ban" },
+      { grade: 4, type: "ban-perm", label: "🔨 Permanent ban" }
+    ]
+  },
+  {
+    id: "1.2",
+    rule: "<strong>Cheating</strong> — using banned bugs, cheat modifications (including Fullbright), and cheats",
+    punishments: [
+      { grade: 1, type: "prison",   label: "🔒 Prison" },
+      { grade: 2, type: "ban-temp", label: "🔨 1-day ban" },
+      { grade: 3, type: "ban-perm", label: "🔨 Permanent ban" }
+    ]
+  },
+  {
+    id: "1.3",
+    rule: "<strong>AFK bypassing</strong> — using auto-clickers and other ways to bypass the AFK system",
+    punishments: [
+      { grade: 1, type: "prison",   label: "🔒 Prison" },
+      { grade: 2, type: "ban-temp", label: "🔨 1-day ban" },
+      { grade: 3, type: "ban-temp", label: "🔨 7-day ban" }
+    ]
+  },
+  {
+    id: "1.4",
+    rule: "<strong>Building too close</strong> — building a base closer than <strong>70 blocks</strong> to someone else's territory without the owner's consent",
+    punishments: [
+      { grade: 1, type: "warn",     label: "⚠️ Warning" },
+      { grade: 2, type: "rollback", label: "🔄 Rollback" }
+    ]
+  },
+  {
+    id: "1.5",
+    rule: "<strong>Lag machines</strong> — building constructs that intentionally strain the server",
+    punishments: [
+      { grade: 1, type: "prison",   label: "🔒 Prison" },
+      { grade: 2, type: "ban-temp", label: "🔨 1-day ban" },
+      { grade: 3, type: "ban-perm", label: "🔨 Permanent ban" }
+    ]
+  },
+  {
+    id: "1.6",
+    rule: "<strong>Multi-accounting</strong> — creating multiple accounts without a valid reason",
+    punishments: [
+      { grade: 1, type: "ban-perm", label: "🔨 Permanent ban of all accounts" }
+    ]
+  },
+  {
+    id: "1.7",
+    rule: "<strong>Building near spawn</strong> — towns and settlements must be no closer than <strong>300 blocks</strong> from spawn",
+    punishments: [
+      { grade: 1, type: "warn",  label: "⚠️ Warning" },
+      { grade: 2, type: "other", label: "🔧 Demolition" }
+    ]
+  },
+  {
+    id: "1.8",
+    rule: "<strong>Resident abuse</strong> — bypassing resident limits (kills / solo-team abuse)",
+    punishments: [
+      { grade: 1, type: "prison",   label: "🔒 Prison" },
+      { grade: 2, type: "ban-temp", label: "🔨 1-day ban" },
+      { grade: 3, type: "ban-temp", label: "🔨 7-day ban" }
+    ]
+  },
+  {
+    id: "1.9",
+    rule: "<strong>Copper golem abuse</strong> — exceeding the limit of <strong>6 golems per team</strong>",
+    punishments: [
+      { grade: 1, type: "prison",   label: "🔒 Prison" },
+      { grade: 2, type: "ban-temp", label: "🔨 1-day ban" },
+      { grade: 3, type: "ban-temp", label: "🔨 7-day ban" }
+    ]
+  },
+  {
+    id: "1.10",
+    rule: "<strong>Finding dungeons via the minimap</strong>",
+    punishments: [
+      { grade: 1, type: "ban-temp", label: "🔨 1-day ban" },
+      { grade: 2, type: "ban-perm", label: "🔨 Permanent ban" }
+    ]
+  }
+]} />
+
+<Callout variant="warning" title="Spawn zone">
+  Rule 1.7 is especially important when founding a new town. The minimum distance from spawn is **300 blocks**. Check before you start building.
+</Callout>

@@ -1,0 +1,182 @@
+---
+title: Towny
+description: The town and nation system on DuckBurg
+---
+
+import { Building2, Users, Landmark, Map, Sword, Coins, Shield, Crown } from "lucide-react";
+
+**Towny** is DuckBurg's key plugin, around which the server's entire social and political life is built. Without it, everyone would be on their own: anyone could break your build, take over your territory, or destroy your farm. Towny solves this — it gives players tools to protect land, build communities, and run politics at the scale of entire nations.
+
+In short: **a town protects your blocks, a nation protects your town**.
+
+Full plugin documentation: [Towny Wiki](https://github.com/TownyAdvanced/Towny/wiki)
+
+---
+
+## Why you need Towny at all
+
+On DuckBurg, without a town you're **homeless**. That's not an insult, it's a technical fact: blocks you place in the wilderness can be broken by any player. Protection only works on territory claimed by a town.
+
+But Towny isn't just a lock on a door. It's a whole system where:
+
+- every patch of land has an owner
+- town residents have different access levels and rights
+- towns can trade, wage war, and form alliances
+- the economy runs on taxes and territory upkeep
+
+The bigger and richer your town, the more land it controls, and the stronger its position on the server.
+
+---
+
+## How the space is organized
+
+<FeatureGrid columns={3} features={[
+  {
+    icon: Building2,
+    title: "Towns",
+    description: "The base unit of Towny. A mayor claims chunks — they're protected from outsiders. The town lives as long as there's money in the treasury."
+  },
+  {
+    icon: Landmark,
+    title: "Nations",
+    description: "Several towns under one flag. Nations can form alliances, declare enemies, and defend territory together."
+  },
+  {
+    icon: Map,
+    title: "Plots",
+    description: "A town's territory is split into different plot types: residential, commercial, farm, arena. Each plot can be assigned to a specific resident."
+  },
+  {
+    icon: Coins,
+    title: "Economy",
+    description: "Town treasury, daily taxes from residents, land cost. No money — the town disbands automatically."
+  },
+  {
+    icon: Users,
+    title: "Residents and roles",
+    description: "The mayor appoints assistants, hands out titles, and manages each resident's rights. You can build out a whole hierarchy."
+  },
+  {
+    icon: Sword,
+    title: "PvP and conflicts",
+    description: "Arenas with PvP allowed, an outlaw system, prison for offenders. Wars between nations with real consequences."
+  }
+]} />
+
+---
+
+## Chunks — the basis of everything
+
+The entire world is divided into **chunks** — vertical 16×16 block columns. Land in Towny is measured in chunks, not individual blocks.
+
+When a mayor **claims** a chunk (`/town claim`), it comes under the town's control. This means:
+
+- outside players **can't break or place blocks** on that chunk
+- opening chests, doors, levers — also not allowed without permission
+- the plot's owner within the chunk can configure access individually
+
+Chunks aren't free. Every claimed chunk costs money from the **town treasury** — daily. If the treasury runs dry, the town won't be able to pay for its land and will eventually **disband automatically**. So watching the balance is the mayor's first duty.
+
+### How many chunks can be claimed
+
+At the moment we don't set any limits on town size.
+
+---
+
+## Plots inside a town
+
+A mayor can turn claimed chunks into **plots** of different purposes and hand them out to residents or configure them specially.
+
+| Type | Who it's for | Features |
+|-----|--------------|-------------|
+| **Regular** | Any resident | A standard residential plot |
+| **Shop** | Merchants | Shop chests can be set up for outside players |
+| **Farm** | Farmers | Outsiders can harvest crops, but not break the ground |
+| **Arena** | For PvP | PvP is on by default, no item loss on death (optional) |
+| **Jail** | Staff | Offenders are sent here by the mayor's command |
+| **Embassy** | Diplomacy | Players from other towns can buy a plot here |
+| **Outpost** | Expansion | A remote outpost, doesn't need to border the main territory |
+
+Once a resident is **given a plot**, it becomes their personal territory within the town — even the mayor can't break blocks there without special rights.
+
+---
+
+## Rights and hierarchy
+
+There's a clear hierarchy within a town:
+
+**Mayor** — the sole owner of the town. Can do everything: claim land, kick residents, disband the town, found a nation.
+
+**Assistants** — players with expanded rights, appointed by the mayor. Can invite residents, manage plots, and deposit into the treasury.
+
+**Residents** — regular town members. Protected from griefing by default, but have no town management rights.
+
+The mayor can create **custom ranks** with any set of rights and assign them to residents. For example: "builder" with permission to claim land, "banker" with permission to deposit into the treasury, "guard" with permission to jail people.
+
+---
+
+## Nations and politics
+
+Once a town reaches a certain size and influence, its mayor can found a **nation** — a union of towns under a single flag. The capital's mayor becomes **king**.
+
+Other towns can **join the nation** — voluntarily or by invitation. This gives them:
+
+- protection from the nation's enemies
+- access to allied towns' territory
+- political weight
+
+Nations can:
+
+- form **alliances** with other nations — allied residents see each other as "friendly"
+- declare **enemies** — wars are possible between hostile nations
+- set **taxes** for member towns
+- declare **neutrality** — protection from wars for an extra fee
+
+Server politics runs at the nation level — blocs of alliances, standoffs, trade deals: that's all real server life.
+
+---
+
+## The wilderness and its dangers
+
+Territory that no town has claimed is the **wilderness**. There's no protection here at all: anyone can break blocks, open chests, and build nearby.
+
+If you build a base in the wilderness, you're doing it at your own risk. The only way to protect yourself is to claim the land as part of a town.
+
+<Callout variant="warning" title="Building near someone else's territory">
+  It's forbidden to build a base closer than **70 blocks** to someone else's claimed territory without the owner's consent. Violations are punished with a build rollback and a warning. Before you settle somewhere, check the map with `/towny map` or the <strong>World Map</strong>.
+</Callout>
+
+---
+
+## Getting started
+
+<StepList steps={[
+  {
+    title: "Choose a location",
+    children: <p>A new town can't be founded closer than <strong>300 blocks from spawn</strong> or closer than 70 blocks to existing towns. Use <code>/towny map</code> or the online <strong>World Map</strong> to scout — it shows where towns already are.</p>
+  },
+  {
+    title: "Save up the starting amount",
+    children: <p>Founding a town costs Ducats. Besides the starting fee, factor in daily chunk upkeep costs — without regularly topping up the treasury, a town won't last long. Check current prices with <code>/towny prices</code>.</p>
+  },
+  {
+    title: "Found the town",
+    children: <p>Stand on the chunk that will become the town center and run <code>/town new &lt;name&gt;</code>.</p>
+  },
+  {
+    title: "Claim land",
+    children: <p>Stand on an adjacent chunk and run <code>/town claim</code>. Repeat for each new chunk. Claimed chunks must border the town's existing territory (except for outposts).</p>
+  },
+  {
+    title: "Top up the treasury",
+    children: <p>Money doesn't land in the treasury automatically. Deposit it manually with <code>/town deposit &lt;amount&gt;</code>. Watch the balance — at zero treasury the town starts losing chunks, then disbands.</p>
+  },
+  {
+    title: "Invite residents",
+    children: <p>More residents means more available land and tax income. Invite friends or announce recruitment in global chat. Command: <code>/town invite &lt;player&gt;</code>.</p>
+  }
+]} />
+
+<Callout variant="info">
+  All Towny commands are in the [Commands → Towny](/docs/duckburg/commands/towny) section.
+</Callout>

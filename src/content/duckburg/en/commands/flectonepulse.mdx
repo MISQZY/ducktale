@@ -1,0 +1,351 @@
+---
+title: FlectonePulse
+---
+
+## Chat and messages
+
+<CommandCard
+  command="/chatsetting"
+  description="Opens an interactive menu for notification and chat settings: sounds, system events, display format."
+  permission="all"
+/>
+
+<CommandCard
+  command="/chatcolor"
+  description="Sets the color of your chat messages."
+  permission="all"
+/>
+
+<CommandCard
+  command="/clearchat"
+  description="Clears chat for all players on the server."
+  permission="admin"
+/>
+
+<CommandCard
+  command="/deletemessage"
+  description="Deletes a specific message from chat."
+  permission="admin"
+/>
+
+<CommandCard
+  command="/broadcast"
+  description="Sends an announcement to all players on the network with special formatting."
+  permission="admin"
+/>
+
+---
+
+## Private messages
+
+<CommandCard
+  command="/tell"
+  description="Sends a private message to a specific player. The message is only visible to the two of you."
+  permission="all"
+  aliases={["pm", "msg"]}
+  required={[
+    { name: "player", description: "Message recipient" },
+    { name: "message", description: "Message text" }
+  ]}
+/>
+
+<CommandCard
+  command="/reply"
+  description="Replies to the last private message you received."
+  permission="all"
+  required={[{ name: "message", description: "Reply text" }]}
+/>
+
+<CommandCard
+  command="/ignore"
+  description="Adds a player to your ignore list — their messages will stop appearing in chat."
+  permission="all"
+  required={[{ name: "player", description: "Player to ignore" }]}
+/>
+
+<CommandCard
+  command="/ignorelist"
+  description="Shows the list of players you're ignoring."
+  permission="all"
+/>
+
+---
+
+## Mail
+
+<CommandCard
+  command="/mail"
+  description="Sends an offline message to a player. They'll receive it the next time they log in."
+  permission="all"
+  required={[
+    { name: "player", description: "Message recipient" },
+    { name: "message", description: "Message text" }
+  ]}
+/>
+
+<CommandCard
+  command="/clearmail"
+  description="Deletes all accumulated messages from your mailbox."
+  permission="all"
+/>
+
+---
+
+## Status and info
+
+<CommandCard
+  command="/afk"
+  description="Toggles AFK mode (away from keyboard). Other players will see the corresponding status next to your name."
+  permission="all"
+/>
+
+<CommandCard
+  command="/online"
+  description="Shows the list of players currently on the server."
+  permission="all"
+/>
+
+<CommandCard
+  command="/toponline"
+  description="Shows server attendance stats — peak online records."
+  permission="all"
+/>
+
+<CommandCard
+  command="/ping"
+  description="Shows your current ping, or the ping of a specified player."
+  permission="all"
+  optional={[{ name: "player", description: "Player whose ping to check" }]}
+/>
+
+---
+
+## Nickname and appearance
+
+<CommandCard
+  command="/nickname"
+  description="Sets your display name in chat. Doesn't change your account username."
+  permission="all"
+  required={[{ name: "nickname", description: "New display name" }]}
+/>
+
+<CommandCard
+  command="/symbol"
+  description="Opens a Unicode symbol browser. A found symbol can be copied and pasted into a message."
+  permission="all"
+/>
+
+<CommandCard
+  command="/sprite"
+  description="Shows the list of available sprites from Minecraft's texture atlases. Sprites can be inserted into chat text."
+  permission="admin"
+  required={[{ name: "atlas", description: "Texture atlas name" }]}
+  optional={[{ name: "page", description: "List page number" }]}
+/>
+
+---
+
+## Roleplay and anonymous
+
+<CommandCard
+  command="/anon"
+  description="Sends a message to chat anonymously — without showing the sender's name."
+  permission="all"
+  required={[{ name: "message", description: "Message text" }]}
+/>
+
+<CommandCard
+  command="/me"
+  description="Sends a third-person roleplay message. For example: “Steve looks at the sunset”."
+  permission="all"
+  required={[{ name: "action", description: "Description of the character's action" }]}
+/>
+
+<CommandCard
+  command="/do"
+  description="Describes an action or event in the world — used for roleplay."
+  permission="all"
+  required={[{ name: "description", description: "Description of what's happening" }]}
+/>
+
+<CommandCard
+  command="/emit"
+  description="Plays a sound on the character's behalf, roleplay-style."
+  permission="admin"
+  required={[{ name: "sound", description: "Sound identifier" }]}
+/>
+
+---
+
+## Fun
+
+<CommandCard
+  command="/ball"
+  description="Asks the Magic 8-Ball a question and gets a random answer like “It is certain” or “Very doubtful”."
+  permission="all"
+  required={[{ name: "question", description: "Question for the Magic 8-Ball" }]}
+/>
+
+<CommandCard
+  command="/coin"
+  description="Flips a coin. Result: heads or tails."
+  permission="all"
+/>
+
+<CommandCard
+  command="/dice"
+  description="Rolls a die. Six-sided by default, but any number of sides can be specified."
+  permission="all"
+  optional={[{ name: "number of sides", description: "Number of sides on the die" }]}
+/>
+
+<CommandCard
+  command="/try"
+  description="Attempts an action and gives a random success or failure result as a percentage."
+  permission="all"
+  required={[{ name: "action", description: "Description of the action being attempted" }]}
+/>
+
+<CommandCard
+  command="/rockpaperscissors"
+  description="Challenges a player to a game of rock-paper-scissors."
+  permission="all"
+  required={[{ name: "player", description: "Opponent for the game" }]}
+/>
+
+<CommandCard
+  command="/tictactoe"
+  description="Challenges a player to a game of tic-tac-toe right in chat."
+  permission="all"
+  required={[{ name: "player", description: "Opponent for the game" }]}
+/>
+
+---
+
+## Voting
+
+<CommandCard
+  command="/poll"
+  description="Creates a poll for all players on the server. Results are visible to everyone in real time."
+  permission="admin"
+  required={[{ name: "question", description: "Poll topic" }]}
+/>
+
+---
+
+## Broadcasts
+
+<CommandCard
+  command="/stream"
+  description="Announces that a stream is starting — sends a notification with a link across the whole network. Calling it again ends the broadcast."
+  permission="all"
+  roles={["Media"]}
+  required={[{ name: "link", description: "Link to the stream" }]}
+/>
+
+---
+
+## Moderation
+
+<CommandCard
+  command="/ban"
+  description="Bans a player from the server. A banned player won't be able to log in."
+  permission="admin"
+  required={[{ name: "player", description: "Ban target" }]}
+  optional={[{ name: "reason", description: "Ban reason" }]}
+/>
+
+<CommandCard
+  command="/banlist"
+  description="Shows the list of banned players."
+  permission="admin"
+/>
+
+<CommandCard
+  command="/unban"
+  description="Removes a player's ban."
+  permission="admin"
+  required={[{ name: "player", description: "Player to unban" }]}
+/>
+
+<CommandCard
+  command="/mute"
+  description="Stops a player from writing in chat for a set amount of time."
+  permission="admin"
+  required={[{ name: "player", description: "Mute target" }]}
+  optional={[
+    { name: "duration", description: "Mute duration" },
+    { name: "reason", description: "Mute reason" }
+  ]}
+/>
+
+<CommandCard
+  command="/mutelist"
+  description="Shows the list of muted players."
+  permission="admin"
+/>
+
+<CommandCard
+  command="/unmute"
+  description="Removes a player's mute."
+  permission="admin"
+  required={[{ name: "player", description: "Player to unmute" }]}
+/>
+
+<CommandCard
+  command="/warn"
+  description="Gives a player a warning."
+  permission="admin"
+  required={[{ name: "player", description: "Warning target" }]}
+  optional={[{ name: "reason", description: "Warning reason" }]}
+/>
+
+<CommandCard
+  command="/warnlist"
+  description="Shows the list of players with warnings."
+  permission="admin"
+/>
+
+<CommandCard
+  command="/unwarn"
+  description="Removes a warning from a player."
+  permission="admin"
+  required={[{ name: "player", description: "Player to remove the warning from" }]}
+/>
+
+<CommandCard
+  command="/kick"
+  description="Kicks a player from the server without banning them."
+  permission="admin"
+  required={[{ name: "player", description: "Kick target" }]}
+  optional={[{ name: "reason", description: "Kick reason" }]}
+/>
+
+<CommandCard
+  command="/helper"
+  description="Sends a help request to online administrators."
+  permission="all"
+  required={[{ name: "message", description: "What you need help with" }]}
+/>
+
+<CommandCard
+  command="/spy"
+  description="Turns on spy mode: lets administrators see players' private messages."
+  permission="admin"
+/>
+
+<CommandCard
+  command="/maintenance"
+  description="Toggles maintenance mode — closes the server to regular players."
+  permission="admin"
+/>
+
+---
+
+## Other
+
+<CommandCard
+  command="/flectonepulse"
+  description="Utility command for the plugin: version info, config reload."
+  permission="admin"
+/>

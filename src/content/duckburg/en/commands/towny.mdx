@@ -1,0 +1,1349 @@
+---
+title: Towny — Commands
+description: Full command reference for the Towny plugin
+---
+
+<Callout variant="info">
+  A description of town and nation mechanics is in the [Plugins → Towny](/docs/duckburg/plugins/towny) section.
+</Callout>
+
+---
+
+## `towny` — General info
+
+<CommandCard
+  command="towny map"
+  description="Show a map of the world with towns marked, right in chat."
+  permission="all"
+/>
+
+<CommandCard
+  command="towny map hud"
+  description="Turn on a live, auto-updating map in the sidebar (scoreboard)."
+  permission="all"
+/>
+
+<CommandCard
+  command="towny hud"
+  description="Toggle the sidebar (scoreboard) map."
+  permission="all"
+/>
+
+<CommandCard
+  command="towny prices"
+  description="Show current taxes and the upkeep cost of a town/nation."
+  permission="all"
+  optional={[{ name: "town", description: "Town name for detailed info" }]}
+/>
+
+<CommandCard
+  command="towny time"
+  description="Show the time until the next day (tax collection)."
+  permission="all"
+/>
+
+<CommandCard
+  command="towny universe"
+  description="Global stats: players, towns, nations, worlds, claimed chunks."
+  permission="all"
+/>
+
+<CommandCard
+  command="towny top residents"
+  description="Top residents/towns/nations by number of members."
+  permission="all"
+  required={[{ name: "type", description: "all | town | nation" }]}
+/>
+
+<CommandCard
+  command="towny top land"
+  description="Top residents/towns by amount of claimed land."
+  permission="all"
+  required={[{ name: "type", description: "all | resident | town" }]}
+/>
+
+<CommandCard
+  command="towny allowedblocks"
+  description="Open a menu of blocks that can be placed/broken in the corresponding zones."
+  permission="all"
+/>
+
+<CommandCard
+  command="towny switches"
+  description="Show the list of blocks in the switch category (interactive blocks)."
+  permission="all"
+/>
+
+<CommandCard
+  command="towny itemuse"
+  description="Show the list of items in the itemuse category."
+  permission="all"
+/>
+
+<CommandCard
+  command="towny plotclearblocks"
+  description="Show the list of blocks removed by the plot clear command."
+  permission="all"
+/>
+
+<CommandCard
+  command="towny wildsblocks"
+  description="Show the blocks allowed for use on wilds plots and in the wilderness."
+  permission="all"
+/>
+
+<CommandCard
+  command="towny spy"
+  description="Monitor all chat channels."
+  permission="admin"
+/>
+
+---
+
+## `plot` — Plot management
+
+<CommandCard
+  command="plot claim"
+  description="Buy a plot that the mayor has put up for sale."
+  permission="all"
+/>
+
+<CommandCard
+  command="plot claim auto"
+  description="Auto-buy all available plots around you."
+  permission="all"
+/>
+
+<CommandCard
+  command="plot unclaim"
+  description="Give up a personal plot, returning it to the town."
+  permission="all"
+/>
+
+<CommandCard
+  command="plot forsale"
+  description="Put a plot up for sale at the given price."
+  permission="all"
+  required={[{ name: "price", description: "Sale price" }]}
+  aliases={["plot fs"]}
+/>
+
+<CommandCard
+  command="plot notforsale"
+  description="Remove a plot from sale."
+  permission="all"
+  aliases={["plot nfs"]}
+/>
+
+<CommandCard
+  command="plot evict"
+  description="Evict a resident from their personal plot."
+  permission="all"
+  optional={[{ name: "forsale", description: "Put the plot up for sale right after eviction" }]}
+  roles={["mayor", "assistant"]}
+/>
+
+<CommandCard
+  command="plot set"
+  description="Set the plot type."
+  permission="all"
+  required={[{ name: "type", description: "shop | embassy | arena | farm | jail | wilds | inn | bank | outpost | reset" }]}
+/>
+
+<CommandCard
+  command="plot set name"
+  description="Rename a plot. Personal plots show both the name and the owner."
+  permission="all"
+  required={[{ name: "name", description: "Plot name" }]}
+/>
+
+<CommandCard
+  command="plot set outpost spawn"
+  description="Move an outpost plot's spawn point to your current position."
+  permission="all"
+  roles={["mayor", "assistant"]}
+/>
+
+<CommandCard
+  command="plot set perm"
+  description="Configure a specific plot's access permissions (build / destroy / switch / itemuse)."
+  permission="all"
+/>
+
+<CommandCard
+  command="plot toggle"
+  description="Toggle a plot setting."
+  permission="all"
+  required={[{ name: "setting", description: "fire | pvp | explosion | mob | taxed" }]}
+/>
+
+<CommandCard
+  command="plot toggle pvp"
+  description="Turn PvP on/off on the plot."
+  permission="all"
+/>
+
+<CommandCard
+  command="plot toggle explosion"
+  description="Turn explosions on/off on the plot."
+  permission="all"
+/>
+
+<CommandCard
+  command="plot toggle fire"
+  description="Turn fire spread on/off on the plot."
+  permission="all"
+/>
+
+<CommandCard
+  command="plot toggle mob"
+  description="Turn hostile mob spawning on/off on the plot."
+  permission="all"
+/>
+
+<CommandCard
+  command="plot toggle taxed"
+  description="Turn tax charging on/off for the personal plot's owner."
+  permission="all"
+/>
+
+<CommandCard
+  command="plot trust add"
+  description="Add a player as trusted — they'll be able to build on your plot."
+  permission="all"
+  required={[{ name: "player", description: "Player name" }]}
+/>
+
+<CommandCard
+  command="plot trust remove"
+  description="Remove a player from the plot's trusted list."
+  permission="all"
+  required={[{ name: "player", description: "Player name" }]}
+/>
+
+<CommandCard
+  command="plot perm gui"
+  description="Open a GUI for configuring plot permissions."
+  permission="all"
+/>
+
+<CommandCard
+  command="plot perm hud"
+  description="Turn on/off a scoreboard HUD showing the plot permissions under your feet."
+  permission="all"
+/>
+
+<CommandCard
+  command="plot perm add"
+  description="Add a player to the plot's permission exceptions list."
+  permission="all"
+  required={[{ name: "player", description: "Player name" }]}
+/>
+
+<CommandCard
+  command="plot perm remove"
+  description="Remove a player from the plot's permission exceptions list."
+  permission="all"
+  required={[{ name: "player", description: "Player name" }]}
+/>
+
+<CommandCard
+  command="plot clear"
+  description="Clear blocks on the plot according to the allowed types list."
+  permission="all"
+/>
+
+<CommandCard
+  command="plot district create"
+  description="Create a named district out of several plots."
+  permission="all"
+  required={[{ name: "name", description: "District name" }]}
+  aliases={["plot district new"]}
+/>
+
+<CommandCard
+  command="plot district add"
+  description="Add the current plot to an existing district."
+  permission="all"
+  required={[{ name: "name", description: "District name" }]}
+/>
+
+<CommandCard
+  command="plot district rename"
+  description="Rename the district you're standing in."
+  permission="all"
+  required={[{ name: "name", description: "New district name" }]}
+/>
+
+<CommandCard
+  command="plot district remove"
+  description="Remove the current plot from its district."
+  permission="all"
+/>
+
+<CommandCard
+  command="plot district delete"
+  description="Delete the district you're standing in."
+  permission="all"
+/>
+
+<CommandCard
+  command="plot group create"
+  description="Create a plot group at the current position or add the plot to an existing one."
+  permission="all"
+  required={[{ name: "name", description: "Group name" }]}
+  aliases={["plot group add", "plot group new"]}
+/>
+
+<CommandCard
+  command="plot group delete"
+  description="Delete the entire plot group."
+  permission="all"
+/>
+
+<CommandCard
+  command="plot group rename"
+  description="Rename a plot group."
+  permission="all"
+  required={[{ name: "name", description: "New group name" }]}
+/>
+
+<CommandCard
+  command="plot group set"
+  description="Set the type for the entire plot group."
+  permission="all"
+  required={[{ name: "type", description: "Plot type (except jail)" }]}
+/>
+
+<CommandCard
+  command="plot group forsale"
+  description="Put the entire plot group up for sale."
+  permission="all"
+  required={[{ name: "price", description: "Price per plot" }]}
+  aliases={["plot group fs"]}
+/>
+
+<CommandCard
+  command="plot group notforsale"
+  description="Remove the entire plot group from sale."
+  permission="all"
+  aliases={["plot group nfs"]}
+/>
+
+<CommandCard
+  command="plot jailcell add"
+  description="Add a cell to the jail plot at the current position."
+  permission="all"
+  roles={["mayor", "assistant"]}
+/>
+
+<CommandCard
+  command="plot jailcell remove"
+  description="Remove a cell from the jail plot at the current position."
+  permission="all"
+  roles={["mayor", "assistant"]}
+/>
+
+---
+
+## `resident` — Resident profile
+
+<CommandCard
+  command="resident"
+  description="Show a resident's profile: town, plots, taxes, status."
+  permission="all"
+  optional={[{ name: "player", description: "Player name (defaults to your own profile)" }]}
+/>
+
+<CommandCard
+  command="resident list"
+  description="List residents currently online."
+  permission="all"
+  aliases={["res list"]}
+/>
+
+<CommandCard
+  command="resident friend add"
+  description="Add an online player to your friends list."
+  permission="all"
+  required={[{ name: "player", description: "Player name" }]}
+/>
+
+<CommandCard
+  command="resident friend add+"
+  description="Add an offline player to your friends list (requires the exact username spelling)."
+  permission="all"
+  required={[{ name: "player", description: "Player name" }]}
+/>
+
+<CommandCard
+  command="resident friend remove"
+  description="Remove a player from your friends list."
+  permission="all"
+  required={[{ name: "player", description: "Player name" }]}
+/>
+
+<CommandCard
+  command="resident friend clearlist"
+  description="Remove everyone from your friends list."
+  permission="all"
+/>
+
+<CommandCard
+  command="resident friend list"
+  description="Show your full friends list."
+  permission="all"
+  optional={[{ name: "online", description: "Show only friends who are currently online" }]}
+/>
+
+<CommandCard
+  command="resident plotlist"
+  description="Show the list of all plots owned by a player."
+  permission="all"
+  optional={[
+    { name: "player", description: "Player name (defaults to your own list)" },
+    { name: "page", description: "Page number" }
+  ]}
+/>
+
+<CommandCard
+  command="resident outlawlist"
+  description="Show the towns where the player is listed as an outlaw."
+  permission="all"
+  optional={[{ name: "player", description: "Player name (defaults to your own list)" }]}
+/>
+
+<CommandCard
+  command="resident jail paybail"
+  description="Pay bail for early release from jail."
+  permission="all"
+/>
+
+<CommandCard
+  command="resident spawn"
+  description="Teleport to your bed or resident spawn point."
+  permission="all"
+/>
+
+<CommandCard
+  command="resident tax"
+  description="Show the taxes due for resident status."
+  permission="all"
+  optional={[{ name: "player", description: "Player name" }]}
+/>
+
+<CommandCard
+  command="resident set perm"
+  description="Configure the default access permissions on all your plots (build / destroy / switch / itemuse)."
+  permission="all"
+/>
+
+<CommandCard
+  command="resident set about"
+  description="Set the profile description shown on the resident screen."
+  permission="all"
+  required={[{ name: "text", description: "Description text" }]}
+/>
+
+<CommandCard
+  command="resident toggle map"
+  description="Turn on an auto-updating map as you move between chunks."
+  permission="all"
+/>
+
+<CommandCard
+  command="resident toggle townclaim"
+  description="Turn on auto-claiming of town chunks as you move."
+  permission="all"
+/>
+
+<CommandCard
+  command="resident toggle townunclaim"
+  description="Turn on auto-unclaiming of town chunks as you move."
+  permission="all"
+/>
+
+<CommandCard
+  command="resident toggle plotborder"
+  description="Show smoke plot borders when you cross them."
+  permission="all"
+/>
+
+<CommandCard
+  command="resident toggle constantplotborder"
+  description="Always show smoke plot borders, without them fading."
+  permission="all"
+/>
+
+<CommandCard
+  command="resident toggle townborder"
+  description="Always show the smoke border of the entire town you're standing in."
+  permission="all"
+/>
+
+<CommandCard
+  command="resident toggle bordertitles"
+  description="Turn title messages on/off when entering and leaving a town."
+  permission="all"
+/>
+
+<CommandCard
+  command="resident toggle bedspawn"
+  description="Prioritize your bed over the town spawn point when teleporting."
+  permission="all"
+/>
+
+<CommandCard
+  command="resident toggle pvp"
+  description="Change the PvP status on all of your personal plots."
+  permission="all"
+/>
+
+<CommandCard
+  command="resident toggle ignoreinvites"
+  description="Turn town invites on/off."
+  permission="all"
+/>
+
+<CommandCard
+  command="resident toggle ignoreplots"
+  description="Turn town plot notifications on/off."
+  permission="all"
+/>
+
+<CommandCard
+  command="resident toggle spy"
+  description="Monitor all chat channels."
+  permission="admin"
+/>
+
+---
+
+## `town` — Town management
+
+<CommandCard
+  command="town"
+  description="Show info about a town: residents, plots, bank, taxes."
+  permission="all"
+  optional={[{ name: "town", description: "Town name (defaults to your own)" }]}
+/>
+
+<CommandCard
+  command="town here"
+  description="Show info about the town you're standing in."
+  permission="all"
+/>
+
+<CommandCard
+  command="town new"
+  description="Found a new town. Requires starting capital."
+  permission="all"
+  required={[{ name: "name", description: "Name of the new town" }]}
+  roles={["mayor"]}
+/>
+
+<CommandCard
+  command="town list"
+  description="List all towns on the server, with sorting options."
+  permission="all"
+  optional={[{ name: "sort", description: "by name | by resident | by balance | by townblocks | by online | by open | by founded" }]}
+/>
+
+<CommandCard
+  command="town online"
+  description="Show a town's online residents."
+  permission="all"
+  optional={[{ name: "town", description: "Town name (defaults to your own)" }]}
+/>
+
+<CommandCard
+  command="town plots"
+  description="Show a town's plot stats: types, count, income."
+  permission="all"
+  optional={[{ name: "town", description: "Town name (defaults to your own)" }]}
+/>
+
+<CommandCard
+  command="town join"
+  description="Join an open town without an invitation."
+  permission="all"
+  required={[{ name: "town", description: "Town name" }]}
+/>
+
+<CommandCard
+  command="town leave"
+  description="Leave your current town. The mayor can't use this command."
+  permission="all"
+  roles={["resident"]}
+/>
+
+<CommandCard
+  command="town add"
+  description="Invite a player to the town."
+  permission="all"
+  required={[{ name: "player", description: "Player name" }]}
+  roles={["mayor", "assistant"]}
+/>
+
+<CommandCard
+  command="town kick"
+  description="Remove a resident from the town."
+  permission="all"
+  required={[{ name: "player", description: "Player name" }]}
+  roles={["mayor", "assistant"]}
+/>
+
+<CommandCard
+  command="town invite"
+  description="Manage invites: send one to a player, view sent and received lists."
+  permission="all"
+  optional={[{ name: "player", description: "Send an invite to a player" }]}
+  roles={["mayor", "assistant"]}
+/>
+
+<CommandCard
+  command="town spawn"
+  description="Teleport to the town's spawn."
+  permission="all"
+  optional={[{ name: "town", description: "Town name (defaults to your own)" }]}
+/>
+
+<CommandCard
+  command="town claim"
+  description="Claim the chunk under your feet for the town."
+  permission="all"
+  roles={["mayor", "assistant"]}
+/>
+
+<CommandCard
+  command="town claim outpost"
+  description="Claim a chunk as an outpost (remote post) that doesn't need to border the town's territory."
+  permission="all"
+  roles={["mayor", "assistant"]}
+/>
+
+<CommandCard
+  command="town claim auto"
+  description="Automatically claim as many surrounding chunks as possible."
+  permission="all"
+  roles={["mayor", "assistant"]}
+/>
+
+<CommandCard
+  command="town claim fill"
+  description="Automatically fill the claimed area from the inside. The border must already be closed."
+  permission="all"
+  roles={["mayor", "assistant"]}
+/>
+
+<CommandCard
+  command="town unclaim"
+  description="Release the chunk under your feet, or all of the town's chunks."
+  permission="all"
+  optional={[{ name: "all", description: "Release all chunks at once" }]}
+  roles={["mayor", "assistant"]}
+/>
+
+<CommandCard
+  command="town cede plot"
+  description="Hand the chunk under your feet over to another town."
+  permission="all"
+  required={[{ name: "town", description: "Name of the receiving town" }]}
+  roles={["mayor", "assistant"]}
+/>
+
+<CommandCard
+  command="town deposit"
+  description="Deposit Ducats into the town bank."
+  permission="all"
+  required={[{ name: "amount", description: "Amount of Ducats (or all)" }]}
+/>
+
+<CommandCard
+  command="town withdraw"
+  description="Withdraw Ducats from the town bank."
+  permission="all"
+  required={[{ name: "amount", description: "Amount of Ducats (or all)" }]}
+  roles={["mayor"]}
+/>
+
+<CommandCard
+  command="town baltop"
+  description="Show the town's residents ranked by balance."
+  permission="all"
+  optional={[{ name: "town", description: "Town name (defaults to your own)" }]}
+/>
+
+<CommandCard
+  command="town bankhistory"
+  description="Open a book with the town bank's transaction history."
+  permission="all"
+  required={[{ name: "amount", description: "Number of entries to show" }]}
+/>
+
+<CommandCard
+  command="town buy bonus"
+  description="Buy extra chunks beyond the limit."
+  permission="all"
+  required={[{ name: "amount", description: "Number of chunks" }]}
+  roles={["mayor"]}
+/>
+
+<CommandCard
+  command="town forsale"
+  description="Put the town up for sale at the given price."
+  permission="all"
+  required={[{ name: "price", description: "Sale price" }]}
+  aliases={["town fs"]}
+  roles={["mayor"]}
+/>
+
+<CommandCard
+  command="town notforsale"
+  description="Remove the town from sale."
+  permission="all"
+  aliases={["town nfs"]}
+  roles={["mayor"]}
+/>
+
+<CommandCard
+  command="town buytown"
+  description="Buy a town that's up for sale."
+  permission="all"
+  required={[{ name: "town", description: "Town name" }]}
+/>
+
+<CommandCard
+  command="town set board"
+  description="Set the town's welcome message, shown to residents when they join."
+  permission="all"
+  required={[{ name: "message", description: "Board text (or none to clear it)" }]}
+  roles={["mayor", "assistant"]}
+/>
+
+<CommandCard
+  command="town set mayor"
+  description="Hand the mayor position to another resident."
+  permission="all"
+  required={[{ name: "player", description: "Name of the new mayor" }]}
+  roles={["mayor"]}
+/>
+
+<CommandCard
+  command="town set homeblock"
+  description="Set the current chunk as the town's homeblock."
+  permission="all"
+  roles={["mayor", "assistant"]}
+/>
+
+<CommandCard
+  command="town set spawn"
+  description="Set the town's spawn point (inside the homeblock)."
+  permission="all"
+  roles={["mayor", "assistant"]}
+/>
+
+<CommandCard
+  command="town set spawncost"
+  description="Set the cost for outside players to teleport to the public spawn."
+  permission="all"
+  required={[{ name: "amount", description: "Teleport cost" }]}
+  roles={["mayor"]}
+/>
+
+<CommandCard
+  command="town set name"
+  description="Rename your town."
+  permission="all"
+  required={[{ name: "name", description: "New town name" }]}
+  roles={["mayor"]}
+/>
+
+<CommandCard
+  command="town set tag"
+  description="Set the town's short tag (up to 4 characters)."
+  permission="all"
+  required={[{ name: "tag", description: "Town tag" }]}
+  roles={["mayor"]}
+/>
+
+<CommandCard
+  command="town set taxes"
+  description="Set the daily tax charged to residents."
+  permission="all"
+  required={[{ name: "amount", description: "Tax amount" }]}
+  roles={["mayor"]}
+/>
+
+<CommandCard
+  command="town set plottax"
+  description="Set the tax charged for personal plots."
+  permission="all"
+  required={[{ name: "amount", description: "Tax amount" }]}
+  roles={["mayor"]}
+/>
+
+<CommandCard
+  command="town set plotprice"
+  description="Set the default sale price for plots."
+  permission="all"
+  required={[{ name: "amount", description: "Plot price" }]}
+  roles={["mayor", "assistant"]}
+/>
+
+<CommandCard
+  command="town set perm"
+  description="Configure the default access permissions for all town plots (build / destroy / switch / itemuse)."
+  permission="all"
+  roles={["mayor", "assistant"]}
+/>
+
+<CommandCard
+  command="town set mapcolor"
+  description="Set the town's color on the dynmap."
+  permission="all"
+  required={[{ name: "color", description: "Color name" }]}
+  roles={["mayor"]}
+/>
+
+<CommandCard
+  command="town toggle explosion"
+  description="Turn explosions on/off in the town."
+  permission="all"
+  roles={["mayor"]}
+/>
+
+<CommandCard
+  command="town toggle fire"
+  description="Turn fire spread on/off in the town."
+  permission="all"
+  roles={["mayor"]}
+/>
+
+<CommandCard
+  command="town toggle mobs"
+  description="Turn hostile mob spawning on/off in the town."
+  permission="all"
+  roles={["mayor"]}
+/>
+
+<CommandCard
+  command="town toggle pvp"
+  description="Turn PvP on/off in the town."
+  permission="all"
+  roles={["mayor"]}
+/>
+
+<CommandCard
+  command="town toggle open"
+  description="Allow or forbid free joining of the town without an invite."
+  permission="all"
+  roles={["mayor"]}
+/>
+
+<CommandCard
+  command="town toggle public"
+  description="Allow or forbid public spawn and displaying coordinates in the town info."
+  permission="all"
+  roles={["mayor"]}
+/>
+
+<CommandCard
+  command="town rank add"
+  description="Give a resident an internal town rank."
+  permission="all"
+  required={[
+    { name: "player", description: "Player name" },
+    { name: "rank", description: "Rank name" }
+  ]}
+  roles={["mayor", "assistant"]}
+/>
+
+<CommandCard
+  command="town rank remove"
+  description="Remove a rank from a town resident."
+  permission="all"
+  required={[
+    { name: "player", description: "Player name" },
+    { name: "rank", description: "Rank name" }
+  ]}
+  roles={["mayor", "assistant"]}
+/>
+
+<CommandCard
+  command="town ranklist"
+  description="Show residents with ranks."
+  permission="all"
+  optional={[{ name: "town", description: "Town name (defaults to your own)" }]}
+/>
+
+<CommandCard
+  command="town reslist"
+  description="Show the town's full resident list."
+  permission="all"
+  optional={[{ name: "town", description: "Town name (defaults to your own)" }]}
+/>
+
+<CommandCard
+  command="town outlaw add"
+  description="Add a player to the town's outlaw list — they can be attacked on the town's territory."
+  permission="all"
+  required={[{ name: "player", description: "Player name" }]}
+  roles={["mayor", "assistant"]}
+/>
+
+<CommandCard
+  command="town outlaw remove"
+  description="Remove a player from the outlaw list."
+  permission="all"
+  required={[{ name: "player", description: "Player name" }]}
+  roles={["mayor", "assistant"]}
+/>
+
+<CommandCard
+  command="town outlawlist"
+  description="Show the town's outlaw list."
+  permission="all"
+  optional={[{ name: "town", description: "Town name (defaults to your own)" }]}
+/>
+
+<CommandCard
+  command="town outpost"
+  description="Teleport to the town's outpost."
+  permission="all"
+  optional={[{ name: "number | name", description: "Outpost number or name (defaults to the first one)" }]}
+/>
+
+<CommandCard
+  command="town outpost list"
+  description="Show the list of all the town's outposts."
+  permission="all"
+/>
+
+<CommandCard
+  command="town plotgrouplist"
+  description="Show the town's plot groups with prices and sale status."
+  permission="all"
+  optional={[
+    { name: "town", description: "Town name (defaults to your own)" },
+    { name: "page", description: "Page number" }
+  ]}
+/>
+
+<CommandCard
+  command="town allylist"
+  description="Show the list of allied towns."
+  permission="all"
+  optional={[{ name: "town", description: "Town name (defaults to your own)" }]}
+/>
+
+<CommandCard
+  command="town enemylist"
+  description="Show the list of enemy towns."
+  permission="all"
+  optional={[{ name: "town", description: "Town name (defaults to your own)" }]}
+/>
+
+<CommandCard
+  command="town say"
+  description="Send a message to all of the town's online residents."
+  permission="all"
+  required={[{ name: "message", description: "Message text" }]}
+/>
+
+<CommandCard
+  command="town purge"
+  description="Remove residents inactive for longer than the given number of days. Mayors and NPCs are unaffected."
+  permission="all"
+  required={[{ name: "days", description: "Number of inactive days" }]}
+  roles={["mayor"]}
+/>
+
+<CommandCard
+  command="town merge"
+  description="Request merging another town into your own."
+  permission="all"
+  required={[{ name: "town", description: "Name of the town to merge" }]}
+  roles={["mayor"]}
+/>
+
+<CommandCard
+  command="town delete"
+  description="Delete the town. All chunks are released, residents become homeless."
+  permission="all"
+  roles={["mayor"]}
+/>
+
+<CommandCard
+  command="town reclaim"
+  description="Restore a ruined town (available to its former residents)."
+  permission="all"
+/>
+
+---
+
+## `invite` — Invitations
+
+<CommandCard
+  command="invite list"
+  description="Show all received town invitations."
+  permission="all"
+/>
+
+<CommandCard
+  command="invite accept"
+  description="Accept an invitation to a town."
+  permission="all"
+  required={[{ name: "town", description: "Town name" }]}
+/>
+
+<CommandCard
+  command="invite deny"
+  description="Decline an invitation to a town, or all of them at once."
+  permission="all"
+  required={[{ name: "town | all", description: "Town name, or all to decline them all" }]}
+/>
+
+---
+
+## `nation` — Nation management
+
+<CommandCard
+  command="nation"
+  description="Show info about a nation: towns, bank, allies, enemies."
+  permission="all"
+  optional={[{ name: "nation", description: "Nation name (defaults to your own)" }]}
+/>
+
+<CommandCard
+  command="nation new"
+  description="Found a new nation. The founding town's mayor becomes king."
+  permission="all"
+  required={[{ name: "name", description: "Name of the new nation" }]}
+  roles={["king"]}
+/>
+
+<CommandCard
+  command="nation list"
+  description="List all nations on the server."
+  permission="all"
+/>
+
+<CommandCard
+  command="nation online"
+  description="Show the nation's online members."
+  permission="all"
+/>
+
+<CommandCard
+  command="nation add"
+  description="Invite a town to the nation."
+  permission="all"
+  required={[{ name: "town", description: "Town name" }]}
+  roles={["king", "assistant"]}
+/>
+
+<CommandCard
+  command="nation kick"
+  description="Remove a town from the nation."
+  permission="all"
+  required={[{ name: "town", description: "Town name" }]}
+  roles={["king", "assistant"]}
+/>
+
+<CommandCard
+  command="nation leave"
+  description="Leave the current nation."
+  permission="all"
+/>
+
+<CommandCard
+  command="nation spawn"
+  description="Teleport to the nation's spawn."
+  permission="all"
+  optional={[{ name: "nation", description: "Nation name (defaults to your own)" }]}
+/>
+
+<CommandCard
+  command="nation deposit"
+  description="Deposit Ducats into the nation bank."
+  permission="all"
+  required={[{ name: "amount", description: "Amount of Ducats" }]}
+  roles={["king"]}
+/>
+
+<CommandCard
+  command="nation withdraw"
+  description="Withdraw Ducats from the nation bank."
+  permission="all"
+  required={[{ name: "amount", description: "Amount of Ducats" }]}
+  roles={["king"]}
+/>
+
+<CommandCard
+  command="nation set king"
+  description="Hand the crown to another player."
+  permission="all"
+  required={[{ name: "player", description: "Name of the new king" }]}
+  roles={["king"]}
+/>
+
+<CommandCard
+  command="nation set capital"
+  description="Change the nation's capital."
+  permission="all"
+  required={[{ name: "town", description: "Name of the new capital town" }]}
+  roles={["king"]}
+/>
+
+<CommandCard
+  command="nation set taxes"
+  description="Set the daily tax for the nation's towns."
+  permission="all"
+  required={[{ name: "amount", description: "Tax amount" }]}
+  roles={["king"]}
+/>
+
+<CommandCard
+  command="nation set tag"
+  description="Set the nation's short tag (up to 4 characters)."
+  permission="all"
+  required={[{ name: "tag", description: "Nation tag" }]}
+  roles={["king"]}
+/>
+
+<CommandCard
+  command="nation set name"
+  description="Rename the nation."
+  permission="all"
+  required={[{ name: "name", description: "New nation name" }]}
+  roles={["king"]}
+/>
+
+<CommandCard
+  command="nation toggle neutral"
+  description="Declare the nation neutral — it won't take part in wars. Requires a daily payment."
+  permission="all"
+  roles={["king"]}
+/>
+
+<CommandCard
+  command="nation toggle open"
+  description="Open the nation for towns to join freely, without an invite."
+  permission="all"
+  roles={["king"]}
+/>
+
+<CommandCard
+  command="nation ally add"
+  description="Add a nation as an ally."
+  permission="all"
+  required={[{ name: "nation", description: "Nation name" }]}
+  roles={["king", "assistant"]}
+/>
+
+<CommandCard
+  command="nation ally remove"
+  description="Remove a nation from your allies."
+  permission="all"
+  required={[{ name: "nation", description: "Nation name" }]}
+  roles={["king", "assistant"]}
+/>
+
+<CommandCard
+  command="nation enemy add"
+  description="Declare a nation an enemy."
+  permission="all"
+  required={[{ name: "nation", description: "Nation name" }]}
+  roles={["king", "assistant"]}
+/>
+
+<CommandCard
+  command="nation enemy remove"
+  description="Remove a nation's enemy status."
+  permission="all"
+  required={[{ name: "nation", description: "Nation name" }]}
+  roles={["king", "assistant"]}
+/>
+
+<CommandCard
+  command="nation allylist"
+  description="Show the list of allied nations."
+  permission="all"
+/>
+
+<CommandCard
+  command="nation enemylist"
+  description="Show the list of enemy nations."
+  permission="all"
+/>
+
+<CommandCard
+  command="nation rank add"
+  description="Give a nation resident a rank."
+  permission="all"
+  required={[
+    { name: "player", description: "Player name" },
+    { name: "rank", description: "Rank name" }
+  ]}
+  roles={["king", "assistant"]}
+/>
+
+<CommandCard
+  command="nation rank remove"
+  description="Remove a rank from a nation resident."
+  permission="all"
+  required={[
+    { name: "player", description: "Player name" },
+    { name: "rank", description: "Rank name" }
+  ]}
+  roles={["king", "assistant"]}
+/>
+
+<CommandCard
+  command="nation merge"
+  description="Request merging another nation into your own."
+  permission="all"
+  required={[{ name: "nation", description: "Name of the nation to merge" }]}
+  roles={["king"]}
+/>
+
+<CommandCard
+  command="nation delete"
+  description="Disband the nation. Towns remain, but lose their nation membership."
+  permission="all"
+  roles={["king"]}
+/>
+
+---
+
+## `townyadmin` — Administration
+
+<Callout variant="danger" title="Staff only">
+  All commands in this section are available exclusively to server administrators.
+</Callout>
+
+<CommandCard
+  command="/ta town new"
+  description="Found a town for the given player without charging them."
+  permission="admin"
+  required={[
+    { name: "name", description: "Town name" },
+    { name: "mayor", description: "Mayor's name" }
+  ]}
+/>
+
+<CommandCard
+  command="/ta town delete"
+  description="Force-delete any town."
+  permission="admin"
+  required={[{ name: "town", description: "Town name" }]}
+/>
+
+<CommandCard
+  command="/ta town set mayor"
+  description="Manually assign a new mayor."
+  permission="admin"
+  required={[
+    { name: "town", description: "Town name" },
+    { name: "player", description: "Name of the new mayor" }
+  ]}
+/>
+
+<CommandCard
+  command="/ta town set name"
+  description="Rename any town."
+  permission="admin"
+  required={[
+    { name: "town", description: "Current town name" },
+    { name: "new_name", description: "New town name" }
+  ]}
+/>
+
+<CommandCard
+  command="/ta town unruin"
+  description="Restore a ruined town."
+  permission="admin"
+  required={[{ name: "town", description: "Town name" }]}
+/>
+
+<CommandCard
+  command="/ta givebonus"
+  description="Give a town extra chunks beyond the limit."
+  permission="admin"
+  required={[
+    { name: "town", description: "Town name" },
+    { name: "amount", description: "Number of chunks (negative to take away)" }
+  ]}
+/>
+
+<CommandCard
+  command="/ta newday"
+  description="Force a new day to start — immediate tax collection."
+  permission="admin"
+/>
+
+<CommandCard
+  command="/ta purge"
+  description="Delete profiles of residents inactive for longer than the given number of days."
+  permission="admin"
+  required={[{ name: "days", description: "Number of days" }]}
+/>
+
+<CommandCard
+  command="/ta resident delete"
+  description="Delete a resident's profile."
+  permission="admin"
+  required={[{ name: "player", description: "Player name" }]}
+/>
+
+<CommandCard
+  command="/ta reload all"
+  description="Reload all Towny configs without restarting the server."
+  permission="admin"
+/>
+
+---
+
+## `townyworld` — World settings
+
+<Callout variant="info">
+  `/tw` commands apply to a specific game world and are only available to administrators.
+</Callout>
+
+<CommandCard
+  command="/tw list"
+  description="List all worlds with Towny enabled."
+  permission="admin"
+/>
+
+<CommandCard
+  command="/tw toggle claimable"
+  description="Allow or forbid claiming chunks in the world."
+  permission="admin"
+/>
+
+<CommandCard
+  command="/tw toggle pvp"
+  description="Turn PvP on or off for the entire world."
+  permission="admin"
+/>
+
+<CommandCard
+  command="/tw toggle forcepvp"
+  description="Force PvP on in all of the world's towns, ignoring their settings."
+  permission="admin"
+/>
+
+<CommandCard
+  command="/tw toggle warallowed"
+  description="Allow or forbid wars in the world."
+  permission="admin"
+/>
+
+<CommandCard
+  command="/tw set worldmode"
+  description="Set the world mode."
+  permission="admin"
+  required={[{ name: "mode", description: "safe | build | pvp | war" }]}
+/>
