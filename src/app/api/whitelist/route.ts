@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { withDb } from "@/lib/db";
+import { withCache } from "@/lib/query-cache";
 import { Prisma } from "@prisma/client";
 import type { WhitelistPlayer, WhitelistResponse } from "@/types/whitelist";
 
@@ -15,6 +16,68 @@ interface RawRow {
   total:     bigint;
 }
 
+const WHITELIST_TTL_MS = 60_000;
+
+async function buildWhitelistResponse(
+  page: number, pageSize: number, search: string, serverId: string
+): Promise<WhitelistResponse> {
+  const offset = (page - 1) * pageSize;
+
+  const rows: RawRow[] = await withDb(async (db) => {
+    return await db.$queryRaw(Prisma.sql`
+      SELECT
+        p.id,
+        p.name,
+        p.uuid,
+        m.date AS addedAt,
+        m.time AS duration,
+        COALESCE(mod_player.name, CAST(m.moderator AS CHAR)) AS moderator,
+        COUNT(*) OVER() AS total
+      FROM fp_player p
+      INNER JOIN fp_moderation m
+        ON  m.player = p.id
+        AND m.type   = 'whitelist'
+        AND m.valid  = 1
+        ${serverId ? Prisma.sql`AND m.server = ${serverId}` : Prisma.empty}
+        AND m.date   = (
+          SELECT MAX(m2.date)
+            FROM fp_moderation m2
+           WHERE m2.player = p.id
+             AND m2.type   = 'whitelist'
+             AND m2.valid  = 1
+             ${serverId ? Prisma.sql`AND m2.server = ${serverId}` : Prisma.empty}
+        )
+      LEFT JOIN fp_player mod_player
+        ON mod_player.id = m.moderator
+      ${search ? Prisma.sql`WHERE p.name LIKE ${"%" + search + "%"}` : Prisma.empty}
+      ORDER BY p.name ASC
+      LIMIT  ${pageSize}
+      OFFSET ${offset}
+    `) as RawRow[];
+  });
+
+  const total = rows.length > 0 ? Number(rows[0].total) : 0;
+
+  return {
+    players: rows.map((r) => {
+      const addedAt  = Number(r.addedAt);
+      const duration = Number(r.duration);
+      return {
+        id:        Number(r.id),
+        name:      r.name,
+        uuid:      r.uuid,
+        addedAt,
+        expiresAt: duration > 0 ? addedAt + duration : 0,
+        moderator: r.moderator,
+      };
+    }),
+    total,
+    page,
+    pageSize,
+    totalPages: Math.max(1, Math.ceil(total / pageSize)),
+  };
+}
+
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
 
@@ -23,62 +86,12 @@ export async function GET(req: Request) {
   const search   = searchParams.get("search")?.trim() ?? "";
   const serverId = searchParams.get("serverId")?.trim() ?? "";
 
-  const offset = (page - 1) * pageSize;
-
   try {
-    const rows: RawRow[] = await withDb(async (db) => {
-      return await db.$queryRaw(Prisma.sql`
-        SELECT
-          p.id,
-          p.name,
-          p.uuid,
-          m.date AS addedAt,
-          m.time AS duration,
-          COALESCE(mod_player.name, CAST(m.moderator AS CHAR)) AS moderator,
-          COUNT(*) OVER() AS total
-        FROM fp_player p
-        INNER JOIN fp_moderation m
-          ON  m.player = p.id
-          AND m.type   = 'whitelist'
-          AND m.valid  = 1
-          ${serverId ? Prisma.sql`AND m.server = ${serverId}` : Prisma.empty}
-          AND m.date   = (
-            SELECT MAX(m2.date)
-              FROM fp_moderation m2
-             WHERE m2.player = p.id
-               AND m2.type   = 'whitelist'
-               AND m2.valid  = 1
-               ${serverId ? Prisma.sql`AND m2.server = ${serverId}` : Prisma.empty}
-          )
-        LEFT JOIN fp_player mod_player
-          ON mod_player.id = m.moderator
-        ${search ? Prisma.sql`WHERE p.name LIKE ${"%" + search + "%"}` : Prisma.empty}
-        ORDER BY p.name ASC
-        LIMIT  ${pageSize}
-        OFFSET ${offset}
-      `) as RawRow[];
-    });
-
-    const total = rows.length > 0 ? Number(rows[0].total) : 0;
-
-    const result: WhitelistResponse = {
-      players: rows.map((r) => {
-        const addedAt  = Number(r.addedAt);
-        const duration = Number(r.duration);
-        return {
-          id:        Number(r.id),
-          name:      r.name,
-          uuid:      r.uuid,
-          addedAt,
-          expiresAt: duration > 0 ? addedAt + duration : 0,
-          moderator: r.moderator,
-        };
-      }),
-      total,
-      page,
-      pageSize,
-      totalPages: Math.max(1, Math.ceil(total / pageSize)),
-    };
+    const result = await withCache(
+      `whitelist:${page}:${pageSize}:${search.toLowerCase()}:${serverId}`,
+      WHITELIST_TTL_MS,
+      () => buildWhitelistResponse(page, pageSize, search, serverId)
+    );
 
     return NextResponse.json(result, {
       headers: {

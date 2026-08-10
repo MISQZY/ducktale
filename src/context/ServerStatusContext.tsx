@@ -48,15 +48,24 @@ export function ServerStatusProvider({ children }: { children: React.ReactNode }
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- kicking off polling + initial fetch on mount, standard data-fetching pattern
     fetchStatuses();
-    const id = setInterval(fetchStatuses, API.pollIntervalMs);
+
+    // Only poll while the tab is actually visible — a backgrounded tab has
+    // no reason to keep hitting the endpoint every pollIntervalMs.
+    let id: ReturnType<typeof setInterval> | null = setInterval(fetchStatuses, API.pollIntervalMs);
 
     const handleVisibility = () => {
-      if (document.visibilityState === "visible") fetchStatuses();
+      if (document.visibilityState === "visible") {
+        fetchStatuses();
+        if (id === null) id = setInterval(fetchStatuses, API.pollIntervalMs);
+      } else if (id !== null) {
+        clearInterval(id);
+        id = null;
+      }
     };
     document.addEventListener("visibilitychange", handleVisibility);
 
     return () => {
-      clearInterval(id);
+      if (id !== null) clearInterval(id);
       document.removeEventListener("visibilitychange", handleVisibility);
     };
   }, [fetchStatuses]);
