@@ -508,6 +508,8 @@
     "openedBy": "Opened by: {nickname}",
     "closeTicket": "Close ticket",
     "reopenTicket": "Reopen",
+    "deleteTicket": "Delete ticket",
+    "confirmDeleteTicket": "Permanently delete the ticket \"{subject}\"? All messages and attachments will be lost. This cannot be undone.",
     "staffLabel": "support",
     "adminName": "Administrator",
     "noMessages": "No messages yet.",

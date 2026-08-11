@@ -3,7 +3,8 @@
 import { useCallback, useEffect, useRef, useState, useTransition, type FormEvent } from "react";
 import { useTranslations } from "next-intl";
 import { cn } from "@/lib/utils";
-import { sendTicketMessage, setTicketStatus } from "@/lib/actions/tickets";
+import { useRouter } from "@/i18n/navigation";
+import { sendTicketMessage, setTicketStatus, deleteTicket } from "@/lib/actions/tickets";
 import { TICKET_MESSAGE_MAX } from "@/lib/tickets";
 import { FormButton } from "@/components/common/FormButton";
 import { FormTextarea } from "@/components/common/FormTextarea";
@@ -22,17 +23,21 @@ interface TicketMessageData {
 interface TicketThreadProps {
   lang: string;
   ticketId: string;
+  subject: string;
   initialStatus: TicketStatus;
   initialMessages: TicketMessageData[];
   /** Whether the current viewer is an admin — controls both the close/reopen
    * controls and which side of the thread their own messages render on. */
   isAdmin: boolean;
+  /** Where to send the admin after deleting the ticket, since it no longer exists to render. */
+  backHref: string;
 }
 
 const POLL_INTERVAL_MS = 8000;
 
-export function TicketThread({ lang, ticketId, initialStatus, initialMessages, isAdmin }: TicketThreadProps) {
+export function TicketThread({ lang, ticketId, subject, initialStatus, initialMessages, isAdmin, backHref }: TicketThreadProps) {
   const t = useTranslations("Tickets");
+  const router = useRouter();
   const [status, setStatus] = useState<TicketStatus>(initialStatus);
   const [messages, setMessages] = useState(initialMessages);
   const [body, setBody] = useState("");
@@ -103,19 +108,41 @@ export function TicketThread({ lang, ticketId, initialStatus, initialMessages, i
     });
   }
 
+  function handleDelete() {
+    if (!window.confirm(t("confirmDeleteTicket", { subject }))) return;
+    startTransition(async () => {
+      try {
+        await deleteTicket(lang, ticketId);
+        router.push(backHref);
+      } catch {
+        setError(t("errors.generic"));
+      }
+    });
+  }
+
   return (
     <div className="flex flex-col gap-4">
       <div className="flex items-center justify-between gap-3 flex-wrap">
         <TicketStatusBadge status={status} label={t(`status.${status}`)} />
         {isAdmin && (
-          <FormButton
-            variant="outline"
-            className="px-3 py-1 text-[0.65rem]"
-            disabled={isPending}
-            onClick={() => handleStatusChange(status === "CLOSED" ? "OPEN" : "CLOSED")}
-          >
-            {status === "CLOSED" ? t("reopenTicket") : t("closeTicket")}
-          </FormButton>
+          <div className="flex items-center gap-2">
+            <FormButton
+              variant="outline"
+              className="px-3 py-1 text-[0.65rem]"
+              disabled={isPending}
+              onClick={() => handleStatusChange(status === "CLOSED" ? "OPEN" : "CLOSED")}
+            >
+              {status === "CLOSED" ? t("reopenTicket") : t("closeTicket")}
+            </FormButton>
+            <FormButton
+              variant="destructive"
+              className="px-3 py-1 text-[0.65rem]"
+              disabled={isPending}
+              onClick={handleDelete}
+            >
+              {t("deleteTicket")}
+            </FormButton>
+          </div>
         )}
       </div>
 

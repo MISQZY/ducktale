@@ -507,6 +507,8 @@
     "openedBy": "Открыт: {nickname}",
     "closeTicket": "Закрыть тикет",
     "reopenTicket": "Переоткрыть",
+    "deleteTicket": "Удалить тикет",
+    "confirmDeleteTicket": "Удалить тикет «{subject}» безвозвратно? Все сообщения и вложения будут потеряны. Это действие нельзя отменить.",
     "staffLabel": "поддержка",
     "adminName": "Администратор",
     "noMessages": "Сообщений пока нет.",

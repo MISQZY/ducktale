@@ -1,5 +1,5 @@
 import { join } from "path";
-import { mkdir } from "fs/promises";
+import { mkdir, unlink } from "fs/promises";
 import { createWriteStream, existsSync } from "fs";
 import { pipeline } from "stream/promises";
 import { Readable } from "stream";
@@ -45,4 +45,12 @@ export async function saveAttachment(file: File): Promise<{ filename: string; si
     mimeType: file.type || "application/octet-stream",
     path: uniqueName,
   };
+}
+
+/** Best-effort — callers deleting a DB row shouldn't fail the whole operation over a file that's already gone from disk. */
+export async function deleteAttachmentFile(path: string): Promise<void> {
+  const filePath = join(UPLOADS_DIR, path);
+  if (existsSync(filePath)) {
+    await unlink(filePath);
+  }
 }

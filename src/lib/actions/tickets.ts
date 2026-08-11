@@ -1,6 +1,6 @@
 "use server";
 
-import { saveAttachment } from "@/lib/attachments";
+import { saveAttachment, deleteAttachmentFile } from "@/lib/attachments";
 
 import { headers } from "next/headers";
 import { revalidatePath } from "next/cache";
@@ -167,4 +167,22 @@ export async function setTicketStatus(lang: string, ticketId: string, status: "O
 
   revalidatePath(`/${lang}/tickets/${ticketId}`);
   revalidatePath(`/${lang}/admin/tickets`);
+}
+
+export async function deleteTicket(lang: string, ticketId: string): Promise<void> {
+  const viewer = await getTicketViewer();
+  if (!viewer?.isAdmin) throw new Error("Not authorized");
+
+  const attachments = await siteDb.ticketAttachment.findMany({
+    where: { ticketMessage: { ticketId } },
+    select: { path: true },
+  });
+
+  // TicketMessage/TicketAttachment rows cascade via the schema's onDelete: Cascade.
+  await siteDb.ticket.delete({ where: { id: ticketId } });
+
+  await Promise.all(attachments.map((a) => deleteAttachmentFile(a.path).catch(() => {})));
+
+  revalidatePath(`/${lang}/admin/tickets`);
+  revalidatePath(`/${lang}/account/tickets`);
 }

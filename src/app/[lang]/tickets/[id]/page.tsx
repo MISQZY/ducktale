@@ -76,6 +76,8 @@ export default async function TicketPage({
           <TicketThread
             lang={lang}
             ticketId={ticket.id}
+            subject={ticket.subject}
+            backHref={backHref}
             initialStatus={ticket.status}
             initialMessages={messages.map((m) => ({
               id: m.id,
