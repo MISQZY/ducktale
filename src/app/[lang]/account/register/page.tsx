@@ -11,7 +11,7 @@ export default async function RegisterPage({
 }) {
   const { lang } = await params;
   const session = await auth();
-  if (session?.user) redirect(`/${lang}/account`);
+  if (session?.user?.id) redirect(`/${lang}/account`);
 
   const t = await getTranslations("Account.register");
 
