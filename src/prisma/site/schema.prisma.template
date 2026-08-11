@@ -30,14 +30,15 @@ datasource db {
 }
 
 model User {
-  id             String          @id @default(uuid())
-  nickname       String          @unique @db.VarChar(32)
-  passwordHash   String          @db.VarChar(255)
-  isAdmin        Boolean         @default(false)
-  createdAt      DateTime        @default(now())
-  accountLink    AccountLink?
-  tickets        Ticket[]
-  ticketMessages TicketMessage[]
+  id                  String               @id @default(uuid())
+  nickname            String               @unique @db.VarChar(32)
+  passwordHash        String               @db.VarChar(255)
+  isAdmin             Boolean              @default(false)
+  createdAt           DateTime             @default(now())
+  accountLink         AccountLink?
+  tickets             Ticket[]
+  ticketMessages      TicketMessage[]
+  passwordResetTokens PasswordResetToken[]
 
   @@map("{{PREFIX}}user")
 }
@@ -70,6 +71,25 @@ model AccountLink {
 
   @@index([status])
   @@map("{{PREFIX}}account_link")
+}
+
+/// Issued by an admin from the users panel and handed to the user
+/// out-of-band (Discord/Telegram) as a one-time link, replacing the old
+/// flow where the admin saw and shared a plaintext random password
+/// directly. usedAt is set the moment the linked page is submitted, and a
+/// fresh admin-issued token deletes any previous ones for the same user —
+/// only the most recently issued link is ever valid.
+model PasswordResetToken {
+  id        String    @id @default(uuid())
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  token     String    @unique @db.VarChar(64)
+  createdAt DateTime  @default(now())
+  expiresAt DateTime
+  usedAt    DateTime?
+
+  @@index([userId])
+  @@map("{{PREFIX}}password_reset_token")
 }
 
 enum TicketStatus {

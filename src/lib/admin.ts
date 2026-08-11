@@ -1,4 +1,3 @@
-import { randomBytes } from "crypto";
 import { redirect } from "next/navigation";
 import { auth } from "@/auth";
 
@@ -25,14 +24,3 @@ export async function requireAdminId(): Promise<string> {
   return session.user.id;
 }
 
-const PASSWORD_ALPHABET = "abcdefghjkmnpqrstuvwxyzABCDEFGHJKMNPQRSTUVWXYZ23456789";
-
-/** A one-time password for an admin to hand off to a user out-of-band (Discord/Telegram). */
-export function generateRandomPassword(length = 14): string {
-  const bytes = randomBytes(length);
-  let password = "";
-  for (let i = 0; i < length; i++) {
-    password += PASSWORD_ALPHABET[bytes[i] % PASSWORD_ALPHABET.length];
-  }
-  return password;
-}

@@ -1,21 +1,18 @@
 "use server";
 
-import bcrypt from "bcryptjs";
 import { revalidatePath } from "next/cache";
 import { siteDb } from "@/lib/site-db";
-import { generateRandomPassword, requireAdminId } from "@/lib/admin";
-
-const BCRYPT_COST = 10;
+import { requireAdminId } from "@/lib/admin";
+import { createPasswordResetToken } from "@/lib/password-reset";
+import { SITE } from "@/config/site";
 
 export async function resetUserPassword(lang: string, userId: string): Promise<string> {
   await requireAdminId();
 
-  const password = generateRandomPassword();
-  const passwordHash = await bcrypt.hash(password, BCRYPT_COST);
-  await siteDb.user.update({ where: { id: userId }, data: { passwordHash } });
+  const token = await createPasswordResetToken(userId);
 
   revalidatePath(`/${lang}/admin`);
-  return password;
+  return `${SITE.url}/${lang}/account/reset-password/${token}`;
 }
 
 export async function unlinkUser(lang: string, userId: string) {

@@ -18,7 +18,7 @@ interface AdminUserActionsProps {
 export function AdminUserActions({ lang, userId, nickname, isSelf, hasLink, isAdmin }: AdminUserActionsProps) {
   const t = useTranslations("Admin");
   const [isPending, startTransition] = useTransition();
-  const [newPassword, setNewPassword] = useState<string | null>(null);
+  const [resetLink, setResetLink] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   function handleResetPassword() {
@@ -26,8 +26,8 @@ export function AdminUserActions({ lang, userId, nickname, isSelf, hasLink, isAd
     setError(null);
     startTransition(async () => {
       try {
-        const password = await resetUserPassword(lang, userId);
-        setNewPassword(password);
+        const link = await resetUserPassword(lang, userId);
+        setResetLink(link);
       } catch {
         setError(t("actionFailed"));
       }
@@ -119,12 +119,17 @@ export function AdminUserActions({ lang, userId, nickname, isSelf, hasLink, isAd
         )}
       </div>
 
-      {newPassword && (
+      {resetLink && (
         <div className="text-xs text-foreground/60">
           <p className="mb-1">{t("newPasswordHint")}</p>
-          <CopyToClipboard value={newPassword}>
-            <div className="flex items-center gap-2 rounded-lg bg-muted border border-primary/20 px-3 py-2 cursor-pointer w-fit">
-              <span className="font-mono text-sm text-foreground tracking-wide">{newPassword}</span>
+          <CopyToClipboard value={resetLink}>
+            <div
+              className="flex items-center gap-2 rounded-lg bg-muted border border-primary/20 px-3 py-2 cursor-pointer max-w-full"
+              title={resetLink}
+            >
+              <span className="font-mono text-sm text-foreground tracking-wide truncate">
+                {resetLink}
+              </span>
             </div>
           </CopyToClipboard>
         </div>

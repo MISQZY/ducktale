@@ -388,6 +388,21 @@
       "errors": {
         "generic": "Couldn't generate a code. Please try again later."
       }
+    },
+    "resetPassword": {
+      "title": "Set a new password",
+      "description": "Choose a new password for your account.",
+      "passwordLabel": "New password",
+      "confirmPasswordLabel": "Confirm new password",
+      "submit": "Set password",
+      "submitting": "Saving...",
+      "invalidTitle": "Link expired",
+      "invalidDescription": "This password reset link is invalid, expired, or has already been used. Ask an admin for a new one.",
+      "backToLogin": "Back to login",
+      "errors": {
+        "passwordMismatch": "Passwords don't match",
+        "generic": "Something went wrong. Please try again."
+      }
     }
   },
   "Admin": {
@@ -405,8 +420,8 @@
     "delete": "Delete",
     "grantAdmin": "Make admin",
     "revokeAdmin": "Revoke admin",
-    "newPasswordHint": "New password (share it with the user directly — it isn't stored anywhere else):",
-    "confirmReset": "Reset the password for {nickname}? Their old password will stop working.",
+    "newPasswordHint": "One-time password reset link — share it with the user directly. It expires in 24 hours or as soon as they use it:",
+    "confirmReset": "Generate a password reset link for {nickname}? Their current password keeps working until they open the link and set a new one.",
     "confirmUnlink": "Unlink the Minecraft account for {nickname}?",
     "confirmDelete": "Permanently delete the user {nickname}? This cannot be undone.",
     "confirmGrantAdmin": "Grant {nickname} admin rights? They will get access to this panel.",
