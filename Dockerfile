@@ -4,8 +4,10 @@ FROM node:22-alpine AS base
 FROM base AS deps
 WORKDIR /app
 COPY package.json package-lock.json source.config.ts next.config.mjs ./
-# Копируем схему Prisma чтобы postinstall (prisma generate) сработал
+# Копируем схему Prisma и render-site-schema.js — оба нужны postinstall
+# (prisma generate / site-db:render), который npm ci запускает сам
 COPY src/prisma ./src/prisma
+COPY scripts ./scripts
 RUN npm ci
 
 # --- builder ---
