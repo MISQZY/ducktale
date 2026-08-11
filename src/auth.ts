@@ -1,3 +1,4 @@
+import { cache } from "react";
 import NextAuth from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import bcrypt from "bcryptjs";
@@ -12,7 +13,7 @@ import { isRateLimited } from "@/lib/rate-limit";
 // to be measurable).
 const DUMMY_PASSWORD_HASH = "$2b$10$gQFBKta7QXMjAc25uuO.Gee/1aSZVLO6rGkm2ZVgZtiYxc/GE0J3C";
 
-export const { handlers, auth, signIn, signOut } = NextAuth({
+const { handlers, auth: uncachedAuth, signIn, signOut } = NextAuth({
   // Credentials-based auth isn't persisted by an Adapter, so sessions must
   // be JWT-based (Auth.js requires this for the Credentials provider).
   session: { strategy: "jwt" },
@@ -75,3 +76,11 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     },
   },
 });
+
+// Every call in this app is the zero-arg Server Component form, so a plain
+// React cache() is enough to dedupe the session()-callback's DB round trip
+// across the many independent auth() calls in a single request (layout.tsx,
+// the page itself, requireAdmin, ...) — see node_modules/next/dist/docs's
+// data-security guide, which recommends exactly this pattern.
+export const auth = cache(uncachedAuth);
+export { handlers, signIn, signOut };

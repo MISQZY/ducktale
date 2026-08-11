@@ -51,6 +51,7 @@ export default async function PublicProfilePage({
               </h2>
               <ProfilePlayerCard
                 minecraftName={user.accountLink.minecraftName}
+                locale={lang}
                 registeredLabel={t("memberSince", { date: user.createdAt.toLocaleDateString(lang === "ru" ? "ru-RU" : "en-US") })}
               />
             </div>

@@ -8,6 +8,7 @@ import { CtaButton } from "@/components/common/CtaButton";
 import { StatusBadge } from "@/components/common/StatusBadge";
 import { ProfileQuickActions } from "@/components/account/ProfileQuickActions";
 import { ProfilePlayerCard } from "@/components/account/ProfilePlayerCard";
+import { ProfileSectionCard } from "@/components/account/ProfileSectionCard";
 
 /** The signed-in user's own profile — /profile with no username. A username segment (/profile/[username]) is the public view of any user instead, see that route. */
 export default async function ProfilePage({
@@ -26,9 +27,12 @@ export default async function ProfilePage({
       where: { userId: session.user.id },
       select: { status: true, minecraftName: true },
     }),
+    // isAdmin isn't selected here — it's already on session.user, which
+    // auth()'s session() callback fetched from the DB (and cache() now
+    // dedupes across every auth() call in this request, see src/auth.ts).
     siteDb.user.findUnique({
       where: { id: session.user.id },
-      select: { isAdmin: true, createdAt: true },
+      select: { createdAt: true },
     }),
   ]);
 
@@ -55,7 +59,7 @@ export default async function ProfilePage({
             <ProfileQuickActions
               lang={lang}
               publicProfileHref={`/profile/${encodeURIComponent(session.user.name ?? "")}`}
-              isAdmin={user?.isAdmin ?? false}
+              isAdmin={session.user.isAdmin}
               viewProfileLabel={t("viewProfile")}
               adminPanelLabel={t("adminPanel")}
               signOutLabel={t("signOut")}
@@ -69,6 +73,7 @@ export default async function ProfilePage({
               </h2>
               <ProfilePlayerCard
                 minecraftName={link.minecraftName}
+                locale={lang}
                 manage={{ lang }}
                 registeredLabel={
                   user?.createdAt
@@ -78,12 +83,7 @@ export default async function ProfilePage({
               />
             </div>
           ) : (
-            <div className="corner-ornament rounded-2xl border border-primary/20 bg-card/50 p-6 mb-6 relative overflow-hidden">
-              <div className="absolute top-0 left-8 right-8 h-px bg-linear-to-r from-transparent via-primary/25 to-transparent" />
-              <h2 className="text-xs uppercase tracking-widest text-foreground/50 mb-4">
-                {t("linkSectionTitle")}
-              </h2>
-
+            <ProfileSectionCard title={t("linkSectionTitle")}>
               <div className="mb-5">
                 {link?.status === "PENDING" ? (
                   <StatusBadge label={t("pending")} pulse />
@@ -95,19 +95,15 @@ export default async function ProfilePage({
               <CtaButton href={`/${lang}/account/link`} variant="primary">
                 {t("linkCta")}
               </CtaButton>
-            </div>
+            </ProfileSectionCard>
           )}
 
-          <div className="corner-ornament rounded-2xl border border-primary/20 bg-card/50 p-6 mb-6 relative overflow-hidden">
-            <div className="absolute top-0 left-8 right-8 h-px bg-linear-to-r from-transparent via-primary/25 to-transparent" />
-            <h2 className="text-xs uppercase tracking-widest text-foreground/50 mb-4">
-              {t("supportSectionTitle")}
-            </h2>
+          <ProfileSectionCard title={t("supportSectionTitle")}>
             <p className="text-foreground/45 text-sm mb-5">{t("supportSectionDescription")}</p>
             <CtaButton href={`/${lang}/account/tickets`} variant="outline">
               {t("myTickets")}
             </CtaButton>
-          </div>
+          </ProfileSectionCard>
         </div>
       </main>
     </>
