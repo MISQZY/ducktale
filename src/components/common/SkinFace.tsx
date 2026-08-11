@@ -1,11 +1,19 @@
 import { UserRound } from "lucide-react";
+import { cn } from "@/lib/utils";
+
+interface SkinFaceProps {
+  skinUrl: string | null;
+  size?: number;
+  /** Overrides the default rounded-xl corners (e.g. "rounded-none" for a tighter spot like the nav bar, where rounded-xl on a small box reads as a circle). */
+  className?: string;
+}
 
 /** Crops the head (+ hat layer) from a 64×64 Minecraft skin texture, CSS-only. */
-export function SkinFace({ skinUrl, size = 88 }: { skinUrl: string | null; size?: number }) {
+export function SkinFace({ skinUrl, size = 88, className }: SkinFaceProps) {
   if (!skinUrl) {
     return (
       <div
-        className="flex items-center justify-center shrink-0 rounded-xl border border-primary/20 bg-muted"
+        className={cn("flex items-center justify-center shrink-0 rounded-xl border border-primary/20 bg-muted", className)}
         style={{ width: size, height: size }}
       >
         <UserRound size={size * 0.4} className="text-foreground/25" />
@@ -24,7 +32,7 @@ export function SkinFace({ skinUrl, size = 88 }: { skinUrl: string | null; size?
 
   return (
     <div
-      className="relative shrink-0 overflow-hidden rounded-xl border border-primary/20 bg-muted"
+      className={cn("relative shrink-0 overflow-hidden rounded-xl border border-primary/20 bg-muted", className)}
       style={{ width: size, height: size, imageRendering: "pixelated" }}
     >
       <div

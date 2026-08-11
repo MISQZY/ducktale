@@ -4,7 +4,7 @@ import { ThemeToggle } from "./ThemeToggle";
 import { LanguageSwitcher } from "./LanguageSwitcher";
 import { Link, usePathname } from "@/i18n/navigation";
 import { Menu, UserRound } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import { useTranslations } from "next-intl";
 import Logo from "./ui/Logo";
@@ -67,11 +67,28 @@ function DuckIcon({ visible }: { visible: boolean }) {
  */
 function AccountLinkContent({ fallbackLabel }: { fallbackLabel: string }) {
   const { data: session, status } = useSession();
+  const [skinUrl, setSkinUrl] = useState<string | null>(null);
 
+  // Navbar isn't part of the persistent [lang] layout (every page renders
+  // its own <Navbar/>), so this re-fetches on each navigation — the route's
+  // own cache headers plus resolveSkinUrl's server-side cache keep that cheap.
+  useEffect(() => {
+    if (status !== "authenticated") return;
+    let cancelled = false;
+    fetch("/api/account/avatar")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data) => { if (!cancelled) setSkinUrl(data?.skinUrl ?? null); })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, [status]);
+
+  // 18px matches the sibling icon buttons (ThemeToggle etc. use ~1.1rem
+  // icons in a size-8 button) so the row's flex centering doesn't visibly
+  // shift this link taller/shorter than its neighbors.
   if (status === "authenticated" && session.user?.name) {
     return (
       <span className="inline-flex items-center gap-1.5">
-        <SkinFace skinUrl={null} size={20} />
+        <SkinFace skinUrl={skinUrl} size={18} className="rounded-sm" />
         <span className="truncate max-w-24">{session.user.name}</span>
       </span>
     );
@@ -79,7 +96,7 @@ function AccountLinkContent({ fallbackLabel }: { fallbackLabel: string }) {
 
   return (
     <span className="inline-flex items-center gap-1.5">
-      <UserRound size={16} />
+      <UserRound size={18} />
       {fallbackLabel}
     </span>
   );

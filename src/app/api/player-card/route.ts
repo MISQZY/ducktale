@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { withDb } from "@/lib/db";
 import { withCache, hasFreshCache } from "@/lib/query-cache";
 import { resolveResidentRole } from "@/lib/towny";
+import { resolveSkinUrl } from "@/lib/skin";
 import { Prisma } from "@prisma/client";
 import { SERVERS, NETWORK_SERVERS } from "@/config/servers";
 import { FALLBACK_NICKNAME, PLAYER_NICKNAME_JOIN } from "@/lib/players";
@@ -80,7 +81,6 @@ function buildServerStatuses(
 // route's own Cache-Control) since name/nickname/playtime are more dynamic
 // and cheap to look up.
 const GROWTH_TTL_MS = 5 * 60_000;
-const SKIN_TTL_MS   = 10 * 60_000;
 const TOWNY_TTL_MS  = 3 * 60_000;
 const IDENTITY_SEARCH_TTL_MS = 60_000;
 // The *random* identity pick gets a much shorter TTL than a real search —
@@ -215,62 +215,6 @@ async function resolveGrowthDataUncached(uuid: string): Promise<{ gender: Gender
   }
 
   return { gender, growth };
-}
-
-interface SkinConfig {
-  skin_identifier: string | null;
-  skin_type:       string | null;
-  skin_variant:    string | null;
-}
-
-/**
- * Resolves the player's current skin texture URL from the SkinRestorer
- * database. Most players (~93% on this server) have overridden their skin
- * via sr_players (skin_type: PLAYER/CUSTOM/URL) — sr_player_skins alone is
- * only their own cached Mojang skin and misses any of those overrides.
- */
-async function resolveSkinUrl(uuid: string): Promise<string | null> {
-  return withCache(`skin:${uuid}`, SKIN_TTL_MS, () => resolveSkinUrlUncached(uuid));
-}
-
-async function resolveSkinUrlUncached(uuid: string): Promise<string | null> {
-  return withDb("duckburg_skinrestorer", async (db) => {
-    const [config] = await db.$queryRaw(Prisma.sql`
-      SELECT skin_identifier, skin_type, skin_variant FROM sr_players WHERE uuid = ${uuid} LIMIT 1
-    `) as SkinConfig[];
-
-    let valueRow: { value: string } | undefined;
-
-    if (config?.skin_type === "URL" && config.skin_identifier) {
-      [valueRow] = await db.$queryRaw(Prisma.sql`
-        SELECT value FROM sr_url_skins
-        WHERE url = ${config.skin_identifier}
-        ${config.skin_variant ? Prisma.sql`AND skin_variant = ${config.skin_variant}` : Prisma.empty}
-        LIMIT 1
-      `) as { value: string }[];
-    } else if (config?.skin_type === "CUSTOM" && config.skin_identifier) {
-      [valueRow] = await db.$queryRaw(Prisma.sql`
-        SELECT value FROM sr_custom_skins WHERE name = ${config.skin_identifier} LIMIT 1
-      `) as { value: string }[];
-    } else if (config?.skin_type === "PLAYER" && config.skin_identifier) {
-      [valueRow] = await db.$queryRaw(Prisma.sql`
-        SELECT value FROM sr_player_skins WHERE uuid = ${config.skin_identifier} LIMIT 1
-      `) as { value: string }[];
-    } else {
-      [valueRow] = await db.$queryRaw(Prisma.sql`
-        SELECT value FROM sr_player_skins WHERE uuid = ${uuid} LIMIT 1
-      `) as { value: string }[];
-    }
-
-    if (!valueRow) return null;
-
-    try {
-      const decoded = JSON.parse(Buffer.from(valueRow.value, "base64").toString("utf-8"));
-      return decoded?.textures?.SKIN?.url ?? null;
-    } catch {
-      return null;
-    }
-  });
 }
 
 interface TownyRow {
