@@ -37,6 +37,21 @@ export async function loadContentFile(input: LoadContentInput): Promise<{ conten
   return { content };
 }
 
+// Server Actions are directly callable via POST, not just through this
+// app's own UI (see node_modules/next/dist/docs's own server-actions
+// guide) — every action below that accepts a `branch` back from the client
+// has to treat it as untrusted input, not just "whatever the client
+// remembered from a previous response". Without this check, passing
+// branch: REPO.branch (e.g. "master") would make save/delete/revert commit
+// straight to it, skipping the whole point of the branch+PR flow.
+const SESSION_BRANCH_PATTERN = /^admin-content\/\d+$/;
+
+function assertSessionBranch(branch: string): void {
+  if (branch === REPO.branch || !SESSION_BRANCH_PATTERN.test(branch)) {
+    throw new Error("Invalid session branch");
+  }
+}
+
 /**
  * Save and "open a PR" are deliberately separate actions (see
  * createContentPullRequest below) — this lets one PR bundle edits across
@@ -45,7 +60,10 @@ export async function loadContentFile(input: LoadContentInput): Promise<{ conten
  * through a batch of pages and open a single PR once they're done.
  */
 async function ensureBranch(existing: string | undefined): Promise<string> {
-  if (existing) return existing;
+  if (existing) {
+    assertSessionBranch(existing);
+    return existing;
+  }
   const baseSha = await getBranchSha(REPO.branch);
   const branch = `admin-content/${Date.now()}`;
   await createBranch(branch, baseSha);
@@ -130,6 +148,7 @@ export interface RevertContentInput {
 export async function revertContentFile(input: RevertContentInput): Promise<void> {
   await requireAdminId();
   validateTarget(input.server, input.locale, input.slug);
+  assertSessionBranch(input.branch);
   const relPath = buildRelPath(input.server, input.locale, input.slug);
 
   const [base, currentSha] = await Promise.all([
@@ -175,6 +194,7 @@ export async function createContentPullRequest(
 ): Promise<CreateContentPullRequestResult> {
   await requireAdminId();
   if (!input.branch) throw new Error("No changes to open a PR for yet");
+  assertSessionBranch(input.branch);
 
   const title = input.title.trim() || `Update content (${input.files.length} ${input.files.length === 1 ? "file" : "files"})`;
   const fileList = input.files.map((f) => `- \`${f}\``).join("\n") || "- (see commits)";
