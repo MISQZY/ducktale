@@ -8,6 +8,15 @@ COPY package.json package-lock.json source.config.ts next.config.mjs ./
 # (prisma generate / site-db:render), который npm ci запускает сам
 COPY src/prisma ./src/prisma
 COPY scripts ./scripts
+
+# site-db:render bakes this into the generated client's @@map() table names
+# at `prisma generate` time (below, via npm ci's postinstall) — Prisma can't
+# read it dynamically at runtime, so it has to be set here, not just in the
+# container's runtime environment, or every site-db query 404s on a table
+# name that was never actually created (e.g. "user" instead of "site_user").
+ARG SITE_DB_TABLE_PREFIX
+ENV SITE_DB_TABLE_PREFIX=${SITE_DB_TABLE_PREFIX}
+
 RUN npm ci
 
 # --- builder ---
