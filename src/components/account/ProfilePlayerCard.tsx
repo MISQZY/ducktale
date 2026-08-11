@@ -51,30 +51,35 @@ function ServerStatusCard({ status, t }: { status: PlayerServerStatus; t: Player
   if (!config) return null;
 
   return (
-    <div className={cn("rounded-xl border p-4 bg-linear-to-br", config.color, config.border)}>
-      <div className="flex items-center gap-2.5 mb-3">
-        <div className="w-8 h-8 rounded-lg bg-muted border border-border/60 flex items-center justify-center text-base shrink-0">
-          {config.emoji}
-        </div>
-        <span
-          className="text-sm text-foreground/90 font-medium"
-          style={{ fontFamily: "var(--font-display)" }}
-        >
-          {config.name}
-        </span>
-        {status.online && (
-          <span className="ml-auto flex items-center gap-1.5 text-[11px] text-emerald-400 shrink-0">
-            <span className="relative flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
-              <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
-            </span>
-            {t("online")}
-          </span>
-        )}
+    <div
+      className={cn(
+        "shrink-0 snap-start w-36 rounded-xl border p-4 bg-linear-to-br flex flex-col items-center text-center gap-2.5",
+        config.color, config.border
+      )}
+    >
+      <div className="w-10 h-10 rounded-lg bg-muted border border-border/60 flex items-center justify-center text-lg shrink-0">
+        {config.emoji}
       </div>
 
+      <span
+        className="text-sm text-foreground/90 font-medium leading-tight"
+        style={{ fontFamily: "var(--font-display)" }}
+      >
+        {config.name}
+      </span>
+
+      {status.online && (
+        <span className="flex items-center gap-1.5 text-[11px] text-emerald-400">
+          <span className="relative flex h-2 w-2">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+            <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
+          </span>
+          {t("online")}
+        </span>
+      )}
+
       <div className={cn(
-        "inline-flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-full mb-2.5",
+        "inline-flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-full",
         status.whitelisted ? "bg-emerald-900/40 text-emerald-300" : "bg-muted text-foreground/40"
       )}>
         {status.whitelisted ? <CircleCheck size={12} /> : <XCircle size={12} />}
@@ -82,17 +87,17 @@ function ServerStatusCard({ status, t }: { status: PlayerServerStatus; t: Player
       </div>
 
       {status.city && (
-        <div className="flex flex-col gap-1 text-xs text-foreground/60">
+        <div className="flex flex-col items-center gap-1 text-xs text-foreground/60 pt-2 mt-1 border-t border-border/30 w-full">
           <span className="flex items-center gap-1.5">
             <Castle size={12} className="text-primary/60 shrink-0" />
             {status.city}
-            {status.role && (
-              <span className={cn("ml-1", RESIDENT_ROLE_COLOR[status.role as Exclude<ResidentRole, null>])}>
-                <BadgeCheck size={11} className="inline mr-0.5 -mt-0.5" />
-                {t(`role.${status.role}`)}
-              </span>
-            )}
           </span>
+          {status.role && (
+            <span className={cn("flex items-center gap-1", RESIDENT_ROLE_COLOR[status.role as Exclude<ResidentRole, null>])}>
+              <BadgeCheck size={11} />
+              {t(`role.${status.role}`)}
+            </span>
+          )}
           {status.nation && (
             <span className="flex items-center gap-1.5">
               <Flag size={12} className="text-primary/60 shrink-0" />
@@ -267,7 +272,7 @@ export function ProfilePlayerCard({ minecraftName, className, manage }: ProfileP
         <p className="text-foreground/35 text-[11px] uppercase tracking-widest mb-2.5">
           {t("serversTitle")}
         </p>
-        <div className="grid sm:grid-cols-2 gap-3">
+        <div className="flex gap-3 overflow-x-auto snap-x snap-mandatory pb-2">
           {player.servers.map((s) => (
             <ServerStatusCard key={s.serverId} status={s} t={t} />
           ))}
