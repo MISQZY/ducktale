@@ -67,9 +67,10 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       // expires on its own.
       const user = await siteDb.user.findUnique({
         where: { id: token.id },
-        select: { id: true },
+        select: { id: true, isAdmin: true },
       });
       session.user.id = user ? token.id : "";
+      session.user.isAdmin = user?.isAdmin ?? false;
       return session;
     },
   },
