@@ -1,5 +1,6 @@
 "use client";
 
+import { HelpCircle } from "lucide-react";
 import {
   Tooltip, TooltipContent, TooltipProvider, TooltipTrigger,
 } from "@/components/ui/tooltip";
@@ -30,9 +31,15 @@ export function CompactBadgeChip({ name, icon, color, description, earnCondition
           </span>
         </TooltipTrigger>
         <TooltipContent className="flex-col items-start gap-1 max-w-64 text-left">
-          <p className="font-medium">{name}</p>
+          <p className="font-medium flex items-center gap-1">
+            {name}
+            {earnCondition && (
+              <span title={earnCondition} className="inline-flex shrink-0">
+                <HelpCircle size={12} className="text-background/50" />
+              </span>
+            )}
+          </p>
           {description && <p className="text-background/70">{description}</p>}
-          {earnCondition && <p className="text-background/70">{earnCondition}</p>}
         </TooltipContent>
       </Tooltip>
     </TooltipProvider>
