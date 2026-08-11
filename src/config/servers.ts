@@ -69,6 +69,34 @@ export const SERVERS: ServerConfig[] = [
   },
 ];
 
+/** Minimal per-server display data needed for the player profile's status cards. */
+export interface NetworkServer {
+  id:     string;
+  uuid:   string;
+  name:   string;
+  emoji:  string;
+  color:  string;
+  border: string;
+}
+
+/**
+ * Every server in the network, including technical/infra ones — unlike
+ * SERVERS, this is not for public display: it's only iterated by the
+ * player-card API and the account dashboard's per-server status cards, not
+ * the homepage server list or docs (which use SERVERS directly).
+ */
+export const NETWORK_SERVERS: NetworkServer[] = [
+  ...SERVERS.map(({ id, uuid, name, emoji, color, border }): NetworkServer => ({ id, uuid, name, emoji, color, border })),
+  {
+    id: "hub",
+    uuid: "ea14f5e3-f0c3-4c5d-bc4c-523fd2d1b887",
+    name: "Hub",
+    emoji: "🌐",
+    color: "from-slate-800/40 to-slate-700/20",
+    border: "border-slate-600/30 hover:border-slate-500/60",
+  },
+];
+
 export const NETWORK_HOST = "mc.ducktale.online";
 
 /** Hidden destination the animated duck easter egg (DuckyPet) links to. */

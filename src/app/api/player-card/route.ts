@@ -3,20 +3,21 @@ import { withDb } from "@/lib/db";
 import { withCache } from "@/lib/query-cache";
 import { resolveResidentRole } from "@/lib/towny";
 import { Prisma } from "@prisma/client";
-import { SERVERS } from "@/config/servers";
+import { SERVERS, NETWORK_SERVERS } from "@/config/servers";
 import { FALLBACK_NICKNAME, PLAYER_NICKNAME_JOIN } from "@/lib/players";
 import { isRateLimited } from "@/lib/rate-limit";
-import type { Gender, GrowthStatus, PlayerCard, PlayerCardResponse } from "@/types/player-card";
+import type { Gender, GrowthStatus, PlayerCard, PlayerCardResponse, PlayerServerStatus } from "@/types/player-card";
 import type { ResidentRole } from "@/types/towny";
 
 export type { PlayerCard, PlayerCardResponse };
 
-// The player card only ever draws Towny/growth/skin data from DuckBurg's
-// databases, so "whitelisted" specifically means whitelisted on DuckBurg —
+// The single top-level `whitelisted` field only ever draws from DuckBurg —
 // an fp_moderation whitelist entry issued for a different server shouldn't
-// count. Resolved lazily (not at module scope) so a missing config entry
-// fails the one request that needs it instead of crashing the whole route
-// module at import time.
+// count there (used by the docs search card's checkmark). The per-server
+// `servers` breakdown below covers every server generically. Resolved
+// lazily (not at module scope) so a missing config entry fails the one
+// request that needs it instead of crashing the whole route module at
+// import time.
 function getDuckburgServerUuid(): string {
   const server = SERVERS.find((s) => s.id === "duckburg");
   if (!server) {
@@ -25,17 +26,70 @@ function getDuckburgServerUuid(): string {
   return server.uuid;
 }
 
+/**
+ * One EXISTS(...) AS whitelisted_<serverId> column per network server
+ * (including technical ones like Hub, not just the public-facing SERVERS
+ * list) — server ids are our own config, not user input, so Prisma.raw is
+ * safe here.
+ */
+function perServerWhitelistColumnsSql() {
+  return Prisma.join(
+    NETWORK_SERVERS.map(
+      (server) => Prisma.sql`
+        EXISTS (
+          SELECT 1 FROM fp_moderation m
+          WHERE m.player = p.id AND m.type = 'whitelist' AND m.valid = 1
+            AND m.server = ${server.uuid}
+        ) AS ${Prisma.raw(`whitelisted_${server.id}`)}
+      `
+    ),
+    ", "
+  );
+}
+
+function readPerServerWhitelist(row: IdentityRow): Record<string, boolean> {
+  return Object.fromEntries(
+    NETWORK_SERVERS.map((server) => [server.id, Boolean(row[`whitelisted_${server.id}`])])
+  );
+}
+
+/** Towny (city/nation/role) is only tracked for DuckBurg — see resolveTownyData's own DuckBurg-only database connection. */
+function buildServerStatuses(
+  identity: IdentityRow,
+  towny: { city: string | null; nation: string | null; role: ResidentRole }
+): PlayerServerStatus[] {
+  const whitelistByServer = readPerServerWhitelist(identity);
+  // Gated on the global online flag, not just "currentServerId is set" —
+  // fp_setting's SERVER value is left over from the player's last session
+  // once they log off, so trusting it alone would show a stale "online
+  // here" badge for an offline player.
+  const isOnline = Boolean(identity.online);
+  return NETWORK_SERVERS.map((server) => ({
+    serverId: server.id,
+    whitelisted: whitelistByServer[server.id] ?? false,
+    online: isOnline && identity.currentServerId === server.uuid,
+    city: server.id === "duckburg" ? towny.city : null,
+    nation: server.id === "duckburg" ? towny.nation : null,
+    role: server.id === "duckburg" ? towny.role : null,
+  }));
+}
+
 // Per-uuid data (growth, skin, town/nation) changes on the order of minutes,
 // not seconds — cache it to avoid re-querying 3 separate databases on every
 // card view. Identity search results get a much shorter TTL (matching the
 // route's own Cache-Control) since name/nickname/playtime are more dynamic
-// and cheap to look up. The *random* identity pick is deliberately never
-// cached — caching it would make every visitor see the same "random" player
-// for the whole TTL window, defeating the point.
+// and cheap to look up.
 const GROWTH_TTL_MS = 5 * 60_000;
 const SKIN_TTL_MS   = 10 * 60_000;
 const TOWNY_TTL_MS  = 3 * 60_000;
 const IDENTITY_SEARCH_TTL_MS = 60_000;
+// The *random* identity pick gets a much shorter TTL than a real search —
+// long enough to absorb a burst of rapid page reloads (each one otherwise
+// re-running the random pick plus 3 more per-UUID DB queries, since a new
+// random UUID almost never hits the growth/skin/towny caches either), short
+// enough that it still rotates to a new random player every few seconds
+// instead of showing the same "random" pick to everyone for a whole minute.
+const IDENTITY_RANDOM_TTL_MS = 5_000;
 
 // Matches the /api/player-card/search suggestions endpoint's minimum — also
 // keeps single/double-character queries (cheap to spam, each landing its own
@@ -43,14 +97,18 @@ const IDENTITY_SEARCH_TTL_MS = 60_000;
 const MIN_SEARCH_LENGTH = 3;
 
 interface IdentityRow {
-  id:          number;
-  uuid:        string;
-  name:        string;
-  nickname:    string | null;
-  playtimeMs:  bigint | null;
-  online:      number | boolean; // raw MySQL boolean from fp_player.online — 0/1, not a JS boolean
-  lastSeenMs:  bigint | null;
-  whitelisted: number | boolean; // raw MySQL boolean from EXISTS(...) — 0/1, not a JS boolean
+  id:               number;
+  uuid:             string;
+  name:             string;
+  nickname:         string | null;
+  playtimeMs:       bigint | null;
+  online:           number | boolean; // raw MySQL boolean from fp_player.online — 0/1, not a JS boolean
+  lastSeenMs:       bigint | null;
+  whitelisted:      number | boolean; // raw MySQL boolean from EXISTS(...) — 0/1, not a JS boolean
+  currentServerId:  string | null; // fp_setting type='SERVER' — which server they're on, only meaningful while `online` is true
+  // Plus one `whitelisted_<serverId>` column per SERVERS entry (see
+  // perServerWhitelistColumnsSql) — read via readPerServerWhitelist().
+  [key: `whitelisted_${string}`]: number | boolean;
 }
 
 function whitelistExists() {
@@ -68,7 +126,7 @@ async function resolveIdentity(search: string): Promise<IdentityRow | null> {
   if (search) {
     return withCache(`identity:${search.toLowerCase()}`, IDENTITY_SEARCH_TTL_MS, () => resolveIdentityUncached(search));
   }
-  return resolveIdentityUncached(search);
+  return withCache("identity:__random__", IDENTITY_RANDOM_TTL_MS, () => resolveIdentityUncached(search));
 }
 
 async function resolveIdentityUncached(search: string): Promise<IdentityRow | null> {
@@ -76,20 +134,24 @@ async function resolveIdentityUncached(search: string): Promise<IdentityRow | nu
     const rows = search
       ? await db.$queryRaw(Prisma.sql`
           SELECT p.id, p.uuid, p.name, s.value AS nickname, t.total AS playtimeMs,
-                 p.online AS online, t.last AS lastSeenMs,
-                 ${whitelistExists()} AS whitelisted
+                 p.online AS online, t.last AS lastSeenMs, srv.value AS currentServerId,
+                 ${whitelistExists()} AS whitelisted,
+                 ${perServerWhitelistColumnsSql()}
           ${PLAYER_NICKNAME_JOIN}
           LEFT JOIN fp_time t ON t.player = p.id
+          LEFT JOIN fp_setting srv ON srv.player = p.id AND srv.type = 'SERVER'
           WHERE p.name LIKE ${"%" + search + "%"} OR s.value LIKE ${"%" + search + "%"}
           ORDER BY (LOWER(p.name) = LOWER(${search}) OR LOWER(s.value) = LOWER(${search})) DESC, p.name ASC
           LIMIT 1
         `)
       : await db.$queryRaw(Prisma.sql`
           SELECT p.id, p.uuid, p.name, s.value AS nickname, t.total AS playtimeMs,
-                 p.online AS online, t.last AS lastSeenMs,
-                 ${whitelistExists()} AS whitelisted
+                 p.online AS online, t.last AS lastSeenMs, srv.value AS currentServerId,
+                 ${whitelistExists()} AS whitelisted,
+                 ${perServerWhitelistColumnsSql()}
           ${PLAYER_NICKNAME_JOIN}
           LEFT JOIN fp_time t ON t.player = p.id
+          LEFT JOIN fp_setting srv ON srv.player = p.id AND srv.type = 'SERVER'
           ORDER BY RAND()
           LIMIT 1
         `);
@@ -265,6 +327,7 @@ export async function GET(req: Request) {
       nation,
       role,
       whitelisted: Boolean(identity.whitelisted),
+      servers: buildServerStatuses(identity, { city, nation, role }),
     };
 
     return NextResponse.json<PlayerCardResponse>({ player }, {
