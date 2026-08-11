@@ -63,7 +63,7 @@ export default async function ProfilePage({
 
           {link?.status === "CONFIRMED" && link.minecraftName ? (
             <div className="mb-6">
-              <h2 className="text-xs uppercase tracking-widest text-foreground/50 mb-3">
+              <h2 className="text-xs uppercase tracking-widest text-foreground/50 mb-3 text-center">
                 {t("playerCardTitle")}
               </h2>
               <ProfilePlayerCard minecraftName={link.minecraftName} manage={{ lang }} />

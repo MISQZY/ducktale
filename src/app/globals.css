@@ -351,11 +351,11 @@ body {
 }
 
 @keyframes borderGlowGreen {
-  0%, 100% { border-color: rgba(16,185,129,0.3); }
-  50%       { border-color: rgba(52,211,153,0.95); }
+  0%, 100% { border-color: rgba(16,185,129,0.25); }
+  50%       { border-color: rgba(52,211,153,0.55); }
 }
 .animate-border-glow-green {
-  animation: borderGlowGreen 2s ease-in-out infinite;
+  animation: borderGlowGreen 3.5s ease-in-out infinite;
 }
 
 @keyframes fadeUp {

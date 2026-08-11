@@ -260,10 +260,10 @@ export function ProfilePlayerCard({ minecraftName, className, manage }: ProfileP
       </DuckCard>
 
       <div>
-        <p className="text-foreground/35 text-[11px] uppercase tracking-widest mb-2.5">
+        <p className="text-foreground/35 text-[11px] uppercase tracking-widest mb-2.5 text-center">
           {t("serversTitle")}
         </p>
-        <div className="flex gap-3 overflow-x-auto snap-x snap-mandatory pb-2">
+        <div className="flex justify-center-safe gap-3 overflow-x-auto snap-x snap-mandatory pb-2">
           {player.servers.map((s) => (
             <ServerStatusCard key={s.serverId} status={s} t={t} />
           ))}
