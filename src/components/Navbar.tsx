@@ -3,11 +3,13 @@
 import { ThemeToggle } from "./ThemeToggle";
 import { LanguageSwitcher } from "./LanguageSwitcher";
 import { Link, usePathname } from "@/i18n/navigation";
-import { Menu } from "lucide-react";
+import { Menu, UserRound } from "lucide-react";
 import { useState } from "react";
+import { useSession } from "next-auth/react";
 import { useTranslations } from "next-intl";
 import Logo from "./ui/Logo";
 import { Button } from "@/components/ui/button";
+import { SkinFace } from "@/components/common/SkinFace";
 import { cn } from "@/lib/utils";
 import {
   Sheet,
@@ -54,6 +56,32 @@ function DuckIcon({ visible }: { visible: boolean }) {
         <line x1="2" y1="2" x2="16" y2="16" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" opacity="0.7" />
       )}
     </svg>
+  );
+}
+
+/**
+ * The "Кабинет" link's content depends on auth state — everything else in
+ * NAV_LINKS is a plain label. Session status starts "loading" briefly on
+ * first paint; treated the same as unauthenticated so there's no skeleton,
+ * just a quick flip to the real username once the session resolves.
+ */
+function AccountLinkContent({ fallbackLabel }: { fallbackLabel: string }) {
+  const { data: session, status } = useSession();
+
+  if (status === "authenticated" && session.user?.name) {
+    return (
+      <span className="inline-flex items-center gap-1.5">
+        <SkinFace skinUrl={null} size={20} />
+        <span className="truncate max-w-24">{session.user.name}</span>
+      </span>
+    );
+  }
+
+  return (
+    <span className="inline-flex items-center gap-1.5">
+      <UserRound size={16} />
+      {fallbackLabel}
+    </span>
   );
 }
 
@@ -108,7 +136,7 @@ export default function Navbar() {
                 )}
                 aria-current={isActive(pathname, link.href) ? "page" : undefined}
               >
-                {t(link.key)}
+                {link.key === "account" ? <AccountLinkContent fallbackLabel={t("login")} /> : t(link.key)}
                 {isActive(pathname, link.href) && (
                   <span className="absolute bottom-0 left-3 right-3 h-px bg-linear-to-r from-transparent via-primary/70 to-transparent" />
                 )}
@@ -202,7 +230,7 @@ export default function Navbar() {
                         )}
                         aria-current={isActive(pathname, link.href) ? "page" : undefined}
                       >
-                        {t(link.key)}
+                        {link.key === "account" ? <AccountLinkContent fallbackLabel={t("login")} /> : t(link.key)}
                       </Link>
                     </SheetClose>
                   ))}
