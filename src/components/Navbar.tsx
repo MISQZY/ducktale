@@ -60,10 +60,12 @@ function DuckIcon({ visible }: { visible: boolean }) {
 }
 
 /**
- * The "Кабинет" link's content depends on auth state — everything else in
- * NAV_LINKS is a plain label. Session status starts "loading" briefly on
- * first paint; treated the same as unauthenticated so there's no skeleton,
- * just a quick flip to the real username once the session resolves.
+ * The "Кабинет" link renders as a self-contained pill (own border/background)
+ * rather than a plain text label — it's not another page to browse to, it's
+ * "you", so it needs to read differently from the rest of NAV_LINKS at a
+ * glance. Session status starts "loading" briefly on first paint; treated
+ * the same as unauthenticated so there's no skeleton, just a quick flip to
+ * the real avatar+username once the session resolves.
  */
 function AccountLinkContent({ fallbackLabel }: { fallbackLabel: string }) {
   const { data: session, status } = useSession();
@@ -82,20 +84,30 @@ function AccountLinkContent({ fallbackLabel }: { fallbackLabel: string }) {
     return () => { cancelled = true; };
   }, [status]);
 
-  // 18px matches the sibling icon buttons (ThemeToggle etc. use ~1.1rem
-  // icons in a size-8 button) so the row's flex centering doesn't visibly
-  // shift this link taller/shorter than its neighbors.
+  // Same corner-ornament + square-cornered frame used by every other card
+  // in the app (account dashboard, admin lists, ...) — a rounded-full pill
+  // around a square-cornered SkinFace was two competing border shapes
+  // fighting for the same few pixels. The icon goes borderless since the
+  // outer frame is now the one visual border, not two nested ones.
+  //
+  // Nicknames run up to 32 chars (schema.prisma.template) — letting this
+  // grow to fit that squeezed the rest of the nav bar and looked broken, so
+  // it's capped and ellipsized instead, with the full name always available
+  // via the native title tooltip.
   if (status === "authenticated" && session.user?.name) {
     return (
-      <span className="inline-flex items-center gap-1.5">
-        <SkinFace skinUrl={skinUrl} size={18} className="rounded-sm" />
-        <span className="truncate max-w-24">{session.user.name}</span>
+      <span
+        className="corner-ornament relative overflow-hidden inline-flex items-center gap-2 rounded-lg border border-primary/25 bg-card/70 py-1.5 pr-4 pl-1.5"
+        title={session.user.name}
+      >
+        <SkinFace skinUrl={skinUrl} size={30} className="rounded-sm border-none shrink-0" />
+        <span className="text-sm font-medium text-foreground/90 truncate max-w-32">{session.user.name}</span>
       </span>
     );
   }
 
   return (
-    <span className="inline-flex items-center gap-1.5">
+    <span className="corner-ornament relative overflow-hidden inline-flex items-center gap-1.5 rounded-lg border border-primary/20 bg-card/70 px-4 py-2 text-sm hover:border-primary/40 transition-colors">
       <UserRound size={18} />
       {fallbackLabel}
     </span>
@@ -133,14 +145,16 @@ export default function Navbar() {
       >
         <div className="h-px bg-linear-to-r from-transparent via-gold-500/70 to-transparent" />
 
-        <div className="max-w-6xl mx-auto px-6 flex items-center justify-between h-16">
-          <Link href="/" aria-label={t("home")}>
+        <div className="max-w-7xl mx-auto px-4 flex items-center justify-between h-16 relative">
+          <Link href="/" aria-label={t("home")} className="shrink-0">
             <Logo />
           </Link>
 
-          {/* Desktop nav */}
-          <div className="nav-desktop items-center gap-1">
-            {NAV_LINKS.map((link) => (
+          {/* Desktop nav links — absolutely centered against the header
+              row (not just the space between logo and the right group),
+              so they stay centered regardless of how wide either side is. */}
+          <div className="nav-desktop absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 items-center gap-1">
+            {NAV_LINKS.filter((link) => link.key !== "account").map((link) => (
               <Link
                 key={link.href}
                 href={link.href}
@@ -153,12 +167,20 @@ export default function Navbar() {
                 )}
                 aria-current={isActive(pathname, link.href) ? "page" : undefined}
               >
-                {link.key === "account" ? <AccountLinkContent fallbackLabel={t("login")} /> : t(link.key)}
+                {t(link.key)}
                 {isActive(pathname, link.href) && (
                   <span className="absolute bottom-0 left-3 right-3 h-px bg-linear-to-r from-transparent via-primary/70 to-transparent" />
                 )}
               </Link>
             ))}
+          </div>
+
+          {/* Desktop right group: account + utilities — not part of the
+              centered nav, out of normal flow it stays clear of. */}
+          <div className="nav-desktop items-center gap-1 shrink-0">
+            <Link href="/account" className="rounded-lg shrink-0">
+              <AccountLinkContent fallbackLabel={t("login")} />
+            </Link>
 
             <LanguageSwitcher className="ml-1" />
             <ThemeToggle />
@@ -234,23 +256,30 @@ export default function Navbar() {
                 <div className="h-px mx-5 bg-linear-to-r from-transparent via-primary/25 to-transparent" />
 
                 <nav className="flex flex-col px-3 py-4 gap-0.5">
-                  {NAV_LINKS.map((link) => (
-                    <SheetClose asChild key={link.href}>
-                      <Link
-                        href={link.href}
-                        onClick={(e) => handleNavClick(e, link.href)}
-                        className={cn(
-                          "flex items-center rounded-lg px-4 py-2.5 text-sm tracking-wide transition-colors",
-                          isActive(pathname, link.href)
-                            ? "bg-primary/10 text-primary font-semibold border-l-2 border-primary/50"
-                            : "text-foreground/60 hover:bg-primary/5 hover:text-primary/90"
-                        )}
-                        aria-current={isActive(pathname, link.href) ? "page" : undefined}
-                      >
-                        {link.key === "account" ? <AccountLinkContent fallbackLabel={t("login")} /> : t(link.key)}
-                      </Link>
-                    </SheetClose>
-                  ))}
+                  {NAV_LINKS.map((link) => {
+                    const isAccount = link.key === "account";
+                    return (
+                      <SheetClose asChild key={link.href}>
+                        <Link
+                          href={link.href}
+                          onClick={(e) => handleNavClick(e, link.href)}
+                          className={
+                            isAccount
+                              ? "flex items-center rounded-lg px-2 py-2 mt-1"
+                              : cn(
+                                  "flex items-center rounded-lg px-4 py-2.5 text-sm tracking-wide transition-colors",
+                                  isActive(pathname, link.href)
+                                    ? "bg-primary/10 text-primary font-semibold border-l-2 border-primary/50"
+                                    : "text-foreground/60 hover:bg-primary/5 hover:text-primary/90"
+                                )
+                          }
+                          aria-current={isActive(pathname, link.href) ? "page" : undefined}
+                        >
+                          {isAccount ? <AccountLinkContent fallbackLabel={t("login")} /> : t(link.key)}
+                        </Link>
+                      </SheetClose>
+                    );
+                  })}
                 </nav>
               </SheetContent>
             </Sheet>
