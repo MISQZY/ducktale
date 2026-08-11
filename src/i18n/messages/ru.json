@@ -119,7 +119,7 @@
     "servers": "Серверы",
     "infrastructure": "Инфраструктура",
     "community": "Сообщество",
-    "leaderboard": "Топ игроков",
+    "leaderboard": "Рейтинги",
     "account": "Кабинет",
     "login": "Войти",
     "home": "DuckTale — на главную",
@@ -503,17 +503,27 @@
     "messageCount": "{count, plural, one {# сообщение} few {# сообщения} many {# сообщений} other {# сообщений}}"
   },
   "Leaderboard": {
-    "pageTitle": "Топ игроков",
-    "pageDescription": "Игроки сети DuckTale, отсортированные по суммарному игровому времени.",
+    "pageTitle": "Рейтинги",
+    "pageDescription": "Рейтинги игроков и городов сети DuckTale.",
+    "tabPlayers": "Игроки",
+    "tabTowns": "Города",
     "title": "Топ по игровому времени",
     "searchPlaceholder": "Поиск по нику…",
     "columns": {
       "rank": "№",
       "player": "Игрок",
-      "playtime": "Игровое время"
+      "playtime": "Игровое время",
+      "town": "Город",
+      "nation": "Нация",
+      "size": "Размер"
     },
     "empty": "Пока нет данных",
     "notFound": "Игрок «{query}» не найден",
-    "loadError": "Не удалось загрузить рейтинг: {message}"
+    "loadError": "Не удалось загрузить рейтинг: {message}",
+    "townsTitle": "Топ по размеру города",
+    "townsSearchPlaceholder": "Поиск по названию…",
+    "townsEmpty": "Городов пока нет",
+    "townsNotFound": "Город «{query}» не найден",
+    "townIndependent": "Независимый"
   }
 }

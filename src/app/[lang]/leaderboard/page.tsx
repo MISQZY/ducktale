@@ -2,7 +2,7 @@ import { getTranslations } from "next-intl/server";
 import type { Metadata } from "next";
 import Navbar from "@/components/Navbar";
 import { GoldDivider } from "@/components/common/GoldDivider";
-import { TopPlayersTable } from "@/components/leaderboard/TopPlayersTable";
+import { RankingsTabs } from "@/components/leaderboard/RankingsTabs";
 
 export default async function LeaderboardPage() {
   const t = await getTranslations("Leaderboard");
@@ -22,7 +22,7 @@ export default async function LeaderboardPage() {
 
           <GoldDivider className="mb-8" />
 
-          <TopPlayersTable />
+          <RankingsTabs />
         </div>
       </main>
     </>

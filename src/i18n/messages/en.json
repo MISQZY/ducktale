@@ -119,7 +119,7 @@
     "servers": "Servers",
     "infrastructure": "Infrastructure",
     "community": "Community",
-    "leaderboard": "Leaderboard",
+    "leaderboard": "Rankings",
     "account": "Account",
     "login": "Sign in",
     "home": "DuckTale — home",
@@ -504,17 +504,27 @@
     "messageCount": "{count, plural, one {# message} other {# messages}}"
   },
   "Leaderboard": {
-    "pageTitle": "Leaderboard",
-    "pageDescription": "DuckTale network players, sorted by total playtime.",
+    "pageTitle": "Rankings",
+    "pageDescription": "DuckTale network player and town rankings.",
+    "tabPlayers": "Players",
+    "tabTowns": "Towns",
     "title": "Top playtime",
     "searchPlaceholder": "Search by nickname…",
     "columns": {
       "rank": "#",
       "player": "Player",
-      "playtime": "Playtime"
+      "playtime": "Playtime",
+      "town": "Town",
+      "nation": "Nation",
+      "size": "Size"
     },
     "empty": "No data yet",
     "notFound": "Player \u201c{query}\u201d not found",
-    "loadError": "Couldn't load the leaderboard: {message}"
+    "loadError": "Couldn't load the leaderboard: {message}",
+    "townsTitle": "Top by town size",
+    "townsSearchPlaceholder": "Search by name…",
+    "townsEmpty": "No towns yet",
+    "townsNotFound": "Town \u201c{query}\u201d not found",
+    "townIndependent": "Independent"
   }
 }
