@@ -52,7 +52,7 @@ export function RegisterForm() {
         return;
       }
 
-      router.push("/account");
+      router.push("/profile");
     } catch {
       setError(t("errors.generic"));
     } finally {

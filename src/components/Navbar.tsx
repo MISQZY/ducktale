@@ -60,7 +60,7 @@ function DuckIcon({ visible }: { visible: boolean }) {
 }
 
 /**
- * The "Кабинет" link renders as a self-contained pill (own border/background)
+ * The "Профиль" link renders as a self-contained pill (own border/background)
  * rather than a plain text label — it's not another page to browse to, it's
  * "you", so it needs to read differently from the rest of NAV_LINKS at a
  * glance. Session status starts "loading" briefly on first paint; treated
@@ -154,7 +154,7 @@ export default function Navbar() {
               row (not just the space between logo and the right group),
               so they stay centered regardless of how wide either side is. */}
           <div className="nav-desktop absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 items-center gap-1">
-            {NAV_LINKS.filter((link) => link.key !== "account").map((link) => (
+            {NAV_LINKS.filter((link) => link.key !== "profile").map((link) => (
               <Link
                 key={link.href}
                 href={link.href}
@@ -178,7 +178,7 @@ export default function Navbar() {
           {/* Desktop right group: account + utilities — not part of the
               centered nav, out of normal flow it stays clear of. */}
           <div className="nav-desktop items-center gap-1 shrink-0">
-            <Link href="/account" className="rounded-lg shrink-0">
+            <Link href="/profile" className="rounded-lg shrink-0">
               <AccountLinkContent fallbackLabel={t("login")} />
             </Link>
 
@@ -257,7 +257,7 @@ export default function Navbar() {
 
                 <nav className="flex flex-col px-3 py-4 gap-0.5">
                   {NAV_LINKS.map((link) => {
-                    const isAccount = link.key === "account";
+                    const isAccount = link.key === "profile";
                     return (
                       <SheetClose asChild key={link.href}>
                         <Link

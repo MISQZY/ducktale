@@ -120,7 +120,7 @@
     "infrastructure": "Инфраструктура",
     "community": "Сообщество",
     "leaderboard": "Рейтинги",
-    "account": "Кабинет",
+    "profile": "Профиль",
     "login": "Войти",
     "home": "DuckTale — на главную",
     "menuTitle": "Навигация",
@@ -325,7 +325,7 @@
   "Account": {
     "register": {
       "title": "Регистрация",
-      "description": "Создайте аккаунт, чтобы получить доступ к личному кабинету.",
+      "description": "Создайте аккаунт, чтобы получить доступ к профилю.",
       "nicknameLabel": "Никнейм",
       "nicknameHint": "3-32 символа: латиница, цифры, _ или -",
       "passwordLabel": "Пароль",
@@ -342,7 +342,7 @@
     },
     "login": {
       "title": "Вход",
-      "description": "Войдите в личный кабинет по никнейму и паролю.",
+      "description": "Войдите в профиль по никнейму и паролю.",
       "nicknameLabel": "Никнейм",
       "passwordLabel": "Пароль",
       "submit": "Войти",
@@ -354,7 +354,7 @@
       }
     },
     "dashboard": {
-      "title": "Личный кабинет",
+      "title": "Профиль",
       "welcome": "Добро пожаловать, {nickname}",
       "signOut": "Выйти",
       "linkSectionTitle": "Minecraft-аккаунт",
@@ -381,7 +381,7 @@
       "waiting": "Ожидание подтверждения...",
       "confirmed": "Аккаунт {name} успешно привязан!",
       "expired": "Код истёк. Запросите новый.",
-      "backToDashboard": "Вернуться в кабинет",
+      "backToDashboard": "Вернуться в профиль",
       "relink": "Привязать другой аккаунт",
       "unlink": "Отвязать аккаунт",
       "errors": {

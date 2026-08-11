@@ -120,7 +120,7 @@
     "infrastructure": "Infrastructure",
     "community": "Community",
     "leaderboard": "Rankings",
-    "account": "Account",
+    "profile": "Profile",
     "login": "Sign in",
     "home": "DuckTale — home",
     "menuTitle": "Navigation",
@@ -326,7 +326,7 @@
   "Account": {
     "register": {
       "title": "Register",
-      "description": "Create an account to access your personal dashboard.",
+      "description": "Create an account to access your profile.",
       "nicknameLabel": "Nickname",
       "nicknameHint": "3-32 characters: letters, digits, _ or -",
       "passwordLabel": "Password",
@@ -343,7 +343,7 @@
     },
     "login": {
       "title": "Log in",
-      "description": "Sign in to your dashboard with your nickname and password.",
+      "description": "Sign in to your profile with your nickname and password.",
       "nicknameLabel": "Nickname",
       "passwordLabel": "Password",
       "submit": "Log in",
@@ -355,7 +355,7 @@
       }
     },
     "dashboard": {
-      "title": "Dashboard",
+      "title": "Profile",
       "welcome": "Welcome, {nickname}",
       "signOut": "Sign out",
       "linkSectionTitle": "Minecraft account",
@@ -382,7 +382,7 @@
       "waiting": "Waiting for confirmation...",
       "confirmed": "Account {name} linked successfully!",
       "expired": "The code expired. Request a new one.",
-      "backToDashboard": "Back to dashboard",
+      "backToDashboard": "Back to profile",
       "relink": "Link a different account",
       "unlink": "Unlink account",
       "errors": {

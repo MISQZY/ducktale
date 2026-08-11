@@ -34,7 +34,7 @@ export function LoginForm() {
         return;
       }
 
-      router.push("/account");
+      router.push("/profile");
     } catch {
       setError(t("errors.invalidCredentials"));
     } finally {

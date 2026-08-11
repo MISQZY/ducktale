@@ -16,6 +16,6 @@ export async function unlinkAccount(lang: string) {
 
   await siteDb.accountLink.deleteMany({ where: { userId: session.user.id } });
 
-  revalidatePath(`/${lang}/account`);
+  revalidatePath(`/${lang}/profile`);
   revalidatePath(`/${lang}/account/link`);
 }

@@ -11,7 +11,7 @@ export default async function LoginPage({
 }) {
   const { lang } = await params;
   const session = await auth();
-  if (session?.user?.id) redirect(`/${lang}/account`);
+  if (session?.user?.id) redirect(`/${lang}/profile`);
 
   const t = await getTranslations("Account.login");
 

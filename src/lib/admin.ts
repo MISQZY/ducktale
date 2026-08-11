@@ -12,7 +12,7 @@ export async function requireAdmin(lang: string) {
   const session = await auth();
   if (!session?.user?.id) redirect(`/${lang}/account/login`);
 
-  if (!session.user.isAdmin) redirect(`/${lang}/account`);
+  if (!session.user.isAdmin) redirect(`/${lang}/profile`);
   return session.user;
 }
 

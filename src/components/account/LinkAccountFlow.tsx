@@ -99,7 +99,7 @@ export function LinkAccountFlow({ lang, initialLink }: LinkAccountFlowProps) {
       <div className="text-center">
         <p className="text-foreground/80 mb-6">{t("confirmed", { name: link.minecraftName ?? "" })}</p>
         <div className="flex flex-col sm:flex-row items-center justify-center gap-3 mb-5">
-          <CtaButton href={`/${lang}/account`} variant="primary">
+          <CtaButton href={`/${lang}/profile`} variant="primary">
             {t("backToDashboard")}
           </CtaButton>
           <FormButton onClick={requestCode} disabled={submitting} variant="outline">
