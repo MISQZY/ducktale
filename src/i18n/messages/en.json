@@ -364,7 +364,10 @@
       "unlink": "Unlink account",
       "playerCardTitle": "Player card",
       "adminPanel": "Admin panel",
-      "viewProfile": "My public profile"
+      "viewProfile": "My public profile",
+      "supportSectionTitle": "Support",
+      "supportSectionDescription": "Have a question or an issue? Open a ticket — an admin will see it and reply right here.",
+      "myTickets": "My tickets"
     },
     "link": {
       "title": "Link your Minecraft account",
@@ -410,7 +413,10 @@
     "noResults": "No users found.",
     "pageInfo": "Page {page} of {totalPages}",
     "prevPage": "← Prev",
-    "nextPage": "Next →"
+    "nextPage": "Next →",
+    "navTickets": "Tickets",
+    "ticketsTitle": "Support tickets",
+    "ticketsDescription": "Total tickets: {count}"
   },
   "Profile": {
     "memberSince": "Member since {date}",
@@ -451,5 +457,47 @@
     "newFileSlugPlaceholder": "getting-started/new-page.mdx",
     "newFileCreate": "Create",
     "newFileInvalidSlug": "Invalid path — use lowercase letters, digits, / and -, ending in .mdx"
+  },
+  "Tickets": {
+    "myTicketsTitle": "My tickets",
+    "myTicketsDescription": "Support requests and their replies.",
+    "newTicket": "New ticket",
+    "noTickets": "No tickets yet.",
+    "updatedAt": "Updated: {date}",
+    "prevPage": "← Prev",
+    "nextPage": "Next →",
+    "pageInfo": "Page {page} of {totalPages}",
+    "status": {
+      "OPEN": "Open",
+      "ANSWERED": "Answered",
+      "CLOSED": "Closed"
+    },
+    "attachmentsLabel": "Attachments",
+    "statusAll": "All",
+    "newTicketTitle": "New ticket",
+    "newTicketDescription": "Describe your question — an admin will reply right here.",
+    "subjectLabel": "Subject",
+    "subjectPlaceholder": "Briefly describe the issue",
+    "messageLabel": "Message",
+    "messagePlaceholder": "Describe your question in more detail...",
+    "submit": "Create ticket",
+    "submitting": "Submitting...",
+    "errors": {
+      "required": "Fill in a subject and message",
+      "generic": "Couldn't complete that. Try again later."
+    },
+    "backToList": "← Back to tickets",
+    "openedBy": "Opened by: {nickname}",
+    "closeTicket": "Close ticket",
+    "reopenTicket": "Reopen",
+    "staffLabel": "support",
+    "adminName": "Administrator",
+    "noMessages": "No messages yet.",
+    "closedHint": "This ticket is closed — sending a message will reopen it.",
+    "replyPlaceholder": "Your reply...",
+    "send": "Send",
+    "sending": "Sending...",
+    "adminSearchPlaceholder": "Search by nickname or subject...",
+    "messageCount": "{count, plural, one {# message} other {# messages}}"
   }
 }

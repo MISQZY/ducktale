@@ -30,12 +30,14 @@ datasource db {
 }
 
 model User {
-  id           String      @id @default(cuid())
-  nickname     String      @unique @db.VarChar(32)
-  passwordHash String      @db.VarChar(255)
-  isAdmin      Boolean     @default(false)
-  createdAt    DateTime    @default(now())
-  accountLink  AccountLink?
+  id             String          @id @default(cuid())
+  nickname       String          @unique @db.VarChar(32)
+  passwordHash   String          @db.VarChar(255)
+  isAdmin        Boolean         @default(false)
+  createdAt      DateTime        @default(now())
+  accountLink    AccountLink?
+  tickets        Ticket[]
+  ticketMessages TicketMessage[]
 
   @@map("{{PREFIX}}user")
 }
@@ -68,4 +70,61 @@ model AccountLink {
 
   @@index([status])
   @@map("{{PREFIX}}account_link")
+}
+
+enum TicketStatus {
+  OPEN
+  ANSWERED
+  CLOSED
+}
+
+/// A support ticket opened by a site user from their profile. Any admin can
+/// see and reply to any ticket; the owning user only sees/replies to their
+/// own (see canViewTicket() in src/lib/tickets.ts). `status` tracks whose
+/// turn it is to respond rather than a resolution stage — sendTicketMessage()
+/// flips it to ANSWERED on an admin reply and back to OPEN on a user reply
+/// (which also reopens a CLOSED ticket), while CLOSED only ever comes from
+/// an explicit admin action.
+model Ticket {
+  id        String          @id @default(cuid())
+  userId    String
+  user      User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  subject   String          @db.VarChar(120)
+  status    TicketStatus    @default(OPEN)
+  createdAt DateTime        @default(now())
+  updatedAt DateTime        @updatedAt
+  messages  TicketMessage[]
+
+  @@index([userId])
+  @@index([status, updatedAt])
+  @@map("{{PREFIX}}ticket")
+}
+
+model TicketMessage {
+  id           String   @id @default(cuid())
+  ticketId     String
+  ticket       Ticket   @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  authorId     String
+  author       User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  isAdminReply Boolean            @default(false)
+  body         String             @db.Text
+  createdAt    DateTime           @default(now())
+  attachments  TicketAttachment[]
+
+  @@index([ticketId])
+  @@map("{{PREFIX}}ticket_message")
+}
+
+model TicketAttachment {
+  id              String        @id @default(cuid())
+  ticketMessageId String
+  ticketMessage   TicketMessage @relation(fields: [ticketMessageId], references: [id], onDelete: Cascade)
+  filename        String        @db.VarChar(255)
+  size            Int
+  mimeType        String        @db.VarChar(100)
+  path            String        @db.VarChar(512)
+  createdAt       DateTime      @default(now())
+
+  @@index([ticketMessageId])
+  @@map("{{PREFIX}}ticket_attachment")
 }

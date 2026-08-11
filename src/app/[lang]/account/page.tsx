@@ -98,6 +98,17 @@ export default async function AccountDashboardPage({
             </div>
           )}
 
+          <div className="corner-ornament rounded-2xl border border-primary/20 bg-card/50 p-6 mb-6 relative overflow-hidden">
+            <div className="absolute top-0 left-8 right-8 h-px bg-linear-to-r from-transparent via-primary/25 to-transparent" />
+            <h2 className="text-xs uppercase tracking-widest text-foreground/50 mb-4">
+              {t("supportSectionTitle")}
+            </h2>
+            <p className="text-foreground/45 text-sm mb-5">{t("supportSectionDescription")}</p>
+            <CtaButton href={`/${lang}/account/tickets`} variant="outline">
+              {t("myTickets")}
+            </CtaButton>
+          </div>
+
           <div className="flex flex-wrap items-center gap-3">
             <CtaButton href={`/${lang}/profile/${encodeURIComponent(session.user.name ?? "")}`} variant="outline">
               {t("viewProfile")}

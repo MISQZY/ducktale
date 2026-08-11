@@ -363,7 +363,10 @@
       "unlink": "Отвязать аккаунт",
       "playerCardTitle": "Карточка игрока",
       "adminPanel": "Админ-панель",
-      "viewProfile": "Моя публичная страница"
+      "viewProfile": "Моя публичная страница",
+      "supportSectionTitle": "Поддержка",
+      "supportSectionDescription": "Есть вопрос или проблема? Откройте тикет — админ увидит его и ответит здесь же.",
+      "myTickets": "Мои тикеты"
     },
     "link": {
       "title": "Привязка Minecraft-аккаунта",
@@ -409,7 +412,10 @@
     "noResults": "Ничего не найдено.",
     "pageInfo": "Стр. {page} из {totalPages}",
     "prevPage": "← Назад",
-    "nextPage": "Вперёд →"
+    "nextPage": "Вперёд →",
+    "navTickets": "Тикеты",
+    "ticketsTitle": "Тикеты поддержки",
+    "ticketsDescription": "Всего тикетов: {count}"
   },
   "Profile": {
     "memberSince": "На сайте с {date}",
@@ -450,5 +456,47 @@
     "newFileSlugPlaceholder": "getting-started/new-page.mdx",
     "newFileCreate": "Создать",
     "newFileInvalidSlug": "Неверный путь — используйте латиницу, цифры, / и -, с расширением .mdx"
+  },
+  "Tickets": {
+    "myTicketsTitle": "Мои тикеты",
+    "myTicketsDescription": "Обращения в поддержку и переписка по ним.",
+    "newTicket": "Новый тикет",
+    "noTickets": "Тикетов пока нет.",
+    "updatedAt": "Обновлено: {date}",
+    "prevPage": "← Назад",
+    "nextPage": "Вперёд →",
+    "pageInfo": "Стр. {page} из {totalPages}",
+    "status": {
+      "OPEN": "Открыт",
+      "ANSWERED": "Отвечен",
+      "CLOSED": "Закрыт"
+    },
+    "attachmentsLabel": "Вложения",
+    "statusAll": "Все",
+    "newTicketTitle": "Новый тикет",
+    "newTicketDescription": "Опишите вопрос — админ ответит здесь же.",
+    "subjectLabel": "Тема",
+    "subjectPlaceholder": "Коротко опишите проблему",
+    "messageLabel": "Сообщение",
+    "messagePlaceholder": "Опишите вопрос подробнее...",
+    "submit": "Создать тикет",
+    "submitting": "Отправка...",
+    "errors": {
+      "required": "Заполните тему и сообщение",
+      "generic": "Не удалось выполнить действие. Попробуйте позже."
+    },
+    "backToList": "← К списку тикетов",
+    "openedBy": "Открыт: {nickname}",
+    "closeTicket": "Закрыть тикет",
+    "reopenTicket": "Переоткрыть",
+    "staffLabel": "поддержка",
+    "adminName": "Администратор",
+    "noMessages": "Сообщений пока нет.",
+    "closedHint": "Тикет закрыт — отправка сообщения переоткроет его.",
+    "replyPlaceholder": "Ваш ответ...",
+    "send": "Отправить",
+    "sending": "Отправка...",
+    "adminSearchPlaceholder": "Поиск по нику или теме...",
+    "messageCount": "{count, plural, one {# сообщение} few {# сообщения} many {# сообщений} other {# сообщений}}"
   }
 }

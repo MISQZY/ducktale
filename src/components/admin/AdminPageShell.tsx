@@ -6,7 +6,7 @@ import { AdminNav } from "@/components/admin/AdminNav";
 interface AdminPageShellProps {
   title: string;
   description: string;
-  active: "users" | "content";
+  active: "users" | "content" | "tickets";
   children: ReactNode;
 }
 

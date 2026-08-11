@@ -48,6 +48,9 @@ src/prisma/site/schema.prisma
 # Documentation
 /docs/
 
+# User-uploaded ticket attachments — real user data, never belongs in git.
+/uploads/
+
 # AI
 AGENTS.md
 CLAUDE.md
