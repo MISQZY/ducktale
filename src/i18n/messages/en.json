@@ -107,13 +107,18 @@
       "days": "{days}d",
       "hoursMinutes": "{hours}h {minutes}m",
       "minutes": "{minutes}m"
-    }
+    },
+    "generalTitle": "General info",
+    "serversTitle": "Servers",
+    "whitelistedYes": "Whitelisted",
+    "whitelistedNo": "Not whitelisted"
   },
   "Nav": {
     "about": "About",
     "servers": "Servers",
     "infrastructure": "Infrastructure",
     "community": "Community",
+    "account": "Account",
     "home": "DuckTale — home",
     "menuTitle": "Navigation",
     "openMenu": "Open menu",
@@ -235,7 +240,77 @@
   },
   "Footer": {
     "existsSince": "Running since {year}.",
-    "legalNotice": "Not an official Minecraft service. Not approved by or affiliated with Mojang or Microsoft."
+    "legalNotice": "Not an official Minecraft service. Not approved by or affiliated with Mojang or Microsoft.",
+    "legalLink": "Terms of use (public offer)"
+  },
+  "Legal": {
+    "metaTitle": "Terms of Use",
+    "title": "Terms of Use",
+    "subtitle": "Public offer for free use of the DuckTale website and network services",
+    "lastUpdated": "In effect since August 11, 2026",
+    "sections": [
+      {
+        "heading": "1. General provisions",
+        "paragraphs": [
+          "This document is a public offer under Articles 435 and 437 of the Civil Code of the Russian Federation and sets out the terms for free use of the website at {siteUrl} and its related services (the \"Site\"), including the DuckTale Minecraft network's game servers.",
+          "This is a courtesy English translation. The Site is operated under Russian law, and in case of any discrepancy between this translation and the Russian-language version, the Russian-language version governs.",
+          "The offeror (Site owner) is a private individual acting on their own behalf, without registered business (sole proprietor) status. Contact details are listed under \"Details\" below.",
+          "Registering on the Site, creating an account, linking a Minecraft profile, or otherwise using the Site constitutes full and unconditional acceptance of this offer under Article 438 of the Civil Code of the Russian Federation.",
+          "If you do not agree to these terms, please do not use the Site or create an account."
+        ]
+      },
+      {
+        "heading": "2. Subject of the agreement",
+        "paragraphs": [
+          "The offeror provides the user with free access to the Site's features: browsing information about the game servers and documentation, registering an account, and linking a Minecraft account to a Site account.",
+          "The Site and the DuckTale server network are not an official Mojang Studios or Microsoft product and are not affiliated with either company.",
+          "The Site and its features are provided \"as is\", with no guarantee of uninterrupted operation, preservation of in-game progress, or availability at any given time."
+        ]
+      },
+      {
+        "heading": "3. Account and Minecraft linking",
+        "paragraphs": [
+          "Using certain Site features requires registering with an in-game nickname and password.",
+          "The user is solely responsible for keeping their account credentials secure and for all actions taken under their account.",
+          "Linking a Minecraft profile is done by entering a one-time code, obtained on the Site, via an in-game command on a network server. The code is valid for a limited time and must not be shared with third parties.",
+          "The user may unlink their Minecraft profile from their account at any time, from their account page or via an in-game command."
+        ]
+      },
+      {
+        "heading": "4. Personal data processing",
+        "paragraphs": [
+          "When processing the user's personal data, the offeror follows Federal Law No. 152-FZ \"On Personal Data\" of July 27, 2006.",
+          "Data processed: in-game nickname, password hash (the password itself is never stored or shared), the UUID and nickname of a linked Minecraft profile, last login date and time, and technical data needed to protect the Site from automated abuse (such as per-IP request rate limiting).",
+          "Purpose of processing: identifying the user, operating the account page and the account-linking feature, and protecting the Site from abuse.",
+          "Data is not shared with third parties, except where required by the law of the Russian Federation.",
+          "The user may request deletion of their account and associated data by emailing the address listed under \"Details\" below.",
+          "Data is retained for as long as the account exists and is deleted on the user's request or if the Site ceases operation."
+        ]
+      },
+      {
+        "heading": "5. Rights and obligations of the parties",
+        "paragraphs": [
+          "The user agrees not to use the Site or related services for unlawful purposes, not to attempt unauthorized access to other users' accounts, and not to share their linking code with third parties.",
+          "The offeror may restrict or terminate a user's access to the Site or the game servers in case of a violation of the Site's or the DuckTale network's rules.",
+          "The offeror is not liable for interruptions to the Site or servers caused by technical failures, third-party actions, or force majeure."
+        ]
+      },
+      {
+        "heading": "6. Changes to this offer",
+        "paragraphs": [
+          "The offeror may amend the terms of this offer unilaterally. The current version is always available at this address, with the effective date shown at the top of the document.",
+          "Continued use of the Site after changes are published constitutes acceptance of the revised terms."
+        ]
+      },
+      {
+        "heading": "7. Details",
+        "paragraphs": [
+          "Offeror: a private individual.",
+          "Site: DuckTale ({siteUrl}).",
+          "Contact e-mail: hello@misqzy.net."
+        ]
+      }
+    ]
   },
   "NotFound": {
     "badge": "Page not found",
@@ -244,5 +319,137 @@
     "ctaHome": "Go home",
     "ctaServers": "Choose a server",
     "docsHint": "Or head to the documentation"
+  },
+  "Account": {
+    "register": {
+      "title": "Register",
+      "description": "Create an account to access your personal dashboard.",
+      "nicknameLabel": "Nickname",
+      "nicknameHint": "3-32 characters: letters, digits, _ or -",
+      "passwordLabel": "Password",
+      "passwordHint": "At least 8 characters",
+      "confirmPasswordLabel": "Confirm password",
+      "submit": "Register",
+      "submitting": "Registering...",
+      "haveAccount": "Already have an account?",
+      "loginLink": "Log in",
+      "errors": {
+        "passwordMismatch": "Passwords don't match",
+        "generic": "Registration failed. Please try again later."
+      }
+    },
+    "login": {
+      "title": "Log in",
+      "description": "Sign in to your dashboard with your nickname and password.",
+      "nicknameLabel": "Nickname",
+      "passwordLabel": "Password",
+      "submit": "Log in",
+      "submitting": "Logging in...",
+      "noAccount": "Don't have an account?",
+      "registerLink": "Register",
+      "errors": {
+        "invalidCredentials": "Invalid nickname or password"
+      }
+    },
+    "dashboard": {
+      "title": "Dashboard",
+      "welcome": "Welcome, {nickname}",
+      "signOut": "Sign out",
+      "linkSectionTitle": "Minecraft account",
+      "notLinked": "No account linked",
+      "linkCta": "Link account",
+      "linkedAs": "Linked: {name}",
+      "pending": "Awaiting confirmation",
+      "relink": "Link a different account",
+      "unlink": "Unlink account",
+      "playerCardTitle": "Player card",
+      "adminPanel": "Admin panel",
+      "viewProfile": "My public profile"
+    },
+    "link": {
+      "title": "Link your Minecraft account",
+      "description": "Confirm the code with a command on the server.",
+      "submit": "Get code",
+      "submitting": "Generating code...",
+      "codeInstructions": "Join the server and run this command:",
+      "codeExpires": "The code is valid for 10 minutes",
+      "waiting": "Waiting for confirmation...",
+      "confirmed": "Account {name} linked successfully!",
+      "expired": "The code expired. Request a new one.",
+      "backToDashboard": "Back to dashboard",
+      "relink": "Link a different account",
+      "unlink": "Unlink account",
+      "errors": {
+        "generic": "Couldn't generate a code. Please try again later."
+      }
+    }
+  },
+  "Admin": {
+    "title": "Admin panel",
+    "description": "Total users: {count}",
+    "navUsers": "Users",
+    "navContent": "Content",
+    "adminBadge": "Admin",
+    "createdAt": "Registered: {date}",
+    "notLinked": "No Minecraft account linked",
+    "pending": "Link confirmation pending",
+    "linkedAs": "Linked: {name}",
+    "resetPassword": "Reset password",
+    "unlink": "Unlink",
+    "delete": "Delete",
+    "grantAdmin": "Make admin",
+    "revokeAdmin": "Revoke admin",
+    "newPasswordHint": "New password (share it with the user directly — it isn't stored anywhere else):",
+    "confirmReset": "Reset the password for {nickname}? Their old password will stop working.",
+    "confirmUnlink": "Unlink the Minecraft account for {nickname}?",
+    "confirmDelete": "Permanently delete the user {nickname}? This cannot be undone.",
+    "confirmGrantAdmin": "Grant {nickname} admin rights? They will get access to this panel.",
+    "confirmRevokeAdmin": "Revoke admin rights from {nickname}?",
+    "actionFailed": "The action failed. Please try again later.",
+    "searchPlaceholder": "Search by nickname...",
+    "noResults": "No users found.",
+    "pageInfo": "Page {page} of {totalPages}",
+    "prevPage": "← Prev",
+    "nextPage": "Next →"
+  },
+  "Profile": {
+    "memberSince": "Member since {date}",
+    "notLinked": "No Minecraft account linked."
+  },
+  "AdminContent": {
+    "title": "Content editor",
+    "description": "Total files: {count}",
+    "editorLabel": "Markdown / MDX",
+    "editorLabelJson": "meta.json",
+    "previewLabel": "Preview",
+    "metaOrderLabel": "Page order",
+    "metaOrderHint": "Top of the list is first in the menu. Pages not in the list are hidden from navigation.",
+    "metaMoveUp": "Move up",
+    "metaMoveDown": "Move down",
+    "metaRemove": "Remove from list",
+    "metaEmptyList": "List is empty",
+    "metaAddPage": "Add a page...",
+    "compiling": "Compiling...",
+    "previewRenderFailed": "This part of the preview failed to render. Editing and saving still work.",
+    "commitMessagePlaceholder": "Commit message",
+    "save": "Save",
+    "saving": "Saving...",
+    "delete": "Delete",
+    "deleting": "Deleting...",
+    "confirmDelete": "Delete {slug}? The removal joins the current PR (or starts a new one if none is open yet).",
+    "viewPr": "Open Pull Request →",
+    "saveFailed": "Couldn't save. Please try again later.",
+    "prSectionTitle": "Changes in this session",
+    "prTitlePlaceholder": "Pull Request title",
+    "createPr": "Create Pull Request",
+    "creatingPr": "Creating PR...",
+    "revertFile": "Revert changes to {slug}",
+    "confirmRevertFile": "Revert changes to {slug}? The file will be restored to its state before this session (or removed, if it was just created).",
+    "selectFilePrompt": "Select a file on the left, or create a new one.",
+    "notCreatedYet": "This file doesn't exist yet for the {locale} locale. Start typing and click Save to create it.",
+    "newFileTitle": "New file",
+    "newFileSlugPlaceholder": "getting-started/new-page.mdx",
+    "newFileCreate": "Create",
+    "newFileInvalidSlug": "Invalid path — use lowercase letters, digits, / and -, ending in .mdx"
   }
 }
