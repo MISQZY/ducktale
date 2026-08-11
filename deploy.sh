@@ -7,6 +7,14 @@ echo "⬇️  Pulling latest code..."
 git checkout -- .
 git pull origin "$DEFAULT_BRANCH"
 
+# ./uploads is bind-mounted into the container at /app/uploads (see
+# docker-compose.yml) — on first creation Docker owns it as root, but the
+# app runs as the non-root nextjs user (uid/gid 1001, see Dockerfile), so
+# it can't mkdir inside it without this. Idempotent: safe to run every deploy.
+echo "📁 Ensuring uploads/ is writable by the app's container user..."
+mkdir -p uploads/attachments
+chown -R 1001:1001 uploads
+
 echo "🔨 Rebuilding app..."
 docker compose build app
 
