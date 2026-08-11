@@ -112,7 +112,9 @@
     "serversTitle": "Servers",
     "whitelistedYes": "Whitelisted",
     "whitelistedNo": "Not whitelisted",
-    "rankTooltip": "Leaderboard rank: #{rank}"
+    "rankTooltip": "Leaderboard rank: #{rank}",
+    "relinkAction": "Link a different account",
+    "unlinkAction": "Unlink account"
   },
   "Nav": {
     "about": "About",

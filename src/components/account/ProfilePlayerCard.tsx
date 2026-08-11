@@ -3,14 +3,17 @@
 import { useEffect, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import {
-  Clock, LogIn, VenusAndMars, Sprout, CircleCheck, XCircle, Castle, Flag, BadgeCheck, AlertCircle,
+  Clock, LogIn, VenusAndMars, Sprout, CircleCheck, XCircle, Castle, Flag, BadgeCheck, AlertCircle, RefreshCw, Unlink2,
 } from "lucide-react";
 import { DuckCard, DuckCardContent } from "@/components/ui/duck/card";
+import { buttonVariants } from "@/components/ui/button";
 import { SkinFace } from "@/components/common/SkinFace";
 import { formatDurationMs, formatLastSeen } from "@/lib/player-card-format";
 import { RESIDENT_ROLE_COLOR } from "@/lib/towny";
 import { NETWORK_SERVERS } from "@/config/servers";
 import { RankBadge } from "@/components/leaderboard/RankBadge";
+import { unlinkAccount } from "@/lib/actions/account-link";
+import { Link, useRouter } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
 import type { GrowthStatus, PlayerCard as PlayerCardData, PlayerCardResponse, PlayerServerStatus } from "@/types/player-card";
 import type { ResidentRole } from "@/types/towny";
@@ -102,6 +105,44 @@ function ServerStatusCard({ status, t }: { status: PlayerServerStatus; t: Player
   );
 }
 
+// ─── Owner-only relink/unlink controls ──────────────────────────────────────────
+
+const iconButtonClasses = cn(buttonVariants({ variant: "outline", size: "icon-sm" }), "bg-card/70 backdrop-blur-sm");
+
+/** Relink navigates to the /account/link flow; unlink calls the same server action the old dashboard "Minecraft account" card used, then refreshes so the server-rendered link status (and this card's visibility) catches up. */
+function ManageActions({ lang, t }: { lang: string; t: PlayerCardT }) {
+  const router = useRouter();
+  const [pending, setPending] = useState(false);
+
+  async function handleUnlink() {
+    setPending(true);
+    try {
+      await unlinkAccount(lang);
+      router.refresh();
+    } finally {
+      setPending(false);
+    }
+  }
+
+  return (
+    <div className="absolute top-3 right-3 z-10 flex items-center gap-1.5">
+      <Link href="/account/link" className={iconButtonClasses} aria-label={t("relinkAction")} title={t("relinkAction")}>
+        <RefreshCw size={14} />
+      </Link>
+      <button
+        type="button"
+        onClick={handleUnlink}
+        disabled={pending}
+        className={cn(iconButtonClasses, "hover:text-destructive hover:border-destructive/40")}
+        aria-label={t("unlinkAction")}
+        title={t("unlinkAction")}
+      >
+        <Unlink2 size={14} />
+      </button>
+    </div>
+  );
+}
+
 // ─── Loading / error states ─────────────────────────────────────────────────────
 
 function SkeletonCard() {
@@ -120,9 +161,10 @@ function SkeletonCard() {
   );
 }
 
-function ErrorCard({ t }: { t: PlayerCardT }) {
+function ErrorCard({ t, manage }: { t: PlayerCardT; manage?: { lang: string } }) {
   return (
     <DuckCard className="border-red-900/30 bg-duck-stone/40">
+      {manage && <ManageActions lang={manage.lang} t={t} />}
       <DuckCardContent className="flex items-center gap-3 py-6 justify-center text-center">
         <AlertCircle size={18} className="text-red-600/70 dark:text-red-400/70 shrink-0" />
         <p className="text-sm text-red-600/70 dark:text-red-400/70">{t("loadError")}</p>
@@ -136,6 +178,10 @@ function ErrorCard({ t }: { t: PlayerCardT }) {
 interface ProfilePlayerCardProps {
   minecraftName: string;
   className?: string;
+  /** Only passed from the signed-in user's own dashboard — renders the
+   * relink/unlink icon buttons in the card's top-right corner. Omitted
+   * entirely on public profile views of other users. */
+  manage?: { lang: string };
 }
 
 /**
@@ -143,7 +189,7 @@ interface ProfilePlayerCardProps {
  * network-wide general stats, then one card per server with that server's
  * own whitelist status (and Towny city/nation where tracked).
  */
-export function ProfilePlayerCard({ minecraftName, className }: ProfilePlayerCardProps) {
+export function ProfilePlayerCard({ minecraftName, className, manage }: ProfilePlayerCardProps) {
   const t = useTranslations("PlayerCard");
   const locale = useLocale();
   const [player, setPlayer] = useState<PlayerCardData | null>(null);
@@ -173,11 +219,12 @@ export function ProfilePlayerCard({ minecraftName, className }: ProfilePlayerCar
   }, [minecraftName]);
 
   if (status === "loading") return <SkeletonCard />;
-  if (status === "error" || !player) return <ErrorCard t={t} />;
+  if (status === "error" || !player) return <ErrorCard t={t} manage={manage} />;
 
   return (
     <div className={cn("flex flex-col gap-4", className)}>
       <DuckCard className="border-primary/20 bg-duck-stone/40">
+        {manage && <ManageActions lang={manage.lang} t={t} />}
         <DuckCardContent className="pt-5 flex flex-col items-center text-center gap-3">
           <SkinFace skinUrl={player.skinUrl} size={96} />
 

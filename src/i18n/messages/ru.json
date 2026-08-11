@@ -112,7 +112,9 @@
     "serversTitle": "Серверы",
     "whitelistedYes": "В вайтлисте",
     "whitelistedNo": "Не в вайтлисте",
-    "rankTooltip": "Место в топе игроков: #{rank}"
+    "rankTooltip": "Место в топе игроков: #{rank}",
+    "relinkAction": "Привязать другой аккаунт",
+    "unlinkAction": "Отвязать аккаунт"
   },
   "Nav": {
     "about": "О проекте",
