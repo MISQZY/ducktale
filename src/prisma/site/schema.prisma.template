@@ -30,7 +30,7 @@ datasource db {
 }
 
 model User {
-  id             String          @id @default(cuid())
+  id             String          @id @default(uuid())
   nickname       String          @unique @db.VarChar(32)
   passwordHash   String          @db.VarChar(255)
   isAdmin        Boolean         @default(false)
@@ -54,7 +54,7 @@ enum LinkStatus {
 /// Table/column contract is shared with the Minecraft-side plugin — see
 /// MINECRAFT_ACCOUNT_LINK.md if you change this model.
 model AccountLink {
-  id            String     @id @default(cuid())
+  id            String     @id @default(uuid())
   userId        String     @unique
   user          User       @relation(fields: [userId], references: [id], onDelete: Cascade)
   code          String     @unique @db.VarChar(16)
@@ -86,7 +86,7 @@ enum TicketStatus {
 /// (which also reopens a CLOSED ticket), while CLOSED only ever comes from
 /// an explicit admin action.
 model Ticket {
-  id        String          @id @default(cuid())
+  id        String          @id @default(uuid())
   userId    String
   user      User            @relation(fields: [userId], references: [id], onDelete: Cascade)
   subject   String          @db.VarChar(120)
@@ -101,7 +101,7 @@ model Ticket {
 }
 
 model TicketMessage {
-  id           String   @id @default(cuid())
+  id           String   @id @default(uuid())
   ticketId     String
   ticket       Ticket   @relation(fields: [ticketId], references: [id], onDelete: Cascade)
   authorId     String
@@ -116,7 +116,7 @@ model TicketMessage {
 }
 
 model TicketAttachment {
-  id              String        @id @default(cuid())
+  id              String        @id @default(uuid())
   ticketMessageId String
   ticketMessage   TicketMessage @relation(fields: [ticketMessageId], references: [id], onDelete: Cascade)
   filename        String        @db.VarChar(255)
