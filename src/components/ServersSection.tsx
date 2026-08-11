@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
 import { useTranslations } from "next-intl";
 import { ArrowRight, Sword } from "lucide-react";
 import { SERVERS, NETWORK_HOST } from "@/config/servers";

@@ -5,6 +5,10 @@ import { cn } from "@/lib/utils";
 import type { ReactNode } from "react";
 
 interface CtaButtonProps {
+  /** Pass an already locale-prefixed path (e.g. `/${locale}#servers`) — this
+   * uses plain next/link, not next-intl's Link, because it's also rendered
+   * from app/global-not-found.tsx, which has no NextIntlClientProvider for
+   * next-intl's Link to read the current locale from. */
   href: string;
   children: ReactNode;
   variant?: "primary" | "outline";

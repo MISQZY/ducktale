@@ -1,6 +1,6 @@
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
 import { ChevronDown, Sword } from "lucide-react";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { PageBackground } from "@/components/common/PageBackground";
 import { StatusBadge } from "@/components/common/StatusBadge";
 import { CtaButton } from "@/components/common/CtaButton";
@@ -9,10 +9,14 @@ import DuckyPet from "@/components/DuckyPet";
 
 export default function HeroSection() {
   const t = useTranslations("Hero");
+  const locale = useLocale();
 
+  // CtaButton renders a plain (locale-unaware) Link, so these anchors need
+  // the current locale baked in — otherwise clicking one from /en/ would
+  // round-trip through the proxy and could drop back to the default locale.
   const CTA_LINKS = [
-    { href: "/#servers", label: t("ctaPrimary"), variant: "primary" as const },
-    { href: "/#about",   label: t("ctaSecondary"), variant: "outline" as const },
+    { href: `/${locale}#servers`, label: t("ctaPrimary"), variant: "primary" as const },
+    { href: `/${locale}#about`,   label: t("ctaSecondary"), variant: "outline" as const },
   ];
 
   return (

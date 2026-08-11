@@ -7,6 +7,13 @@ const withNextIntl = createNextIntlPlugin("./src/i18n/request.ts");
 const nextConfig = {
   reactStrictMode: true,
   output: "standalone",
+  experimental: {
+    // Lets app/global-not-found.tsx handle every unmatched URL in one place.
+    // Needed because the root layout is a top-level dynamic segment
+    // (app/[lang]/layout.tsx), so there's no single non-dynamic layout to
+    // compose a global 404 from otherwise.
+    globalNotFound: true,
+  },
   images: {
     remotePatterns: [
       { protocol: "https", hostname: "cdn.modrinth.com" },
