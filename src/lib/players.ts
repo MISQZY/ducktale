@@ -1,6 +1,18 @@
 import { withDb } from "@/lib/db";
 import { Prisma } from "@prisma/client";
 
+/** Fallback display name for players who never set a FlectonePulse nickname. */
+export const FALLBACK_NICKNAME = "Путник";
+
+/**
+ * The FlectonePulse player + nickname join, reused verbatim by every route
+ * that needs to resolve a display name (player card, player search, towns).
+ */
+export const PLAYER_NICKNAME_JOIN = Prisma.sql`
+  FROM fp_player p
+  LEFT JOIN fp_setting s ON s.player = p.id AND s.type = 'NICKNAME'
+`;
+
 export interface OnlinePlayer {
   name: string;
   serverId: string;

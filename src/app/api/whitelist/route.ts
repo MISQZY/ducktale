@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { withDb } from "@/lib/db";
 import { withCache } from "@/lib/query-cache";
 import { Prisma } from "@prisma/client";
+import { isRateLimited } from "@/lib/rate-limit";
 import type { WhitelistPlayer, WhitelistResponse } from "@/types/whitelist";
 
 export type { WhitelistPlayer, WhitelistResponse };
@@ -79,6 +80,10 @@ async function buildWhitelistResponse(
 }
 
 export async function GET(req: Request) {
+  if (isRateLimited(req, "whitelist", 30, 60_000)) {
+    return NextResponse.json({ error: "Too many requests" }, { status: 429 });
+  }
+
   const { searchParams } = new URL(req.url);
 
   const page     = Math.max(1, parseInt(searchParams.get("page") ?? "1",  10));

@@ -1,3 +1,4 @@
+import DOMPurify from "isomorphic-dompurify";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { RULE_SEVERITY_STYLE, type RuleSeverity } from "@/config/site";
@@ -43,20 +44,13 @@ function inferSeverity(punishment: string): Severity {
   return "other";
 }
 
- /* TODO: replace with DOMPurify */
+// Rule text only ever needs inline formatting — an allowlist is much safer
+// here than trying to blocklist every dangerous tag/attribute/protocol.
 function sanitizeRuleHtml(html: string): string {
-  return html
-    .replace(/<script[\s\S]*?<\/script>/gi, "")
-    .replace(/<style[\s\S]*?<\/style>/gi, "")
-    .replace(/<iframe[\s\S]*?<\/iframe>/gi, "")
-    .replace(/<object[\s\S]*?<\/object>/gi, "")
-    .replace(/<embed[^>]*>/gi, "")
-    .replace(/<link[^>]*>/gi, "")
-    .replace(/<base[^>]*>/gi, "")
-    .replace(/\s+on\w+\s*=\s*(?:"[^"]*"|'[^']*'|[^\s>]+)/gi, "")
-    .replace(/(?:href|src|action)\s*=\s*(?:"javascript:[^"]*"|'javascript:[^']*')/gi, "")
-    .replace(/(?:href|src|action)\s*=\s*(?:"data:[^"]*"|'data:[^']*')/gi, "")
-    .replace(/expression\s*\([^)]*\)/gi, "");
+  return DOMPurify.sanitize(html, {
+    ALLOWED_TAGS: ["strong", "em", "code", "br"],
+    ALLOWED_ATTR: [],
+  });
 }
 
 

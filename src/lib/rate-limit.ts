@@ -1,0 +1,46 @@
+/**
+ * In-memory fixed-window rate limiter, keyed by client IP + route. Safe here
+ * for the same reason as query-cache.ts: this app runs as a persistent
+ * `output: standalone` Node process (see Dockerfile), not serverless/edge —
+ * module scope survives across requests instead of resetting per-invocation.
+ */
+
+interface Window {
+  count: number;
+  resetAt: number;
+}
+
+// Cap so a flood of distinct/spoofed IPs can't grow this map forever.
+const MAX_ENTRIES = 5000;
+
+const windows = new Map<string, Window>();
+
+function getClientIp(req: Request): string {
+  const forwardedFor = req.headers.get("x-forwarded-for");
+  if (forwardedFor) return forwardedFor.split(",")[0].trim();
+  return req.headers.get("x-real-ip") ?? "unknown";
+}
+
+/** Returns true if this request should be rejected with 429. */
+export function isRateLimited(
+  req: Request,
+  routeKey: string,
+  limit: number,
+  windowMs: number
+): boolean {
+  const key = `${routeKey}:${getClientIp(req)}`;
+  const now = Date.now();
+
+  const w = windows.get(key);
+  if (!w || now > w.resetAt) {
+    windows.set(key, { count: 1, resetAt: now + windowMs });
+    if (windows.size > MAX_ENTRIES) {
+      const oldestKey = windows.keys().next().value;
+      if (oldestKey !== undefined) windows.delete(oldestKey);
+    }
+    return false;
+  }
+
+  w.count++;
+  return w.count > limit;
+}

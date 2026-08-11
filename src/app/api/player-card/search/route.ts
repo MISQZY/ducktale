@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { withDb } from "@/lib/db";
 import { withCache } from "@/lib/query-cache";
 import { Prisma } from "@prisma/client";
+import { PLAYER_NICKNAME_JOIN } from "@/lib/players";
+import { isRateLimited } from "@/lib/rate-limit";
 import type { PlayerSearchResponse, PlayerSuggestion } from "@/types/player-card";
 
 export type { PlayerSearchResponse, PlayerSuggestion };
@@ -14,8 +16,7 @@ async function findSuggestions(q: string): Promise<PlayerSuggestion[]> {
   return withDb(async (db) => {
     return await db.$queryRaw(Prisma.sql`
       SELECT p.name, s.value AS nickname
-      FROM fp_player p
-      LEFT JOIN fp_setting s ON s.player = p.id AND s.type = 'NICKNAME'
+      ${PLAYER_NICKNAME_JOIN}
       WHERE p.name LIKE ${"%" + q + "%"} OR s.value LIKE ${"%" + q + "%"}
       ORDER BY (LOWER(p.name) = LOWER(${q}) OR LOWER(s.value) = LOWER(${q})) DESC, p.name ASC
       LIMIT ${MAX_RESULTS}
@@ -24,6 +25,10 @@ async function findSuggestions(q: string): Promise<PlayerSuggestion[]> {
 }
 
 export async function GET(req: Request) {
+  if (isRateLimited(req, "player-card-search", 60, 60_000)) {
+    return NextResponse.json({ error: "Too many requests" }, { status: 429 });
+  }
+
   const { searchParams } = new URL(req.url);
   const q = searchParams.get("q")?.trim() ?? "";
 

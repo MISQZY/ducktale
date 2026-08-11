@@ -3,6 +3,8 @@ import { withDb } from "@/lib/db";
 import { withCache } from "@/lib/query-cache";
 import { resolveResidentRole } from "@/lib/towny";
 import { Prisma } from "@prisma/client";
+import { FALLBACK_NICKNAME, PLAYER_NICKNAME_JOIN } from "@/lib/players";
+import { isRateLimited } from "@/lib/rate-limit";
 import type { Resident, ResidentRole, Town, TownyResponse } from "@/types/towny";
 
 export type { Town, TownyResponse };
@@ -25,8 +27,6 @@ interface ResidentRow {
   ranks: string | null;
 }
 
-const FALLBACK_NICKNAME = "Путник";
-
 /** Looks up FlectonePulse nicknames for a batch of usernames in one query. */
 async function resolveNicknames(usernames: string[]): Promise<Map<string, string | null>> {
   if (usernames.length === 0) return new Map();
@@ -34,8 +34,7 @@ async function resolveNicknames(usernames: string[]): Promise<Map<string, string
   const rows = await withDb(async (db) => {
     return await db.$queryRaw(Prisma.sql`
       SELECT p.name, s.value AS nickname
-      FROM fp_player p
-      LEFT JOIN fp_setting s ON s.player = p.id AND s.type = 'NICKNAME'
+      ${PLAYER_NICKNAME_JOIN}
       WHERE p.name IN (${Prisma.join(usernames)})
     `) as { name: string; nickname: string | null }[];
   });
@@ -123,6 +122,10 @@ async function buildTownsResponse(page: number, pageSize: number, search: string
 }
 
 export async function GET(req: Request) {
+  if (isRateLimited(req, "towns", 30, 60_000)) {
+    return NextResponse.json({ error: "Too many requests" }, { status: 429 });
+  }
+
   const { searchParams } = new URL(req.url);
 
   const page     = Math.max(1, parseInt(searchParams.get("page") ?? "1",  10));

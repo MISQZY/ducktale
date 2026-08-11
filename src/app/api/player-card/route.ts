@@ -4,18 +4,26 @@ import { withCache } from "@/lib/query-cache";
 import { resolveResidentRole } from "@/lib/towny";
 import { Prisma } from "@prisma/client";
 import { SERVERS } from "@/config/servers";
+import { FALLBACK_NICKNAME, PLAYER_NICKNAME_JOIN } from "@/lib/players";
+import { isRateLimited } from "@/lib/rate-limit";
 import type { Gender, GrowthStatus, PlayerCard, PlayerCardResponse } from "@/types/player-card";
 import type { ResidentRole } from "@/types/towny";
 
 export type { PlayerCard, PlayerCardResponse };
 
-const FALLBACK_NICKNAME = "Путник";
-
 // The player card only ever draws Towny/growth/skin data from DuckBurg's
 // databases, so "whitelisted" specifically means whitelisted on DuckBurg —
 // an fp_moderation whitelist entry issued for a different server shouldn't
-// count.
-const DUCKBURG_SERVER_UUID = SERVERS.find((s) => s.id === "duckburg")!.uuid;
+// count. Resolved lazily (not at module scope) so a missing config entry
+// fails the one request that needs it instead of crashing the whole route
+// module at import time.
+function getDuckburgServerUuid(): string {
+  const server = SERVERS.find((s) => s.id === "duckburg");
+  if (!server) {
+    throw new Error('Player card route requires a "duckburg" entry in SERVERS config');
+  }
+  return server.uuid;
+}
 
 // Per-uuid data (growth, skin, town/nation) changes on the order of minutes,
 // not seconds — cache it to avoid re-querying 3 separate databases on every
@@ -29,6 +37,11 @@ const SKIN_TTL_MS   = 10 * 60_000;
 const TOWNY_TTL_MS  = 3 * 60_000;
 const IDENTITY_SEARCH_TTL_MS = 60_000;
 
+// Matches the /api/player-card/search suggestions endpoint's minimum — also
+// keeps single/double-character queries (cheap to spam, each landing its own
+// cache entry) from wearing down the identity-search cache.
+const MIN_SEARCH_LENGTH = 3;
+
 interface IdentityRow {
   id:          number;
   uuid:        string;
@@ -40,13 +53,15 @@ interface IdentityRow {
   whitelisted: number | boolean; // raw MySQL boolean from EXISTS(...) — 0/1, not a JS boolean
 }
 
-const WHITELIST_EXISTS = Prisma.sql`
-  EXISTS (
-    SELECT 1 FROM fp_moderation m
-    WHERE m.player = p.id AND m.type = 'whitelist' AND m.valid = 1
-      AND m.server = ${DUCKBURG_SERVER_UUID}
-  )
-`;
+function whitelistExists() {
+  return Prisma.sql`
+    EXISTS (
+      SELECT 1 FROM fp_moderation m
+      WHERE m.player = p.id AND m.type = 'whitelist' AND m.valid = 1
+        AND m.server = ${getDuckburgServerUuid()}
+    )
+  `;
+}
 
 /** Resolves the target player (by search, or a random player) from every player in the default DB — not just whitelisted ones. */
 async function resolveIdentity(search: string): Promise<IdentityRow | null> {
@@ -62,9 +77,8 @@ async function resolveIdentityUncached(search: string): Promise<IdentityRow | nu
       ? await db.$queryRaw(Prisma.sql`
           SELECT p.id, p.uuid, p.name, s.value AS nickname, t.total AS playtimeMs,
                  p.online AS online, t.last AS lastSeenMs,
-                 ${WHITELIST_EXISTS} AS whitelisted
-          FROM fp_player p
-          LEFT JOIN fp_setting s ON s.player = p.id AND s.type = 'NICKNAME'
+                 ${whitelistExists()} AS whitelisted
+          ${PLAYER_NICKNAME_JOIN}
           LEFT JOIN fp_time t ON t.player = p.id
           WHERE p.name LIKE ${"%" + search + "%"} OR s.value LIKE ${"%" + search + "%"}
           ORDER BY (LOWER(p.name) = LOWER(${search}) OR LOWER(s.value) = LOWER(${search})) DESC, p.name ASC
@@ -73,9 +87,8 @@ async function resolveIdentityUncached(search: string): Promise<IdentityRow | nu
       : await db.$queryRaw(Prisma.sql`
           SELECT p.id, p.uuid, p.name, s.value AS nickname, t.total AS playtimeMs,
                  p.online AS online, t.last AS lastSeenMs,
-                 ${WHITELIST_EXISTS} AS whitelisted
-          FROM fp_player p
-          LEFT JOIN fp_setting s ON s.player = p.id AND s.type = 'NICKNAME'
+                 ${whitelistExists()} AS whitelisted
+          ${PLAYER_NICKNAME_JOIN}
           LEFT JOIN fp_time t ON t.player = p.id
           ORDER BY RAND()
           LIMIT 1
@@ -213,8 +226,16 @@ async function resolveTownyDataUncached(uuid: string): Promise<{ city: string | 
 }
 
 export async function GET(req: Request) {
+  if (isRateLimited(req, "player-card", 30, 60_000)) {
+    return NextResponse.json({ error: "Too many requests" }, { status: 429 });
+  }
+
   const { searchParams } = new URL(req.url);
   const search = searchParams.get("search")?.trim() ?? "";
+
+  if (search && search.length < MIN_SEARCH_LENGTH) {
+    return NextResponse.json<PlayerCardResponse>({ player: null });
+  }
 
   try {
     const identity = await resolveIdentity(search);
