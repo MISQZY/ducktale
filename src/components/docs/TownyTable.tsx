@@ -17,11 +17,10 @@ import {
   TableSearch,
   TablePagination,
   TableSkeleton,
-  HighlightMatch,
 } from "@/components/docs/paged-table";
 import { usePagedTable } from "@/hooks/usePagedTable";
-import { resolveMinecraftColor } from "@/lib/minecraft-colors";
 import { RESIDENT_ROLE_COLOR } from "@/lib/towny";
+import { TownNameLabel, TownNationBadge } from "@/components/towny/TownCells";
 import type { Resident, ResidentRole, Town, TownyResponse } from "@/types/towny";
 
 // ─── Re-export types so consumers import from one place ────────────────────────
@@ -147,7 +146,6 @@ export function TownyTable({
           {data && data.items.map((town) => {
             const isOpen = expanded.has(town.name);
             const hasResidents = town.residents.length > 0;
-            const nationColor = resolveMinecraftColor(town.nationTag);
 
             return (
               <Fragment key={town.name}>
@@ -178,33 +176,12 @@ export function TownyTable({
                       ) : (
                         <span className="w-3.25 shrink-0" />
                       )}
-                      <span
-                        className="w-2.5 h-2.5 rounded-full border border-black/20 shrink-0"
-                        style={{ backgroundColor: resolveMinecraftColor(town.tag) }}
-                        aria-hidden="true"
-                      />
-                      <HighlightMatch text={town.name} query={query} />
+                      <TownNameLabel tag={town.tag} name={town.name} query={query} />
                     </button>
                   </DocsTableCell>
 
                   <DocsTableCell withRightBorder>
-                    {town.nation ? (
-                      <DuckBadge
-                        variant="outline"
-                        className="text-xs"
-                        style={{
-                          color: nationColor,
-                          borderColor: nationColor,
-                          backgroundColor: `${nationColor}1A`,
-                        }}
-                      >
-                        {town.nation}
-                      </DuckBadge>
-                    ) : (
-                      <span className={cn("text-xs italic", DOCS_TABLE_THEME.textFaint)}>
-                        Независимый
-                      </span>
-                    )}
+                    <TownNationBadge nation={town.nation} nationTag={town.nationTag} independentLabel="Независимый" />
                   </DocsTableCell>
 
                   <DocsTableCell>

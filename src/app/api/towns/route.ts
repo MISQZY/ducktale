@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { withDb } from "@/lib/db";
 import { withCache } from "@/lib/query-cache";
-import { resolveResidentRole } from "@/lib/towny";
+import { resolveResidentRole, townBaseQuery } from "@/lib/towny";
 import { Prisma } from "@prisma/client";
 import { FALLBACK_NICKNAME, PLAYER_NICKNAME_JOIN } from "@/lib/players";
 import { isRateLimited } from "@/lib/rate-limit";
@@ -54,19 +54,12 @@ async function buildTownsResponse(page: number, pageSize: number, search: string
 
   const { townRows, residentRows } = await withDb("duckburg_towns", async (db) => {
     const townRows = await db.$queryRaw(Prisma.sql`
-      SELECT
-        t.name AS name,
-        t.tag AS tag,
-        t.uuid AS uuid,
-        t.mayor AS mayorUuid,
-        n.name AS nation,
-        n.tag AS nationTag,
-        (SELECT COUNT(*) FROM TOWNY_TOWNBLOCKS tb WHERE tb.town = t.uuid) AS size,
-        COUNT(*) OVER() AS total
-      FROM TOWNY_TOWNS t
-      LEFT JOIN TOWNY_NATIONS n ON n.uuid = t.nation
-      ${search ? Prisma.sql`WHERE t.name LIKE ${"%" + search + "%"}` : Prisma.empty}
-      ORDER BY size DESC
+      SELECT sub.*, COUNT(*) OVER() AS total
+      FROM (
+        ${townBaseQuery(Prisma.sql`, t.uuid AS uuid, t.mayor AS mayorUuid`)}
+      ) sub
+      ${search ? Prisma.sql`WHERE sub.name LIKE ${"%" + search + "%"}` : Prisma.empty}
+      ORDER BY sub.size DESC
       LIMIT ${pageSize} OFFSET ${offset}
     `) as TownRow[];
 
