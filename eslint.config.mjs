@@ -11,6 +11,10 @@ const eslintConfig = defineConfig([
     'out/**',
     'build/**',
     'next-env.d.ts',
+    // Plain Node CLI tooling, not app source — CommonJS require() is
+    // intentional here (package.json has no "type": "module"), not a
+    // lint violation.
+    'scripts/**',
   ]),
 ])
 
