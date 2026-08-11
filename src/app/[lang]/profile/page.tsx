@@ -6,7 +6,7 @@ import Navbar from "@/components/Navbar";
 import DuckyPet from "@/components/DuckyPet";
 import { CtaButton } from "@/components/common/CtaButton";
 import { StatusBadge } from "@/components/common/StatusBadge";
-import { SignOutButton } from "@/components/account/SignOutButton";
+import { ProfileQuickActions } from "@/components/account/ProfileQuickActions";
 import { ProfilePlayerCard } from "@/components/account/ProfilePlayerCard";
 
 /** The signed-in user's own profile — /profile with no username. A username segment (/profile/[username]) is the public view of any user instead, see that route. */
@@ -44,11 +44,22 @@ export default async function ProfilePage({
 
         <div className="relative z-10 max-w-2xl mx-auto">
           <h1
-            className="text-3xl text-primary/90 mb-8 leading-tight text-center"
+            className="text-3xl text-primary/90 mb-4 leading-tight text-center"
             style={{ fontFamily: "var(--font-body)" }}
           >
             {t("title")}
           </h1>
+
+          <div className="mb-8">
+            <ProfileQuickActions
+              lang={lang}
+              publicProfileHref={`/profile/${encodeURIComponent(session.user.name ?? "")}`}
+              isAdmin={user?.isAdmin ?? false}
+              viewProfileLabel={t("viewProfile")}
+              adminPanelLabel={t("adminPanel")}
+              signOutLabel={t("signOut")}
+            />
+          </div>
 
           {link?.status === "CONFIRMED" && link.minecraftName ? (
             <div className="mb-6">
@@ -87,18 +98,6 @@ export default async function ProfilePage({
             <CtaButton href={`/${lang}/account/tickets`} variant="outline">
               {t("myTickets")}
             </CtaButton>
-          </div>
-
-          <div className="flex flex-wrap items-center gap-3">
-            <CtaButton href={`/${lang}/profile/${encodeURIComponent(session.user.name ?? "")}`} variant="outline">
-              {t("viewProfile")}
-            </CtaButton>
-            {user?.isAdmin && (
-              <CtaButton href={`/${lang}/admin`} variant="outline">
-                {t("adminPanel")}
-              </CtaButton>
-            )}
-            <SignOutButton label={t("signOut")} lang={lang} />
           </div>
         </div>
       </main>
