@@ -20,6 +20,7 @@ export default async function ProfilePage({
   if (!session?.user?.id) redirect(`/${lang}/account/login`);
 
   const t = await getTranslations("Account.dashboard");
+  const tp = await getTranslations("Profile");
   const [link, user] = await Promise.all([
     siteDb.accountLink.findUnique({
       where: { userId: session.user.id },
@@ -27,7 +28,7 @@ export default async function ProfilePage({
     }),
     siteDb.user.findUnique({
       where: { id: session.user.id },
-      select: { isAdmin: true },
+      select: { isAdmin: true, createdAt: true },
     }),
   ]);
 
@@ -66,7 +67,15 @@ export default async function ProfilePage({
               <h2 className="text-xs uppercase tracking-widest text-foreground/50 mb-3 text-center">
                 {t("playerCardTitle")}
               </h2>
-              <ProfilePlayerCard minecraftName={link.minecraftName} manage={{ lang }} />
+              <ProfilePlayerCard
+                minecraftName={link.minecraftName}
+                manage={{ lang }}
+                registeredLabel={
+                  user?.createdAt
+                    ? tp("memberSince", { date: user.createdAt.toLocaleDateString(lang === "ru" ? "ru-RU" : "en-US") })
+                    : undefined
+                }
+              />
             </div>
           ) : (
             <div className="corner-ornament rounded-2xl border border-primary/20 bg-card/50 p-6 mb-6 relative overflow-hidden">
