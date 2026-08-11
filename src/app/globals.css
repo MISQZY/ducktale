@@ -350,6 +350,14 @@ body {
   animation: borderGlow 4s ease-in-out infinite;
 }
 
+@keyframes borderGlowGreen {
+  0%, 100% { border-color: rgba(16,185,129,0.3); }
+  50%       { border-color: rgba(52,211,153,0.95); }
+}
+.animate-border-glow-green {
+  animation: borderGlowGreen 2s ease-in-out infinite;
+}
+
 @keyframes fadeUp {
   from { opacity: 0; transform: translateY(20px); }
   to   { opacity: 1; transform: translateY(0); }

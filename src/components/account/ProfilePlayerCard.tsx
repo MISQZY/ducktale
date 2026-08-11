@@ -53,8 +53,9 @@ function ServerStatusCard({ status, t }: { status: PlayerServerStatus; t: Player
   return (
     <div
       className={cn(
-        "shrink-0 snap-start w-36 rounded-xl border p-4 bg-linear-to-br flex flex-col items-center text-center gap-2.5",
-        config.color, config.border
+        "shrink-0 snap-start w-44 rounded-xl border p-4 bg-linear-to-br flex flex-col items-center text-center gap-2.5",
+        config.color, config.border,
+        status.online && "animate-border-glow-green"
       )}
     >
       <div className="w-10 h-10 rounded-lg bg-muted border border-border/60 flex items-center justify-center text-lg shrink-0">
@@ -67,16 +68,6 @@ function ServerStatusCard({ status, t }: { status: PlayerServerStatus; t: Player
       >
         {config.name}
       </span>
-
-      {status.online && (
-        <span className="flex items-center gap-1.5 text-[11px] text-emerald-400">
-          <span className="relative flex h-2 w-2">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
-            <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
-          </span>
-          {t("online")}
-        </span>
-      )}
 
       <div className={cn(
         "inline-flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-full",
