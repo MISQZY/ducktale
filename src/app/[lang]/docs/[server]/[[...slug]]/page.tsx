@@ -35,7 +35,10 @@ export default async function Page(props: {
   const page = source.getPage(slug, lang);
   if (!page) notFound();
 
-  const filePath = `src/content/${server}/${page.path}`;
+  // fumadocs strips the locale segment from `page.path` in its storage keys
+  // (both `ru` and `en` pages share the same path there), so it has to be
+  // added back to get the real on-disk / on-GitHub path.
+  const filePath = `src/content/${server}/${lang}/${page.path}`;
 
   const MDX = page.data.body;
   const filteredToc = page.data.toc.filter((item) => item.depth <= 3);

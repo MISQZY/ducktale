@@ -2,9 +2,9 @@ import { defineI18n } from "fumadocs-core/i18n";
 
 /**
  * Content-side i18n (drives `source.pageTree[lang]`, `source.getPage(slug, lang)`
- * and generated doc URLs). Only `ru` is active for now — content lives at
- * `src/content/<server>/**` with no locale prefix, which fumadocs treats as
- * the default language automatically.
+ * and generated doc URLs). Content lives at `src/content/<server>/<locale>/**`
+ * for every language, including the default `ru` — mirrored 1:1 with `en`
+ * (same relative paths, including `meta.json` sidebar files).
  *
  * To add a language later: drop its MDX files under
  * `src/content/<server>/<locale>/**`, push the code into `languages`, and
