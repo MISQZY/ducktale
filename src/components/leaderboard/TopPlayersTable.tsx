@@ -2,6 +2,7 @@
 
 import { useCallback } from "react";
 import { useTranslations } from "next-intl";
+import { Link } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
 import { Trophy, Users } from "lucide-react";
 import {
@@ -131,7 +132,17 @@ export function TopPlayersTable({ pageSize = 10, className }: TopPlayersTablePro
 
                 <DocsTableCell withRightBorder>
                   <div className="flex items-center gap-2">
-                    <HighlightMatch text={player.name} query={query} />
+                    {player.profileUsername ? (
+                      <Link
+                        href={`/profile/${encodeURIComponent(player.profileUsername)}`}
+                        target="_blank"
+                        className="hover:underline underline-offset-4 transition-colors"
+                      >
+                        <HighlightMatch text={player.name} query={query} />
+                      </Link>
+                    ) : (
+                      <HighlightMatch text={player.name} query={query} />
+                    )}
                     {player.online && (
                       <span className="relative flex h-1.5 w-1.5 shrink-0" title={tCard("online")}>
                         <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />

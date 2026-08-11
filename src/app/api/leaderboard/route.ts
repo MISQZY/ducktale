@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { withDb } from "@/lib/db";
+import { siteDb } from "@/lib/site-db";
 import { withCache } from "@/lib/query-cache";
 import { Prisma } from "@prisma/client";
 import { isRateLimited } from "@/lib/rate-limit";
@@ -50,6 +51,16 @@ async function buildLeaderboardResponse(
 
   const total = rows.length > 0 ? Number(rows[0].total) : 0;
 
+  // Only this page's rows, not the whole leaderboard — a plain indexed
+  // lookup by minecraftUuid, cheap regardless of page size (capped at 100).
+  const links = rows.length > 0
+    ? await siteDb.accountLink.findMany({
+        where: { minecraftUuid: { in: rows.map((r) => r.uuid) }, status: "CONFIRMED" },
+        select: { minecraftUuid: true, user: { select: { nickname: true } } },
+      })
+    : [];
+  const profileByUuid = new Map(links.map((l) => [l.minecraftUuid, l.user.nickname]));
+
   return {
     players: rows.map((r) => ({
       uuid:       r.uuid,
@@ -57,6 +68,7 @@ async function buildLeaderboardResponse(
       nickname:   r.nickname,
       playtimeMs: Number(r.playtimeMs),
       online:     Boolean(r.online),
+      profileUsername: profileByUuid.get(r.uuid) ?? null,
     })),
     total,
     page,
