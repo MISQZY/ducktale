@@ -111,13 +111,15 @@
     "generalTitle": "General info",
     "serversTitle": "Servers",
     "whitelistedYes": "Whitelisted",
-    "whitelistedNo": "Not whitelisted"
+    "whitelistedNo": "Not whitelisted",
+    "rankTooltip": "Leaderboard rank: #{rank}"
   },
   "Nav": {
     "about": "About",
     "servers": "Servers",
     "infrastructure": "Infrastructure",
     "community": "Community",
+    "leaderboard": "Leaderboard",
     "account": "Account",
     "home": "DuckTale — home",
     "menuTitle": "Navigation",
@@ -499,5 +501,19 @@
     "sending": "Sending...",
     "adminSearchPlaceholder": "Search by nickname or subject...",
     "messageCount": "{count, plural, one {# message} other {# messages}}"
+  },
+  "Leaderboard": {
+    "pageTitle": "Leaderboard",
+    "pageDescription": "DuckTale network players, sorted by total playtime.",
+    "title": "Top playtime",
+    "searchPlaceholder": "Search by nickname…",
+    "columns": {
+      "rank": "#",
+      "player": "Player",
+      "playtime": "Playtime"
+    },
+    "empty": "No data yet",
+    "notFound": "Player \u201c{query}\u201d not found",
+    "loadError": "Couldn't load the leaderboard: {message}"
   }
 }

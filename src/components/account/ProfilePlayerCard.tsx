@@ -10,6 +10,7 @@ import { SkinFace } from "@/components/common/SkinFace";
 import { formatDurationMs, formatLastSeen } from "@/lib/player-card-format";
 import { RESIDENT_ROLE_COLOR } from "@/lib/towny";
 import { NETWORK_SERVERS } from "@/config/servers";
+import { RankBadge } from "@/components/leaderboard/RankBadge";
 import { cn } from "@/lib/utils";
 import type { GrowthStatus, PlayerCard as PlayerCardData, PlayerCardResponse, PlayerServerStatus } from "@/types/player-card";
 import type { ResidentRole } from "@/types/towny";
@@ -198,7 +199,12 @@ export function ProfilePlayerCard({ minecraftName, className }: ProfilePlayerCar
               <LastLoginValue online={player.online} lastSeenMs={player.lastSeenMs} locale={locale} t={t} />
             </GeneralStat>
             <GeneralStat icon={Clock} label={t("labels.playtime")}>
-              {formatDurationMs(player.playtimeMs, t)}
+              <span className="inline-flex items-center gap-1.5">
+                {formatDurationMs(player.playtimeMs, t)}
+                {player.rank !== null && (
+                  <RankBadge rank={player.rank} size={13} title={t("rankTooltip", { rank: player.rank })} />
+                )}
+              </span>
             </GeneralStat>
             <GeneralStat icon={VenusAndMars} label={t("labels.gender")}>
               {player.gender ? t(`gender.${player.gender}`) : t("noData")}

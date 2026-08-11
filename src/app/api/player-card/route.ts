@@ -106,10 +106,25 @@ interface IdentityRow {
   lastSeenMs:       bigint | null;
   whitelisted:      number | boolean; // raw MySQL boolean from EXISTS(...) — 0/1, not a JS boolean
   currentServerId:  string | null; // fp_setting type='SERVER' — which server they're on, only meaningful while `online` is true
+  rank:             bigint; // 1-based position among all fp_time rows ordered by total DESC — see leaderboardRankSql()
   // Plus one `whitelisted_<serverId>` column per SERVERS entry (see
   // perServerWhitelistColumnsSql) — read via readPerServerWhitelist().
   [key: `whitelisted_${string}`]: number | boolean;
 }
+
+/**
+ * A player with no fp_time row at all (COALESCE to 0) ranks behind everyone
+ * who has one, same as the leaderboard's INNER JOIN excludes them entirely —
+ * this just needs *a* rank to compare against, the exact value only matters
+ * when it's low enough to display (see MAX_DISPLAYED_RANK).
+ */
+function leaderboardRankSql() {
+  return Prisma.sql`
+    (SELECT COUNT(*) + 1 FROM fp_time t2 WHERE t2.total > COALESCE(t.total, 0)) AS \`rank\`
+  `;
+}
+
+const MAX_DISPLAYED_RANK = 10;
 
 function whitelistExists() {
   return Prisma.sql`
@@ -136,6 +151,7 @@ async function resolveIdentityUncached(search: string): Promise<IdentityRow | nu
           SELECT p.id, p.uuid, p.name, s.value AS nickname, t.total AS playtimeMs,
                  p.online AS online, t.last AS lastSeenMs, srv.value AS currentServerId,
                  ${whitelistExists()} AS whitelisted,
+                 ${leaderboardRankSql()},
                  ${perServerWhitelistColumnsSql()}
           ${PLAYER_NICKNAME_JOIN}
           LEFT JOIN fp_time t ON t.player = p.id
@@ -148,6 +164,7 @@ async function resolveIdentityUncached(search: string): Promise<IdentityRow | nu
           SELECT p.id, p.uuid, p.name, s.value AS nickname, t.total AS playtimeMs,
                  p.online AS online, t.last AS lastSeenMs, srv.value AS currentServerId,
                  ${whitelistExists()} AS whitelisted,
+                 ${leaderboardRankSql()},
                  ${perServerWhitelistColumnsSql()}
           ${PLAYER_NICKNAME_JOIN}
           LEFT JOIN fp_time t ON t.player = p.id
@@ -322,6 +339,7 @@ export async function GET(req: Request) {
       nickname:   identity.nickname ?? FALLBACK_NICKNAME,
       skinUrl,
       playtimeMs: Number(identity.playtimeMs ?? 0),
+      rank:       Number(identity.rank) <= MAX_DISPLAYED_RANK ? Number(identity.rank) : null,
       // $queryRaw returns MySQL's EXISTS(...)/boolean result as a plain 0/1
       // number, not a JS boolean — coerce explicitly (see the growth-status
       // bug this exact gotcha caused earlier).
