@@ -9,6 +9,8 @@ import {
 import { DuckCard, DuckCardContent } from "@/components/ui/duck/card";
 import { TableSearch } from "@/components/docs/paged-table";
 import { RESIDENT_ROLE_COLOR } from "@/lib/towny";
+import { SkinFace } from "@/components/common/SkinFace";
+import { formatDurationMs, formatLastSeen } from "@/lib/player-card-format";
 import type {
   GrowthStatus, PlayerCard as PlayerCardData, PlayerCardResponse,
   PlayerSearchResponse, PlayerSuggestion,
@@ -30,72 +32,6 @@ function getStoredPlayer(): string {
 
 function setStoredPlayer(name: string) {
   try { localStorage.setItem(LAST_PLAYER_STORAGE_KEY, name); } catch { /* */ }
-}
-
-type PlayerCardT = ReturnType<typeof useTranslations>;
-
-function dateLocale(locale: string): string {
-  return locale === "ru" ? "ru-RU" : "en-US";
-}
-
-function formatDurationMs(ms: number, t: PlayerCardT): string {
-  const totalMinutes = Math.floor(ms / 60_000);
-  const days = Math.floor(totalMinutes / 1440);
-  const hours = Math.floor((totalMinutes % 1440) / 60);
-  const minutes = totalMinutes % 60;
-  if (days > 0) return t("unit.daysHours", { days, hours });
-  if (hours > 0) return t("unit.hoursMinutes", { hours, minutes });
-  return t("unit.minutes", { minutes });
-}
-
-function formatLastSeen(ms: number, locale: string): string {
-  return new Date(ms).toLocaleString(dateLocale(locale), {
-    day: "numeric",
-    month: "short",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-}
-
-// ─── Skin face (CSS-cropped from the 64×64 Minecraft skin texture) ────────────
-
-function SkinFace({ skinUrl, size = 88 }: { skinUrl: string | null; size?: number }) {
-  if (!skinUrl) {
-    return (
-      <div
-        className="flex items-center justify-center shrink-0 rounded-xl border border-primary/20 bg-muted"
-        style={{ width: size, height: size }}
-      >
-        <UserRound size={size * 0.4} className="text-foreground/25" />
-      </div>
-    );
-  }
-
-  // Source texture is 64×64. Scaling the whole 64px texture up by (size/8)
-  // makes one source pixel = size/8 display px, so background-size is 8×size
-  // and a region's offset is -(sourceX * size/8), -(sourceY * size/8).
-  // Head:  8:08–15:15 inclusive → offset (-size, -size).
-  // Mask: 40:08–47:15 inclusive → offset (-5×size, -size), rendered on top.
-  const bgSize = `${size * 8}px ${size * 8}px`;
-  const headPos = `${-size}px ${-size}px`;
-  const maskPos = `${-5 * size}px ${-size}px`;
-
-  return (
-    <div
-      className="relative shrink-0 overflow-hidden rounded-xl border border-primary/20 bg-muted"
-      style={{ width: size, height: size, imageRendering: "pixelated" }}
-    >
-      <div
-        className="absolute inset-0"
-        style={{ backgroundImage: `url(${skinUrl})`, backgroundSize: bgSize, backgroundPosition: headPos }}
-      />
-      <div
-        className="absolute inset-0"
-        style={{ backgroundImage: `url(${skinUrl})`, backgroundSize: bgSize, backgroundPosition: maskPos }}
-      />
-    </div>
-  );
 }
 
 // ─── Info rows ────────────────────────────────────────────────────────────────

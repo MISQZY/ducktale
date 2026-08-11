@@ -1,0 +1,130 @@
+// Site-owned data: user accounts and Minecraft-account linking. Lives in its
+// own database (DATABASE_URL_SITE) — separate from every plugin database
+// this app otherwise only reads from via src/lib/db.ts's withDb(). Unlike
+// those, this schema is the source of truth (migrated with `prisma migrate
+// dev --schema=src/prisma/site/schema.prisma`), so it gets its own generated
+// client instead of sharing the multi-datasource client in src/prisma/schema.prisma.
+//
+// This is a TEMPLATE, not the schema Prisma reads directly — schema.prisma
+// itself is generated from this file by scripts/render-site-schema.js (run
+// via `npm run site-db:render`, or automatically before every site-db:* /
+// postinstall command), substituting the prefix placeholder below with
+// SITE_DB_TABLE_PREFIX from .env (e.g. "site_"). Prisma's @@map has no way
+// to reference an env var directly, so this templating step exists purely
+// to make the table prefix configurable without hand-editing every @@map.
+// Edit THIS file, not the generated schema.prisma.
+
+generator client {
+  provider = "prisma-client-js"
+  // Generated into node_modules/.prisma (matching the default client's own
+  // location) rather than a project folder — Next.js's build tracer treats
+  // that location leniently; a project-local path made it trace and bundle
+  // the entire repo into the standalone server output (see git history if
+  // this ever needs revisiting).
+  output   = "../../../node_modules/.prisma/site-client"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL_SITE")
+}
+
+model User {
+  id             String          @id @default(cuid())
+  nickname       String          @unique @db.VarChar(32)
+  passwordHash   String          @db.VarChar(255)
+  isAdmin        Boolean         @default(false)
+  createdAt      DateTime        @default(now())
+  accountLink    AccountLink?
+  tickets        Ticket[]
+  ticketMessages TicketMessage[]
+
+  @@map("{{PREFIX}}user")
+}
+
+enum LinkStatus {
+  PENDING
+  CONFIRMED
+  EXPIRED
+}
+
+/// One row per site user's Minecraft-account link. A fresh /link request
+/// reuses this row (reset back to PENDING with a new code) rather than
+/// creating a new one, since a site user only ever has one linked account.
+/// Table/column contract is shared with the Minecraft-side plugin — see
+/// MINECRAFT_ACCOUNT_LINK.md if you change this model.
+model AccountLink {
+  id            String     @id @default(cuid())
+  userId        String     @unique
+  user          User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  code          String     @unique @db.VarChar(16)
+  // Both null until confirmed — the site never asks for a Minecraft
+  // nickname; the plugin captures the player's real name + UUID at the
+  // moment they run /link <code> in-game.
+  minecraftName String?    @db.VarChar(16)
+  minecraftUuid String?    @unique @db.VarChar(36)
+  status        LinkStatus @default(PENDING)
+  createdAt     DateTime   @default(now())
+  expiresAt     DateTime
+  confirmedAt   DateTime?
+
+  @@index([status])
+  @@map("{{PREFIX}}account_link")
+}
+
+enum TicketStatus {
+  OPEN
+  ANSWERED
+  CLOSED
+}
+
+/// A support ticket opened by a site user from their profile. Any admin can
+/// see and reply to any ticket; the owning user only sees/replies to their
+/// own (see canViewTicket() in src/lib/tickets.ts). `status` tracks whose
+/// turn it is to respond rather than a resolution stage — sendTicketMessage()
+/// flips it to ANSWERED on an admin reply and back to OPEN on a user reply
+/// (which also reopens a CLOSED ticket), while CLOSED only ever comes from
+/// an explicit admin action.
+model Ticket {
+  id        String          @id @default(cuid())
+  userId    String
+  user      User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  subject   String          @db.VarChar(120)
+  status    TicketStatus    @default(OPEN)
+  createdAt DateTime        @default(now())
+  updatedAt DateTime        @updatedAt
+  messages  TicketMessage[]
+
+  @@index([userId])
+  @@index([status, updatedAt])
+  @@map("{{PREFIX}}ticket")
+}
+
+model TicketMessage {
+  id           String   @id @default(cuid())
+  ticketId     String
+  ticket       Ticket   @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  authorId     String
+  author       User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  isAdminReply Boolean            @default(false)
+  body         String             @db.Text
+  createdAt    DateTime           @default(now())
+  attachments  TicketAttachment[]
+
+  @@index([ticketId])
+  @@map("{{PREFIX}}ticket_message")
+}
+
+model TicketAttachment {
+  id              String        @id @default(cuid())
+  ticketMessageId String
+  ticketMessage   TicketMessage @relation(fields: [ticketMessageId], references: [id], onDelete: Cascade)
+  filename        String        @db.VarChar(255)
+  size            Int
+  mimeType        String        @db.VarChar(100)
+  path            String        @db.VarChar(512)
+  createdAt       DateTime      @default(now())
+
+  @@index([ticketMessageId])
+  @@map("{{PREFIX}}ticket_attachment")
+}

@@ -1,5 +1,6 @@
 import { useTranslations } from "next-intl";
 import Logo from "@/components/ui/Logo";
+import { Link } from "@/i18n/navigation";
 import { SITE } from "@/config/site";
 
 export default function Footer() {
@@ -23,6 +24,13 @@ export default function Footer() {
         <p className="text-foreground/20 text-xs tracking-wide leading-relaxed">
           {t("existsSince", { year: SITE.foundedYear })}&nbsp;{t("legalNotice")}
         </p>
+
+        <Link
+          href="/legal"
+          className="inline-block mt-3 text-foreground/25 hover:text-primary/60 text-xs tracking-wide underline decoration-dotted underline-offset-4 transition-colors"
+        >
+          {t("legalLink")}
+        </Link>
       </div>
     </footer>
   );

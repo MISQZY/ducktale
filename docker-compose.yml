@@ -11,6 +11,8 @@ services:
       - NODE_ENV=production
       # Prisma использует эту переменную в рантайме для подключения к БД
       - DATABASE_URL=${DATABASE_URL}
+    volumes:
+      - ./uploads:/app/uploads
     expose:
       - "3000"
     networks:

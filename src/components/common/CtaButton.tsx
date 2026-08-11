@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { cn } from "@/lib/utils";
 import type { ReactNode } from "react";
+import { ctaButtonClasses, CtaShine, CTA_FONT_STYLE, type CtaVariant } from "./cta-button-styles";
 
 interface CtaButtonProps {
   /** Pass an already locale-prefixed path (e.g. `/${locale}#servers`) — this
@@ -11,15 +11,10 @@ interface CtaButtonProps {
    * next-intl's Link to read the current locale from. */
   href: string;
   children: ReactNode;
-  variant?: "primary" | "outline";
+  variant?: CtaVariant;
   className?: string;
   icon?: ReactNode;
 }
-
-const SHARED_FONT_STYLE = {
-  fontFamily: "var(--font-body)",
-  fontSize: "0.85rem",
-} as const;
 
 export function CtaButton({
   href,
@@ -43,25 +38,10 @@ export function CtaButton({
     <Link
       href={href}
       onClick={handleClick}
-      className={cn(
-        "relative flex items-center gap-2 px-8 py-3.5 rounded-xl font-semibold tracking-wide transition-all duration-200 active:scale-95 overflow-hidden group",
-        variant === "primary" && [
-          "bg-linear-to-b from-gold-400 to-gold-600 text-neutral-950",
-          "hover:from-gold-300 hover:to-gold-500",
-          "shadow-lg shadow-gold-900/30 hover:shadow-xl hover:shadow-gold-800/40",
-          "border border-gold-300/20",
-        ],
-        variant === "outline" && [
-          "border border-primary/30 hover:border-primary/55 text-primary/80 hover:text-primary",
-          "hover:bg-primary/5",
-        ],
-        className
-      )}
-      style={SHARED_FONT_STYLE}
+      className={ctaButtonClasses(variant, className)}
+      style={CTA_FONT_STYLE}
     >
-      {variant === "primary" && (
-        <span className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-700 bg-linear-to-r from-transparent via-white/15 to-transparent skew-x-12" />
-      )}
+      <CtaShine variant={variant} />
       {icon}
       {children}
     </Link>

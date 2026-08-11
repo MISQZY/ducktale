@@ -41,10 +41,17 @@ Caddyfile
 
 # Prisma
 node_modules/.prisma/
+# Generated from schema.prisma.template by scripts/render-site-schema.js —
+# edit the template, not this.
+src/prisma/site/schema.prisma
 
 # Documentation
 /docs/
 
+# User-uploaded ticket attachments — real user data, never belongs in git.
+/uploads/
+
 # AI
 AGENTS.md
 CLAUDE.md
+MINECRAFT_ACCOUNT_LINK.md
