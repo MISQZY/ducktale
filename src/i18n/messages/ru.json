@@ -111,13 +111,15 @@
     "generalTitle": "Общая информация",
     "serversTitle": "Серверы",
     "whitelistedYes": "В вайтлисте",
-    "whitelistedNo": "Не в вайтлисте"
+    "whitelistedNo": "Не в вайтлисте",
+    "rankTooltip": "Место в топе игроков: #{rank}"
   },
   "Nav": {
     "about": "О проекте",
     "servers": "Серверы",
     "infrastructure": "Инфраструктура",
     "community": "Сообщество",
+    "leaderboard": "Топ игроков",
     "account": "Кабинет",
     "home": "DuckTale — на главную",
     "menuTitle": "Навигация",
@@ -498,5 +500,19 @@
     "sending": "Отправка...",
     "adminSearchPlaceholder": "Поиск по нику или теме...",
     "messageCount": "{count, plural, one {# сообщение} few {# сообщения} many {# сообщений} other {# сообщений}}"
+  },
+  "Leaderboard": {
+    "pageTitle": "Топ игроков",
+    "pageDescription": "Игроки сети DuckTale, отсортированные по суммарному игровому времени.",
+    "title": "Топ по игровому времени",
+    "searchPlaceholder": "Поиск по нику…",
+    "columns": {
+      "rank": "№",
+      "player": "Игрок",
+      "playtime": "Игровое время"
+    },
+    "empty": "Пока нет данных",
+    "notFound": "Игрок «{query}» не найден",
+    "loadError": "Не удалось загрузить рейтинг: {message}"
   }
 }

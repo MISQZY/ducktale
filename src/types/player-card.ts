@@ -23,6 +23,7 @@ export interface PlayerCard {
   nickname:     string;         // FlectonePulse nickname, falls back to "Путник"
   skinUrl:      string | null;  // Mojang texture URL resolved from SkinRestorer, if any
   playtimeMs:   number;         // fp_time.total — network-wide, not per-server (FlectonePulse tracks one playtime total across the whole network)
+  rank:         number | null;  // 1-based position on the network-wide playtime leaderboard, null unless they're in the top 10
   online:       boolean;        // fp_player.online
   lastSeenMs:   number;         // fp_time.last — unix ms of last login/logout
   gender:       Gender;
