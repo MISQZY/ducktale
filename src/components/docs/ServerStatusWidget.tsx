@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { cn } from "@/lib/utils";
 import {
   DuckCard,
@@ -32,6 +33,7 @@ interface ServerStatusWidgetProps {
  * ```
  */
 export function ServerStatusWidget({ host, serverName, className }: ServerStatusWidgetProps) {
+  const t = useTranslations("Servers.status");
   const result = useServerStatus(host);
 
   if (result.state === "loading") {
@@ -52,7 +54,7 @@ export function ServerStatusWidget({ host, serverName, className }: ServerStatus
       <DuckCard className={cn("border-red-900/20 bg-duck-stone/30", className)}>
         <DuckCardContent className="py-3">
           <p className="text-xs text-red-600/70 dark:text-red-400/70">
-            Не удалось получить статус сервера. Попробуйте обновить страницу.
+            {t("unavailableHint")}
           </p>
         </DuckCardContent>
       </DuckCard>
@@ -85,7 +87,7 @@ export function ServerStatusWidget({ host, serverName, className }: ServerStatus
                 status.online ? "bg-green-400 animate-pulse" : "bg-red-400"
               )}
             />
-            {status.online ? "Онлайн" : "Офлайн"}
+            {status.online ? t("online") : t("offline")}
           </DuckBadge>
         </div>
       </DuckCardHeader>
@@ -97,7 +99,7 @@ export function ServerStatusWidget({ host, serverName, className }: ServerStatus
               {status.players && (
                 <span className="flex items-center gap-1.5">
                   <Users size={11} />
-                  {status.players.online}/{status.players.max} игроков
+                  {t("players", { count: `${status.players.online}/${status.players.max}` })}
                 </span>
               )}
               {status.version && (
@@ -110,7 +112,7 @@ export function ServerStatusWidget({ host, serverName, className }: ServerStatus
                 <DuckSeparator className="bg-primary/20" />
                 <Collapsible>
                   <CollapsibleTrigger className="flex items-center gap-1 text-xs text-foreground/40 hover:text-foreground/60 transition-colors group">
-                    Список игроков
+                    {t("playerList")}
                     <ChevronDown
                       size={12}
                       className="transition-transform group-data-[state=open]:rotate-180"
@@ -135,7 +137,7 @@ export function ServerStatusWidget({ host, serverName, className }: ServerStatus
           </>
         ) : (
           <p className="text-xs text-foreground/30">
-            Сервер временно недоступен. Попробуйте позже.
+            {t("offlineHint")}
           </p>
         )}
       </DuckCardContent>

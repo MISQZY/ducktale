@@ -12,6 +12,21 @@
   "Docs": {
     "lastModifiedUnknown": "Last updated date unknown"
   },
+  "CommandCard": {
+    "permissions": {
+      "all": "All players",
+      "old": "Veteran",
+      "supporter": "Supporter",
+      "admin": "Admin"
+    },
+    "requiredArgsTitle": "Required parameters",
+    "optionalArgsTitle": "Optional parameters",
+    "required": "Required",
+    "optional": "Optional",
+    "aliases": "Aliases:",
+    "copyManually": "Copy manually:",
+    "copyCommand": "Copy {command}"
+  },
   "Events": {
     "eyebrow": "Events",
     "title": "Upcoming events",
@@ -144,9 +159,12 @@
     "status": {
       "loading": "Loading...",
       "unavailable": "Unavailable",
+      "unavailableHint": "Couldn't fetch the server status. Try refreshing the page.",
       "online": "Online",
       "offline": "Offline",
-      "players": "{count} players"
+      "offlineHint": "The server is temporarily unavailable. Please try again later.",
+      "players": "{count} players",
+      "playerList": "Player list"
     },
     "items": {
       "duckburg": {

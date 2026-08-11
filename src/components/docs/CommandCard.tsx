@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { cn } from "@/lib/utils";
 import { Check, Copy, Lock, ChevronDown } from "lucide-react";
 import { getPermission } from "@/config/permissions";
@@ -33,28 +34,24 @@ export interface CommandCardProps {
 
 const GLOBAL_PERMS: Record<
   GlobalPermission,
-  { label: string; text: string; bg: string; border: string }
+  { text: string; bg: string; border: string }
 > = {
   all: {
-    label: "Все игроки",
     text: "text-emerald-700 dark:text-emerald-300",
     bg: "bg-emerald-950/60",
     border: "border-emerald-700/40",
   },
   old: {
-    label: "Олд",
     text: "text-foreground",
     bg: "bg-primary/60",
     border: "border-amber-700/40",
   },
   supporter: {
-    label: "Донат",
     text: "text-primary",
     bg: "bg-primary/60",
     border: "border-primary/40",
   },
   admin: {
-    label: "Администратор",
     text: "text-sky-700 dark:text-sky-300",
     bg: "bg-sky-950/60",
     border: "border-sky-700/40",
@@ -86,6 +83,7 @@ export function CommandCard({
   aliases,
   className,
 }: CommandCardProps) {
+  const t = useTranslations("CommandCard");
   const [copied, setCopied] = useState(false);
   const [open, setOpen] = useState(false);
 
@@ -113,7 +111,7 @@ export function CommandCard({
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch {
-      window.prompt("Скопируйте вручную:", textToCopy);
+      window.prompt(t("copyManually"), textToCopy);
     }
   };
 
@@ -158,13 +156,13 @@ export function CommandCard({
             {hasRequired && (
               <span
                 className="w-2 h-2 rounded-full bg-rose-500 border border-rose-400/60 shrink-0 inline-block"
-                title="Обязательные параметры"
+                title={t("requiredArgsTitle")}
               />
             )}
             {hasOptional && (
               <span
                 className="w-2 h-2 rounded-full bg-sky-500 border border-sky-400/60 shrink-0 inline-block"
-                title="Необязательные параметры"
+                title={t("optionalArgsTitle")}
               />
             )}
             <span
@@ -175,7 +173,7 @@ export function CommandCard({
                 perm.border
               )}
             >
-              {perm.label}
+              {t(`permissions.${permission}`)}
             </span>
           </div>
 
@@ -192,7 +190,7 @@ export function CommandCard({
         <div className="flex items-center gap-2 shrink-0 pt-0.5 ml-1 min-w-12">
           <button
             onClick={handleCopy}
-            title={`Скопировать ${command}`}
+            title={t("copyCommand", { command })}
             className={cn(
               "p-1.5 rounded transition-all duration-150",
               "text-muted-foreground hover:text-foreground hover:bg-primary/10",
@@ -230,7 +228,7 @@ export function CommandCard({
             {hasRequired && (
               <div className="space-y-1.5">
                 <p className="text-[10px] uppercase tracking-widest font-semibold text-rose-600/70 dark:text-rose-400/70">
-                  Обязательные
+                  {t("required")}
                 </p>
                 {required!.map((arg) => (
                   <div key={arg.name} className="flex items-baseline gap-2">
@@ -250,7 +248,7 @@ export function CommandCard({
             {hasOptional && (
               <div className="space-y-1.5">
                 <p className="text-[10px] uppercase tracking-widest font-semibold text-sky-600/70 dark:text-sky-400/70">
-                  Необязательные
+                  {t("optional")}
                 </p>
                 {optional!.map((arg) => (
                   <div key={arg.name} className="flex items-baseline gap-2">
@@ -272,7 +270,7 @@ export function CommandCard({
       {aliases && aliases.length > 0 && (
         <div className="border-t border-border/50 px-3 py-2 flex items-center gap-1.5 flex-wrap bg-card/40">
           <span className="text-[10px] text-muted-foreground uppercase tracking-widest">
-            Сокращения:
+            {t("aliases")}
           </span>
           {aliases.map((a) => (
             <code

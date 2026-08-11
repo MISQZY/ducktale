@@ -12,6 +12,21 @@
   "Docs": {
     "lastModifiedUnknown": "Дата последнего обновления неизвестна"
   },
+  "CommandCard": {
+    "permissions": {
+      "all": "Все игроки",
+      "old": "Олд",
+      "supporter": "Донат",
+      "admin": "Администратор"
+    },
+    "requiredArgsTitle": "Обязательные параметры",
+    "optionalArgsTitle": "Необязательные параметры",
+    "required": "Обязательные",
+    "optional": "Необязательные",
+    "aliases": "Сокращения:",
+    "copyManually": "Скопируйте вручную:",
+    "copyCommand": "Скопировать {command}"
+  },
   "Events": {
     "eyebrow": "Ивенты",
     "title": "Ближайшие события",
@@ -144,9 +159,12 @@
     "status": {
       "loading": "Загрузка...",
       "unavailable": "Недоступно",
+      "unavailableHint": "Не удалось получить статус сервера. Попробуйте обновить страницу.",
       "online": "Онлайн",
       "offline": "Офлайн",
-      "players": "{count} игроков"
+      "offlineHint": "Сервер временно недоступен. Попробуйте позже.",
+      "players": "{count} игроков",
+      "playerList": "Список игроков"
     },
     "items": {
       "duckburg": {
