@@ -28,6 +28,18 @@ const store = new Map<string, CacheEntry<unknown>>();
 // has actually finished and written a result.
 const inFlight = new Map<string, Promise<unknown>>();
 
+/**
+ * True if `key` has a currently-valid cached entry, without touching it (no
+ * LRU re-insertion, no fetch). Lets a caller decide whether a request would
+ * actually reach the database *before* spending it against a rate limit —
+ * a request that's going to be served from cache shouldn't count the same
+ * as one that's about to hit the database.
+ */
+export function hasFreshCache(key: string, ttlMs: number): boolean {
+  const cached = store.get(key);
+  return cached !== undefined && Date.now() - cached.fetchedAt < ttlMs;
+}
+
 export async function withCache<T>(
   key: string,
   ttlMs: number,

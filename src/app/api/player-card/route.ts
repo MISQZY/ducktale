@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { withDb } from "@/lib/db";
-import { withCache } from "@/lib/query-cache";
+import { withCache, hasFreshCache } from "@/lib/query-cache";
 import { resolveResidentRole } from "@/lib/towny";
 import { Prisma } from "@prisma/client";
 import { SERVERS, NETWORK_SERVERS } from "@/config/servers";
@@ -288,15 +288,21 @@ async function resolveTownyDataUncached(uuid: string): Promise<{ city: string | 
 }
 
 export async function GET(req: Request) {
-  if (isRateLimited(req, "player-card", 30, 60_000)) {
-    return NextResponse.json({ error: "Too many requests" }, { status: 429 });
-  }
-
   const { searchParams } = new URL(req.url);
   const search = searchParams.get("search")?.trim() ?? "";
 
   if (search && search.length < MIN_SEARCH_LENGTH) {
     return NextResponse.json<PlayerCardResponse>({ player: null });
+  }
+
+  // A request for an already-cached, specific player (e.g. repeatedly
+  // reloading a profile page) doesn't touch the database at all, so it
+  // shouldn't be spent against the same limit as one that does — otherwise
+  // rate limiting itself becomes the thing that makes an already-cached
+  // page intermittently fail to load.
+  const identityCached = search && hasFreshCache(`identity:${search.toLowerCase()}`, IDENTITY_SEARCH_TTL_MS);
+  if (!identityCached && isRateLimited(req, "player-card", 30, 60_000)) {
+    return NextResponse.json({ error: "Too many requests" }, { status: 429 });
   }
 
   try {
