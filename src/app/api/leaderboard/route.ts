@@ -15,6 +15,7 @@ interface RawRow {
   nickname:   string | null;
   playtimeMs: bigint;
   online:     number | boolean; // raw MySQL boolean from fp_player.online — 0/1, not a JS boolean
+  rank:       bigint;
   total:      bigint;
 }
 
@@ -25,6 +26,12 @@ const LEADERBOARD_TTL_MS = 60_000;
  * player card) — an INNER JOIN on purpose, since a player with no tracked
  * playtime has no meaningful rank to show, not just a 0 that would sort to
  * the bottom.
+ *
+ * `rank` is computed by RANK() over the *unfiltered* inner query, then the
+ * search filter is applied as an outer WHERE — a search still has to show
+ * each player's real position on the full leaderboard, not their position
+ * among just the search results (which is what a WHERE-before-RANK() would
+ * give, since window functions only ever see already-filtered rows).
  */
 async function buildLeaderboardResponse(
   page: number, pageSize: number, search: string
@@ -33,17 +40,21 @@ async function buildLeaderboardResponse(
 
   const rows: RawRow[] = await withDb(async (db) => {
     return await db.$queryRaw(Prisma.sql`
-      SELECT
-        p.uuid,
-        p.name,
-        s.value AS nickname,
-        t.total AS playtimeMs,
-        p.online AS online,
-        COUNT(*) OVER() AS total
-      ${PLAYER_NICKNAME_JOIN}
-      INNER JOIN fp_time t ON t.player = p.id
-      ${search ? Prisma.sql`WHERE p.name LIKE ${"%" + search + "%"} OR s.value LIKE ${"%" + search + "%"}` : Prisma.empty}
-      ORDER BY t.total DESC
+      SELECT sub.uuid, sub.name, sub.nickname, sub.playtimeMs, sub.online, sub.\`rank\`,
+             COUNT(*) OVER() AS total
+      FROM (
+        SELECT
+          p.uuid,
+          p.name,
+          s.value AS nickname,
+          t.total AS playtimeMs,
+          p.online AS online,
+          RANK() OVER (ORDER BY t.total DESC) AS \`rank\`
+        ${PLAYER_NICKNAME_JOIN}
+        INNER JOIN fp_time t ON t.player = p.id
+      ) sub
+      ${search ? Prisma.sql`WHERE sub.name LIKE ${"%" + search + "%"} OR sub.nickname LIKE ${"%" + search + "%"}` : Prisma.empty}
+      ORDER BY sub.\`rank\` ASC
       LIMIT  ${pageSize}
       OFFSET ${offset}
     `) as RawRow[];
@@ -68,6 +79,7 @@ async function buildLeaderboardResponse(
       nickname:   r.nickname,
       playtimeMs: Number(r.playtimeMs),
       online:     Boolean(r.online),
+      rank:       Number(r.rank),
       profileUsername: profileByUuid.get(r.uuid) ?? null,
     })),
     total,

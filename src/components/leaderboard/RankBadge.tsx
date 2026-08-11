@@ -14,10 +14,17 @@ export interface RankBadgeProps {
   size?: number;
   className?: string;
   title?: string;
+  /**
+   * How ranks 4+ render: "circle" (default) as a rounded chip — reads well
+   * as a standalone badge next to the profile's playtime stat. "text" is a
+   * plain "#N" — the chip is too heavy repeated down every row of the
+   * leaderboard table, which already has its own rank column.
+   */
+  variant?: "circle" | "text";
 }
 
-/** Ranks 1-3 render as a colored medal (gold/silver/bronze); everything else as a numbered circle chip. */
-export function RankBadge({ rank, size = 16, className, title }: RankBadgeProps) {
+/** Ranks 1-3 render as a colored medal (gold/silver/bronze); everything else per `variant`. */
+export function RankBadge({ rank, size = 16, className, title, variant = "circle" }: RankBadgeProps) {
   if (rank >= 1 && rank <= 3) {
     const medalRank = rank as 1 | 2 | 3;
     return (
@@ -27,6 +34,18 @@ export function RankBadge({ rank, size = 16, className, title }: RankBadgeProps)
         aria-label={title}
         role={title ? "img" : undefined}
       />
+    );
+  }
+
+  if (variant === "text") {
+    return (
+      <span
+        className={cn("font-mono tabular-nums text-foreground/60", className)}
+        style={{ fontSize: size * 0.7 }}
+        title={title}
+      >
+        #{rank}
+      </span>
     );
   }
 

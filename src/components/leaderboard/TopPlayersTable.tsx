@@ -35,7 +35,7 @@ export interface TopPlayersTableProps {
   className?: string;
 }
 
-export function TopPlayersTable({ pageSize = 10, className }: TopPlayersTableProps) {
+export function TopPlayersTable({ pageSize = 15, className }: TopPlayersTableProps) {
   const t = useTranslations("Leaderboard");
   const tCard = useTranslations("PlayerCard");
 
@@ -119,15 +119,18 @@ export function TopPlayersTable({ pageSize = 10, className }: TopPlayersTablePro
             </DocsTableRow>
           )}
 
-          {data && data.items.map((player, index) => {
-            const rank = pageStart + index + 1;
+          {data && data.items.map((player) => {
+            const isTopTen = player.rank <= 10;
             return (
               <DocsTableRow
                 key={player.uuid}
-                className={cn(isRefreshing && "opacity-40 transition-opacity")}
+                className={cn(
+                  isTopTen && "bg-amber-500/[0.06] border-l-2 border-l-amber-500/50",
+                  isRefreshing && "opacity-40 transition-opacity"
+                )}
               >
                 <DocsTableCell withRightBorder>
-                  <RankBadge rank={rank} size={18} />
+                  <RankBadge rank={player.rank} size={18} variant="text" />
                 </DocsTableCell>
 
                 <DocsTableCell withRightBorder>
@@ -138,7 +141,11 @@ export function TopPlayersTable({ pageSize = 10, className }: TopPlayersTablePro
                         target="_blank"
                         className="hover:underline underline-offset-4 transition-colors"
                       >
-                        <HighlightMatch text={player.name} query={query} />
+                        <HighlightMatch
+                          text={player.name}
+                          query={query}
+                          className="font-bold text-amber-600 dark:text-amber-400"
+                        />
                       </Link>
                     ) : (
                       <HighlightMatch text={player.name} query={query} />
