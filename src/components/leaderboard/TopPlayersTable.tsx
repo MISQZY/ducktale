@@ -30,6 +30,7 @@ import type { LeaderboardPlayer, LeaderboardResponse } from "@/types/leaderboard
 export type { LeaderboardPlayer, LeaderboardResponse };
 
 const SKELETON_WIDTHS = ["w-8", "w-32", "w-20"];
+const MAX_VISIBLE_BADGES = 3;
 
 export interface TopPlayersTableProps {
   pageSize?:  number;
@@ -157,7 +158,7 @@ export function TopPlayersTable({ pageSize = 15, className }: TopPlayersTablePro
                         <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-emerald-500" />
                       </span>
                     )}
-                    {player.badges.map((badge) => (
+                    {player.badges.slice(0, MAX_VISIBLE_BADGES).map((badge) => (
                       <CompactBadgeChip
                         key={badge.name}
                         name={badge.name}
@@ -167,6 +168,14 @@ export function TopPlayersTable({ pageSize = 15, className }: TopPlayersTablePro
                         earnCondition={badge.earnCondition}
                       />
                     ))}
+                    {player.badges.length > MAX_VISIBLE_BADGES && (
+                      <span
+                        className="text-[0.65rem] text-foreground/40 shrink-0"
+                        title={player.badges.slice(MAX_VISIBLE_BADGES).map((b) => b.name).join(", ")}
+                      >
+                        +{player.badges.length - MAX_VISIBLE_BADGES}
+                      </span>
+                    )}
                   </div>
                 </DocsTableCell>
 
