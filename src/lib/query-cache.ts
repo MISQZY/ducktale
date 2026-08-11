@@ -19,6 +19,15 @@ const MAX_ENTRIES = 500;
 
 const store = new Map<string, CacheEntry<unknown>>();
 
+// Fetches currently in flight, keyed the same as `store`. Without this, a
+// burst of near-simultaneous callers for the same not-yet-cached key (e.g.
+// someone reloading a page repeatedly before the previous load finishes)
+// would each see a cache miss and independently call `fetcher`, hitting the
+// database once per caller instead of once total — a TTL cache alone
+// doesn't prevent that, since it only starts helping once the first call
+// has actually finished and written a result.
+const inFlight = new Map<string, Promise<unknown>>();
+
 export async function withCache<T>(
   key: string,
   ttlMs: number,
@@ -34,14 +43,25 @@ export async function withCache<T>(
     return cached.data;
   }
 
-  const data = await fetcher();
-  store.delete(key);
-  store.set(key, { data, fetchedAt: now });
+  const pending = inFlight.get(key) as Promise<T> | undefined;
+  if (pending) return pending;
 
-  if (store.size > MAX_ENTRIES) {
-    const oldestKey = store.keys().next().value;
-    if (oldestKey !== undefined) store.delete(oldestKey);
-  }
+  const promise = fetcher()
+    .then((data) => {
+      store.delete(key);
+      store.set(key, { data, fetchedAt: Date.now() });
 
-  return data;
+      if (store.size > MAX_ENTRIES) {
+        const oldestKey = store.keys().next().value;
+        if (oldestKey !== undefined) store.delete(oldestKey);
+      }
+
+      return data;
+    })
+    .finally(() => {
+      inFlight.delete(key);
+    });
+
+  inFlight.set(key, promise);
+  return promise;
 }

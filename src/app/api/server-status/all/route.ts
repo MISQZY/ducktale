@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { SERVERS } from "@/config/servers";
 import { getAllOnlinePlayers, groupOnlinePlayersByServer } from "@/lib/players";
 import { getCachedPing } from "@/lib/mcsrvstat";
+import { isRateLimited } from "@/lib/rate-limit";
 
 interface ServerStatus {
   online: boolean;
@@ -9,7 +10,11 @@ interface ServerStatus {
   players: { online: number; max: number; list: { name: string }[] };
 }
 
-export async function GET() {
+export async function GET(req: Request) {
+  if (isRateLimited(req, "server-status-all", 30, 60_000)) {
+    return NextResponse.json({ error: "Too many requests" }, { status: 429 });
+  }
+
   const [allPlayers, pings] = await Promise.all([
     getAllOnlinePlayers().catch((err) => {
       console.error("[server-status] Failed to load online players:", err);
