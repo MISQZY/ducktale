@@ -178,6 +178,11 @@ interface ProfilePlayerCardProps {
    * relink/unlink icon buttons in the card's top-right corner. Omitted
    * entirely on public profile views of other users. */
   manage?: { lang: string };
+  /** Pre-formatted "member since" text — only the public profile page
+   * passes this, rendered right under the nickname line. Pre-formatted
+   * (rather than a raw Date) since the locale/wording belongs to that
+   * page's own "Profile" i18n namespace, not this component's "PlayerCard" one. */
+  registeredLabel?: string;
 }
 
 /**
@@ -185,7 +190,7 @@ interface ProfilePlayerCardProps {
  * network-wide general stats, then one card per server with that server's
  * own whitelist status (and Towny city/nation where tracked).
  */
-export function ProfilePlayerCard({ minecraftName, className, manage }: ProfilePlayerCardProps) {
+export function ProfilePlayerCard({ minecraftName, className, manage, registeredLabel }: ProfilePlayerCardProps) {
   const t = useTranslations("PlayerCard");
   const locale = useLocale();
   const [player, setPlayer] = useState<PlayerCardData | null>(null);
@@ -232,6 +237,9 @@ export function ProfilePlayerCard({ minecraftName, className, manage }: ProfileP
           </h2>
           {player.nickname && player.nickname !== player.username && (
             <p className="text-foreground/40 text-sm -mt-1.5">{player.nickname}</p>
+          )}
+          {registeredLabel && (
+            <p className="text-foreground/35 text-xs -mt-1">{registeredLabel}</p>
           )}
 
           <p className="text-foreground/35 text-[11px] uppercase tracking-widest mt-1">

@@ -439,6 +439,7 @@
     "ticketsDescription": "Total tickets: {count}"
   },
   "Profile": {
+    "pageTitle": "Player profile",
     "memberSince": "Member since {date}",
     "notLinked": "No Minecraft account linked."
   },

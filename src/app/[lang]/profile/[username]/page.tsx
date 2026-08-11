@@ -2,7 +2,6 @@ import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { siteDb } from "@/lib/site-db";
 import Navbar from "@/components/Navbar";
-import { GoldDivider } from "@/components/common/GoldDivider";
 import { ProfilePlayerCard } from "@/components/account/ProfilePlayerCard";
 import type { Metadata } from "next";
 
@@ -15,7 +14,6 @@ async function findUser(username: string) {
   return siteDb.user.findUnique({
     where: { nickname: username },
     select: {
-      nickname: true,
       createdAt: true,
       accountLink: { select: { status: true, minecraftName: true } },
     },
@@ -32,6 +30,7 @@ export default async function PublicProfilePage({
   if (!user) notFound();
 
   const t = await getTranslations("Profile");
+  const td = await getTranslations("Account.dashboard");
 
   return (
     <>
@@ -39,19 +38,22 @@ export default async function PublicProfilePage({
       <main className="relative overflow-hidden min-h-screen px-6 pt-24 pb-16">
         <div className="relative z-10 max-w-2xl mx-auto">
           <h1
-            className="text-3xl text-primary/90 mb-2 leading-tight"
+            className="text-3xl text-primary/90 mb-8 leading-tight text-center"
             style={{ fontFamily: "var(--font-body)" }}
           >
-            {user.nickname}
+            {t("pageTitle")}
           </h1>
-          <p className="text-foreground/60 mb-6">
-            {t("memberSince", { date: user.createdAt.toLocaleDateString(lang === "ru" ? "ru-RU" : "en-US") })}
-          </p>
-
-          <GoldDivider className="mb-8" />
 
           {user.accountLink?.status === "CONFIRMED" && user.accountLink.minecraftName ? (
-            <ProfilePlayerCard minecraftName={user.accountLink.minecraftName} />
+            <div className="mb-6">
+              <h2 className="text-xs uppercase tracking-widest text-foreground/50 mb-3 text-center">
+                {td("playerCardTitle")}
+              </h2>
+              <ProfilePlayerCard
+                minecraftName={user.accountLink.minecraftName}
+                registeredLabel={t("memberSince", { date: user.createdAt.toLocaleDateString(lang === "ru" ? "ru-RU" : "en-US") })}
+              />
+            </div>
           ) : (
             <p className="text-foreground/45 text-sm">{t("notLinked")}</p>
           )}
@@ -70,7 +72,8 @@ export async function generateMetadata({
   const user = await findUser(username);
   if (!user) return {};
 
+  const t = await getTranslations("Profile");
   return {
-    title: user.nickname,
+    title: t("pageTitle"),
   };
 }
