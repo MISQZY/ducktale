@@ -16,7 +16,7 @@ export interface RankBadgeProps {
   title?: string;
 }
 
-/** Ranks 1-3 render as a colored medal (gold/silver/bronze); everything else as a plain "#N". */
+/** Ranks 1-3 render as a colored medal (gold/silver/bronze); everything else as a numbered circle chip. */
 export function RankBadge({ rank, size = 16, className, title }: RankBadgeProps) {
   if (rank >= 1 && rank <= 3) {
     const medalRank = rank as 1 | 2 | 3;
@@ -32,11 +32,14 @@ export function RankBadge({ rank, size = 16, className, title }: RankBadgeProps)
 
   return (
     <span
-      className={cn("font-mono tabular-nums text-foreground/60", className)}
-      style={{ fontSize: size * 0.7 }}
+      className={cn(
+        "inline-flex items-center justify-center shrink-0 rounded-full border border-primary/25 bg-primary/10 font-mono tabular-nums text-foreground/70",
+        className
+      )}
+      style={{ width: size, height: size, fontSize: size * 0.55 }}
       title={title}
     >
-      #{rank}
+      {rank}
     </span>
   );
 }
