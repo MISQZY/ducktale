@@ -1,8 +1,10 @@
+import { cache } from "react";
 import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { siteDb } from "@/lib/site-db";
 import Navbar from "@/components/Navbar";
 import { ProfilePlayerCard } from "@/components/account/ProfilePlayerCard";
+import { ProfileBadgeChip } from "@/components/badges/ProfileBadgeChip";
 import type { Metadata } from "next";
 
 interface Params {
@@ -10,15 +12,18 @@ interface Params {
   username: string;
 }
 
-async function findUser(username: string) {
+// Both the page component and generateMetadata() call this — cache() dedupes
+// them to a single query per request instead of one each.
+const findUser = cache(async (username: string) => {
   return siteDb.user.findUnique({
     where: { nickname: username },
     select: {
       createdAt: true,
       accountLink: { select: { status: true, minecraftName: true } },
+      badges: { select: { badge: { select: { id: true, name: true, icon: true, color: true, description: true, earnCondition: true } } } },
     },
   });
-}
+});
 
 export default async function PublicProfilePage({
   params,
@@ -43,6 +48,26 @@ export default async function PublicProfilePage({
           >
             {t("pageTitle")}
           </h1>
+
+          {user.badges.length > 0 && (
+            <div className="mb-4">
+              <h2 className="text-xs uppercase tracking-widest text-foreground/50 mb-2 text-center">
+                {td("badgesSectionTitle")}
+              </h2>
+              <div className="flex flex-wrap justify-center gap-2">
+                {user.badges.map(({ badge }) => (
+                  <ProfileBadgeChip
+                    key={badge.id}
+                    name={badge.name}
+                    icon={badge.icon}
+                    color={badge.color}
+                    description={badge.description}
+                    earnCondition={badge.earnCondition}
+                  />
+                ))}
+              </div>
+            </div>
+          )}
 
           {user.accountLink?.status === "CONFIRMED" && user.accountLink.minecraftName ? (
             <div className="mb-6">

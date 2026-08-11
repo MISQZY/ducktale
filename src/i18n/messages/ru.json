@@ -367,6 +367,7 @@
       "relink": "Привязать другой аккаунт",
       "unlink": "Отвязать аккаунт",
       "playerCardTitle": "Карточка игрока",
+      "badgesSectionTitle": "Бейджи",
       "adminPanel": "Админ-панель",
       "viewProfile": "Моя публичная страница",
       "supportSectionTitle": "Поддержка",
@@ -435,7 +436,39 @@
     "nextPage": "Вперёд →",
     "navTickets": "Тикеты",
     "ticketsTitle": "Тикеты поддержки",
-    "ticketsDescription": "Всего тикетов: {count}"
+    "ticketsDescription": "Всего тикетов: {count}",
+    "navBadges": "Бейджи",
+    "badgesTitle": "Бейджи",
+    "badgesLabel": "Бейджи",
+    "selectBadge": "Выберите бейдж...",
+    "awardBadge": "Выдать",
+    "revokeBadge": "Убрать {name}",
+    "badges": {
+      "description": "{count, plural, one {# бейдж} few {# бейджа} many {# бейджей} other {# бейджей}}",
+      "noResults": "Бейджей пока нет.",
+      "createTitle": "Создать бейдж",
+      "editTitle": "Редактировать бейдж",
+      "nameLabel": "Название",
+      "descriptionLabel": "Описание",
+      "descriptionHint": "Что означает бейдж — показывается при наведении в профиле пользователя.",
+      "earnConditionLabel": "Условие получения",
+      "earnConditionHint": "Необязательно — показывается при наведении под описанием, если задано.",
+      "iconLabel": "Иконка",
+      "iconSearchPlaceholder": "Поиск иконок...",
+      "iconSearchEmpty": "По запросу ничего не найдено.",
+      "colorLabel": "Цвет",
+      "create": "Создать",
+      "save": "Сохранить",
+      "saving": "Сохранение...",
+      "edit": "Редактировать",
+      "delete": "Удалить",
+      "confirmDelete": "Удалить бейдж «{name}» безвозвратно? Он будет снят со всех пользователей, у которых он есть.",
+      "earnConditionPrefix": "Условие получения:",
+      "holderCount": "{count, plural, one {# игрок имеет этот бейдж} few {# игрока имеют этот бейдж} many {# игроков имеют этот бейдж} other {# игроков имеют этот бейдж}}",
+      "errors": {
+        "generic": "Что-то пошло не так. Попробуйте позже."
+      }
+    }
   },
   "Profile": {
     "pageTitle": "Профиль игрока",

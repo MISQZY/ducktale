@@ -3,13 +3,13 @@ import { Link } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
 
 interface AdminNavProps {
-  active: "users" | "content" | "tickets";
+  active: "users" | "content" | "tickets" | "badges";
 }
 
 export function AdminNav({ active }: AdminNavProps) {
   const t = useTranslations("Admin");
 
-  const tabClass = (tab: "users" | "content" | "tickets") =>
+  const tabClass = (tab: "users" | "content" | "tickets" | "badges") =>
     cn(
       "px-4 py-1.5 rounded-full text-xs uppercase tracking-widest transition-colors border",
       active === tab
@@ -27,6 +27,9 @@ export function AdminNav({ active }: AdminNavProps) {
       </Link>
       <Link href="/admin/tickets" className={tabClass("tickets")}>
         {t("navTickets")}
+      </Link>
+      <Link href="/admin/badges" className={tabClass("badges")}>
+        {t("navBadges")}
       </Link>
     </div>
   );

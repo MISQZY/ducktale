@@ -2,9 +2,21 @@
 
 import { useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
+import { X, Trash2 } from "lucide-react";
 import { resetUserPassword, unlinkUser, deleteUser, setUserAdmin } from "@/lib/actions/admin";
+import { awardBadge, revokeBadge } from "@/lib/actions/admin-badges";
 import { FormButton } from "@/components/common/FormButton";
+import { BadgeChip } from "@/components/badges/BadgeChip";
+import { buttonVariants } from "@/components/ui/button";
 import CopyToClipboard from "@/components/ui/CopyToClipboard";
+import { cn } from "@/lib/utils";
+
+interface BadgeOption {
+  id: string;
+  name: string;
+  icon: string;
+  color: string | null;
+}
 
 interface AdminUserActionsProps {
   lang: string;
@@ -13,13 +25,18 @@ interface AdminUserActionsProps {
   isSelf: boolean;
   hasLink: boolean;
   isAdmin: boolean;
+  /** Full badge catalog for the award picker — omitted entirely (no picker rendered) when there's nothing to award yet. */
+  badges?: BadgeOption[];
+  currentBadgeIds?: string[];
 }
 
-export function AdminUserActions({ lang, userId, nickname, isSelf, hasLink, isAdmin }: AdminUserActionsProps) {
+export function AdminUserActions({ lang, userId, nickname, isSelf, hasLink, isAdmin, badges, currentBadgeIds }: AdminUserActionsProps) {
   const t = useTranslations("Admin");
   const [isPending, startTransition] = useTransition();
   const [resetLink, setResetLink] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [heldIds, setHeldIds] = useState<string[]>(currentBadgeIds ?? []);
+  const [pickerValue, setPickerValue] = useState("");
 
   function handleResetPassword() {
     if (!window.confirm(t("confirmReset", { nickname }))) return;
@@ -73,8 +90,56 @@ export function AdminUserActions({ lang, userId, nickname, isSelf, hasLink, isAd
     });
   }
 
+  function handleAwardBadge() {
+    if (!pickerValue) return;
+    const badgeId = pickerValue;
+    setError(null);
+    startTransition(async () => {
+      try {
+        await awardBadge(lang, userId, badgeId);
+        setHeldIds((prev) => (prev.includes(badgeId) ? prev : [...prev, badgeId]));
+        setPickerValue("");
+      } catch {
+        setError(t("actionFailed"));
+      }
+    });
+  }
+
+  function handleRevokeBadge(badgeId: string) {
+    setError(null);
+    startTransition(async () => {
+      try {
+        await revokeBadge(lang, userId, badgeId);
+        setHeldIds((prev) => prev.filter((id) => id !== badgeId));
+      } catch {
+        setError(t("actionFailed"));
+      }
+    });
+  }
+
+  const heldBadges = (badges ?? []).filter((b) => heldIds.includes(b.id));
+  const availableBadges = (badges ?? []).filter((b) => !heldIds.includes(b.id));
+
   return (
     <div className="flex flex-col gap-2">
+      {/* Positioned relative to the card (the nearest `relative` ancestor
+          is the row div in admin/users/page.tsx, not this component). */}
+      {!isSelf && (
+        <button
+          type="button"
+          disabled={isPending}
+          onClick={handleDelete}
+          aria-label={t("delete")}
+          title={t("delete")}
+          className={cn(
+            buttonVariants({ variant: "outline", size: "icon-sm" }),
+            "absolute top-3 right-3 z-10 bg-card/70 hover:text-destructive hover:border-destructive/40"
+          )}
+        >
+          <Trash2 size={14} />
+        </button>
+      )}
+
       <div className="flex flex-wrap items-center gap-2">
         <FormButton
           variant="outline"
@@ -106,18 +171,58 @@ export function AdminUserActions({ lang, userId, nickname, isSelf, hasLink, isAd
             {isAdmin ? t("revokeAdmin") : t("grantAdmin")}
           </FormButton>
         )}
-
-        {!isSelf && (
-          <FormButton
-            variant="destructive"
-            className="px-4 py-1.5 text-xs"
-            disabled={isPending}
-            onClick={handleDelete}
-          >
-            {t("delete")}
-          </FormButton>
-        )}
       </div>
+
+      {badges && badges.length > 0 && (
+        <div className="flex flex-col gap-2">
+          <label className="text-[0.65rem] uppercase tracking-widest text-foreground/40">
+            {t("badgesLabel")}
+          </label>
+
+          {heldBadges.length > 0 && (
+            <div className="flex flex-wrap items-center gap-1.5">
+              {heldBadges.map((b) => (
+                <span key={b.id} className="inline-flex items-center gap-1">
+                  <BadgeChip name={b.name} icon={b.icon} color={b.color} size="sm" />
+                  <button
+                    type="button"
+                    disabled={isPending}
+                    onClick={() => handleRevokeBadge(b.id)}
+                    aria-label={t("revokeBadge", { name: b.name })}
+                    className="text-foreground/30 hover:text-destructive transition-colors disabled:opacity-50"
+                  >
+                    <X size={13} />
+                  </button>
+                </span>
+              ))}
+            </div>
+          )}
+
+          {availableBadges.length > 0 && (
+            <div className="flex items-center gap-2">
+              <select
+                value={pickerValue}
+                disabled={isPending}
+                onChange={(e) => setPickerValue(e.target.value)}
+                className="rounded-lg border border-primary/20 bg-card/50 px-2.5 py-1.5 text-xs text-foreground/90 focus:outline-none focus:border-primary/50 disabled:opacity-50"
+              >
+                <option value="">{t("selectBadge")}</option>
+                {availableBadges.map((b) => (
+                  <option key={b.id} value={b.id}>{b.name}</option>
+                ))}
+              </select>
+              <FormButton
+                variant="outline"
+                className="px-3 py-1.5 text-xs"
+                disabled={isPending || !pickerValue}
+                onClick={handleAwardBadge}
+              >
+                {t("awardBadge")}
+              </FormButton>
+            </div>
+          )}
+        </div>
+      )}
 
       {resetLink && (
         <div className="text-xs text-foreground/60">

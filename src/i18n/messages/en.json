@@ -368,6 +368,7 @@
       "relink": "Link a different account",
       "unlink": "Unlink account",
       "playerCardTitle": "Player card",
+      "badgesSectionTitle": "Badges",
       "adminPanel": "Admin panel",
       "viewProfile": "My public profile",
       "supportSectionTitle": "Support",
@@ -436,7 +437,39 @@
     "nextPage": "Next →",
     "navTickets": "Tickets",
     "ticketsTitle": "Support tickets",
-    "ticketsDescription": "Total tickets: {count}"
+    "ticketsDescription": "Total tickets: {count}",
+    "navBadges": "Badges",
+    "badgesTitle": "Badges",
+    "badgesLabel": "Badges",
+    "selectBadge": "Select a badge...",
+    "awardBadge": "Award",
+    "revokeBadge": "Remove {name}",
+    "badges": {
+      "description": "{count, plural, one {# badge} other {# badges}}",
+      "noResults": "No badges yet.",
+      "createTitle": "Create badge",
+      "editTitle": "Edit badge",
+      "nameLabel": "Name",
+      "descriptionLabel": "Description",
+      "descriptionHint": "What the badge represents — shown on hover on a user's profile.",
+      "earnConditionLabel": "How to earn it",
+      "earnConditionHint": "Optional — shown on hover under the description if set.",
+      "iconLabel": "Icon",
+      "iconSearchPlaceholder": "Search icons...",
+      "iconSearchEmpty": "No icons match that search.",
+      "colorLabel": "Color",
+      "create": "Create",
+      "save": "Save",
+      "saving": "Saving...",
+      "edit": "Edit",
+      "delete": "Delete",
+      "confirmDelete": "Permanently delete the badge \"{name}\"? It will be removed from every user who has it.",
+      "earnConditionPrefix": "How to earn it:",
+      "holderCount": "{count, plural, one {# player has this badge} other {# players have this badge}}",
+      "errors": {
+        "generic": "Something went wrong. Please try again."
+      }
+    }
   },
   "Profile": {
     "pageTitle": "Player profile",

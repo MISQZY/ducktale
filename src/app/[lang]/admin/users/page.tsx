@@ -1,8 +1,10 @@
 import { getTranslations } from "next-intl/server";
 import { requireAdmin } from "@/lib/admin";
 import { siteDb } from "@/lib/site-db";
+import { seedBuiltinBadges } from "@/lib/badges";
 import { AdminPageShell } from "@/components/admin/AdminPageShell";
 import { StatusBadge } from "@/components/common/StatusBadge";
+import { BadgeChip } from "@/components/badges/BadgeChip";
 import { AdminUserActions } from "@/components/admin/AdminUserActions";
 import { Link } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
@@ -29,7 +31,11 @@ export default async function AdminUsersPage({
   // in this codebase) — no explicit `mode: "insensitive"` needed.
   const where = search ? { nickname: { contains: search } } : undefined;
 
-  const [users, total] = await Promise.all([
+  // Seeded here too (not just on /admin/badges) so the picker below always
+  // offers the built-in catalog even if nobody's visited the badges page yet.
+  await seedBuiltinBadges();
+
+  const [users, total, badges] = await Promise.all([
     siteDb.user.findMany({
       where,
       orderBy: { createdAt: "asc" },
@@ -41,9 +47,11 @@ export default async function AdminUsersPage({
         isAdmin: true,
         createdAt: true,
         accountLink: { select: { status: true, minecraftName: true } },
+        badges: { select: { badge: { select: { id: true, name: true, icon: true, color: true } } } },
       },
     }),
     siteDb.user.count({ where }),
+    siteDb.badge.findMany({ orderBy: { name: "asc" }, select: { id: true, name: true, icon: true, color: true } }),
   ]);
 
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
@@ -95,6 +103,13 @@ export default async function AdminUsersPage({
                       ? t("pending")
                       : t("notLinked")}
                 </p>
+                {user.badges.length > 0 && (
+                  <div className="flex flex-wrap gap-1.5 mt-2">
+                    {user.badges.map(({ badge }) => (
+                      <BadgeChip key={badge.id} name={badge.name} icon={badge.icon} color={badge.color} size="sm" />
+                    ))}
+                  </div>
+                )}
 
                 <div className="mt-4 pt-4 border-t border-primary/10">
                   <AdminUserActions
@@ -104,6 +119,8 @@ export default async function AdminUsersPage({
                     isSelf={user.id === admin.id}
                     hasLink={user.accountLink?.status === "CONFIRMED"}
                     isAdmin={user.isAdmin}
+                    badges={badges}
+                    currentBadgeIds={user.badges.map(({ badge }) => badge.id)}
                   />
                 </div>
               </div>

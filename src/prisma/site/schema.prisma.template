@@ -39,8 +39,53 @@ model User {
   tickets             Ticket[]
   ticketMessages      TicketMessage[]
   passwordResetTokens PasswordResetToken[]
+  badges              UserBadge[]
 
   @@map("{{PREFIX}}user")
+}
+
+/// A profile award, shown next to a user's name. Rows can come from either
+/// side of the app: seedBuiltinBadges() (src/lib/badges.ts) upserts the
+/// code-defined catalog in src/config/badges.ts by `key` on demand — it
+/// never overwrites a row that already exists, so an admin's edits to a
+/// built-in badge stick across deploys — and the admin panel's own CRUD at
+/// /admin/badges creates rows the same way, just without a code-defined
+/// `key` counterpart. `icon` is a lucide-react icon name (validated against
+/// BADGE_ICON_NAMES in src/config/badges.ts, not free text) so it renders
+/// as a real SVG component, not raw user-controlled markup.
+model Badge {
+  id            String   @id @default(uuid())
+  key           String   @unique @db.VarChar(64)
+  name          String   @db.VarChar(64)
+  description   String?  @db.VarChar(255)
+  // How to earn it (e.g. "Awarded to the first 50 registered players") —
+  // deliberately separate from `description` (what the badge represents)
+  // so the hover tooltip can show both distinctly. Optional: plenty of
+  // badges (admin-discretion awards especially) have no fixed condition.
+  earnCondition String?  @db.VarChar(255)
+  icon          String   @db.VarChar(64)
+  color         String?  @db.VarChar(16)
+  createdAt     DateTime @default(now())
+  userBadges    UserBadge[]
+
+  @@map("{{PREFIX}}badge")
+}
+
+/// Join row for the N:N between User and Badge — a user can hold many
+/// badges, a badge can be held by many users. awardedAt tracks when the
+/// admin (or code) granted this specific one.
+model UserBadge {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  badgeId   String
+  badge     Badge    @relation(fields: [badgeId], references: [id], onDelete: Cascade)
+  awardedAt DateTime @default(now())
+
+  @@unique([userId, badgeId])
+  @@index([userId])
+  @@index([badgeId])
+  @@map("{{PREFIX}}user_badge")
 }
 
 enum LinkStatus {

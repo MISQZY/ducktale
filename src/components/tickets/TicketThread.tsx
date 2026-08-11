@@ -2,12 +2,14 @@
 
 import { useCallback, useEffect, useRef, useState, useTransition, type FormEvent } from "react";
 import { useTranslations } from "next-intl";
+import { Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useRouter } from "@/i18n/navigation";
 import { sendTicketMessage, setTicketStatus, deleteTicket } from "@/lib/actions/tickets";
 import { TICKET_MESSAGE_MAX } from "@/lib/tickets";
 import { FormButton } from "@/components/common/FormButton";
 import { FormTextarea } from "@/components/common/FormTextarea";
+import { buttonVariants } from "@/components/ui/button";
 import { TicketStatusBadge } from "./TicketStatusBadge";
 import type { TicketStatus } from ".prisma/site-client";
 
@@ -134,14 +136,19 @@ export function TicketThread({ lang, ticketId, subject, initialStatus, initialMe
             >
               {status === "CLOSED" ? t("reopenTicket") : t("closeTicket")}
             </FormButton>
-            <FormButton
-              variant="destructive"
-              className="px-3 py-1 text-[0.65rem]"
+            <button
+              type="button"
               disabled={isPending}
               onClick={handleDelete}
+              aria-label={t("deleteTicket")}
+              title={t("deleteTicket")}
+              className={cn(
+                buttonVariants({ variant: "outline", size: "icon-sm" }),
+                "bg-card/70 hover:text-destructive hover:border-destructive/40"
+              )}
             >
-              {t("deleteTicket")}
-            </FormButton>
+              <Trash2 size={14} />
+            </button>
           </div>
         )}
       </div>

@@ -67,21 +67,33 @@ async function buildLeaderboardResponse(
   const links = rows.length > 0
     ? await siteDb.accountLink.findMany({
         where: { minecraftUuid: { in: rows.map((r) => r.uuid) }, status: "CONFIRMED" },
-        select: { minecraftUuid: true, user: { select: { nickname: true } } },
+        select: {
+          minecraftUuid: true,
+          user: {
+            select: {
+              nickname: true,
+              badges: { select: { badge: { select: { name: true, icon: true, color: true, description: true, earnCondition: true } } } },
+            },
+          },
+        },
       })
     : [];
-  const profileByUuid = new Map(links.map((l) => [l.minecraftUuid, l.user.nickname]));
+  const linkByUuid = new Map(links.map((l) => [l.minecraftUuid, l.user]));
 
   return {
-    players: rows.map((r) => ({
-      uuid:       r.uuid,
-      name:       r.name,
-      nickname:   r.nickname,
-      playtimeMs: Number(r.playtimeMs),
-      online:     Boolean(r.online),
-      rank:       Number(r.rank),
-      profileUsername: profileByUuid.get(r.uuid) ?? null,
-    })),
+    players: rows.map((r) => {
+      const linkedUser = linkByUuid.get(r.uuid);
+      return {
+        uuid:       r.uuid,
+        name:       r.name,
+        nickname:   r.nickname,
+        playtimeMs: Number(r.playtimeMs),
+        online:     Boolean(r.online),
+        rank:       Number(r.rank),
+        profileUsername: linkedUser?.nickname ?? null,
+        badges: linkedUser?.badges.map(({ badge }) => badge) ?? [],
+      };
+    }),
     total,
     page,
     pageSize,

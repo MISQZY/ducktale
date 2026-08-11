@@ -24,6 +24,7 @@ import {
 import { usePagedTable } from "@/hooks/usePagedTable";
 import { formatDurationMs } from "@/lib/player-card-format";
 import { RankBadge } from "./RankBadge";
+import { CompactBadgeChip } from "@/components/badges/CompactBadgeChip";
 import type { LeaderboardPlayer, LeaderboardResponse } from "@/types/leaderboard";
 
 export type { LeaderboardPlayer, LeaderboardResponse };
@@ -156,6 +157,16 @@ export function TopPlayersTable({ pageSize = 15, className }: TopPlayersTablePro
                         <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-emerald-500" />
                       </span>
                     )}
+                    {player.badges.map((badge) => (
+                      <CompactBadgeChip
+                        key={badge.name}
+                        name={badge.name}
+                        icon={badge.icon}
+                        color={badge.color}
+                        description={badge.description}
+                        earnCondition={badge.earnCondition}
+                      />
+                    ))}
                   </div>
                 </DocsTableCell>
 

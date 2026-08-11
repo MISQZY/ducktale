@@ -1,3 +1,11 @@
+export interface LeaderboardPlayerBadge {
+  name: string;
+  icon: string;
+  color: string | null;
+  description: string | null;
+  earnCondition: string | null;
+}
+
 export interface LeaderboardPlayer {
   uuid:       string;
   name:       string;
@@ -8,6 +16,8 @@ export interface LeaderboardPlayer {
   rank:       number;
   /** Site username to link to (/profile/<username>) — set only when this Minecraft account has a CONFIRMED site AccountLink, null otherwise. */
   profileUsername: string | null;
+  /** Same site-account badges shown on their profile — empty when not linked. */
+  badges: LeaderboardPlayerBadge[];
 }
 
 export interface LeaderboardResponse {
