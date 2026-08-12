@@ -592,17 +592,20 @@ body {
   opacity: 1 !important;
 }
 
-/* Liquid card effect */
-.liquid-card,
-[data-card],
-.fd-card {
+/*
+  Liquid card effect — scoped to the explicit .liquid-card class only.
+  [data-card] used to be included here to catch fumadocs-ui's own <Card>
+  component, but fumadocs also stamps that same data-card="" attribute on
+  every ##/### heading's permalink anchor (see heading.js), so it was
+  lighting up the glass frame on hover over section headings too. .fd-card
+  never matched anything — fumadocs' Card component has no such class.
+*/
+.liquid-card {
   position: relative;
   overflow: hidden;
 }
 
-.liquid-card::after,
-[data-card]::after,
-.fd-card::after {
+.liquid-card::after {
   content: "";
   position: absolute;
   inset: 0;
@@ -617,9 +620,7 @@ body {
   z-index: 10;
 }
 
-.liquid-card::before,
-[data-card]::before,
-.fd-card::before {
+.liquid-card::before {
   content: "";
   position: absolute;
   inset: 0;
@@ -640,11 +641,7 @@ body {
 }
 
 .liquid-card:hover::after,
-.liquid-card:hover::before,
-[data-card]:hover::after,
-[data-card]:hover::before,
-.fd-card:hover::after,
-.fd-card:hover::before {
+.liquid-card:hover::before {
   opacity: 1;
 }
 
@@ -667,9 +664,7 @@ body {
   ) !important;
 }
 
-.light .liquid-card::after,
-.light [data-card]::after,
-.light .fd-card::after {
+.light .liquid-card::after {
   background: radial-gradient(
     circle 500px at var(--mouse-x, 0) var(--mouse-y, 0),
     rgba(0, 0, 0, 0.03),
@@ -677,9 +672,7 @@ body {
   ) !important;
 }
 
-.light .liquid-card::before,
-.light [data-card]::before,
-.light .fd-card::before {
+.light .liquid-card::before {
   background: radial-gradient(
     circle 200px at var(--mouse-x, 0) var(--mouse-y, 0),
     rgba(0, 0, 0, 0.15),
