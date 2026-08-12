@@ -14,6 +14,8 @@ interface LiveQuestTreeProps {
   title?: string;
   frameHeight?: number | string;
   className?: string;
+  /** Client-side-only completion tracking (localStorage, per browser) — lets the reader check off nodes and see downstream ones actually unlock, instead of every non-root node staying permanently "locked". Not sent anywhere; unrelated to the deliberate absence of server-side per-player progress tracking. */
+  mockLocalStorage?: boolean;
 }
 
 type FetchState =
@@ -23,7 +25,7 @@ type FetchState =
 
 const FRAME_HEIGHT_FALLBACK = 600;
 
-export function LiveQuestTree({ server, packageName, title, frameHeight = FRAME_HEIGHT_FALLBACK, className }: LiveQuestTreeProps) {
+export function LiveQuestTree({ server, packageName, title, frameHeight = FRAME_HEIGHT_FALLBACK, className, mockLocalStorage = true }: LiveQuestTreeProps) {
   const [state, setState] = useState<FetchState>({ status: "loading" });
 
   useEffect(() => {
@@ -108,6 +110,7 @@ export function LiveQuestTree({ server, packageName, title, frameHeight = FRAME_
       title={title}
       nodes={state.nodes}
       frameHeight={frameHeight}
+      mockLocalStorage={mockLocalStorage}
     />
   );
 }

@@ -8,6 +8,17 @@ import { EXTERNAL_APIS } from "@/config/external-apis";
 import { CheckSquare, Square, Lock, Gift, Target, Minus, Plus, Quote } from "lucide-react";
 import type { QuestNodeDef, QuestStatus, QuestObjective, QuestReward } from "./types";
 
+/** Same concealment convention as ResourceCard's SkeletonCard — solid bars, not blur — so a locked node reads as "there's real content here, hidden" rather than a faded copy of the real text. Real text is never rendered, so nothing to zoom/select into legibility. */
+function SkeletonLines({ widths = ["100%", "80%", "55%"], barClassName = "h-2.5" }: { widths?: string[]; barClassName?: string }) {
+  return (
+    <div className="flex flex-col gap-1.5" aria-hidden="true">
+      {widths.map((width, i) => (
+        <div key={i} className={cn(barClassName, "rounded bg-primary/20")} style={{ width }} />
+      ))}
+    </div>
+  );
+}
+
 export interface QuestNodeData extends Omit<QuestNodeDef, "x" | "y" | "width" | "height"> {
   mockObjCompletions?: Record<string, boolean>;
   mockObjProgress?: Record<string, number>;
@@ -92,12 +103,15 @@ export function QuestNodeCard({ node }: { node: Node }) {
             )}
           </div>
           <div className="flex flex-col">
-            <span className={cn(
-              "font-bold text-[0.95rem] tracking-wide leading-tight drop-shadow-sm",
-              isLocked ? "text-foreground/50" : "text-foreground"
-            )}>
-              {data.title}
-            </span>
+            {isLocked ? (
+              <div className="py-0.5">
+                <SkeletonLines widths={["70%"]} barClassName="h-3.5" />
+              </div>
+            ) : (
+              <span className="font-bold text-[0.95rem] tracking-wide leading-tight drop-shadow-sm text-foreground">
+                {data.title}
+              </span>
+            )}
             {displayName && !isLocked && (
               <span className="text-foreground/40 text-[0.7rem] font-mono mt-0.5">
                 {displayName}
@@ -130,15 +144,20 @@ export function QuestNodeCard({ node }: { node: Node }) {
         )}
       </div>
 
-      <p className={cn(
-        "text-xs leading-relaxed flex-1 relative z-10",
-        isLocked ? "text-foreground/40 blur-[1px]" : "text-foreground/70"
-      )}>
-        {data.description}
-      </p>
+      {isLocked ? (
+        data.description && (
+          <div className="flex-1 relative z-10 py-0.5">
+            <SkeletonLines />
+          </div>
+        )
+      ) : (
+        <p className="text-xs leading-relaxed flex-1 relative z-10 text-foreground/70">
+          {data.description}
+        </p>
+      )}
 
       {/* Objectives */}
-      {!isLocked && data.objectives && data.objectives.length > 0 && (
+      {data.objectives && data.objectives.length > 0 && (
         <div className="flex flex-col gap-2 mt-4 border-t border-primary/20 pt-3 relative z-10">
           <div className="flex items-center gap-1.5 mb-0.5">
             <Target size={12} className="text-foreground/50" />
@@ -154,9 +173,15 @@ export function QuestNodeCard({ node }: { node: Node }) {
                   className="flex items-start gap-2 rounded-lg border-l-2 border-primary/30 bg-primary/5 px-2.5 py-2"
                 >
                   <Quote size={12} className="text-primary/50 shrink-0 mt-0.5" />
-                  <span className="text-xs italic text-foreground/70 leading-relaxed">
-                    {obj.label}
-                  </span>
+                  {isLocked ? (
+                    <div className="flex-1 pt-0.5">
+                      <SkeletonLines widths={["85%", "60%"]} />
+                    </div>
+                  ) : (
+                    <span className="text-xs italic text-foreground/70 leading-relaxed">
+                      {obj.label}
+                    </span>
+                  )}
                 </div>
               );
             }
@@ -172,10 +197,10 @@ export function QuestNodeCard({ node }: { node: Node }) {
                 key={obj.id}
                 className={cn(
                   "flex flex-col gap-1.5 p-1.5 -mx-1.5 rounded-lg transition-colors group",
-                  data.interactive && !hasProgress && "cursor-pointer hover:bg-foreground/5"
+                  data.interactive && !hasProgress && !isLocked && "cursor-pointer hover:bg-foreground/5"
                 )}
                 onClick={(e) => {
-                  if (data.interactive && !hasProgress) {
+                  if (data.interactive && !hasProgress && !isLocked) {
                     e.stopPropagation();
                     data.onToggleObjective?.(data.id, obj.id);
                   }
@@ -187,9 +212,15 @@ export function QuestNodeCard({ node }: { node: Node }) {
                       "w-2 h-2 rounded-sm mt-0.5 shrink-0 transition-colors border",
                       isObjComplete ? "bg-emerald-500 border-emerald-500" : "bg-primary/10 border-primary/30"
                     )} />
-                    <span className={cn("leading-tight", isObjComplete && "line-through opacity-50")}>
-                      {obj.label}
-                    </span>
+                    {isLocked ? (
+                      <div className="flex-1 pt-0.5">
+                        <SkeletonLines widths={["65%"]} />
+                      </div>
+                    ) : (
+                      <span className={cn("leading-tight", isObjComplete && "line-through opacity-50")}>
+                        {obj.label}
+                      </span>
+                    )}
                   </div>
                   {hasProgress && (
                     <div className="flex items-center gap-2">

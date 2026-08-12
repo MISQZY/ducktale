@@ -45,7 +45,8 @@ export function QuestTree({
         let status: QuestStatus = n.status;
         let isCompleted = !!currentCompletions[n.id];
         
-        const depsMet = !n.prerequisites || n.prerequisites.every(p => {
+        const allDeps = [...(n.prerequisites ?? []), ...(n.optionalPrerequisites ?? [])];
+        const depsMet = allDeps.every(p => {
           return computedStatus[p] === "completed" || (computedStatus[p] === undefined && !!currentCompletions[p]);
         });
 
@@ -223,7 +224,8 @@ export function QuestTree({
           const status: QuestStatus = n.status;
           const isCompleted = !!initialCompletionsRef.current[n.id];
           
-          const depsMet = !n.prerequisites || n.prerequisites.every(p => {
+          const allDeps = [...(n.prerequisites ?? []), ...(n.optionalPrerequisites ?? [])];
+          const depsMet = allDeps.every(p => {
             return computedStatus[p] === "completed" || (computedStatus[p] === undefined && !!initialCompletionsRef.current[p]);
           });
 
