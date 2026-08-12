@@ -7,7 +7,7 @@ import { edgeLineAttrs } from "@/components/graph/shapes";
 import { QUEST_NODE_SHAPE } from "./shapes";
 import type { QuestTreeProps, QuestNodeDef, QuestStatus } from "./types";
 import type { QuestNodeData } from "./QuestNodeCard";
-import { resolvePushCollisions } from "@/components/graph/utils";
+import { wireNodeCollisionResolution } from "@/components/graph/utils";
 
 export function QuestTree({
   id,
@@ -209,25 +209,7 @@ export function QuestTree({
   const initGraph = React.useCallback((graph: Graph) => {
     graphRef.current = graph;
 
-    const resolveCollisions = (sourceNodeId: string) => {
-      const rects: Record<string, { x: number; y: number; width: number; height: number }> = {};
-      for (const n of graph.getNodes()) {
-        rects[n.id] = { ...n.position(), ...n.size() };
-      }
-
-      const resolved = resolvePushCollisions(rects, sourceNodeId, 20); // 20px margin
-      for (const n of graph.getNodes()) {
-        if (n.id === sourceNodeId) continue;
-        const r = resolved[n.id];
-        const cur = n.position();
-        if (r.x !== cur.x || r.y !== cur.y) {
-          n.position(r.x, r.y);
-        }
-      }
-    };
-
-    graph.on("node:moving", ({ node }) => resolveCollisions(node.id));
-    graph.on("node:resized", ({ node }) => resolveCollisions(node.id));
+    wireNodeCollisionResolution(graph, { margin: 20, onResize: true });
 
     const computedStatus: Record<string, QuestStatus> = {};
     const computedObjCompletions: Record<string, Record<string, boolean>> = {};

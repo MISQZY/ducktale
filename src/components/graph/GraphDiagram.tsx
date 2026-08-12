@@ -5,7 +5,7 @@ import { Graph, type Edge } from "@antv/x6";
 import { cn } from "@/lib/utils";
 import { DIAGRAM } from "@/config/site";
 import { NODE_SHAPE, edgeLineAttrs } from "./shapes";
-import { resolvePushCollisions } from "./utils";
+import { wireNodeCollisionResolution } from "./utils";
 import type { GraphDiagramProps, GraphEdgeData, GraphNodeData, TooltipState } from "./types";
 import { GraphCanvas } from "./GraphCanvas";
 
@@ -184,18 +184,7 @@ export function GraphDiagram({
       setTooltip(null);
     });
 
-    graph.on("node:moving", ({ node }) => {
-      const rects: Record<string, { x: number; y: number; width: number; height: number }> = {};
-      for (const n of graph.getNodes()) rects[n.id] = { ...n.position(), ...n.size() };
-
-      const resolved = resolvePushCollisions(rects, node.id);
-      for (const n of graph.getNodes()) {
-        if (n.id === node.id) continue;
-        const r = resolved[n.id];
-        const cur = n.position();
-        if (r.x !== cur.x || r.y !== cur.y) n.position(r.x, r.y);
-      }
-    });
+    wireNodeCollisionResolution(graph);
 
     const onContainerLeave = () => {
       clearActiveEdges();

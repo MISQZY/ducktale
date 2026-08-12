@@ -1,3 +1,5 @@
+import type { Graph } from "@antv/x6";
+
 export interface Rect {
   x: number;
   y: number;
@@ -72,4 +74,38 @@ export function resolvePushCollisions(
   }
 
   return next;
+}
+
+/**
+ * Registers the "push everything else out of the way while a node is being
+ * dragged (or resized)" behavior on a graph — GraphDiagram and QuestTree
+ * each need this identically, just with different margins (and QuestTree
+ * additionally needs it on `node:resized`, since QuestNodeCard auto-resizes
+ * to fit its content while GraphDiagram's NodeCard is a fixed size).
+ * No cleanup is returned: these listeners live and die with the graph
+ * instance, which GraphCanvas already disposes of on unmount.
+ */
+export function wireNodeCollisionResolution(
+  graph: Graph,
+  options?: { margin?: number; onResize?: boolean }
+): void {
+  const margin = options?.margin ?? 6;
+
+  const resolveCollisions = (sourceNodeId: string) => {
+    const rects: Record<string, Rect> = {};
+    for (const n of graph.getNodes()) rects[n.id] = { ...n.position(), ...n.size() };
+
+    const resolved = resolvePushCollisions(rects, sourceNodeId, margin);
+    for (const n of graph.getNodes()) {
+      if (n.id === sourceNodeId) continue;
+      const r = resolved[n.id];
+      const cur = n.position();
+      if (r.x !== cur.x || r.y !== cur.y) n.position(r.x, r.y);
+    }
+  };
+
+  graph.on("node:moving", ({ node }) => resolveCollisions(node.id));
+  if (options?.onResize) {
+    graph.on("node:resized", ({ node }) => resolveCollisions(node.id));
+  }
 }
