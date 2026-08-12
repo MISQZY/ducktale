@@ -14,8 +14,10 @@ interface Candidate {
   title: string;
   /** Full dialogue line that triggers this objective, quote-formatted for QuestNodeCard's objectives[] — empty when no triggering conversation option was found. */
   quote: string;
-  /** Minecraft username the questgiving NPC's skin was borrowed from (NpcIdentity.skinSourceName) — feeds both SkinFace's portrait and QuestNodeCard's mono "nick" label. */
+  /** Minecraft username the questgiving NPC's skin was borrowed from (NpcIdentity.skinSourceName) — resolved to an actual image server-side by resolveCharacterSkins.ts, never shown as text. */
   characterName?: string;
+  /** The NPC's real name (NpcIdentity.name) — shown as text under the title, in place of characterName. */
+  npcName?: string;
   /** Tag names (not condition/action keys) this node needs before it can start. */
   requiredTags: Set<string>;
   /** Tag names this node's completion sets — what other nodes' requiredTags get matched against. */
@@ -106,6 +108,7 @@ function buildCandidate(pkg: ParsedPackage, objectiveKey: string, npcIdentities:
   // speaking, which is how characterName gets resolved.
   let quote = "";
   let characterName: string | undefined;
+  let npcName: string | undefined;
   for (const conversation of Object.values(pkg.conversations)) {
     for (const option of Object.values(conversation.npcOptions)) {
       const startsThis = option.actions.some((actionKey) => pkg.actions[actionKey]?.startsObjective === objectiveKey);
@@ -120,6 +123,7 @@ function buildCandidate(pkg: ParsedPackage, objectiveKey: string, npcIdentities:
       const questerNpcKey = extractNpcKeyFromQuester(conversation.quester);
       const identity = questerNpcKey ? resolveNpcByKey(pkg, questerNpcKey, npcIdentities) : undefined;
       characterName = identity?.skinSourceName ?? undefined;
+      npcName = identity?.name;
     }
   }
 
@@ -139,6 +143,7 @@ function buildCandidate(pkg: ParsedPackage, objectiveKey: string, npcIdentities:
     title: deriveTitle(quote, objectiveKey),
     quote,
     characterName,
+    npcName,
     requiredTags,
     producedTags,
   };
@@ -222,6 +227,7 @@ export function buildQuestNodes(packages: ParsedPackage[], npcIdentities: Map<st
       description: candidate.quote ? "" : `Пакет ${candidate.packageName} · ${candidate.server}`,
       status: prerequisites.length > 0 ? "locked" : "active",
       characterName: candidate.characterName,
+      npcName: candidate.npcName,
       objectives: candidate.quote
         ? [{ id: `${candidate.id}.quote`, label: candidate.quote, quote: true }]
         : undefined,

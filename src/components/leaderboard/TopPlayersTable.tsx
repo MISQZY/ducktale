@@ -96,9 +96,9 @@ export function TopPlayersTable({ pageSize = 10, className }: TopPlayersTablePro
         <DocsTable>
           <DocsTableHeader>
             <DocsTableRow>
-              <DocsTableHead className="w-14">{t("columns.rank")}</DocsTableHead>
-              <DocsTableHead>{t("columns.player")}</DocsTableHead>
-              <DocsTableHead className="w-32">{t("columns.playtime")}</DocsTableHead>
+              <DocsTableHead className="w-14 text-center align-middle">{t("columns.rank")}</DocsTableHead>
+              <DocsTableHead className="align-middle">{t("columns.player")}</DocsTableHead>
+              <DocsTableHead className="w-32 text-center align-middle">{t("columns.playtime")}</DocsTableHead>
             </DocsTableRow>
           </DocsTableHeader>
 
@@ -133,11 +133,13 @@ export function TopPlayersTable({ pageSize = 10, className }: TopPlayersTablePro
                   isRefreshing && "opacity-40 transition-opacity"
                 )}
               >
-                <DocsTableCell>
-                  <RankBadge rank={player.rank} size={18} variant="text" />
+                <DocsTableCell className="text-center align-middle">
+                  <div className="flex justify-center">
+                    <RankBadge rank={player.rank} size={18} variant="text" />
+                  </div>
                 </DocsTableCell>
 
-                <DocsTableCell>
+                <DocsTableCell className="align-middle">
                   {player.profileUsername ? (
                     <Link
                       href={`/profile/${encodeURIComponent(player.profileUsername)}`}
@@ -193,7 +195,7 @@ export function TopPlayersTable({ pageSize = 10, className }: TopPlayersTablePro
                   )}
                 </DocsTableCell>
 
-                <DocsTableCell>
+                <DocsTableCell className="text-center align-middle">
                   <span className={cn("text-xs tabular-nums", DOCS_TABLE_THEME.textSoft)}>
                     {formatDurationMs(player.playtimeMs, tCard)}
                   </span>

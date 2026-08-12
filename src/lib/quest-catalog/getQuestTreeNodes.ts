@@ -1,6 +1,7 @@
 import { siteDb } from "@/lib/site-db";
 import { parsePackage } from "./parsePackage";
 import { buildQuestNodes } from "./buildQuestNodes";
+import { resolveCharacterSkins } from "./resolveCharacterSkins";
 import type { NpcIdentityInfo, ParsedPackage } from "./types";
 import type { QuestNodeDef } from "@/components/quest-tree/types";
 
@@ -22,6 +23,8 @@ function asFileMap(value: unknown): Record<string, string> {
  * <QuestTree nodes={...} />. See buildQuestNodes.ts for what "turns into"
  * actually means — this is a heuristic derived from BetonQuest's raw
  * package files, not per-player live state (see BETONQUEST_QUEST_TREE.md).
+ * A final pass (resolveCharacterSkins) fills in each node's actual skin
+ * texture through this server's SkinsRestorer database.
  */
 export async function getQuestTreeNodes(server?: string, packageName?: string): Promise<QuestNodeDef[]> {
   const [rows, npcRows] = await Promise.all([
@@ -47,7 +50,8 @@ export async function getQuestTreeNodes(server?: string, packageName?: string): 
     npcRows.map((row) => [`${row.server}:${row.npcId}`, { name: row.name, skinSourceName: row.skinSourceName }])
   );
 
-  return buildQuestNodes(packages, npcIdentities);
+  const nodes = buildQuestNodes(packages, npcIdentities);
+  return resolveCharacterSkins(nodes);
 }
 
 /** Distinct server names with at least one synced package — for a page that lets an admin/visitor pick which server's quest lines to view. */

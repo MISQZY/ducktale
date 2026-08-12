@@ -43,9 +43,13 @@ export function QuestNodeCard({ node }: { node: Node }) {
   const isCompleted = data.status === "completed";
   const isActive = data.status === "active";
   
-  const skinUrl = data.characterName && !isLocked 
-    ? `https://minotar.net/skin/${data.characterName}` 
-    : null;
+  const skinUrl = isLocked
+    ? null
+    : data.legacy
+      ? (data.characterName ? `https://minotar.net/skin/${data.characterName}` : null)
+      : (data.characterSkinUrl ?? null);
+
+  const displayName = data.npcName ?? data.characterName;
 
   return (
     <div
@@ -90,9 +94,9 @@ export function QuestNodeCard({ node }: { node: Node }) {
             )}>
               {data.title}
             </span>
-            {data.characterName && !isLocked && (
+            {displayName && !isLocked && (
               <span className="text-foreground/40 text-[0.7rem] font-mono mt-0.5">
-                {data.characterName}
+                {displayName}
               </span>
             )}
             {isLocked && (

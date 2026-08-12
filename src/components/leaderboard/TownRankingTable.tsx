@@ -89,10 +89,10 @@ export function TownRankingTable({ pageSize = 15, className }: TownRankingTableP
       <DocsTable>
         <DocsTableHeader>
           <DocsTableRow>
-            <DocsTableHead className="w-14" withRightBorder>{t("columns.rank")}</DocsTableHead>
-            <DocsTableHead                  withRightBorder>{t("columns.town")}</DocsTableHead>
-            <DocsTableHead className="w-32" withRightBorder>{t("columns.nation")}</DocsTableHead>
-            <DocsTableHead className="w-24"               >{t("columns.size")}</DocsTableHead>
+            <DocsTableHead className="w-14 text-center align-middle" withRightBorder>{t("columns.rank")}</DocsTableHead>
+            <DocsTableHead className="align-middle"                  withRightBorder>{t("columns.town")}</DocsTableHead>
+            <DocsTableHead className="w-32 align-middle" withRightBorder>{t("columns.nation")}</DocsTableHead>
+            <DocsTableHead className="w-24 text-center align-middle"               >{t("columns.size")}</DocsTableHead>
           </DocsTableRow>
         </DocsTableHeader>
 
@@ -127,19 +127,21 @@ export function TownRankingTable({ pageSize = 15, className }: TownRankingTableP
                   isRefreshing && "opacity-40 transition-opacity"
                 )}
               >
-                <DocsTableCell withRightBorder>
-                  <RankBadge rank={town.rank} size={18} variant="text" />
+                <DocsTableCell className="text-center align-middle" withRightBorder>
+                  <div className="flex justify-center">
+                    <RankBadge rank={town.rank} size={18} variant="text" />
+                  </div>
                 </DocsTableCell>
 
-                <DocsTableCell withRightBorder>
+                <DocsTableCell className="align-middle" withRightBorder>
                   <TownNameLabel tag={town.tag} name={town.name} query={query} />
                 </DocsTableCell>
 
-                <DocsTableCell withRightBorder>
+                <DocsTableCell className="align-middle" withRightBorder>
                   <TownNationBadge nation={town.nation} nationTag={town.nationTag} independentLabel={t("townIndependent")} />
                 </DocsTableCell>
 
-                <DocsTableCell>
+                <DocsTableCell className="text-center align-middle">
                   <span className={cn("text-xs font-mono tabular-nums", DOCS_TABLE_THEME.textSoft)}>
                     {town.size}
                   </span>
