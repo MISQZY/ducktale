@@ -82,6 +82,17 @@ export function GraphCanvas({
     
     observer.observe(container);
 
+    g.on("node:mousedown", () => {
+      container.classList.add("is-dragging-node");
+    });
+    g.on("node:mouseup", () => {
+      container.classList.remove("is-dragging-node");
+    });
+    // Also remove on blank mouseup just in case the mouseup happens outside the node
+    g.on("blank:mouseup", () => {
+      container.classList.remove("is-dragging-node");
+    });
+
     const cleanup = onInit(g);
 
     return () => {
@@ -144,7 +155,7 @@ export function GraphCanvas({
     >
       <div
         ref={containerRef}
-        className="absolute inset-0 cursor-grab active:cursor-grabbing"
+        className="absolute inset-0 cursor-grab active:cursor-grabbing [&.is-dragging-node]:!cursor-grabbing [&.is-dragging-node_*]:!cursor-grabbing"
         style={{ backgroundImage: `url("${GRID_BG_URL}")`, backgroundSize: `${GRID_CELL}px ${GRID_CELL}px` }}
       />
       
