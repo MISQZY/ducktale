@@ -7,7 +7,7 @@ import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
 
 export function ThemeToggle({ className }: { className?: string }) {
-  const { theme, setTheme } = useTheme();
+  const { resolvedTheme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -23,7 +23,7 @@ export function ThemeToggle({ className }: { className?: string }) {
     <Button
       variant="ghost"
       size="icon"
-      onClick={() => setTheme(theme === "light" ? "dark" : "light")}
+      onClick={() => setTheme(resolvedTheme === "light" ? "dark" : "light")}
       className={cn("text-primary/70 hover:text-primary hover:bg-primary/5 transition-colors", className)}
       aria-label="Переключить тему"
       title="Переключить тему"
