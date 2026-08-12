@@ -5,7 +5,7 @@ import Image from "next/image";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useFullscreen } from "@/hooks/useFullscreen";
-import { FullscreenViewerHeader, FULLSCREEN_OVERLAY_CLASS } from "@/components/common";
+import { EmbedPage } from "@/components/docs/EmbedPage";
 import type { ResourceImage } from "./types";
 
 interface ImageViewerProps {
@@ -46,31 +46,40 @@ export const ImageViewer = memo(
     if (!open || !current) return null;
 
     return (
-      <div
-        className={FULLSCREEN_OVERLAY_CLASS}
-        role="dialog"
-        aria-modal="true"
-        aria-label={current.alt ?? current.title ?? "Просмотр изображения"}
+      <EmbedPage
+        title={current.title ?? current.alt ?? "Просмотр изображения"}
+        open={open}
+        onOpenChange={onOpenChange}
+        modalMode
       >
-        <FullscreenViewerHeader
-          ref={closeButtonRef}
-          title={current.title ?? current.alt ?? "Просмотр изображения"}
-          onClose={handleClose}
-        />
-
-        {/* Image area */}
-        <div className="relative flex-1 w-full overflow-hidden">
-          <div className="relative w-full h-full flex items-center justify-center p-4 md:p-6">
-            <div className="relative w-full h-full max-w-full md:max-w-[75vw] max-h-[90vh]">
+        <div className="relative flex-1 w-full overflow-hidden z-0 flex flex-col isolate">
+          {/* Blurred Background */}
+          <div className="absolute inset-0 -z-10 pointer-events-none">
+            <div className="absolute inset-[-10%] blur-xl opacity-50 dark:opacity-60 transform-gpu">
               <Image
-                src={current.src}
+                src={current.src.replace(/(&|\?)sz=w\d+/, '$1sz=w3840')}
+                alt=""
+                fill
+                className="object-cover"
+                sizes="100vw"
+                priority
+                unoptimized={true}
+              />
+            </div>
+          </div>
+
+          <div className="relative w-full flex-1 flex items-center justify-center z-10 transform-gpu">
+            <div className="relative w-full h-full">
+              <Image
+                src={current.src.replace(/(&|\?)sz=w\d+/, '$1sz=w3840')}
                 alt={current.alt}
                 title={current.title}
                 fill
-                sizes="(max-width: 768px) 100vw, (max-width: 1280px) 95vw, 1200px"
+                sizes="100vw"
                 className="object-contain"
                 quality={100}
                 priority
+                unoptimized={true}
               />
             </div>
           </div>
@@ -82,9 +91,9 @@ export const ImageViewer = memo(
                 className={cn(
                   "absolute left-3 md:left-4 top-1/2 -translate-y-1/2 z-10",
                   "flex h-10 w-10 items-center justify-center rounded-full",
-                  "bg-black/60 border border-primary/30 text-primary/80 backdrop-blur-sm",
+                  "bg-black/50 border border-white/20 text-white/90 backdrop-blur-sm",
                   "shadow-[0_0_16px_rgba(212,160,23,0.15)]",
-                  "hover:bg-black/75 hover:text-primary hover:border-primary/55 hover:shadow-[0_0_20px_rgba(212,160,23,0.3)] transition-all",
+                  "hover:bg-black/75 hover:text-white hover:border-white/40 hover:shadow-[0_0_20px_rgba(255,255,255,0.2)] transition-all",
                   "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
                 )}
                 aria-label="Предыдущее изображение"
@@ -97,9 +106,9 @@ export const ImageViewer = memo(
                 className={cn(
                   "absolute right-3 md:right-4 top-1/2 -translate-y-1/2 z-10",
                   "flex h-10 w-10 items-center justify-center rounded-full",
-                  "bg-black/60 border border-primary/30 text-primary/80 backdrop-blur-sm",
+                  "bg-black/50 border border-white/20 text-white/90 backdrop-blur-sm",
                   "shadow-[0_0_16px_rgba(212,160,23,0.15)]",
-                  "hover:bg-black/75 hover:text-primary hover:border-primary/55 hover:shadow-[0_0_20px_rgba(212,160,23,0.3)] transition-all",
+                  "hover:bg-black/75 hover:text-white hover:border-white/40 hover:shadow-[0_0_20px_rgba(255,255,255,0.2)] transition-all",
                   "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
                 )}
                 aria-label="Следующее изображение"
@@ -110,7 +119,7 @@ export const ImageViewer = memo(
               {/* Counter */}
               <div className="absolute top-4 left-1/2 -translate-x-1/2 z-10">
                 <span
-                  className="px-3 py-1.5 rounded-full bg-black/60 border border-primary/30 text-primary/80 text-xs backdrop-blur-sm tabular-nums"
+                  className="px-3 py-1.5 rounded-full bg-black/50 border border-white/20 text-white/90 text-xs backdrop-blur-sm tabular-nums"
                   style={{ fontFamily: "var(--font-mono)" }}
                 >
                   {index + 1} / {images.length}
@@ -136,7 +145,7 @@ export const ImageViewer = memo(
             </>
           )}
         </div>
-      </div>
+      </EmbedPage>
     );
   }
 );

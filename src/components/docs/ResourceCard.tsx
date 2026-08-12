@@ -236,7 +236,7 @@ const ResourceCardBody = memo(({
                 Изображения
               </p>
               <div
-                className="not-prose relative group overflow-hidden rounded-xl border border-primary/20 bg-black/30"
+                className="not-prose relative group overflow-hidden rounded-xl border border-primary/20 bg-muted/20 dark:bg-black/30"
                 style={{ height: `${CAROUSEL_HEIGHT}px` }}
                 onKeyDown={handleKeyDown}
                 role="region"
@@ -261,11 +261,11 @@ const ResourceCardBody = memo(({
                 {hasMultipleImages && (
                   <>
                     <div
-                      className="absolute inset-y-0 left-0 w-16 bg-linear-to-r from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"
+                      className="absolute inset-y-0 left-0 w-16 bg-linear-to-r from-black/30 dark:from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10"
                       aria-hidden="true"
                     />
                     <div
-                      className="absolute inset-y-0 right-0 w-16 bg-linear-to-l from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"
+                      className="absolute inset-y-0 right-0 w-16 bg-linear-to-l from-black/30 dark:from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10"
                       aria-hidden="true"
                     />
                     <button
@@ -273,8 +273,8 @@ const ResourceCardBody = memo(({
                       className={cn(
                         "absolute left-2 top-1/2 -translate-y-1/2 z-20",
                         "flex h-8 w-8 items-center justify-center rounded-full",
-                        "bg-black/60 border border-primary/30 text-foreground",
-                        "opacity-0 group-hover:opacity-100 transition-all hover:bg-black/80 hover:scale-105",
+                        "bg-black/50 border border-white/20 text-white/90",
+                        "opacity-0 group-hover:opacity-100 transition-all hover:bg-black/70 hover:scale-105",
                         "focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
                       )}
                       aria-label="Предыдущее изображение"
@@ -287,8 +287,8 @@ const ResourceCardBody = memo(({
                       className={cn(
                         "absolute right-2 top-1/2 -translate-y-1/2 z-20",
                         "flex h-8 w-8 items-center justify-center rounded-full",
-                        "bg-black/60 border border-primary/30 text-foreground",
-                        "opacity-0 group-hover:opacity-100 transition-all hover:bg-black/80 hover:scale-105",
+                        "bg-black/50 border border-white/20 text-white/90",
+                        "opacity-0 group-hover:opacity-100 transition-all hover:bg-black/70 hover:scale-105",
                         "focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
                       )}
                       aria-label="Следующее изображение"

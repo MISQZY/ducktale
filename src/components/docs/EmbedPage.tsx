@@ -12,6 +12,9 @@ export interface EmbedPageProps {
   header?: ReactNode | ((props: { fullscreen: boolean; toggleFullscreen: () => void; closeButtonRef: RefObject<HTMLButtonElement | null> }) => ReactNode);
   expandLabel?: string;
   collapseLabel?: string;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+  modalMode?: boolean;
 }
 
 export function EmbedPage({
@@ -20,22 +23,37 @@ export function EmbedPage({
   children,
   header,
   expandLabel = "Развернуть на весь экран",
-  collapseLabel = "Свернуть"
+  collapseLabel = "Свернуть",
+  open,
+  onOpenChange,
+  modalMode = false,
 }: EmbedPageProps) {
-  const [fullscreen, setFullscreen] = useState(false);
+  const [internalFullscreen, setInternalFullscreen] = useState(false);
+  const isControlled = open !== undefined;
+  const fullscreen = isControlled ? open : internalFullscreen;
+
   const [placeholderHeight, setPlaceholderHeight] = useState<number | undefined>(undefined);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  const handleClose = useCallback(() => setFullscreen(false), []);
+  const handleClose = useCallback(() => {
+    if (isControlled) onOpenChange?.(false);
+    else setInternalFullscreen(false);
+  }, [isControlled, onOpenChange]);
+
   const { closeButtonRef } = useFullscreen({ open: fullscreen, onClose: handleClose });
+
   const toggleFullscreen = useCallback(() => {
-    setFullscreen((v) => {
-      if (!v && containerRef.current) {
-        setPlaceholderHeight(containerRef.current.offsetHeight);
-      }
-      return !v;
-    });
-  }, []);
+    if (isControlled) {
+      onOpenChange?.(!fullscreen);
+    } else {
+      setInternalFullscreen((v) => {
+        if (!v && containerRef.current) {
+          setPlaceholderHeight(containerRef.current.offsetHeight);
+        }
+        return !v;
+      });
+    }
+  }, [isControlled, fullscreen, onOpenChange]);
 
   const isHeaderFunction = typeof header === "function";
 
@@ -63,6 +81,8 @@ export function EmbedPage({
       </div>
     </div>
   );
+
+  if (modalMode && !fullscreen) return null;
 
   return (
     <>
@@ -108,7 +128,7 @@ export function EmbedPage({
           : (header || defaultHeader)}
 
         <div 
-          className={cn("relative w-full min-h-0", fullscreen ? "flex-1" : "")}
+          className={cn("relative w-full min-h-0", fullscreen ? "flex-1 flex flex-col" : "")}
           style={fullscreen ? undefined : { height }}
         >
           {children}
