@@ -12,7 +12,7 @@ function DuckCard({
       data-slot="card"
       data-size={size}
       className={cn(
-        "group/card relative flex flex-col gap-4 overflow-hidden rounded-xl text-sm",
+        "liquid-card group/card relative flex flex-col gap-4 overflow-hidden rounded-xl text-sm",
         "bg-card/60 border border-primary/20",
         "shadow-[0_0_0_1px_rgba(212,160,23,0.04),inset_0_1px_0_rgba(212,160,23,0.06)]",
         "data-[size=sm]:gap-3",

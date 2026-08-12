@@ -38,23 +38,23 @@ const GLOBAL_PERMS: Record<
 > = {
   all: {
     text: "text-emerald-700 dark:text-emerald-300",
-    bg: "bg-emerald-950/60",
-    border: "border-emerald-700/40",
+    bg: "bg-emerald-100 dark:bg-emerald-950/60",
+    border: "border-emerald-300/60 dark:border-emerald-700/40",
   },
   old: {
-    text: "text-foreground",
-    bg: "bg-primary/60",
-    border: "border-amber-700/40",
+    text: "text-amber-800 dark:text-foreground",
+    bg: "bg-amber-100 dark:bg-primary/60",
+    border: "border-amber-300/60 dark:border-amber-700/40",
   },
   supporter: {
-    text: "text-primary",
-    bg: "bg-primary/60",
-    border: "border-primary/40",
+    text: "text-amber-800 dark:text-primary",
+    bg: "bg-amber-100 dark:bg-primary/60",
+    border: "border-amber-300/60 dark:border-primary/40",
   },
   admin: {
     text: "text-sky-700 dark:text-sky-300",
-    bg: "bg-sky-950/60",
-    border: "border-sky-700/40",
+    bg: "bg-sky-100 dark:bg-sky-950/60",
+    border: "border-sky-300/60 dark:border-sky-700/40",
   },
 };
 
@@ -119,7 +119,7 @@ export function CommandCard({
   return (
     <div
       className={cn(
-        "group relative mb-2 rounded-lg border overflow-hidden transition-colors duration-150",
+        "liquid-card group relative mb-2 rounded-lg border overflow-hidden transition-colors duration-150",
         "bg-card/80 border-border/50",
         open ? "border-amber-800/50" : "hover:border-border/70",
         className
@@ -167,7 +167,7 @@ export function CommandCard({
             )}
             <span
               className={cn(
-                "inline-flex items-center gap-1.5 text-xs font-medium px-2 py-0.5 rounded border whitespace-nowrap",
+                "liquid-badge inline-flex items-center gap-1.5 text-xs font-medium px-2 py-0.5 rounded border whitespace-nowrap",
                 perm.text,
                 perm.bg,
                 perm.border
@@ -179,8 +179,8 @@ export function CommandCard({
 
           {/* Roles badge */}
           {roles && roles.length > 0 && (
-            <span className="inline-flex items-center gap-1 text-[11px] text-muted-foreground bg-muted border border-border/60 rounded px-1.5 py-0.5 whitespace-nowrap">
-              <Lock size={9} className="text-muted-foreground" />
+            <span className="liquid-badge inline-flex items-center gap-1 text-[11px] text-foreground/70 dark:text-muted-foreground bg-black/5 dark:bg-muted border border-black/10 dark:border-border/60 rounded px-1.5 py-0.5 whitespace-nowrap">
+              <Lock size={9} className="text-foreground/50 dark:text-muted-foreground" />
               {roles.join(", ")}
             </span>
           )}
@@ -275,7 +275,7 @@ export function CommandCard({
           {aliases.map((a) => (
             <code
               key={a}
-              className="text-[11px] font-mono text-muted-foreground border border-border bg-card px-1.5 py-0.5 rounded"
+              className="liquid-badge text-[11px] font-mono text-muted-foreground border border-border bg-card px-1.5 py-0.5 rounded"
             >
               {a}
             </code>

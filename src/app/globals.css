@@ -140,65 +140,65 @@
   --color-fd-accent-foreground: var(--color-text-primary);
   --color-fd-ring: var(--color-accent-gold);
 
-  --background:          oklch(0.96 0 0);
-  --foreground:          oklch(0.15 0 0);
+  --background:          oklch(0.98 0 0);
+  --foreground:          oklch(0.1 0 0);
   --card:                oklch(1 0 0);
-  --card-foreground:     oklch(0.15 0 0);
+  --card-foreground:     oklch(0.1 0 0);
   --popover:             oklch(1 0 0);
-  --popover-foreground:  oklch(0.2 0 0);
-  --primary:             oklch(0.68 0.13 72);
+  --popover-foreground:  oklch(0.1 0 0);
+  --primary:             oklch(0.55 0.15 72); /* Deeper gold for readability */
   --primary-foreground:  oklch(0.99 0.01 80);
-  --secondary:           oklch(0.96 0 0);
-  --secondary-foreground:oklch(0.2 0 0);
-  --muted:               oklch(0.96 0 0);
-  --muted-foreground:    oklch(0.45 0 0);
-  --accent:              oklch(0.96 0 0);
-  --accent-foreground:   oklch(0.2 0 0);
+  --secondary:           oklch(0.92 0 0);
+  --secondary-foreground:oklch(0.1 0 0);
+  --muted:               oklch(0.90 0 0); /* Darker for bg-muted/40 visibility */
+  --muted-foreground:    oklch(0.35 0 0);
+  --accent:              oklch(0.92 0 0);
+  --accent-foreground:   oklch(0.1 0 0);
   --destructive:         oklch(0.5 0.2 22);
-  --border:              oklch(0.9 0 0);
-  --input:               oklch(0.9 0 0);
-  --ring:                oklch(0.68 0.13 72 / 50%);
+  --border:              oklch(0.85 0 0);
+  --input:               oklch(0.85 0 0);
+  --ring:                oklch(0.55 0.15 72 / 50%);
 
-  --color-bg-page: #fafafa;
+  --color-bg-page: #f8f8f8;
   --color-bg-surface: #ffffff;
-  --color-bg-elevated: #f4f4f5;
-  --color-bg-muted: #e4e4e7;
-  --color-bg-strong: #d4d4d8;
+  --color-bg-elevated: #f0f0f1;
+  --color-bg-muted: #d4d4d8; /* Darker muted for transparency effects */
+  --color-bg-strong: #a1a1aa;
 
-  --color-text-primary: #18181b;
-  --color-text-secondary: #52525b;
-  --color-text-dim: rgba(24, 24, 27, 0.6);
-  --color-text-faint: rgba(24, 24, 27, 0.4);
-  --color-text-ghost: rgba(24, 24, 27, 0.2);
+  --color-text-primary: #09090b;
+  --color-text-secondary: #3f3f46;
+  --color-text-dim: rgba(9, 9, 11, 0.6);
+  --color-text-faint: rgba(9, 9, 11, 0.4);
+  --color-text-ghost: rgba(9, 9, 11, 0.2);
 
-  --color-accent-gold-soft: rgba(212, 160, 23, 0.08);
-  --color-accent-gold-faint: rgba(212, 160, 23, 0.03);
-  --color-accent-gold-muted: rgba(212, 160, 23, 0.12);
+  --color-accent-gold-soft: rgba(184, 134, 11, 0.12);
+  --color-accent-gold-faint: rgba(184, 134, 11, 0.05);
+  --color-accent-gold-muted: rgba(184, 134, 11, 0.18);
 
-  --color-border-subtle: #e4e4e7;
-  --color-border-soft: rgba(212, 160, 23, 0.15);
-  --color-border-weak: rgba(212, 160, 23, 0.08);
+  --color-border-subtle: #d4d4d8;
+  --color-border-soft: rgba(184, 134, 11, 0.2);
+  --color-border-weak: rgba(184, 134, 11, 0.1);
 
-  --color-shadow-deep: rgba(0, 0, 0, 0.05);
-  --color-dialog-overlay: rgba(255, 255, 255, 0.8);
-  --color-input-bg: rgba(255, 255, 255, 0.9);
-  --color-input-border: #d4d4d8;
+  --color-shadow-deep: rgba(0, 0, 0, 0.08);
+  --color-dialog-overlay: rgba(255, 255, 255, 0.85);
+  --color-input-bg: rgba(255, 255, 255, 0.95);
+  --color-input-border: #a1a1aa;
 
-  --color-link-hover-bg: rgba(212, 160, 23, 0.05);
-  --color-link-active-bg: rgba(212, 160, 23, 0.08);
-  --color-selection-bg: rgba(212, 160, 23, 0.15);
+  --color-link-hover-bg: rgba(184, 134, 11, 0.08);
+  --color-link-active-bg: rgba(184, 134, 11, 0.12);
+  --color-selection-bg: rgba(184, 134, 11, 0.25);
 
-  --color-stone-950: #fafafa;
+  --color-stone-950: #f8f8f8;
   --color-stone-900: #ffffff;
-  --color-stone-800: #f4f4f5;
-  --color-stone-700: #e4e4e7;
-  --color-stone-600: #d4d4d8;
-  --color-stone-500: #a1a1aa;
+  --color-stone-800: #f0f0f1;
+  --color-stone-700: #d4d4d8;
+  --color-stone-600: #a1a1aa;
+  --color-stone-500: #71717a;
 
-  --color-duck-dark: #fafafa;
-  --color-duck-darker: #f4f4f5;
+  --color-duck-dark: #f8f8f8;
+  --color-duck-darker: #f0f0f1;
   --color-duck-stone: #ffffff;
-  --color-duck-muted: #e4e4e7;
+  --color-duck-muted: #d4d4d8;
 }
 
 html {
@@ -477,12 +477,211 @@ body {
   .nav-burger  { display: none;  }
 }
  
+.liquid-badge {
+  position: relative;
+  overflow: hidden;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  transition: all 0.3s ease;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1), 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.light .liquid-badge {
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.4), 0 1px 2px rgba(0, 0, 0, 0.02);
+}
+
+/* Soft background glare */
+.liquid-badge::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    circle 100px at var(--mouse-x, 0) var(--mouse-y, 0),
+    rgba(255, 255, 255, 0.15),
+    transparent 100%
+  );
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+  z-index: 10;
+}
+
+/* Shiny border glare */
+.liquid-badge::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: radial-gradient(
+    circle 60px at var(--mouse-x, 0) var(--mouse-y, 0),
+    rgba(255, 255, 255, 0.6),
+    transparent 100%
+  );
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+  z-index: 11;
+}
+
+.liquid-badge:hover::after,
+.liquid-badge:hover::before {
+  opacity: 1;
+}
+
 [data-roles-badge] {
   display: inline-flex !important;
-  color: rgb(168 162 158) !important;
-  background-color: rgb(23 23 23) !important;
-  border: 1px solid rgb(63 63 63 / 0.6) !important;
+  color: var(--color-fd-foreground) !important;
+  background-color: color-mix(in srgb, var(--color-fd-muted) 60%, transparent) !important;
+  border: 1px solid color-mix(in srgb, var(--color-fd-border) 40%, transparent) !important;
   border-radius: 0.25rem !important;
   padding: 0.125rem 0.375rem !important;
   font-size: 11px !important;
+  position: relative !important;
+  overflow: hidden !important;
+  backdrop-filter: blur(8px) !important;
+  -webkit-backdrop-filter: blur(8px) !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1), 0 1px 2px rgba(0, 0, 0, 0.05) !important;
+}
+
+.light [data-roles-badge] {
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.4), 0 1px 2px rgba(0, 0, 0, 0.02) !important;
+}
+
+[data-roles-badge]::after {
+  content: "" !important;
+  position: absolute !important;
+  inset: 0 !important;
+  background: radial-gradient(
+    circle 100px at var(--mouse-x, 0) var(--mouse-y, 0),
+    rgba(255, 255, 255, 0.15),
+    transparent 100%
+  ) !important;
+  opacity: 0 !important;
+  transition: opacity 0.3s ease !important;
+  pointer-events: none !important;
+  z-index: 10 !important;
+}
+
+[data-roles-badge]::before {
+  content: "" !important;
+  position: absolute !important;
+  inset: 0 !important;
+  border-radius: inherit !important;
+  padding: 1px !important;
+  background: radial-gradient(
+    circle 60px at var(--mouse-x, 0) var(--mouse-y, 0),
+    rgba(255, 255, 255, 0.6),
+    transparent 100%
+  ) !important;
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0) !important;
+  -webkit-mask-composite: xor !important;
+  mask-composite: exclude !important;
+  opacity: 0 !important;
+  transition: opacity 0.3s ease !important;
+  pointer-events: none !important;
+  z-index: 11 !important;
+}
+
+[data-roles-badge]:hover::after,
+[data-roles-badge]:hover::before {
+  opacity: 1 !important;
+}
+
+/* Liquid card effect */
+.liquid-card,
+[data-card],
+.fd-card {
+  position: relative;
+  overflow: hidden;
+}
+
+.liquid-card::after,
+[data-card]::after,
+.fd-card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    circle 500px at var(--mouse-x, 0) var(--mouse-y, 0),
+    rgba(255, 255, 255, 0.05),
+    transparent 100%
+  );
+  opacity: 0;
+  transition: opacity 0.4s ease;
+  pointer-events: none;
+  z-index: 10;
+}
+
+.liquid-card::before,
+[data-card]::before,
+.fd-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: radial-gradient(
+    circle 200px at var(--mouse-x, 0) var(--mouse-y, 0),
+    rgba(255, 255, 255, 0.4),
+    transparent 100%
+  );
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  opacity: 0;
+  transition: opacity 0.4s ease;
+  pointer-events: none;
+  z-index: 11;
+}
+
+.liquid-card:hover::after,
+.liquid-card:hover::before,
+[data-card]:hover::after,
+[data-card]:hover::before,
+.fd-card:hover::after,
+.fd-card:hover::before {
+  opacity: 1;
+}
+
+/* Light Theme Overrides for liquid effects */
+.light .liquid-badge::after,
+.light [data-roles-badge]::after {
+  background: radial-gradient(
+    circle 100px at var(--mouse-x, 0) var(--mouse-y, 0),
+    rgba(0, 0, 0, 0.08),
+    transparent 100%
+  ) !important;
+}
+
+.light .liquid-badge::before,
+.light [data-roles-badge]::before {
+  background: radial-gradient(
+    circle 60px at var(--mouse-x, 0) var(--mouse-y, 0),
+    rgba(0, 0, 0, 0.25),
+    transparent 100%
+  ) !important;
+}
+
+.light .liquid-card::after,
+.light [data-card]::after,
+.light .fd-card::after {
+  background: radial-gradient(
+    circle 500px at var(--mouse-x, 0) var(--mouse-y, 0),
+    rgba(0, 0, 0, 0.03),
+    transparent 100%
+  ) !important;
+}
+
+.light .liquid-card::before,
+.light [data-card]::before,
+.light .fd-card::before {
+  background: radial-gradient(
+    circle 200px at var(--mouse-x, 0) var(--mouse-y, 0),
+    rgba(0, 0, 0, 0.15),
+    transparent 100%
+  ) !important;
 }

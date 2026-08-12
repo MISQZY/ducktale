@@ -64,6 +64,8 @@ export const metadata: Metadata = {
 
 import { getLocale } from "next-intl/server";
 
+import { MouseTracker } from "@/components/common/MouseTracker";
+
 export default async function RootLayout({
   children,
 }: {
@@ -92,6 +94,7 @@ export default async function RootLayout({
           disableTransitionOnChange
         >
           {children}
+          <MouseTracker />
         </ThemeProvider>
       </body>
     </html>

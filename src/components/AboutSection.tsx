@@ -44,18 +44,23 @@ export default function AboutSection() {
           {features.map(({ key, icon: Icon, title, desc }) => (
             <div
               key={key}
-              className="corner-ornament w-full sm:w-[calc(50%-10px)] rounded-xl border border-primary/20 bg-muted/40 p-7 hover:border-primary/35 transition-all duration-300 group hover:bg-muted/60"
+              className="liquid-card w-full sm:w-[calc(50%-10px)] rounded-xl border border-primary/20 bg-muted/40 p-7 hover:border-primary/35 transition-all duration-300 group hover:bg-muted/60"
             >
-              <div className="w-11 h-11 rounded-lg bg-primary/8 border border-primary/20 flex items-center justify-center mb-5 group-hover:bg-primary/14 group-hover:border-primary/35 transition-all duration-300">
-                <Icon size={19} className="text-primary/80" />
+              <div className="absolute inset-0 pointer-events-none rounded-xl">
+                <div className="corner-ornament w-full h-full" />
               </div>
-              <h3
-                className="text-foreground/90 font-semibold mb-2.5 text-sm tracking-wider"
-                style={{ fontFamily: "var(--font-body)" }}
-              >
-                {title}
-              </h3>
-              <p className="text-foreground/45 text-sm leading-relaxed">{desc}</p>
+              <div className="relative z-20">
+                <div className="w-11 h-11 rounded-lg bg-primary/8 border border-primary/20 flex items-center justify-center mb-5 group-hover:bg-primary/14 group-hover:border-primary/35 transition-all duration-300">
+                  <Icon size={19} className="text-primary/80" />
+                </div>
+                <h3
+                  className="text-foreground/90 font-semibold mb-2.5 text-sm tracking-wider"
+                  style={{ fontFamily: "var(--font-body)" }}
+                >
+                  {title}
+                </h3>
+                <p className="text-foreground/45 text-sm leading-relaxed">{desc}</p>
+              </div>
             </div>
           ))}
         </div>
