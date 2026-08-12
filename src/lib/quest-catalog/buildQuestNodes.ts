@@ -1,5 +1,5 @@
 import { stripMinecraftColors } from "./instruction";
-import type { NpcIdentityInfo, ParsedPackage } from "./types";
+import type { NpcIdentityInfo, ParsedConversation, ParsedPackage } from "./types";
 import type { QuestNodeDef } from "@/components/quest-tree/types";
 
 const COLUMN_WIDTH = 420;
@@ -22,6 +22,9 @@ interface Candidate {
   requiredTags: Set<string>;
   /** Tag names this node's completion sets — what other nodes' requiredTags get matched against. */
   producedTags: Set<string>;
+  /** Which conversation + NPC_options key actually starts this objective — set alongside quote/characterName when the triggering option is found. Used to derive optional (dashed) edges from dialogue order when there's no tag-based prerequisite to connect two nodes that clearly follow one another in the same conversation. */
+  triggerConversationKey?: string;
+  triggerOptionKey?: string;
 }
 
 /** "pathToGoldenburg" -> "Path To Goldenburg" — BetonQuest objective/NPC keys have no human title field, this is the best available fallback when there's no dialogue text to source one from. */
@@ -81,11 +84,25 @@ function deriveTitle(dialogueText: string, fallbackKey: string): string {
   return truncateAtWord(firstSentence, TITLE_MAX_LENGTH);
 }
 
+/**
+ * Tags are per-package by default in BetonQuest — an unqualified tag name
+ * written inside package X is really "X>tagName" internally, and only a
+ * name that already contains ">" is a deliberate cross-package reference
+ * (verified against BetonQuest 3.1.0's PackageIdentifierParser). Every tag
+ * name has to go through this before being used as a producer/requirement
+ * matching key, or same-named tags in different packages collide and
+ * genuine cross-package references never match their unqualified producer.
+ */
+function canonicalTag(pkg: ParsedPackage, tagName: string): string {
+  return tagName.includes(">") ? tagName : `${pkg.packageName}>${tagName}`;
+}
+
 /** Resolves a condition key to the tag name it actually tests, if it's a tag condition — otherwise undefined (can't be turned into a prerequisite edge). */
 function tagNameOfCondition(pkg: ParsedPackage, conditionKey: string): string | undefined {
   const condition = pkg.conditions[conditionKey];
   if (!condition || condition.type !== "tag") return undefined;
-  return condition.raw.trim().split(/\s+/)[1];
+  const tagName = condition.raw.trim().split(/\s+/)[1];
+  return tagName ? canonicalTag(pkg, tagName) : undefined;
 }
 
 function buildCandidate(pkg: ParsedPackage, objectiveKey: string, npcIdentities: Map<string, NpcIdentityInfo>): Candidate {
@@ -109,6 +126,8 @@ function buildCandidate(pkg: ParsedPackage, objectiveKey: string, npcIdentities:
   let quote = "";
   let characterName: string | undefined;
   let npcName: string | undefined;
+  let triggerConversationKey: string | undefined;
+  let triggerOptionKey: string | undefined;
   for (const conversation of Object.values(pkg.conversations)) {
     for (const option of Object.values(conversation.npcOptions)) {
       const startsThis = option.actions.some((actionKey) => pkg.actions[actionKey]?.startsObjective === objectiveKey);
@@ -124,6 +143,8 @@ function buildCandidate(pkg: ParsedPackage, objectiveKey: string, npcIdentities:
       const identity = questerNpcKey ? resolveNpcByKey(pkg, questerNpcKey, npcIdentities) : undefined;
       characterName = identity?.skinSourceName ?? undefined;
       npcName = identity?.name;
+      triggerConversationKey = conversation.key;
+      triggerOptionKey = option.key;
     }
   }
 
@@ -131,8 +152,12 @@ function buildCandidate(pkg: ParsedPackage, objectiveKey: string, npcIdentities:
   for (const actionKey of objective.completionActions) {
     const action = pkg.actions[actionKey];
     if (action?.type === "tag" && (action.tagOp === "add" || action.tagOp === undefined) && action.tagName) {
-      producedTags.add(action.tagName);
+      producedTags.add(canonicalTag(pkg, action.tagName));
     }
+  }
+  // A "tag" objective's completion *is* having that tag — no completionActions needed for this to count as produced (TagObjective's instruction is just the watched tag, nothing else).
+  if (objective.watchedTag) {
+    producedTags.add(canonicalTag(pkg, objective.watchedTag));
   }
 
   return {
@@ -146,7 +171,84 @@ function buildCandidate(pkg: ParsedPackage, objectiveKey: string, npcIdentities:
     npcName,
     requiredTags,
     producedTags,
+    triggerConversationKey,
+    triggerOptionKey,
   };
+}
+
+/** One hop forward from an NPC_options entry: through its pointers to player_options, then through each of *those* pointers to the next NPC_options — i.e. the next dialogue beat(s) a player could reach from here, regardless of which reply they pick. */
+function nextNpcOptionKeys(conversation: ParsedConversation, npcOptionKey: string): string[] {
+  const npcOption = conversation.npcOptions[npcOptionKey];
+  if (!npcOption) return [];
+  const next: string[] = [];
+  for (const playerKey of npcOption.pointers) {
+    const playerOption = conversation.playerOptions[playerKey];
+    if (!playerOption) continue;
+    next.push(...playerOption.pointers.filter((key) => conversation.npcOptions[key]));
+  }
+  return next;
+}
+
+/**
+ * Fills in the gap tag-matching can't: two objectives whose triggering
+ * dialogue options are in the same conversation, one reachable from the
+ * other, but with no tag connecting them (a dead-end line that starts one
+ * objective, further down the same chain as another). That's a real
+ * narrative link — dashed/optional rather than a hard gate, since nothing
+ * in BetonQuest is actually enforcing it as a prerequisite.
+ *
+ * For each candidate with a known trigger, BFS forward through the
+ * conversation's dialogue graph and stop each branch at the *nearest*
+ * other candidate's trigger option found along it (not every one reachable
+ * transitively — those get their own edge from that nearer candidate
+ * instead, same as prerequisites do for strict tag edges).
+ */
+function deriveOptionalPrerequisites(
+  candidates: Candidate[],
+  packages: ParsedPackage[],
+  prerequisitesById: Map<string, string[]>
+): Map<string, string[]> {
+  const packagesByKey = new Map<string, ParsedPackage>(packages.map((pkg) => [`${pkg.server}:${pkg.packageName}`, pkg]));
+  const triggerIndex = new Map<string, string>();
+  for (const candidate of candidates) {
+    if (candidate.triggerConversationKey && candidate.triggerOptionKey) {
+      triggerIndex.set(
+        `${candidate.server}:${candidate.packageName}:${candidate.triggerConversationKey}:${candidate.triggerOptionKey}`,
+        candidate.id
+      );
+    }
+  }
+
+  const result = new Map<string, Set<string>>();
+  for (const candidate of candidates) {
+    if (!candidate.triggerConversationKey || !candidate.triggerOptionKey) continue;
+
+    const pkg = packagesByKey.get(`${candidate.server}:${candidate.packageName}`);
+    const conversation = pkg?.conversations[candidate.triggerConversationKey];
+    if (!conversation) continue;
+
+    const visited = new Set<string>([candidate.triggerOptionKey]);
+    const queue = [...nextNpcOptionKeys(conversation, candidate.triggerOptionKey)];
+    while (queue.length > 0) {
+      const optionKey = queue.shift()!;
+      if (visited.has(optionKey)) continue;
+      visited.add(optionKey);
+
+      const foundId = triggerIndex.get(`${candidate.server}:${candidate.packageName}:${candidate.triggerConversationKey}:${optionKey}`);
+      if (foundId && foundId !== candidate.id) {
+        const alreadyStrict = (prerequisitesById.get(foundId) ?? []).includes(candidate.id);
+        if (!alreadyStrict) {
+          if (!result.has(foundId)) result.set(foundId, new Set());
+          result.get(foundId)!.add(candidate.id);
+        }
+        continue; // nearest match on this branch — let it own anything further down
+      }
+
+      queue.push(...nextNpcOptionKeys(conversation, optionKey));
+    }
+  }
+
+  return new Map([...result.entries()].map(([id, set]) => [id, [...set]]));
 }
 
 /**
@@ -164,8 +266,9 @@ function buildCandidate(pkg: ParsedPackage, objectiveKey: string, npcIdentities:
  *   cross-package tag, a condition type other than "tag").
  * - `status` has no per-player data behind it (see BETONQUEST_QUEST_TREE.md
  *   — this plugin pipeline intentionally doesn't track progress): nodes
- *   with no resolved prerequisites are "active", everything else is
- *   "locked". This is a static placeholder, not a real per-player state.
+ *   with no resolved prerequisites (strict or optional) are "active",
+ *   everything else is "locked". This is a static placeholder, not a real
+ *   per-player state.
  * - `x`/`y` are auto-laid-out by prerequisite depth (topological layers),
  *   not hand-placed — expect a mechanical-looking grid, not a curated
  *   layout.
@@ -211,7 +314,19 @@ export function buildQuestNodes(packages: ParsedPackage[], npcIdentities: Map<st
     prerequisitesById.set(candidate.id, [...prereqs]);
   }
 
-  const depthById = resolveDepths(candidates.map((c) => c.id), prerequisitesById);
+  const optionalPrerequisitesById = deriveOptionalPrerequisites(candidates, packages, prerequisitesById);
+
+  // Optional edges still need to push a node's column to the right of whatever
+  // leads into it, or the two ends of a dashed line render stacked in the same
+  // column — depth layout treats them the same as strict prerequisites, only
+  // the edge style (dashed) and status/locking (unaffected) differ.
+  const combinedPrerequisitesById = new Map<string, string[]>(
+    candidates.map((c) => [
+      c.id,
+      [...(prerequisitesById.get(c.id) ?? []), ...(optionalPrerequisitesById.get(c.id) ?? [])],
+    ])
+  );
+  const depthById = resolveDepths(candidates.map((c) => c.id), combinedPrerequisitesById);
   const columnCounts = new Map<number, number>();
 
   return candidates.map((candidate) => {
@@ -220,18 +335,20 @@ export function buildQuestNodes(packages: ParsedPackage[], npcIdentities: Map<st
     columnCounts.set(depth, rowIndex + 1);
 
     const prerequisites = prerequisitesById.get(candidate.id) ?? [];
+    const optionalPrerequisites = optionalPrerequisitesById.get(candidate.id) ?? [];
 
     const node: QuestNodeDef = {
       id: candidate.id,
       title: candidate.title,
       description: candidate.quote ? "" : `Пакет ${candidate.packageName} · ${candidate.server}`,
-      status: prerequisites.length > 0 ? "locked" : "active",
+      status: prerequisites.length > 0 || optionalPrerequisites.length > 0 ? "locked" : "active",
       characterName: candidate.characterName,
       npcName: candidate.npcName,
       objectives: candidate.quote
         ? [{ id: `${candidate.id}.quote`, label: candidate.quote, quote: true }]
         : undefined,
       prerequisites: prerequisites.length > 0 ? prerequisites : undefined,
+      optionalPrerequisites: optionalPrerequisites.length > 0 ? optionalPrerequisites : undefined,
       x: depth * COLUMN_WIDTH,
       y: rowIndex * ROW_HEIGHT,
     };

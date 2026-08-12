@@ -36,14 +36,16 @@ function parseObjectives(raw: string | undefined): Record<string, ParsedObjectiv
   for (const [key, instruction] of stringEntries(doc.objectives)) {
     const entryConditionsRaw = extractKeyedParam(instruction, "entry conditions") ?? extractKeyedParam(instruction, "conditions");
     const completionActionsRaw = extractKeyedParam(instruction, "actions") ?? extractKeyedParam(instruction, "events");
+    const type = instructionType(instruction);
     result[key] = {
       key,
       raw: instruction,
-      type: instructionType(instruction),
+      type,
       entryConditions: splitRefs(entryConditionsRaw)
         .filter((ref) => !ref.negated)
         .map((ref) => ref.key),
       completionActions: splitRefs(completionActionsRaw).map((ref) => ref.key),
+      watchedTag: type === "tag" ? instruction.trim().split(/\s+/)[1] : undefined,
     };
   }
   return result;

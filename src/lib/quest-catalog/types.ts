@@ -22,6 +22,8 @@ export interface ParsedObjective {
   type: string;
   entryConditions: string[];
   completionActions: string[];
+  /** Only set when type === "tag" — the tag this objective watches for. Completing it *is* having this tag, so it counts as a produced tag too (see buildQuestNodes.ts), unlike other objective types which only produce tags via completionActions. */
+  watchedTag?: string;
 }
 
 /** One BetonQuest action ("events" in 2.x terminology), as defined in actions.yml. */
