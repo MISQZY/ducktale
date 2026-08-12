@@ -25,6 +25,7 @@ import { usePagedTable } from "@/hooks/usePagedTable";
 import { formatDurationMs } from "@/lib/player-card-format";
 import { RankBadge } from "./RankBadge";
 import { CompactBadgeChip } from "@/components/badges/CompactBadgeChip";
+import { SkinFace } from "@/components/common/SkinFace";
 import type { LeaderboardPlayer, LeaderboardResponse } from "@/types/leaderboard";
 
 export type { LeaderboardPlayer, LeaderboardResponse };
@@ -37,7 +38,7 @@ export interface TopPlayersTableProps {
   className?: string;
 }
 
-export function TopPlayersTable({ pageSize = 15, className }: TopPlayersTableProps) {
+export function TopPlayersTable({ pageSize = 10, className }: TopPlayersTableProps) {
   const t = useTranslations("Leaderboard");
   const tCard = useTranslations("PlayerCard");
 
@@ -94,13 +95,13 @@ export function TopPlayersTable({ pageSize = 15, className }: TopPlayersTablePro
       <DocsTable>
         <DocsTableHeader>
           <DocsTableRow>
-            <DocsTableHead className="w-14" withRightBorder>{t("columns.rank")}</DocsTableHead>
-            <DocsTableHead                  withRightBorder>{t("columns.player")}</DocsTableHead>
-            <DocsTableHead className="w-32"               >{t("columns.playtime")}</DocsTableHead>
+            <DocsTableHead className="w-14">{t("columns.rank")}</DocsTableHead>
+            <DocsTableHead>{t("columns.player")}</DocsTableHead>
+            <DocsTableHead className="w-32">{t("columns.playtime")}</DocsTableHead>
           </DocsTableRow>
         </DocsTableHeader>
 
-        <DocsTableBody className="[&_tr:last-child]:border-0">
+        <DocsTableBody className="[&_tr:last-child]:border-b-0">
           {isLoading && <TableSkeleton rows={pageSize} cellWidths={SKELETON_WIDTHS} />}
 
           {state.status === "error" && (
@@ -127,56 +128,71 @@ export function TopPlayersTable({ pageSize = 15, className }: TopPlayersTablePro
               <DocsTableRow
                 key={player.uuid}
                 className={cn(
-                  isTopTen && "bg-amber-500/[0.06] border-l-2 border-l-amber-500/50",
+                  isTopTen && "bg-amber-500/[0.06] !border-l-2 border-l-amber-500/50",
                   isRefreshing && "opacity-40 transition-opacity"
                 )}
               >
-                <DocsTableCell withRightBorder>
+                <DocsTableCell>
                   <RankBadge rank={player.rank} size={18} variant="text" />
                 </DocsTableCell>
 
-                <DocsTableCell withRightBorder>
-                  <div className="flex items-center gap-2">
-                    {player.profileUsername ? (
-                      <Link
-                        href={`/profile/${encodeURIComponent(player.profileUsername)}`}
-                        target="_blank"
-                        className="hover:underline underline-offset-4 transition-colors"
-                      >
-                        <HighlightMatch
-                          text={player.name}
-                          query={query}
-                          className="font-bold text-amber-600 dark:text-amber-400"
-                        />
-                      </Link>
-                    ) : (
-                      <HighlightMatch text={player.name} query={query} />
-                    )}
-                    {player.online && (
-                      <span className="relative flex h-1.5 w-1.5 shrink-0" title={tCard("online")}>
-                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
-                        <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-emerald-500" />
-                      </span>
-                    )}
-                    {player.badges.slice(0, MAX_VISIBLE_BADGES).map((badge) => (
-                      <CompactBadgeChip
-                        key={badge.name}
-                        name={badge.name}
-                        icon={badge.icon}
-                        color={badge.color}
-                        description={badge.description}
-                        earnCondition={badge.earnCondition}
-                      />
-                    ))}
-                    {player.badges.length > MAX_VISIBLE_BADGES && (
-                      <span
-                        className="text-[0.65rem] text-foreground/40 shrink-0"
-                        title={player.badges.slice(MAX_VISIBLE_BADGES).map((b) => b.name).join(", ")}
-                      >
-                        +{player.badges.length - MAX_VISIBLE_BADGES}
-                      </span>
-                    )}
-                  </div>
+                <DocsTableCell>
+                  {player.profileUsername ? (
+                    <div
+                      className={cn(
+                        "relative overflow-hidden inline-flex h-11 items-center gap-3 py-1.5 pr-5 pl-1.5 rounded-lg border bg-card/40 transition-colors shadow-sm",
+                        player.online ? "animate-border-glow-green border-emerald-500/40" : "border-primary/20 hover:border-primary/30"
+                      )}
+                    >
+                      <SkinFace skinUrl={player.skinUrl} size={32} className="rounded-md border-none shrink-0" />
+                      <div className="flex items-center gap-2.5 relative z-10">
+                        <Link
+                          href={`/profile/${encodeURIComponent(player.profileUsername)}`}
+                          target="_blank"
+                          className="hover:underline underline-offset-4 transition-colors"
+                        >
+                          <HighlightMatch
+                            text={player.name}
+                            query={query}
+                            className="font-bold text-amber-600 dark:text-amber-400 text-base"
+                          />
+                        </Link>
+                        
+                        {player.badges.length > 0 && (
+                          <div className="flex items-center gap-1">
+                            {player.badges.slice(0, MAX_VISIBLE_BADGES).map((badge) => (
+                              <CompactBadgeChip
+                                key={badge.name}
+                                name={badge.name}
+                                icon={badge.icon}
+                                color={badge.color}
+                                description={badge.description}
+                                earnCondition={badge.earnCondition}
+                              />
+                            ))}
+                            {player.badges.length > MAX_VISIBLE_BADGES && (
+                              <span
+                                className="text-[0.65rem] text-foreground/40 shrink-0"
+                                title={player.badges.slice(MAX_VISIBLE_BADGES).map((b) => b.name).join(", ")}
+                              >
+                                +{player.badges.length - MAX_VISIBLE_BADGES}
+                              </span>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="flex h-11 items-center gap-2">
+                      <HighlightMatch text={player.name} query={query} className="text-base" />
+                      {player.online && (
+                        <span className="relative flex h-1.5 w-1.5 shrink-0" title={tCard("online")}>
+                          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+                          <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                        </span>
+                      )}
+                    </div>
+                  )}
                 </DocsTableCell>
 
                 <DocsTableCell>

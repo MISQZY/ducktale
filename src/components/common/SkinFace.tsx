@@ -26,7 +26,7 @@ export function SkinFace({ skinUrl, size = 88, className }: SkinFaceProps) {
   // and a region's offset is -(sourceX * size/8), -(sourceY * size/8).
   // Head:  8:08–15:15 inclusive → offset (-size, -size).
   // Mask: 40:08–47:15 inclusive → offset (-5×size, -size), rendered on top.
-  const bgSize = `${size * 8}px ${size * 8}px`;
+  const bgSize = `${size * 8}px auto`;
   const headPos = `${-size}px ${-size}px`;
   const maskPos = `${-5 * size}px ${-size}px`;
 

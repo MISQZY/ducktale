@@ -5,6 +5,7 @@ import { withCache } from "@/lib/query-cache";
 import { Prisma } from "@prisma/client";
 import { isRateLimited } from "@/lib/rate-limit";
 import { PLAYER_NICKNAME_JOIN } from "@/lib/players";
+import { resolveSkinUrl } from "@/lib/skin";
 import type { LeaderboardPlayer, LeaderboardResponse } from "@/types/leaderboard";
 
 export type { LeaderboardPlayer, LeaderboardResponse };
@@ -80,6 +81,10 @@ async function buildLeaderboardResponse(
     : [];
   const linkByUuid = new Map(links.map((l) => [l.minecraftUuid, l.user]));
 
+  // Fetch skins for all players on the current page
+  const skinUrls = await Promise.all(rows.map((r) => resolveSkinUrl(r.uuid)));
+  const skinByUuid = new Map(rows.map((r, i) => [r.uuid, skinUrls[i]]));
+
   return {
     players: rows.map((r) => {
       const linkedUser = linkByUuid.get(r.uuid);
@@ -92,6 +97,7 @@ async function buildLeaderboardResponse(
         rank:       Number(r.rank),
         profileUsername: linkedUser?.nickname ?? null,
         badges: linkedUser?.badges.map(({ badge }) => badge) ?? [],
+        skinUrl: skinByUuid.get(r.uuid) ?? null,
       };
     }),
     total,

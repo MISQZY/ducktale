@@ -18,6 +18,8 @@ export interface LeaderboardPlayer {
   profileUsername: string | null;
   /** Same site-account badges shown on their profile — empty when not linked. */
   badges: LeaderboardPlayerBadge[];
+  /** Actual skin URL resolved from SkinRestorer. */
+  skinUrl: string | null;
 }
 
 export interface LeaderboardResponse {
