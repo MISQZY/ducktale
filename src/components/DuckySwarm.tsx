@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, useSyncExternalStore } from "react";
+import { useEffect, useRef, useState } from "react";
 import { getDuckyVisible } from "./DuckyPet";
 
 const DISPLAY_SIZE = 72;
@@ -23,17 +23,16 @@ export default function DuckySwarm() {
   const frameMsRef = useRef(0);
   const runAwayRef = useRef(false);
 
-  function subscribeDuckyToggle(callback: () => void) {
-    window.addEventListener("ducky-toggle", callback);
-    return () => window.removeEventListener("ducky-toggle", callback);
-  }
-  const visible = useSyncExternalStore(subscribeDuckyToggle, getDuckyVisible, () => true);
-
+  // Reacts to the toggle event directly (a real external-system callback)
+  // instead of syncing a `visible` state value through an effect, which
+  // would call setState synchronously in the effect body.
   useEffect(() => {
-    if (!visible) {
-      setActive(false);
-    }
-  }, [visible]);
+    const onToggle = () => {
+      if (!getDuckyVisible()) setActive(false);
+    };
+    window.addEventListener("ducky-toggle", onToggle);
+    return () => window.removeEventListener("ducky-toggle", onToggle);
+  }, []);
 
   useEffect(() => {
     const onSwarm = () => {

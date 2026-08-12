@@ -30,7 +30,6 @@ export function LiveQuestTree({ server, packageName, title, frameHeight = FRAME_
 
   useEffect(() => {
     let cancelled = false;
-    setState({ status: "loading" });
 
     const params = new URLSearchParams({ server, package: packageName });
     fetch(`/api/quest-catalog?${params}`)

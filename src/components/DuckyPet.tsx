@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, useCallback } from "react";
+import { useEffect, useLayoutEffect, useRef, useState, useCallback } from "react";
 import { useSyncExternalStore } from "react";
 import { usePathname } from "next/navigation";
 import { DUCKY_EASTER_EGG_HOST } from "@/config/servers";
@@ -328,6 +328,17 @@ export default function DuckyPet() {
     };
   }, [pickNewWander, startLoop, stopLoop, isDocs]);
 
+  // Seeds the bubble's transform synchronously before paint so it doesn't
+  // flicker at (0,0) for a frame — the RAF loop (see startLoop) takes over
+  // on every subsequent frame once it's running.
+  useLayoutEffect(() => {
+    if ((isHovered || activePhrase !== null) && bubbleRef.current && posRef.current) {
+      const screenX = posRef.current.x - window.scrollX + DISPLAY_SIZE / 2;
+      const screenY = posRef.current.y - window.scrollY + 18;
+      bubbleRef.current.style.transform = `translate(${screenX}px, ${screenY}px) translate(-50%, -100%)`;
+    }
+  }, [isHovered, activePhrase]);
+
   if (!mounted || isDocs) return null;
 
   const PAD = 10;
@@ -392,10 +403,8 @@ export default function DuckyPet() {
             pointerEvents: "none",
             userSelect: "none",
             zIndex: 50,
-            // Initial transform so it doesn't flicker at 0,0 before rAF kicks in
-            transform: posRef.current
-              ? `translate(${posRef.current.x - window.scrollX + DISPLAY_SIZE / 2}px, ${posRef.current.y - window.scrollY + 18}px) translate(-50%, -100%)`
-              : "none",
+            // Actual initial position is set synchronously by the layout effect above before paint.
+            transform: "none",
           }}
         >
           {/* bubble body */}
