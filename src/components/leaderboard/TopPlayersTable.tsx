@@ -139,25 +139,21 @@ export function TopPlayersTable({ pageSize = 10, className }: TopPlayersTablePro
 
                 <DocsTableCell>
                   {player.profileUsername ? (
-                    <div
+                    <Link
+                      href={`/profile/${encodeURIComponent(player.profileUsername)}`}
+                      target="_blank"
                       className={cn(
-                        "relative overflow-hidden inline-flex h-11 items-center gap-3 py-1.5 pr-5 pl-1.5 rounded-lg border bg-card/40 transition-colors shadow-sm",
-                        player.online ? "animate-border-glow-green border-emerald-500/40" : "border-primary/20 hover:border-primary/30"
+                        "relative overflow-hidden inline-flex h-11 items-center gap-3 py-1.5 pr-5 pl-1.5 rounded-lg border bg-card/40 transition-colors shadow-sm group hover:bg-card/60",
+                        player.online ? "animate-border-glow-green border-emerald-500/40" : "border-primary/20 hover:border-primary/40"
                       )}
                     >
                       <SkinFace skinUrl={player.skinUrl} size={32} className="rounded-md border-none shrink-0" />
                       <div className="flex items-center gap-2.5 relative z-10">
-                        <Link
-                          href={`/profile/${encodeURIComponent(player.profileUsername)}`}
-                          target="_blank"
-                          className="hover:underline underline-offset-4 transition-colors"
-                        >
-                          <HighlightMatch
-                            text={player.name}
-                            query={query}
-                            className="font-bold text-amber-600 dark:text-amber-400 text-base"
-                          />
-                        </Link>
+                        <HighlightMatch
+                          text={player.name}
+                          query={query}
+                          className="font-bold text-amber-600 dark:text-amber-400 text-base transition-colors group-hover:text-amber-500 dark:group-hover:text-amber-300"
+                        />
                         
                         {player.badges.length > 0 && (
                           <div className="flex items-center gap-1">
@@ -169,6 +165,7 @@ export function TopPlayersTable({ pageSize = 10, className }: TopPlayersTablePro
                                 color={badge.color}
                                 description={badge.description}
                                 earnCondition={badge.earnCondition}
+                                size={17}
                               />
                             ))}
                             {player.badges.length > MAX_VISIBLE_BADGES && (
@@ -182,7 +179,7 @@ export function TopPlayersTable({ pageSize = 10, className }: TopPlayersTablePro
                           </div>
                         )}
                       </div>
-                    </div>
+                    </Link>
                   ) : (
                     <div className="flex h-11 items-center gap-2">
                       <HighlightMatch text={player.name} query={query} className="text-base" />
