@@ -15,7 +15,7 @@ export default function ServersSection() {
 
   return (
     <section id="servers" className="py-16 px-6 relative">
-      <div className="max-w-5xl mx-auto">
+      <div className="max-w-5xl mx-auto relative z-10">
         <SectionHeader label={t("label")} title={t("title")} />
         <div className="grid md:grid-cols-2 gap-6">
           {SERVERS.map((server) => {

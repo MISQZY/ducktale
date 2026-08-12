@@ -116,7 +116,7 @@ export default function NetworkDiagram() {
 
   return (
     <section id="infrastructure" className="py-16 px-6 relative">
-      <div className="max-w-5xl mx-auto">
+      <div className="max-w-5xl mx-auto relative z-10">
         <SectionHeader
           label={t("label")}
           title={t("title")}

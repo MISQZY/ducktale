@@ -92,14 +92,15 @@ export function TopPlayersTable({ pageSize = 10, className }: TopPlayersTablePro
       </div>
 
       {/* Table */}
-      <DocsTable>
-        <DocsTableHeader>
-          <DocsTableRow>
-            <DocsTableHead className="w-14">{t("columns.rank")}</DocsTableHead>
-            <DocsTableHead>{t("columns.player")}</DocsTableHead>
-            <DocsTableHead className="w-32">{t("columns.playtime")}</DocsTableHead>
-          </DocsTableRow>
-        </DocsTableHeader>
+      <div className="relative z-10">
+        <DocsTable>
+          <DocsTableHeader>
+            <DocsTableRow>
+              <DocsTableHead className="w-14">{t("columns.rank")}</DocsTableHead>
+              <DocsTableHead>{t("columns.player")}</DocsTableHead>
+              <DocsTableHead className="w-32">{t("columns.playtime")}</DocsTableHead>
+            </DocsTableRow>
+          </DocsTableHeader>
 
         <DocsTableBody className="[&_tr:last-child]:border-b-0">
           {isLoading && <TableSkeleton rows={pageSize} cellWidths={SKELETON_WIDTHS} />}
@@ -205,6 +206,7 @@ export function TopPlayersTable({ pageSize = 10, className }: TopPlayersTablePro
           })}
         </DocsTableBody>
       </DocsTable>
+      </div>
 
       {/* Footer */}
       {data && (

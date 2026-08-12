@@ -36,7 +36,7 @@ export default function SocialSection() {
 
   return (
     <section id="community" className="py-16 px-6 relative">
-      <div className="max-w-5xl mx-auto">
+      <div className="max-w-5xl mx-auto relative z-10">
         <SectionHeader
           label={t("label")}
           title={t("title")}

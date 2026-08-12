@@ -278,6 +278,7 @@ export default function DuckyPet() {
         try {
           const audio = new Audio('/sounds/quack.mp3');
           audio.volume = DUCKY_CONFIG.volume;
+          audio.playbackRate = 0.9 + Math.random() * 0.2;
           audio.play().catch(() => {});
         } catch (e) {}
         setTimeout(() => {
@@ -335,7 +336,7 @@ export default function DuckyPet() {
   const showBubble = isHovered || activePhrase !== null;
 
   return (
-    <div ref={sectionRef} className="fixed inset-0 pointer-events-none" style={{ zIndex: 40 }}>
+    <div ref={sectionRef} className="fixed inset-0 pointer-events-none" style={{ zIndex: 0 }}>
       <div
         ref={duckRef}
         style={{
@@ -359,6 +360,7 @@ export default function DuckyPet() {
           try {
             const audio = new Audio('/sounds/quack.mp3');
             audio.volume = DUCKY_CONFIG.volume;
+            audio.playbackRate = 0.9 + Math.random() * 0.2;
             audio.play().catch(() => {});
           } catch(e) {}
         }}

@@ -1,9 +1,10 @@
 import { stripMinecraftColors } from "./instruction";
-import type { ParsedPackage } from "./types";
+import type { NpcIdentityInfo, ParsedPackage } from "./types";
 import type { QuestNodeDef } from "@/components/quest-tree/types";
 
 const COLUMN_WIDTH = 420;
 const ROW_HEIGHT = 260;
+const TITLE_MAX_LENGTH = 60;
 
 interface Candidate {
   id: string;
@@ -11,14 +12,17 @@ interface Candidate {
   packageName: string;
   objectiveKey: string;
   title: string;
-  description: string;
+  /** Full dialogue line that triggers this objective, quote-formatted for QuestNodeCard's objectives[] — empty when no triggering conversation option was found. */
+  quote: string;
+  /** Minecraft username the questgiving NPC's skin was borrowed from (NpcIdentity.skinSourceName) — feeds both SkinFace's portrait and QuestNodeCard's mono "nick" label. */
+  characterName?: string;
   /** Tag names (not condition/action keys) this node needs before it can start. */
   requiredTags: Set<string>;
   /** Tag names this node's completion sets — what other nodes' requiredTags get matched against. */
   producedTags: Set<string>;
 }
 
-/** "pathToGoldenburg" -> "Path To Goldenburg" — BetonQuest objectives have no human title field, this is the best available fallback. */
+/** "pathToGoldenburg" -> "Path To Goldenburg" — BetonQuest objective/NPC keys have no human title field, this is the best available fallback when there's no dialogue text to source one from. */
 function humanize(key: string): string {
   const spaced = key.replace(/([a-z0-9])([A-Z])/g, "$1 $2").replace(/[_-]+/g, " ");
   return spaced
@@ -28,6 +32,53 @@ function humanize(key: string): string {
     .join(" ");
 }
 
+/** Extracts the numeric id out of a package.yml "npcs:" value like "citizens 0" — undefined for anything else (a non-Citizens NPC provider, or a malformed value). */
+function parseCitizensId(raw: string | undefined): number | undefined {
+  const match = raw ? /citizens\s+(\d+)/.exec(raw) : null;
+  return match ? Number(match[1]) : undefined;
+}
+
+/** Resolves a package.yml "npcs:" key (e.g. "goldenburgMayor") to that NPC's real identity, via its Citizens id — undefined if the key doesn't exist, isn't a Citizens NPC, or BetonQuestApi never reported that id for this server (Citizens not installed/configured, or a stale/pending sync). */
+function resolveNpcByKey(pkg: ParsedPackage, npcKey: string, npcIdentities: Map<string, NpcIdentityInfo>): NpcIdentityInfo | undefined {
+  const citizensId = parseCitizensId(pkg.npcs[npcKey]);
+  if (citizensId === undefined) return undefined;
+  return npcIdentities.get(`${pkg.server}:${citizensId}`);
+}
+
+/**
+ * Substitutes %npc.<key>.name% with that NPC's real name (NpcIdentity,
+ * sourced from Citizens' saves.yml — see CitizensCollector.java) when
+ * known; falls back to the humanized key when this pipeline has no
+ * identity for it yet (Citizens not installed, or synced after this
+ * package was). Any other placeholder pattern is left as-is — better an
+ * unresolved %placeholder% than a wrong guess.
+ */
+function resolveKnownPlaceholders(text: string, pkg: ParsedPackage, npcIdentities: Map<string, NpcIdentityInfo>): string {
+  return text.replace(/%npc\.([a-zA-Z0-9_]+)\.name%/g, (_match, npcKey: string) => {
+    return resolveNpcByKey(pkg, npcKey, npcIdentities)?.name ?? humanize(npcKey);
+  });
+}
+
+/** The npc.yml key a conversation's "quester:" placeholder refers to, e.g. "%npc.instructor.name%" -> "instructor" — undefined if quester isn't in that exact placeholder form. */
+function extractNpcKeyFromQuester(quester: string | undefined): string | undefined {
+  return quester ? /%npc\.([a-zA-Z0-9_]+)\.name%/.exec(quester)?.[1] : undefined;
+}
+
+/** Cuts at the last full word before maxLength rather than mid-word, appending "…". */
+function truncateAtWord(text: string, maxLength: number): string {
+  if (text.length <= maxLength) return text;
+  const cut = text.slice(0, maxLength);
+  const lastSpace = cut.lastIndexOf(" ");
+  return (lastSpace > maxLength / 2 ? cut.slice(0, lastSpace) : cut).trimEnd() + "…";
+}
+
+/** A short title sourced from the actual (Russian) dialogue line, not the English objective key — falls back to humanize(fallbackKey) only when no dialogue text exists at all. */
+function deriveTitle(dialogueText: string, fallbackKey: string): string {
+  const firstSentence = dialogueText.split(/(?<=[.!?])\s+/)[0]?.trim();
+  if (!firstSentence) return humanize(fallbackKey);
+  return truncateAtWord(firstSentence, TITLE_MAX_LENGTH);
+}
+
 /** Resolves a condition key to the tag name it actually tests, if it's a tag condition — otherwise undefined (can't be turned into a prerequisite edge). */
 function tagNameOfCondition(pkg: ParsedPackage, conditionKey: string): string | undefined {
   const condition = pkg.conditions[conditionKey];
@@ -35,7 +86,7 @@ function tagNameOfCondition(pkg: ParsedPackage, conditionKey: string): string | 
   return condition.raw.trim().split(/\s+/)[1];
 }
 
-function buildCandidate(pkg: ParsedPackage, objectiveKey: string): Candidate {
+function buildCandidate(pkg: ParsedPackage, objectiveKey: string, npcIdentities: Map<string, NpcIdentityInfo>): Candidate {
   const objective = pkg.objectives[objectiveKey];
   const id = `${pkg.server}:${pkg.packageName}.${objectiveKey}`;
 
@@ -47,21 +98,28 @@ function buildCandidate(pkg: ParsedPackage, objectiveKey: string): Candidate {
 
   // Find the conversation option that actually starts this objective
   // (an NPC_options entry whose actions include an "objective start
-  // <objectiveKey>" action) — its text becomes the node's description,
-  // and its own conditions are additional (dialogue-gate) prerequisites,
-  // since a player can't trigger the objective without first satisfying
-  // whatever unlocks that dialogue option.
-  let description = "";
+  // <objectiveKey>" action) — its text becomes the node's quote and
+  // titles are sourced from it too, and its own conditions are additional
+  // (dialogue-gate) prerequisites, since a player can't trigger the
+  // objective without first satisfying whatever unlocks that option. The
+  // conversation's own "quester:" placeholder identifies which NPC is
+  // speaking, which is how characterName gets resolved.
+  let quote = "";
+  let characterName: string | undefined;
   for (const conversation of Object.values(pkg.conversations)) {
     for (const option of Object.values(conversation.npcOptions)) {
       const startsThis = option.actions.some((actionKey) => pkg.actions[actionKey]?.startsObjective === objectiveKey);
       if (!startsThis) continue;
 
-      description = stripMinecraftColors(option.text).trim();
+      quote = resolveKnownPlaceholders(stripMinecraftColors(option.text).replace(/\s+/g, " ").trim(), pkg, npcIdentities);
       for (const conditionKey of option.conditions) {
         const tag = tagNameOfCondition(pkg, conditionKey);
         if (tag) requiredTags.add(tag);
       }
+
+      const questerNpcKey = extractNpcKeyFromQuester(conversation.quester);
+      const identity = questerNpcKey ? resolveNpcByKey(pkg, questerNpcKey, npcIdentities) : undefined;
+      characterName = identity?.skinSourceName ?? undefined;
     }
   }
 
@@ -78,8 +136,9 @@ function buildCandidate(pkg: ParsedPackage, objectiveKey: string): Candidate {
     server: pkg.server,
     packageName: pkg.packageName,
     objectiveKey,
-    title: humanize(objectiveKey),
-    description,
+    title: deriveTitle(quote, objectiveKey),
+    quote,
+    characterName,
     requiredTags,
     producedTags,
   };
@@ -105,15 +164,25 @@ function buildCandidate(pkg: ParsedPackage, objectiveKey: string): Candidate {
  * - `x`/`y` are auto-laid-out by prerequisite depth (topological layers),
  *   not hand-placed — expect a mechanical-looking grid, not a curated
  *   layout.
- * - `objectives`/`rewards` are left empty: BetonQuest doesn't expose a
- *   numeric target amount or a "reward" concept generically enough to
- *   populate these without guessing.
+ * - `objectives` gets exactly one entry: the triggering dialogue line,
+ *   `quote: true` (renders as an italicized quote in QuestNodeCard, not a
+ *   checklist item — see that component). No numeric current/total:
+ *   BetonQuest doesn't expose a target amount generically enough to
+ *   populate one without guessing.
+ * - `rewards` is left empty — same reasoning, no generic "reward" concept
+ *   to extract from raw actions without guessing.
+ * - `%npc.<key>.name%` placeholders resolve to the NPC's real name when
+ *   `npcIdentities` has one (see resolveKnownPlaceholders/CitizensCollector.java),
+ *   falling back to the humanized key otherwise. `characterName` (feeds
+ *   SkinFace's portrait + QuestNodeCard's mono nick label) only ever comes
+ *   from a resolved identity — never a guess — so it's simply absent when
+ *   there isn't one.
  */
-export function buildQuestNodes(packages: ParsedPackage[]): QuestNodeDef[] {
+export function buildQuestNodes(packages: ParsedPackage[], npcIdentities: Map<string, NpcIdentityInfo> = new Map()): QuestNodeDef[] {
   const candidates: Candidate[] = [];
   for (const pkg of packages) {
     for (const objectiveKey of Object.keys(pkg.objectives)) {
-      candidates.push(buildCandidate(pkg, objectiveKey));
+      candidates.push(buildCandidate(pkg, objectiveKey, npcIdentities));
     }
   }
 
@@ -150,8 +219,12 @@ export function buildQuestNodes(packages: ParsedPackage[]): QuestNodeDef[] {
     const node: QuestNodeDef = {
       id: candidate.id,
       title: candidate.title,
-      description: candidate.description || `Пакет ${candidate.packageName} · ${candidate.server}`,
+      description: candidate.quote ? "" : `Пакет ${candidate.packageName} · ${candidate.server}`,
       status: prerequisites.length > 0 ? "locked" : "active",
+      characterName: candidate.characterName,
+      objectives: candidate.quote
+        ? [{ id: `${candidate.id}.quote`, label: candidate.quote, quote: true }]
+        : undefined,
       prerequisites: prerequisites.length > 0 ? prerequisites : undefined,
       x: depth * COLUMN_WIDTH,
       y: rowIndex * ROW_HEIGHT,

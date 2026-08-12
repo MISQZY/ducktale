@@ -1,3 +1,6 @@
+"use client";
+
+import { useRef } from "react";
 import { Link } from "@/i18n/navigation";
 import { ChevronDown, Sword } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
@@ -9,6 +12,21 @@ import { SITE } from "@/config/site";
 export default function HeroSection() {
   const t = useTranslations("Hero");
   const locale = useLocale();
+
+  const clickCountRef = useRef(0);
+  const clickTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+  const handleBadgeClick = () => {
+    clickCountRef.current += 1;
+    if (clickCountRef.current >= 5) {
+      window.dispatchEvent(new CustomEvent("ducky-swarm"));
+      clickCountRef.current = 0;
+    }
+    if (clickTimerRef.current) clearTimeout(clickTimerRef.current);
+    clickTimerRef.current = setTimeout(() => {
+      clickCountRef.current = 0;
+    }, 2000);
+  };
 
   // CtaButton renders a plain (locale-unaware) Link, so these anchors need
   // the current locale baked in — otherwise clicking one from /en/ would
@@ -27,7 +45,7 @@ export default function HeroSection() {
         {/* Badge row */}
         <div className="flex items-center justify-center gap-3 mb-8 fade-up">
           <div className="h-px w-16 bg-linear-to-r from-transparent to-primary/60" />
-          <StatusBadge label={t("badge")} pulse />
+          <StatusBadge label={t("badge")} pulse onClick={handleBadgeClick} />
           <div className="h-px w-16 bg-linear-to-l from-transparent to-primary/60" />
         </div>
 

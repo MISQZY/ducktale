@@ -7,6 +7,7 @@ import { FUMADOCS_RU_TRANSLATIONS } from "@/i18n/fumadocs-translations";
 import type { ReactNode } from "react";
 import type { Session } from "next-auth";
 import DuckyPet from "@/components/DuckyPet";
+import DuckySwarm from "@/components/DuckySwarm";
 
 export function AppProvider({
   children,
@@ -39,6 +40,7 @@ export function AppProvider({
       >
         {children}
         <DuckyPet />
+        <DuckySwarm />
       </RootProvider>
     </SessionProvider>
   );

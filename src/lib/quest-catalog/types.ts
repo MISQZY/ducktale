@@ -56,6 +56,12 @@ export interface ParsedConversation {
   playerOptions: Record<string, ParsedConversationOption>;
 }
 
+/** One NpcIdentity row — a Citizens NPC's real name and (if it has one) the Minecraft username its skin was borrowed from. See NpcIdentity in schema.prisma.template. */
+export interface NpcIdentityInfo {
+  name: string;
+  skinSourceName: string | null;
+}
+
 /** Everything parsed out of one QuestCatalog row (one BetonQuest package on one server). */
 export interface ParsedPackage {
   server: string;

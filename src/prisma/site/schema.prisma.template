@@ -143,6 +143,30 @@ model QuestCatalog {
   @@map("{{PREFIX}}quest_catalog")
 }
 
+/// One row per (server, Citizens NPC id) — that NPC's real display name
+/// and the Minecraft username its skin was borrowed from, read from
+/// Citizens' own saves.yml by the BetonQuestApi plugin (BetonQuest's
+/// package.yml only ever says "citizens N", an id with no name/skin of
+/// its own) and relayed through DuckTaleQuestProxy. `skinSourceName` is
+/// pulled out of the NPC's stored skin texture profile (its
+/// "profileName") — a real Mojang username suitable for a minotar.net (or
+/// similar) lookup, not necessarily who's "really" behind the NPC
+/// narratively, just whose skin got borrowed for it. Nullable: an NPC can
+/// have no skin trait set (default Steve/Alex). Table/column contract is
+/// shared with the Minecraft-side plugins — see BETONQUEST_QUEST_TREE.md
+/// if you change this model.
+model NpcIdentity {
+  id             String   @id @default(uuid())
+  server         String   @db.VarChar(64)
+  npcId          Int
+  name           String   @db.VarChar(64)
+  skinSourceName String?  @db.VarChar(32)
+  updatedAt      DateTime @updatedAt
+
+  @@unique([server, npcId])
+  @@map("{{PREFIX}}npc_identity")
+}
+
 /// Issued by an admin from the users panel and handed to the user
 /// out-of-band (Discord/Telegram) as a one-time link, replacing the old
 /// flow where the admin saw and shared a plaintext random password

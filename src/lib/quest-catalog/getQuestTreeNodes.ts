@@ -1,7 +1,7 @@
 import { siteDb } from "@/lib/site-db";
 import { parsePackage } from "./parsePackage";
 import { buildQuestNodes } from "./buildQuestNodes";
-import type { ParsedPackage } from "./types";
+import type { NpcIdentityInfo, ParsedPackage } from "./types";
 import type { QuestNodeDef } from "@/components/quest-tree/types";
 
 /** A quest_catalog.files value should be a flat string->string map — anything else means a malformed row (or a plugin-side bug), so it's dropped rather than trusted blindly. */
@@ -24,19 +24,30 @@ function asFileMap(value: unknown): Record<string, string> {
  * package files, not per-player live state (see BETONQUEST_QUEST_TREE.md).
  */
 export async function getQuestTreeNodes(server?: string, packageName?: string): Promise<QuestNodeDef[]> {
-  const rows = await siteDb.questCatalog.findMany({
-    where: {
-      ...(server ? { server } : {}),
-      ...(packageName ? { packageName } : {}),
-    },
-    orderBy: [{ server: "asc" }, { packageName: "asc" }],
-  });
+  const [rows, npcRows] = await Promise.all([
+    siteDb.questCatalog.findMany({
+      where: {
+        ...(server ? { server } : {}),
+        ...(packageName ? { packageName } : {}),
+      },
+      orderBy: [{ server: "asc" }, { packageName: "asc" }],
+    }),
+    siteDb.npcIdentity.findMany({
+      where: server ? { server } : undefined,
+    }),
+  ]);
 
   const packages: ParsedPackage[] = rows.map((row) =>
     parsePackage(row.server, row.packageName, asFileMap(row.files))
   );
 
-  return buildQuestNodes(packages);
+  // Keyed "<server>:<npcId>" — the same Citizens npc id means different
+  // NPCs on different servers, so server has to be part of the key.
+  const npcIdentities = new Map<string, NpcIdentityInfo>(
+    npcRows.map((row) => [`${row.server}:${row.npcId}`, { name: row.name, skinSourceName: row.skinSourceName }])
+  );
+
+  return buildQuestNodes(packages, npcIdentities);
 }
 
 /** Distinct server names with at least one synced package — for a page that lets an admin/visitor pick which server's quest lines to view. */
