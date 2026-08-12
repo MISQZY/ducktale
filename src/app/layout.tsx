@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { Cinzel_Decorative, Lora, JetBrains_Mono } from "next/font/google";
+import localFont from "next/font/local";
 import "./globals.css";
 import { cn } from "@/lib/utils";
 import { SITE } from "@/config/site";
@@ -26,6 +27,16 @@ const fontMono = JetBrains_Mono({
   weight: ["400", "500"],
   subsets: ["latin"],
   variable: "--font-mono",
+  display: "swap",
+  fallback: ["monospace"],
+});
+
+const fontMinecraft = localFont({
+  src: [
+    { path: "../../public/fonts/MojanglesNormal.woff2", weight: "400", style: "normal" },
+    { path: "../../public/fonts/MojanglesBold.woff2", weight: "700", style: "normal" },
+  ],
+  variable: "--font-minecraft",
   display: "swap",
   fallback: ["monospace"],
 });
@@ -82,7 +93,8 @@ export default async function RootLayout({
         "scroll-smooth scroll-pt-16",
         fontDisplay.variable,
         fontBody.variable,
-        fontMono.variable
+        fontMono.variable,
+        fontMinecraft.variable
       )}
     >
       <body suppressHydrationWarning className="bg-background text-foreground antialiased min-h-screen">

@@ -30,9 +30,10 @@
   --color-duck-stone:  var(--color-bg-elevated);
   --color-duck-muted:  #252318;
 
-  --font-display: "Cinzel Decorative", serif;
-  --font-body:    "Lora", serif;
-  --font-mono:    "JetBrains Mono", monospace;
+  --font-display:    "Cinzel Decorative", serif;
+  --font-body:       "Lora", serif;
+  --font-mono:       "JetBrains Mono", monospace;
+  --font-minecraft:  "Mojangles", monospace;
 }
 
 :root {

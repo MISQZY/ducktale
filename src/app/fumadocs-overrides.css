@@ -20,6 +20,18 @@ aside [aria-current="page"] {
   font-weight: 600;
 }
 
+/*
+  Minecraft commands quoted inline (`/spawn`) or in fenced blocks
+  (/register, /login on the connection page) read as in-game UI text
+  when set in the game's own font instead of a generic monospace.
+  Scoped to prose so it doesn't touch CommandCard's own <code> elements,
+  which set font-mono explicitly and are styled separately.
+*/
+article code,
+.prose code {
+  font-family: var(--font-minecraft);
+}
+
 aside button:not([aria-label]),
 aside [data-type="folder"] > button {
   letter-spacing: 0.015em;
