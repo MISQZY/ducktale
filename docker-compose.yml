@@ -1,14 +1,9 @@
 services:
   app:
-    build:
-      context: .
-      args:
-        # Передаётся из .env на хосте при сборке (для prisma generate)
-        DATABASE_URL: ${DATABASE_URL}
-        # Baked into the generated site-db Prisma client's @@map() table
-        # names at build time — must match the prefix the tables were
-        # actually created with (see .env.example).
-        SITE_DB_TABLE_PREFIX: ${SITE_DB_TABLE_PREFIX}
+    # Built and pushed by CI (.github/workflows/deploy.yml), not built here —
+    # deploy.sh just pulls this tag. Requires the ghcr.io/misqzy/ducktale
+    # package to be public (or the host to `docker login ghcr.io` first).
+    image: ghcr.io/misqzy/ducktale:latest
     container_name: ducktale_app
     restart: unless-stopped
     environment:
