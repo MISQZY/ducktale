@@ -99,7 +99,7 @@ export function useModrinth(projectId: string | undefined) {
               ]
             : []),
           ...gallery.map((g) => ({
-            src: g.url,
+            src: g.raw_url,
             alt: g.title ?? project.title,
             title: g.title ?? undefined,
             unoptimized: true,

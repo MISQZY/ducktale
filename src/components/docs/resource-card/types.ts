@@ -60,6 +60,7 @@ export interface ModrinthVersion {
 
 export interface ModrinthGalleryImage {
   url: string;
+  raw_url: string;
   featured: boolean;
   title: string | null;
   description: string | null;
