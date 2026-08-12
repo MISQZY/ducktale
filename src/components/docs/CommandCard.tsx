@@ -97,6 +97,7 @@ export function CommandCard({
   const hasRequired = required && required.length > 0;
   const hasOptional = optional && optional.length > 0;
   const perm = GLOBAL_PERMS[permission];
+  const normalizedCommand = "/" + command.replace(/^\//, "");
 
 
   const handleCopy = async (e: React.MouseEvent) => {
@@ -137,11 +138,11 @@ export function CommandCard({
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 min-w-0">
             <span className="text-foreground/60 font-minecraft text-sm shrink-0 select-none leading-none">
-              /
+              &gt;
             </span>
 
             <code className="font-minecraft text-sm text-foreground font-medium tracking-wide leading-tight whitespace-nowrap">
-              {command.replace(/^\//, "")}
+              {normalizedCommand}
             </code>
           </div>
 
@@ -190,7 +191,7 @@ export function CommandCard({
         <div className="flex items-center gap-2 shrink-0 pt-0.5 ml-1 min-w-12">
           <button
             onClick={handleCopy}
-            title={t("copyCommand", { command })}
+            title={t("copyCommand", { command: normalizedCommand })}
             className={cn(
               "p-1.5 rounded transition-all duration-150",
               "text-muted-foreground hover:text-foreground hover:bg-primary/10",
@@ -222,7 +223,7 @@ export function CommandCard({
         >
           <div className="border-t border-border/50 bg-card/60 px-3 py-2.5 space-y-2.5">
             <code className="block text-xs font-minecraft text-foreground/70">
-              {buildUsage(command, required, optional)}
+              {buildUsage(normalizedCommand, required, optional)}
             </code>
 
             {hasRequired && (
