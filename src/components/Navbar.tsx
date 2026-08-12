@@ -146,7 +146,12 @@ export default function Navbar() {
         <div className="h-px bg-linear-to-r from-transparent via-gold-500/70 to-transparent" />
 
         <div className="max-w-7xl mx-auto px-4 flex items-center justify-between h-16 relative">
-          <Link href="/" aria-label={t("home")} className="shrink-0">
+          <Link 
+            href="/#hero" 
+            aria-label={t("home")} 
+            className="shrink-0"
+            onClick={(e) => handleNavClick(e, "/#hero")}
+          >
             <Logo />
           </Link>
 
@@ -251,7 +256,14 @@ export default function Navbar() {
                 </VisuallyHidden>
 
                 <div className="flex items-center h-16 px-5 border-b border-border shrink-0">
-                  <Logo />
+                  <SheetClose asChild>
+                    <Link 
+                      href="/#hero"
+                      onClick={(e) => handleNavClick(e, "/#hero")}
+                    >
+                      <Logo />
+                    </Link>
+                  </SheetClose>
                 </div>
                 <div className="h-px mx-5 bg-linear-to-r from-transparent via-primary/25 to-transparent" />
 
