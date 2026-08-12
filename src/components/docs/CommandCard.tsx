@@ -14,6 +14,8 @@ export type { GlobalPermission };
 export interface CommandArg {
   name: string;
   description: string;
+  /** Fixed set of accepted values, shown as chips instead of prose (e.g. sort keys, enum-like flags). */
+  options?: string[];
 }
 
 export interface CommandCardProps {
@@ -232,15 +234,29 @@ export function CommandCard({
                   {t("required")}
                 </p>
                 {required!.map((arg) => (
-                  <div key={arg.name} className="flex items-baseline gap-2">
-                    <code className="text-xs font-minecraft text-rose-700 dark:text-rose-300 shrink-0">
-                      {"<"}
-                      {arg.name}
-                      {">"}
-                    </code>
-                    <span className="text-xs text-muted-foreground">
-                      {arg.description}
-                    </span>
+                  <div key={arg.name} className="space-y-1">
+                    <div className="flex items-baseline gap-2">
+                      <code className="text-xs font-minecraft text-rose-700 dark:text-rose-300 shrink-0">
+                        {"<"}
+                        {arg.name}
+                        {">"}
+                      </code>
+                      <span className="text-xs text-muted-foreground">
+                        {arg.description}
+                      </span>
+                    </div>
+                    {arg.options && arg.options.length > 0 && (
+                      <div className="flex flex-wrap gap-1">
+                        {arg.options.map((opt) => (
+                          <span
+                            key={opt}
+                            className="liquid-badge text-[10px] font-minecraft leading-none text-rose-700 dark:text-rose-300 bg-rose-100 dark:bg-rose-950/40 border border-rose-300/50 dark:border-rose-700/40 rounded px-1.5 py-0.5"
+                          >
+                            {opt}
+                          </span>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>
@@ -252,13 +268,27 @@ export function CommandCard({
                   {t("optional")}
                 </p>
                 {optional!.map((arg) => (
-                  <div key={arg.name} className="flex items-baseline gap-2">
-                    <code className="text-xs font-minecraft text-sky-700 dark:text-sky-300 shrink-0">
-                      [{arg.name}]
-                    </code>
-                    <span className="text-xs text-muted-foreground">
-                      {arg.description}
-                    </span>
+                  <div key={arg.name} className="space-y-1">
+                    <div className="flex items-baseline gap-2">
+                      <code className="text-xs font-minecraft text-sky-700 dark:text-sky-300 shrink-0">
+                        [{arg.name}]
+                      </code>
+                      <span className="text-xs text-muted-foreground">
+                        {arg.description}
+                      </span>
+                    </div>
+                    {arg.options && arg.options.length > 0 && (
+                      <div className="flex flex-wrap gap-1">
+                        {arg.options.map((opt) => (
+                          <span
+                            key={opt}
+                            className="liquid-badge text-[10px] font-minecraft leading-none text-sky-700 dark:text-sky-300 bg-sky-100 dark:bg-sky-950/40 border border-sky-300/50 dark:border-sky-700/40 rounded px-1.5 py-0.5"
+                          >
+                            {opt}
+                          </span>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>
