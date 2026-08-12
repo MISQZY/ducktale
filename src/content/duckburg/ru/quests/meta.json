@@ -1,0 +1,8 @@
+{
+  "title": "Квесты",
+  "defaultOpen": false,
+  "pages": [
+    "lore",
+    "mechanics"
+  ]
+}

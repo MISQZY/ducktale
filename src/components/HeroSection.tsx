@@ -5,7 +5,6 @@ import { PageBackground } from "@/components/common/PageBackground";
 import { StatusBadge } from "@/components/common/StatusBadge";
 import { CtaButton } from "@/components/common/CtaButton";
 import { SITE } from "@/config/site";
-import DuckyPet from "@/components/DuckyPet";
 
 export default function HeroSection() {
   const t = useTranslations("Hero");
@@ -22,7 +21,7 @@ export default function HeroSection() {
   return (
     <section id="hero" className="relative min-h-screen flex items-center justify-center overflow-hidden px-6 pt-16">
       <PageBackground />
-      <DuckyPet />
+      
 
       <div className="relative z-10 text-center max-w-4xl mx-auto">
         {/* Badge row */}

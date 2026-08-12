@@ -6,6 +6,7 @@ import { useRouter, usePathname } from "@/i18n/navigation";
 import { FUMADOCS_RU_TRANSLATIONS } from "@/i18n/fumadocs-translations";
 import type { ReactNode } from "react";
 import type { Session } from "next-auth";
+import DuckyPet from "@/components/DuckyPet";
 
 export function AppProvider({
   children,
@@ -37,6 +38,7 @@ export function AppProvider({
         }}
       >
         {children}
+        <DuckyPet />
       </RootProvider>
     </SessionProvider>
   );

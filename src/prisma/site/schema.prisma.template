@@ -40,7 +40,6 @@ model User {
   ticketMessages      TicketMessage[]
   passwordResetTokens PasswordResetToken[]
   badges              UserBadge[]
-  questProgress       QuestProgress[]
 
   @@map("{{PREFIX}}user")
 }
@@ -119,37 +118,37 @@ model AccountLink {
   @@map("{{PREFIX}}account_link")
 }
 
+/// One row per (server, BetonQuest package) — the raw contents of that
+/// package's YAML files (package.yml, conditions.yml, objectives.yml,
+/// actions.yml, conversations/*.yml, ...) as reported by the BetonQuestApi
+/// Paper plugin running on that server, relayed through the
+/// DuckTaleQuestProxy Velocity plugin. `files` is a JSON object mapping
+/// each file's path (relative to the package folder, e.g. "conditions.yml"
+/// or "conversations/Instructor.yml") to its raw text content — nothing
+/// here is parsed or interpreted; turning this into a quest graph
+/// (conditions, prerequisites, NPC dialogue structure) is the website's
+/// job. `server` is whatever name that server is registered under in the
+/// proxy's velocity.toml, not anything the backend plugin's own config
+/// claims to be called. Table/column contract is shared with the
+/// Minecraft-side plugins — see BETONQUEST_QUEST_TREE.md if you change
+/// this model.
+model QuestCatalog {
+  id          String   @id @default(uuid())
+  server      String   @db.VarChar(64)
+  packageName String   @db.VarChar(190)
+  files       Json
+  updatedAt   DateTime @updatedAt
+
+  @@unique([server, packageName])
+  @@map("{{PREFIX}}quest_catalog")
+}
+
 /// Issued by an admin from the users panel and handed to the user
 /// out-of-band (Discord/Telegram) as a one-time link, replacing the old
 /// flow where the admin saw and shared a plaintext random password
 /// directly. usedAt is set the moment the linked page is submitted, and a
 /// fresh admin-issued token deletes any previous ones for the same user —
 /// only the most recently issued link is ever valid.
-/// One row per (user, quest-id) — live per-player quest progress reported by
-/// the BetonQuest bridge plugin, meant to be merged into content-authored
-/// QuestTree nodes (src/components/quest-tree) at render time, overriding
-/// their mock `status`/`objectives[].current` with the real thing. `questId`
-/// is whatever ID the MDX author put in a QuestNodeDef's `objectives[].id`
-/// (per-objective progress) or the node's own `id` (overall quest
-/// completion) — it must match a real BetonQuest condition/objective ID for
-/// the plugin to resolve it. Table/column contract is shared with the
-/// Minecraft-side plugin — see BETONQUEST_QUEST_TREE.md if you change this
-/// model.
-model QuestProgress {
-  id        String   @id @default(uuid())
-  userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  questId   String   @db.VarChar(190)
-  current   Int?
-  total     Int?
-  completed Boolean  @default(false)
-  updatedAt DateTime @updatedAt
-
-  @@unique([userId, questId])
-  @@index([userId])
-  @@map("{{PREFIX}}quest_progress")
-}
-
 model PasswordResetToken {
   id        String    @id @default(uuid())
   userId    String

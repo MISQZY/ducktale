@@ -1,5 +1,4 @@
 import Navbar from "@/components/Navbar";
-import DuckyPet from "@/components/DuckyPet";
 import { PageBackground } from "./PageBackground";
 import { GoldDivider } from "./GoldDivider";
 import type { ReactNode } from "react";
@@ -18,7 +17,7 @@ export function AccountShell({ title, description, children, footer }: AccountSh
       <Navbar />
       <main className="relative min-h-screen flex items-center justify-center overflow-hidden px-6 pt-24 pb-16">
         <PageBackground />
-        <DuckyPet />
+        
 
         <div className="relative z-10 w-full max-w-sm mx-auto">
           <div className="corner-ornament rounded-2xl border border-primary/20 bg-card/60 backdrop-blur-sm p-8 relative overflow-hidden shadow-xl shadow-black/20">

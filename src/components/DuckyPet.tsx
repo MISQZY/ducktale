@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState, useCallback } from "react";
 import { useSyncExternalStore } from "react";
+import { usePathname } from "next/navigation";
 import { DUCKY_EASTER_EGG_HOST } from "@/config/servers";
 
 const SPRITE_SIZE = 48;
@@ -15,6 +16,8 @@ const FRAME_MS = 200;
 const SPEED_PX_PER_SEC = 45;
 const STORAGE_KEY = "duckyVisible";
 
+import { DUCKY_CONFIG } from "@/config/ducky";
+
 type Direction = "left" | "right";
 interface Vec2 { x: number; y: number }
 
@@ -24,8 +27,10 @@ function rnd(min: number, max: number) {
 
 function randomSpawn(W: number, H: number): Vec2 {
   const pad = 80;
+  const isLeft = Math.random() > 0.5;
+  // Start fully off-screen on left or right
   return {
-    x: rnd(pad, Math.max(pad + 1, W - pad - DISPLAY_SIZE)),
+    x: isLeft ? -DISPLAY_SIZE : W,
     y: rnd(pad, Math.max(pad + 1, H - pad - DISPLAY_SIZE)),
   };
 }
@@ -49,6 +54,7 @@ function loadImage(src: string): Promise<HTMLImageElement> {
 }
 
 export default function DuckyPet() {
+  const pathname = usePathname();
   const sectionRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
@@ -66,11 +72,18 @@ export default function DuckyPet() {
   const walkImgRef = useRef<HTMLImageElement | null>(null);
   const spritesReady = useRef(false);
 
-  const [pos, setPos] = useState<Vec2 | null>(null);
+  const duckRef = useRef<HTMLDivElement>(null);
+  const bubbleRef = useRef<HTMLDivElement>(null);
+
+  const [mounted, setMounted] = useState(false);
   const [dir, setDir] = useState<Direction>("right");
   const [isHovered, setIsHovered] = useState(false);
-  const [layer, setLayer] = useState<1 | 2>(1);
+  const [activePhrase, setActivePhrase] = useState<string | null>(null);
+  const activePhraseRef = useRef<string | null>(null);
   const visible = useSyncExternalStore(subscribeDuckyToggle, getDuckyVisible, () => true);
+
+  // Do not render on docs pages
+  const isDocs = pathname?.includes("/docs");
 
   useEffect(() => {
     visibleRef.current = visible;
@@ -82,24 +95,42 @@ export default function DuckyPet() {
   }
 
   const pickNewWander = useCallback(() => {
-    const el = sectionRef.current;
-    const W = el?.offsetWidth ?? window.innerWidth;
-    const H = el?.offsetHeight ?? window.innerHeight;
-    const px = posRef.current?.x ?? W / 2;
-    const py = posRef.current?.y ?? H / 2;
+    const W = window.innerWidth;
+    const H = window.innerHeight;
+    const sX = window.scrollX;
+    const sY = window.scrollY;
 
+    const px = posRef.current?.x ?? (sX + W / 2);
+    const py = posRef.current?.y ?? (sY + H / 2);
+
+    const vx = px - sX;
+    const vy = py - sY;
     const m = 80;
+
     let aMin = 0, aMax = Math.PI * 2;
-    if (px < m) { aMin = -Math.PI / 2; aMax = Math.PI / 2; }
-    else if (px > W - m) { aMin = Math.PI / 2; aMax = (3 * Math.PI) / 2; }
-    if (py < m) { aMin = 0; aMax = Math.PI; }
-    else if (py > H - m) { aMin = Math.PI; aMax = Math.PI * 2; }
+
+    // If completely outside viewport, aim towards the center of the viewport
+    if (vx < 0 || vx > W || vy < 0 || vy > H) {
+      const targetX = sX + W / 2;
+      const targetY = sY + H / 2;
+      const angle = Math.atan2(targetY - py, targetX - px);
+      aMin = angle - 0.5;
+      aMax = angle + 0.5;
+    } else {
+      // Inside viewport: push away from edges
+      if (vx < m) { aMin = -Math.PI / 2; aMax = Math.PI / 2; }
+      else if (vx > W - m) { aMin = Math.PI / 2; aMax = (3 * Math.PI) / 2; }
+      if (vy < m) { aMin = 0; aMax = Math.PI; }
+      else if (vy > H - m) { aMin = Math.PI; aMax = Math.PI * 2; }
+    }
 
     const angle = rnd(aMin, aMax);
-    const speed = rnd(SPEED_PX_PER_SEC * 0.6, SPEED_PX_PER_SEC * 1.2);
+    const speed = rnd(SPEED_PX_PER_SEC * 0.6, SPEED_PX_PER_SEC * 1.5);
     velRef.current = { x: Math.cos(angle) * speed, y: Math.sin(angle) * speed };
-    dirRef.current = velRef.current.x >= 0 ? "right" : "left";
-    setDir(dirRef.current);
+    
+    const newDir = velRef.current.x >= 0 ? "right" : "left";
+    dirRef.current = newDir;
+    setDir(newDir);
     wanderTimerRef.current = rnd(1500, 4000);
   }, []);
 
@@ -109,7 +140,7 @@ export default function DuckyPet() {
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    const hovered = isHoveredRef.current;
+    const hovered = isHoveredRef.current || activePhraseRef.current !== null;
     const img = hovered ? idleImgRef.current : walkImgRef.current;
     if (!img) return;
 
@@ -128,7 +159,10 @@ export default function DuckyPet() {
     const dw = DISPLAY_SIZE;
     const dh = DISPLAY_SIZE;
 
-    const glowColor = "rgba(87, 46, 2, 0.88)";
+    // Adaptive shadow based on theme
+    const isDark = document.documentElement.classList.contains("dark");
+    const glowColor = isDark ? "rgba(87, 46, 2, 0.88)" : "rgba(212, 160, 23, 0.25)";
+    
     const passes = [
       { spread: 7, alpha: 0.08 },
       { spread: 5, alpha: 0.10 },
@@ -165,28 +199,24 @@ export default function DuckyPet() {
       const dt = Math.min(now - (lastTimeRef.current || now), 100);
       lastTimeRef.current = now;
 
-      if (!isHoveredRef.current) {
+      if (!isHoveredRef.current && activePhraseRef.current === null) {
         wanderTimerRef.current -= dt;
         if (wanderTimerRef.current <= 0) pickNewWander();
 
-        const el = sectionRef.current;
-        const W = (el?.offsetWidth ?? window.innerWidth) - DISPLAY_SIZE;
-        const H = (el?.offsetHeight ?? window.innerHeight) - DISPLAY_SIZE;
-        const cur = posRef.current ?? { x: 0, y: 0 };
+        const cur = posRef.current ?? { x: window.scrollX + window.innerWidth / 2, y: window.scrollY + window.innerHeight / 2 };
 
         let nx = cur.x + velRef.current.x * (dt / 1000);
         let ny = cur.y + velRef.current.y * (dt / 1000);
 
+        const docW = Math.max(document.documentElement.scrollWidth, window.innerWidth) - DISPLAY_SIZE;
+        const docH = Math.max(document.documentElement.scrollHeight, window.innerHeight) - DISPLAY_SIZE;
+
         if (nx < 0) { nx = 0; velRef.current.x = Math.abs(velRef.current.x); dirRef.current = "right"; setDir("right"); }
-        if (nx > W) { nx = W; velRef.current.x = -Math.abs(velRef.current.x); dirRef.current = "left"; setDir("left"); }
+        if (nx > docW) { nx = docW; velRef.current.x = -Math.abs(velRef.current.x); dirRef.current = "left"; setDir("left"); }
         if (ny < 0) { ny = 0; velRef.current.y = Math.abs(velRef.current.y); }
-        if (ny > H) { ny = H; velRef.current.y = -Math.abs(velRef.current.y); }
+        if (ny > docH) { ny = docH; velRef.current.y = -Math.abs(velRef.current.y); }
 
         posRef.current = { x: nx, y: ny };
-        setPos({ x: nx, y: ny });
-
-        const sH = el?.offsetHeight ?? window.innerHeight;
-        setLayer(ny > sH * 0.6 ? 2 : 1);
 
         frameMsRef.current += dt;
         if (frameMsRef.current >= FRAME_MS) {
@@ -199,6 +229,20 @@ export default function DuckyPet() {
           frameMsRef.current = 0;
           frameRef.current = (frameRef.current + 1) % IDLE_FRAMES;
         }
+      }
+
+      // Update DOM directly for smooth scroll following
+      if (duckRef.current && posRef.current) {
+        const screenX = posRef.current.x - window.scrollX;
+        const screenY = posRef.current.y - window.scrollY;
+        const scale = dirRef.current === "left" ? -1 : 1;
+        duckRef.current.style.transform = `translate(${screenX}px, ${screenY}px) scaleX(${scale})`;
+      }
+      
+      if (bubbleRef.current && posRef.current) {
+        const screenX = posRef.current.x - window.scrollX + DISPLAY_SIZE / 2;
+        const screenY = posRef.current.y - window.scrollY + 18;
+        bubbleRef.current.style.transform = `translate(${screenX}px, ${screenY}px) translate(-50%, -100%)`;
       }
 
       drawFrame();
@@ -215,35 +259,61 @@ export default function DuckyPet() {
   }, []);
 
   useEffect(() => {
-    if (visible && spritesReady.current) {
+    if (visible && !isDocs && spritesReady.current) {
       startLoop();
     } else {
       stopLoop();
     }
     return () => stopLoop();
-  }, [visible, startLoop, stopLoop]);
+  }, [visible, isDocs, startLoop, stopLoop]);
+
+  // Periodic phrases
+  useEffect(() => {
+    if (!visible || isDocs || isHovered) return;
+    const interval = setInterval(() => {
+      if (Math.random() < DUCKY_CONFIG.quackChance) {
+        const phrase = DUCKY_CONFIG.phrases[Math.floor(Math.random() * DUCKY_CONFIG.phrases.length)];
+        setActivePhrase(phrase);
+        activePhraseRef.current = phrase;
+        try {
+          const audio = new Audio('/sounds/quack.mp3');
+          audio.volume = DUCKY_CONFIG.volume;
+          audio.play().catch(() => {});
+        } catch (e) {}
+        setTimeout(() => {
+          setActivePhrase(null);
+          activePhraseRef.current = null;
+        }, DUCKY_CONFIG.bubbleDurationMs);
+      }
+    }, DUCKY_CONFIG.quackIntervalMs);
+    return () => clearInterval(interval);
+  }, [visible, isDocs, isHovered]);
 
   useEffect(() => {
-    let mounted = true;
+    let isMounted = true;
     Promise.all([
       loadImage("/sprites/ducky-idle.png"),
       loadImage("/sprites/ducky-walk.png"),
     ])
       .then(([idle, walk]) => {
-        if (!mounted) return;
+        if (!isMounted) return;
         idleImgRef.current = idle;
         walkImgRef.current = walk;
         spritesReady.current = true;
 
-        const el = sectionRef.current;
-        const W = el?.offsetWidth ?? window.innerWidth;
-        const H = el?.offsetHeight ?? window.innerHeight;
-        const spawn = randomSpawn(W, H);
+        const W = window.innerWidth;
+        const H = window.innerHeight;
+        // spawn inside initial visible viewport
+        const spawn = {
+           x: window.scrollX + (Math.random() > 0.5 ? -DISPLAY_SIZE : W),
+           y: window.scrollY + rnd(80, Math.max(81, H - 80 - DISPLAY_SIZE))
+        };
         posRef.current = spawn;
-        setPos(spawn);
         pickNewWander();
 
-        if (visibleRef.current) {
+        setMounted(true); // trigger initial render
+        
+        if (visibleRef.current && !isDocs) {
           startLoop();
         }
       })
@@ -252,34 +322,46 @@ export default function DuckyPet() {
       });
 
     return () => {
-      mounted = false;
+      isMounted = false;
       stopLoop();
     };
-  }, [pickNewWander, startLoop, stopLoop]);
+  }, [pickNewWander, startLoop, stopLoop, isDocs]);
 
-  if (!pos) return null;
+  if (!mounted || isDocs) return null;
 
   const PAD = 10;
   const CV = DISPLAY_SIZE + PAD * 2;
 
-  const bubbleBottom = pos.y + 18;
+  const showBubble = isHovered || activePhrase !== null;
 
   return (
-    <div ref={sectionRef} className="absolute inset-0 pointer-events-none" style={{ zIndex: layer }}>
-
+    <div ref={sectionRef} className="fixed inset-0 pointer-events-none" style={{ zIndex: 40 }}>
       <div
+        ref={duckRef}
         style={{
           position: "absolute" as const,
-          left: pos.x,
-          top: pos.y,
+          left: 0,
+          top: 0,
           width: DISPLAY_SIZE,
           height: DISPLAY_SIZE,
-          transform: dir === "left" ? "scaleX(-1)" : "scaleX(1)",
           opacity: visible ? 1 : 0,
           pointerEvents: visible ? "auto" : "none",
           transition: "opacity 0.3s ease",
+          // transform is managed by requestAnimationFrame
         }}
-        onMouseEnter={() => { isHoveredRef.current = true; setIsHovered(true); frameRef.current = 0; frameMsRef.current = 0; }}
+        onMouseEnter={() => { 
+          isHoveredRef.current = true; 
+          setIsHovered(true); 
+          setActivePhrase(null);
+          activePhraseRef.current = null;
+          frameRef.current = 0; 
+          frameMsRef.current = 0;
+          try {
+            const audio = new Audio('/sounds/quack.mp3');
+            audio.volume = DUCKY_CONFIG.volume;
+            audio.play().catch(() => {});
+          } catch(e) {}
+        }}
         onMouseLeave={() => { isHoveredRef.current = false; setIsHovered(false); frameRef.current = 0; frameMsRef.current = 0; }}
         onClick={() => window.open("https://" + DUCKY_EASTER_EGG_HOST, "_blank", "noopener,noreferrer")}
       >
@@ -297,17 +379,21 @@ export default function DuckyPet() {
         />
       </div>
 
-      {isHovered && visible && (
+      {showBubble && visible && (
         <div
+          ref={bubbleRef}
           style={{
             position: "absolute" as const,
-            left: pos.x + DISPLAY_SIZE / 2,
-            top: bubbleBottom,
-            transform: "translate(-50%, -100%)",
+            left: 0,
+            top: 0,
             whiteSpace: "nowrap",
             pointerEvents: "none",
             userSelect: "none",
             zIndex: 50,
+            // Initial transform so it doesn't flicker at 0,0 before rAF kicks in
+            transform: posRef.current
+              ? `translate(${posRef.current.x - window.scrollX + DISPLAY_SIZE / 2}px, ${posRef.current.y - window.scrollY + 18}px) translate(-50%, -100%)`
+              : "none",
           }}
         >
           {/* bubble body */}
@@ -315,17 +401,22 @@ export default function DuckyPet() {
             background: "rgba(255,255,255,0.95)",
             color: "#1a160a",
             fontFamily: "var(--font-body)",
-            fontSize: "11px",
+            fontSize: "12px",
             fontWeight: 600,
-            lineHeight: "1.3",
-            padding: "5px 10px",
-            borderRadius: "8px",
+            lineHeight: "1.4",
+            padding: "6px 12px",
+            borderRadius: "10px",
             boxShadow: "0 2px 8px rgba(0,0,0,0.4)",
             border: "1.5px solid rgba(212,160,23,0.5)",
           }}>
-            <p>Я ищу Золотой Идол!</p>
-            <p>Можешь помочь мне в поисках?</p>
-
+            {isHovered ? (
+              <>
+                <p>Я ищу Золотой Идол!</p>
+                <p>Можешь помочь мне в поисках?</p>
+              </>
+            ) : (
+              <p>{activePhrase}</p>
+            )}
           </div>
           {/* tail pointing down toward duck */}
           <div style={{

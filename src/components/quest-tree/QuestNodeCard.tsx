@@ -4,7 +4,7 @@ import { useEffect, useRef } from "react";
 import type { Node } from "@antv/x6";
 import { cn } from "@/lib/utils";
 import { SkinFace } from "@/components/common/SkinFace";
-import { CheckSquare, Square, Lock, Gift, Target, Minus, Plus } from "lucide-react";
+import { CheckSquare, Square, Lock, Gift, Target, Minus, Plus, Quote } from "lucide-react";
 import type { QuestNodeDef, QuestStatus, QuestObjective, QuestReward } from "./types";
 
 export interface QuestNodeData extends Omit<QuestNodeDef, "x" | "y" | "width" | "height"> {
@@ -139,12 +139,26 @@ export function QuestNodeCard({ node }: { node: Node }) {
             </span>
           </div>
           {data.objectives.map((obj) => {
+            if (obj.quote) {
+              return (
+                <div
+                  key={obj.id}
+                  className="flex items-start gap-2 rounded-lg border-l-2 border-primary/30 bg-primary/5 px-2.5 py-2"
+                >
+                  <Quote size={12} className="text-primary/50 shrink-0 mt-0.5" />
+                  <span className="text-xs italic text-foreground/70 leading-relaxed">
+                    {obj.label}
+                  </span>
+                </div>
+              );
+            }
+
             const hasProgress = typeof obj.current === "number" && typeof obj.total === "number";
             const actualCurrent = data.mockObjProgress?.[obj.id] ?? obj.current ?? 0;
             const progDone = hasProgress && actualCurrent >= obj.total!;
             const mockDone = data.mockObjCompletions?.[obj.id];
             const isObjComplete = obj.completed || progDone || mockDone || isCompleted;
-            
+
             return (
               <div 
                 key={obj.id} 

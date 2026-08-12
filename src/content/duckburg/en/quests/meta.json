@@ -1,0 +1,8 @@
+{
+  "title": "Quests",
+  "defaultOpen": false,
+  "pages": [
+    "lore",
+    "mechanics"
+  ]
+}

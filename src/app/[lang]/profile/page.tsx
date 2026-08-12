@@ -3,7 +3,7 @@ import { getTranslations } from "next-intl/server";
 import { auth } from "@/auth";
 import { siteDb } from "@/lib/site-db";
 import Navbar from "@/components/Navbar";
-import DuckyPet from "@/components/DuckyPet";
+
 import { CtaButton } from "@/components/common/CtaButton";
 import { StatusBadge } from "@/components/common/StatusBadge";
 import { ProfileQuickActions } from "@/components/account/ProfileQuickActions";
@@ -49,7 +49,7 @@ export default async function ProfilePage({
           viewport and produced scrollbars). Just the body's own base fill,
           relative+overflow-hidden only so DuckyPet has somewhere to wander. */}
       <main className="relative overflow-hidden min-h-screen px-6 pt-24 pb-16">
-        <DuckyPet />
+
 
         <div className="relative z-10 max-w-2xl mx-auto">
           <h1

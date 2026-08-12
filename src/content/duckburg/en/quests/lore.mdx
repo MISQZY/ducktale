@@ -1,0 +1,14 @@
+---
+title: Story Line
+description: The transfer story and the road to Goldenburg
+---
+
+**DuckBurg**'s main story arc — meeting the world through a conversation with the Instructor and the first trip to the trade capital, **Goldenburg**. The tree below is built automatically from the server's real quest data (BetonQuest) — each node is an objective, and the connections between them show what has to be done first to unlock the next one.
+
+<LiveQuestTree server="duckburg" packageName="loreQuests" title="Story Line" frameHeight={650} />
+
+### How to read the tree
+
+- **No lock icon** — the objective is already available to start.
+- **A line between nodes** — a condition link: the node on the right requires the one on the left to be done (or a tag it sets).
+- Each node's title and description come from the server's NPC dialogue and objective name — if something looks like a plain formatted key rather than a nice title, that objective doesn't have human-readable dialogue text attached yet.

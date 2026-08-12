@@ -133,6 +133,12 @@ export default function Navbar() {
       if (el) {
         e.preventDefault();
         el.scrollIntoView({ behavior: "smooth" });
+        
+        if (id === "hero") {
+          window.history.pushState(null, "", window.location.pathname);
+        } else {
+          window.history.pushState(null, "", e.currentTarget.href);
+        }
       }
     }
   };

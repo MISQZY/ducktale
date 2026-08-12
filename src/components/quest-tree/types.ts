@@ -8,6 +8,8 @@ export interface QuestObjective {
   total?: number;
   /** Whether this specific objective is completed */
   completed?: boolean;
+  /** Renders label as an italicized NPC quote (border-accented, no checkbox) instead of a checklist item — for objectives sourced from dialogue text rather than an actual player-completable task. */
+  quote?: boolean;
 }
 
 export interface QuestReward {
