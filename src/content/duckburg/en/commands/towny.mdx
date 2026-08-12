@@ -52,14 +52,22 @@ description: Full command reference for the Towny plugin
   command="towny top residents"
   description="Top residents/towns/nations by number of members."
   permission="all"
-  required={[{ name: "type", description: "all | town | nation" }]}
+  required={[{
+    name: "type",
+    description: "Category to rank by",
+    options: ["all", "town", "nation"],
+  }]}
 />
 
 <CommandCard
   command="towny top land"
   description="Top residents/towns by amount of claimed land."
   permission="all"
-  required={[{ name: "type", description: "all | resident | town" }]}
+  required={[{
+    name: "type",
+    description: "Category to rank by",
+    options: ["all", "resident", "town"],
+  }]}
 />
 
 <CommandCard
@@ -147,7 +155,11 @@ description: Full command reference for the Towny plugin
   command="plot set"
   description="Set the plot type."
   permission="all"
-  required={[{ name: "type", description: "shop | embassy | arena | farm | jail | wilds | inn | bank | outpost | reset" }]}
+  required={[{
+    name: "type",
+    description: "Plot type",
+    options: ["shop", "embassy", "arena", "farm", "jail", "wilds", "inn", "bank", "outpost", "reset"],
+  }]}
 />
 
 <CommandCard
@@ -174,7 +186,11 @@ description: Full command reference for the Towny plugin
   command="plot toggle"
   description="Toggle a plot setting."
   permission="all"
-  required={[{ name: "setting", description: "fire | pvp | explosion | mob | taxed" }]}
+  required={[{
+    name: "setting",
+    description: "Setting to toggle",
+    options: ["fire", "pvp", "explosion", "mob", "taxed"],
+  }]}
 />
 
 <CommandCard
@@ -546,7 +562,11 @@ description: Full command reference for the Towny plugin
   command="town list"
   description="List all towns on the server, with sorting options."
   permission="all"
-  optional={[{ name: "sort", description: "by name | by resident | by balance | by townblocks | by online | by open | by founded" }]}
+  optional={[{
+    name: "sort",
+    description: "Sort order for the list",
+    options: ["name", "resident", "balance", "townblocks", "online", "open", "founded"],
+  }]}
 />
 
 <CommandCard
@@ -1345,5 +1365,9 @@ description: Full command reference for the Towny plugin
   command="/tw set worldmode"
   description="Set the world mode."
   permission="admin"
-  required={[{ name: "mode", description: "safe | build | pvp | war" }]}
+  required={[{
+    name: "mode",
+    description: "World mode",
+    options: ["safe", "build", "pvp", "war"],
+  }]}
 />

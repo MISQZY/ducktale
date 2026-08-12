@@ -52,14 +52,22 @@ description: Полный справочник команд плагина Towny
   command="towny top residents"
   description="Топ жителей/городов/наций по количеству участников."
   permission="all"
-  required={[{ name: "тип", description: "all | town | nation" }]}
+  required={[{
+    name: "тип",
+    description: "Категория, по которой строится топ",
+    options: ["all", "town", "nation"],
+  }]}
 />
 
 <CommandCard
   command="towny top land"
   description="Топ жителей/городов по количеству застолблённой земли."
   permission="all"
-  required={[{ name: "тип", description: "all | resident | town" }]}
+  required={[{
+    name: "тип",
+    description: "Категория, по которой строится топ",
+    options: ["all", "resident", "town"],
+  }]}
 />
 
 <CommandCard
@@ -147,7 +155,11 @@ description: Полный справочник команд плагина Towny
   command="plot set"
   description="Установить тип участка."
   permission="all"
-  required={[{ name: "тип", description: "shop | embassy | arena | farm | jail | wilds | inn | bank | outpost | reset" }]}
+  required={[{
+    name: "тип",
+    description: "Тип участка",
+    options: ["shop", "embassy", "arena", "farm", "jail", "wilds", "inn", "bank", "outpost", "reset"],
+  }]}
 />
 
 <CommandCard
@@ -174,7 +186,11 @@ description: Полный справочник команд плагина Towny
   command="plot toggle"
   description="Переключить параметр участка."
   permission="all"
-  required={[{ name: "параметр", description: "fire | pvp | explosion | mob | taxed" }]}
+  required={[{
+    name: "параметр",
+    description: "Переключаемый параметр",
+    options: ["fire", "pvp", "explosion", "mob", "taxed"],
+  }]}
 />
 
 <CommandCard
@@ -546,7 +562,11 @@ description: Полный справочник команд плагина Towny
   command="town list"
   description="Список всех городов на сервере с возможностью сортировки."
   permission="all"
-  optional={[{ name: "сортировка", description: "by name | by resident | by balance | by townblocks | by online | by open | by founded" }]}
+  optional={[{
+    name: "сортировка",
+    description: "Порядок сортировки списка",
+    options: ["name", "resident", "balance", "townblocks", "online", "open", "founded"],
+  }]}
 />
 
 <CommandCard
@@ -1345,5 +1365,9 @@ description: Полный справочник команд плагина Towny
   command="/tw set worldmode"
   description="Установить режим мира."
   permission="admin"
-  required={[{ name: "режим", description: "safe | build | pvp | war" }]}
+  required={[{
+    name: "режим",
+    description: "Режим мира",
+    options: ["safe", "build", "pvp", "war"],
+  }]}
 />
