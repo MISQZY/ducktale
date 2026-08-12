@@ -1,11 +1,14 @@
 import Navbar from "@/components/Navbar";
 import HeroSection from "@/components/HeroSection";
-import AboutSection from "@/components/AboutSection";
-import ServersSection from "@/components/ServersSection";
-import NetworkDiagram from "@/components/NetworkDiagram";
-import SocialSection from "@/components/SocialSection";
 import Footer from "@/components/Footer";
 import { createMetadata } from "@/lib/create-metadata";
+import ScrollReveal from "@/components/common/ScrollReveal";
+import dynamic from "next/dynamic";
+
+const AboutSection = dynamic(() => import("@/components/AboutSection"));
+const ServersSection = dynamic(() => import("@/components/ServersSection"));
+const NetworkDiagram = dynamic(() => import("@/components/NetworkDiagram"));
+const SocialSection = dynamic(() => import("@/components/SocialSection"));
 
 export const generateMetadata = createMetadata({ namespace: "Home" });
 
@@ -16,10 +19,22 @@ export default function HomePage() {
 
       <main>
         <HeroSection />
-        <AboutSection />
-        <ServersSection />
-        <NetworkDiagram />
-        <SocialSection />
+        
+        <ScrollReveal>
+          <AboutSection />
+        </ScrollReveal>
+        
+        <ScrollReveal>
+          <ServersSection />
+        </ScrollReveal>
+        
+        <ScrollReveal>
+          <NetworkDiagram />
+        </ScrollReveal>
+        
+        <ScrollReveal>
+          <SocialSection />
+        </ScrollReveal>
       </main>
 
       <Footer />

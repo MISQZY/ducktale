@@ -35,9 +35,7 @@ export default function SocialSection() {
   const t = useTranslations("Social");
 
   return (
-    <section id="community" className="py-28 px-6 relative">
-      <div className="absolute top-0 left-1/4 right-1/4 h-px bg-linear-to-r from-transparent via-primary/20 to-transparent" />
-
+    <section id="community" className="py-16 px-6 relative">
       <div className="max-w-5xl mx-auto">
         <SectionHeader
           label={t("label")}
@@ -115,13 +113,6 @@ export default function SocialSection() {
             );
           })}
         </div>
-
-        <p
-          className="text-center text-foreground/20 text-xs mt-10 tracking-wider"
-          style={{ fontFamily: "var(--font-mono)" }}
-        >
-          ✦ &nbsp; {t("footerNote")} &nbsp; ✦
-        </p>
       </div>
     </section>
   );

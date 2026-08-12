@@ -24,7 +24,7 @@ export default function AboutSection() {
   }));
 
   return (
-    <section id="about" className="py-28 px-6 relative">
+    <section id="about" className="py-16 px-6 relative">
       {/* Decorative side text */}
       <div
         className="absolute left-6 top-1/2 -translate-y-1/2 hidden xl:flex flex-col gap-6 text-primary/20 text-xs"

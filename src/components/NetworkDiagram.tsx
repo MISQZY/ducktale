@@ -141,9 +141,7 @@ export default function NetworkDiagram() {
   }));
 
   return (
-    <section id="infrastructure" className="py-28 px-6 relative">
-      <div className="absolute top-0 left-1/4 right-1/4 h-px bg-linear-to-r from-transparent via-primary/20 to-transparent" />
-
+    <section id="infrastructure" className="py-16 px-6 relative">
       <div className="max-w-5xl mx-auto">
         <SectionHeader
           label={t("label")}

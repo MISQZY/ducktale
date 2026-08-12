@@ -4,7 +4,7 @@ import { Link } from "@/i18n/navigation";
 import { useTranslations } from "next-intl";
 import { ArrowRight, Sword } from "lucide-react";
 import { SERVERS, NETWORK_HOST } from "@/config/servers";
-import CopyToClipboard from "./ui/CopyToClipboard";
+import { ServerAddress } from "@/components/docs/ServerAddress";
 import SectionHeader from "@/components/SectionHeader";
 import ServerStatusBadge from "./ServerStatusBadge";
 import { cn } from "@/lib/utils";
@@ -14,9 +14,7 @@ export default function ServersSection() {
   const t = useTranslations("Servers");
 
   return (
-    <section id="servers" className="py-28 px-6 relative">
-      <div className="absolute top-0 left-1/4 right-1/4 h-px bg-linear-to-r from-transparent via-primary/20 to-transparent" />
-
+    <section id="servers" className="py-16 px-6 relative">
       <div className="max-w-5xl mx-auto">
         <SectionHeader label={t("label")} title={t("title")} />
         <div className="grid md:grid-cols-2 gap-6">
@@ -115,11 +113,7 @@ export default function ServersSection() {
             <Sword size={12} className="text-primary/40 -rotate-135" />
           </div>
 
-          <CopyToClipboard value={NETWORK_HOST} />
-
-          <p className="text-foreground/25 text-xs mt-4 tracking-wide">
-            {t("connect.edition", { version: ">1.21.x" })}
-          </p>
+          <ServerAddress server="network" align="center" />
         </div>
       </div>
     </section>
