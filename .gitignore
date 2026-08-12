@@ -52,6 +52,7 @@ src/prisma/site/schema.prisma
 /uploads/
 
 # AI
+.claude/
 AGENTS.md
 CLAUDE.md
 MINECRAFT_ACCOUNT_LINK.md
