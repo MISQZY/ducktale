@@ -34,6 +34,7 @@ export function FeatureGrid({ features, columns = 3, className }: FeatureGridPro
         return (
           <DuckCard
             key={f.title}
+            liquid={false}
             className="border-amber-900/20 bg-duck-stone/30 hover:border-amber-700/40 hover:bg-duck-stone/50 transition-all duration-200 group"
           >
             <DuckCardHeader className="pb-2">
