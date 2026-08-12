@@ -188,10 +188,10 @@ function EventCard({ event, now }: { event: ServerEvent; now: number }) {
         <Wrapper
             {...wrapperProps}
             className={cn(
-                "group relative flex items-center gap-4 rounded-xl border p-4 transition-all duration-200",
+                "liquid-card group relative flex items-center gap-4 rounded-xl border p-4 transition-all duration-200",
                 "border-primary/25 bg-card/50",
                 !isPast && "hover:border-primary/45 hover:bg-card/70 cursor-pointer",
-                isPast && "pointer-events-none select-none"
+                isPast && "cursor-default select-none opacity-80"
             )}
             style={{
                 boxShadow: `inset 3px 0 0 0 ${isPast ? "var(--color-stone-600)" : style.accent}`,
@@ -217,7 +217,7 @@ function EventCard({ event, now }: { event: ServerEvent; now: number }) {
             <div className="flex shrink-0 flex-col items-end gap-2 min-w-22.5">
                 <span
                     className={cn(
-                        "inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5",
+                        "liquid-badge inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5",
                         "text-[10px] tracking-wide",
                         style.badgeBg,
                         style.badgeBorder,
