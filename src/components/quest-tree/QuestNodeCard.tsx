@@ -4,6 +4,7 @@ import { useEffect, useRef } from "react";
 import type { Node } from "@antv/x6";
 import { cn } from "@/lib/utils";
 import { SkinFace } from "@/components/common/SkinFace";
+import { EXTERNAL_APIS } from "@/config/external-apis";
 import { CheckSquare, Square, Lock, Gift, Target, Minus, Plus, Quote } from "lucide-react";
 import type { QuestNodeDef, QuestStatus, QuestObjective, QuestReward } from "./types";
 
@@ -19,11 +20,11 @@ export interface QuestNodeData extends Omit<QuestNodeDef, "x" | "y" | "width" | 
 export function QuestNodeCard({ node }: { node: Node }) {
   const data = node.getData<QuestNodeData>();
   const cardRef = useRef<HTMLDivElement>(null);
-  
+
   // Auto-resize the X6 node container when the React content changes height
   useEffect(() => {
     if (!cardRef.current) return;
-    
+
     const observer = new ResizeObserver(() => {
       if (cardRef.current) {
         const requiredHeight = cardRef.current.offsetHeight;
@@ -34,20 +35,23 @@ export function QuestNodeCard({ node }: { node: Node }) {
         }
       }
     });
-    
+
     observer.observe(cardRef.current);
     return () => observer.disconnect();
   }, [node]);
-  
+
   const isLocked = data.status === "locked";
   const isCompleted = data.status === "completed";
   const isActive = data.status === "active";
-  
+
+  // characterSkinUrl is already the fully-resolved answer (SkinsRestorer,
+  // falling back to Mojang directly — see resolveCharacterSkins.ts) for
+  // any node that went through that pipeline. Hand-authored content that
+  // never calls it (and only ever sets characterName to a known-real
+  // Mojang username) falls back to building the minotar.net URL here directly.
   const skinUrl = isLocked
     ? null
-    : data.legacy
-      ? (data.characterName ? `https://minotar.net/skin/${data.characterName}` : null)
-      : (data.characterSkinUrl ?? null);
+    : (data.characterSkinUrl ?? (data.characterName ? EXTERNAL_APIS.legacy_skin.skinUrl(data.characterName) : null));
 
   const displayName = data.npcName ?? data.characterName;
 
@@ -65,7 +69,7 @@ export function QuestNodeCard({ node }: { node: Node }) {
       style={{
         boxShadow: isCompleted
           ? "0 0 30px rgba(16, 185, 129, 0.1), 0 0 10px rgba(0,0,0,0.6)"
-          : isActive 
+          : isActive
             ? "0 0 20px rgba(212, 160, 23, 0.15), 0 2px 20px rgba(0,0,0,0.6)"
             : "0 2px 10px rgba(0,0,0,0.4)",
       }}
@@ -73,13 +77,13 @@ export function QuestNodeCard({ node }: { node: Node }) {
       <div className="flex items-start justify-between gap-3 mb-3 relative z-10">
         <div className="flex items-center gap-3">
           <div className="relative">
-            <SkinFace 
-              skinUrl={skinUrl} 
-              size={38} 
+            <SkinFace
+              skinUrl={skinUrl}
+              size={38}
               className={cn(
-                "rounded-xl transition-all", 
+                "rounded-xl transition-all",
                 isLocked ? "border-primary/20 brightness-[0.25] saturate-0" : "border-primary/40"
-              )} 
+              )}
             />
             {isLocked && (
               <div className="absolute inset-0 flex items-center justify-center text-primary/60">
@@ -106,7 +110,7 @@ export function QuestNodeCard({ node }: { node: Node }) {
             )}
           </div>
         </div>
-        
+
         {data.interactive && !isLocked && (
           <button
             onClick={(e) => {
@@ -115,8 +119,8 @@ export function QuestNodeCard({ node }: { node: Node }) {
             }}
             className={cn(
               "p-2 rounded-xl transition-all duration-300 shrink-0",
-              isCompleted 
-                ? "text-emerald-400 bg-emerald-400/10 hover:bg-emerald-400/20 hover:scale-105" 
+              isCompleted
+                ? "text-emerald-400 bg-emerald-400/10 hover:bg-emerald-400/20 hover:scale-105"
                 : "text-primary/50 hover:text-primary bg-primary/5 hover:bg-primary/10 hover:scale-105"
             )}
             title={isCompleted ? "Сбросить квест" : "Выполнить квест полностью"}
@@ -164,8 +168,8 @@ export function QuestNodeCard({ node }: { node: Node }) {
             const isObjComplete = obj.completed || progDone || mockDone || isCompleted;
 
             return (
-              <div 
-                key={obj.id} 
+              <div
+                key={obj.id}
                 className={cn(
                   "flex flex-col gap-1.5 p-1.5 -mx-1.5 rounded-lg transition-colors group",
                   data.interactive && !hasProgress && "cursor-pointer hover:bg-foreground/5"
@@ -191,13 +195,13 @@ export function QuestNodeCard({ node }: { node: Node }) {
                     <div className="flex items-center gap-2">
                       {data.interactive && !isCompleted && (
                         <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                          <button 
+                          <button
                             className="p-1 hover:bg-foreground/10 rounded-md text-foreground/50 hover:text-foreground"
                             onClick={(e) => { e.stopPropagation(); data.onChangeProgress?.(data.id, obj.id, -1); }}
                           >
                             <Minus size={10} strokeWidth={3} />
                           </button>
-                          <button 
+                          <button
                             className="p-1 hover:bg-foreground/10 rounded-md text-foreground/50 hover:text-foreground"
                             onClick={(e) => { e.stopPropagation(); data.onChangeProgress?.(data.id, obj.id, 1); }}
                           >
@@ -213,9 +217,9 @@ export function QuestNodeCard({ node }: { node: Node }) {
                 </div>
                 {hasProgress && (
                   <div className="h-1.5 w-full bg-black/40 rounded-full overflow-hidden ml-4 max-w-[calc(100%-16px)]">
-                    <div 
-                      className={cn("h-full transition-all duration-300", isObjComplete ? "bg-emerald-500" : "bg-primary/60")} 
-                      style={{ width: `${isObjComplete ? 100 : Math.min(100, (actualCurrent / obj.total!) * 100)}%` }} 
+                    <div
+                      className={cn("h-full transition-all duration-300", isObjComplete ? "bg-emerald-500" : "bg-primary/60")}
+                      style={{ width: `${isObjComplete ? 100 : Math.min(100, (actualCurrent / obj.total!) * 100)}%` }}
                     />
                   </div>
                 )}
@@ -243,11 +247,11 @@ export function QuestNodeCard({ node }: { node: Node }) {
           </div>
         </div>
       )}
-      
+
       {isCompleted && (
         <div className="absolute inset-0 bg-emerald-500/5 mix-blend-overlay pointer-events-none" />
       )}
-      
+
       {/* Locked overlay tint */}
       {isLocked && (
         <div className="absolute inset-0 bg-background/40 pointer-events-none rounded-2xl" />

@@ -26,4 +26,8 @@ export const EXTERNAL_APIS = {
     fallbackUrl: (name: string) =>
       `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=random`,
   },
+  legacy_skin: {
+    /** Full 64×64 skin texture for a real Mojang username — swap this one line for a different skin-rendering service (e.g. crafatar) if minotar.net ever needs replacing. */
+    skinUrl: (name: string) => `https://minotar.net/skin/${encodeURIComponent(name)}`,
+  },
 } as const;

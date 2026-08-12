@@ -299,6 +299,9 @@ export function QuestTree({
         data: {
           id: n.id,
           characterName: n.characterName,
+          characterSkinUrl: n.characterSkinUrl,
+          legacy: n.legacy,
+          npcName: n.npcName,
           title: n.title,
           description: n.description,
           objectives: n.objectives,
