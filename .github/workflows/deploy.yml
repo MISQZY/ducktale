@@ -61,6 +61,21 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      # Fails loudly here instead of silently baking an empty prefix into
+      # the site-db Prisma client (@@map("user") instead of @@map("site_user")),
+      # which only surfaces later as a runtime "table does not exist" error.
+      # Must be a *repository* variable (Settings -> Secrets and variables ->
+      # Actions -> Variables tab) — not a Secret, and not scoped to the
+      # "production" environment, since this job doesn't declare `environment:`
+      # and so can't see environment-scoped vars.
+      - name: Validate required build vars
+        run: |
+          if [ -z "${{ vars.SITE_DB_TABLE_PREFIX }}" ]; then
+            echo "::error::SITE_DB_TABLE_PREFIX repository variable is empty or unset. Add it under Settings > Secrets and variables > Actions > Variables (the Variables tab, not Secrets, and not under an environment)."
+            exit 1
+          fi
+          echo "SITE_DB_TABLE_PREFIX is set (value hidden if it were a secret; this one isn't)."
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
