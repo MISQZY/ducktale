@@ -194,6 +194,8 @@
     "title": "Network architecture",
     "description": "A map of how DuckTale's servers connect. Hover a node or line to see details. Nodes can be dragged, the canvas can be panned.",
     "titleBar": "DUCKTALE — Network topology",
+    "expand": "Expand to fullscreen",
+    "collapse": "Collapse",
     "hints": {
       "hover": "Hover / tap to see details",
       "drag": "Drag to move"

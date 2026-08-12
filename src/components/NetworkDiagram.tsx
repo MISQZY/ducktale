@@ -1,9 +1,9 @@
 "use client";
 
-import { Lock, Zap } from "lucide-react";
+import { Lock, Zap, Maximize2, Minimize2 } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { NodeDiagram } from "./node-diagram";
-import { LINE } from "./node-diagram";
+import dynamic from "next/dynamic";
+import { DIAGRAM, DIAGRAM_LINE as LINE } from "@/config/site";
 import {
   DIAGRAM_NODE_DEFS,
   DIAGRAM_EDGE_DEFS,
@@ -12,6 +12,19 @@ import {
   DIAGRAM_LEGEND_NODE_DEFS,
 } from "@/config/diagram";
 import SectionHeader from "@/components/SectionHeader";
+
+// AntV X6 touches `window` at module scope, so it can only load in the
+// browser — importing it during the server render pass crashes the SSR
+// worker outright, before any useEffect guard would even run.
+const GraphDiagram = dynamic(() => import("./graph").then((m) => m.GraphDiagram), {
+  ssr: false,
+  loading: () => (
+    <div
+      className="rounded-2xl border border-primary/25 bg-card/60 animate-pulse"
+      style={{ height: DIAGRAM.frameH }}
+    />
+  ),
+});
 
 // ─── Legend / chrome sub-components ──────────────────────────────────────────
 
@@ -82,7 +95,7 @@ function DiagramChrome() {
   );
 }
 
-function DiagramTitleBar() {
+function DiagramTitleBar({ fullscreen, toggleFullscreen, closeButtonRef, expandLabel, collapseLabel }: any) {
   const t = useTranslations("Infrastructure");
   return (
     <div className="flex items-center gap-2 px-5 py-3 border-b border-primary/20 bg-card/40 relative z-10">
@@ -94,7 +107,18 @@ function DiagramTitleBar() {
       <p className="text-foreground/25 text-xs tracking-widest ml-3 font-mono">
         {t("titleBar")}
       </p>
-      <Lock size={10} className="text-primary/40 ml-auto" />
+      <div className="ml-auto flex items-center gap-3">
+        <button
+          ref={closeButtonRef}
+          onClick={toggleFullscreen}
+          aria-label={fullscreen ? collapseLabel : expandLabel}
+          title={fullscreen ? collapseLabel : expandLabel}
+          className="flex items-center justify-center text-primary/40 hover:text-primary transition-colors outline-none rounded"
+        >
+          {fullscreen ? <Minimize2 size={12} /> : <Maximize2 size={12} />}
+        </button>
+        <Lock size={10} className="text-primary/40" />
+      </div>
     </div>
   );
 }
@@ -134,12 +158,20 @@ export default function NetworkDiagram() {
           </div>
         </SectionHeader>
 
-        <NodeDiagram
+        <GraphDiagram
           nodes={nodes}
           edges={edges}
           initOffsets={DIAGRAM_INIT_OFFSETS}
-          header={<DiagramTitleBar />}
-          title={<DiagramChrome />}
+          header={(props) => (
+            <DiagramTitleBar 
+              {...props} 
+              expandLabel={t("expand")} 
+              collapseLabel={t("collapse")} 
+            />
+          )}
+          overlay={<DiagramChrome />}
+          expandLabel={t("expand")}
+          collapseLabel={t("collapse")}
         />
       </div>
     </section>

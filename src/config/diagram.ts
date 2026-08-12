@@ -5,7 +5,7 @@
  * namespace, keyed by `id` (nodes) / `key` (edges); see NetworkDiagram.tsx.
  */
 import { Shield, Globe, Server, Users, RefreshCw, Home, Mic } from "lucide-react";
-import type { Vec2 } from "@/components/node-diagram/types";
+import type { Vec2 } from "@/components/graph";
 
 export const DIAGRAM_INIT_OFFSETS: Record<string, Vec2> = {
   client:   { x: -366, y: -220 },

@@ -217,6 +217,32 @@ body {
 }
 
 
+/* AntV X6's react-shape nodes render HTML content inside an SVG
+   foreignObject via a synthetic <body>. Browsers hard-lock a <body>
+   element's height to the viewport no matter what CSS says (even inline
+   !important can't override it), so it balloons to 100vh instead of the
+   node's own size. The fix is to size its child (X6's actual mount
+   container) directly, positioned absolutely so it skips the broken
+   <body> box entirely and sizes against the foreignObject instead. */
+.x6-node foreignObject > body > div {
+  position: absolute !important;
+  inset: 0 !important;
+  width: auto !important;
+  height: auto !important;
+}
+
+/* The broken <body> box above is still full viewport height even though
+   it's invisible — left alone it silently intercepts clicks/drags far
+   below the node it belongs to, moving the wrong node or grabbing what
+   looks like blank canvas. Make it click-through and restore hit-testing
+   only on the correctly-sized child. */
+.x6-node foreignObject > body {
+  pointer-events: none !important;
+}
+.x6-node foreignObject > body > div {
+  pointer-events: auto !important;
+}
+
 .glow-gold {
   box-shadow:
     0 0 20px rgba(212,160,23,0.12),

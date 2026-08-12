@@ -70,23 +70,14 @@ export const SOCIALS: SocialLink[] = [
   },
 ] as const;
 
-// ─── Diagram constants (used by node-diagram/constants.ts) ────────────────────
+// ─── Diagram constants (used by components/graph) ──────────────────────────────
 
 export const DIAGRAM = {
-  canvasW: 2400,
-  canvasH: 1600,
-  cardW: 116,
-  cardH: 88,
-  pad: 20,
+  cardW: 128,
+  cardH: 104,
   frameH: 620,
   gridCell: 48,
 } as const;
-
-export const DIAGRAM_CX = DIAGRAM.canvasW / 2;
-export const DIAGRAM_CY = DIAGRAM.canvasH / 2;
-
-export const DIAGRAM_MIN_DIST =
-  Math.max(DIAGRAM.cardW, DIAGRAM.cardH) + 12;
 
 export const DIAGRAM_COLOR = {
   gold:    { bg: "bg-primary/10",    border: "border-primary/40",    icon: "text-primary",    glow: "rgba(212,160,23,0.4)"  },
