@@ -49,8 +49,23 @@ function InfoRow({ icon: Icon, label, children }: { icon: React.ElementType; lab
 function GrowthValue({ growth }: { growth: GrowthStatus }) {
   const t = useTranslations("PlayerCard");
   if (growth.state === "unknown") return <span className="text-foreground/40 italic font-normal">{t("noData")}</span>;
-  if (growth.state === "complete") return <span className="text-emerald-700 dark:text-emerald-400">{t("growth.complete")}</span>;
-  return <span>{t("growth.remaining", { time: formatDurationMs(growth.secondsRemaining * 1000, t) })}</span>;
+
+  const height = growth.heightMeters !== null ? t("growth.height", { height: growth.heightMeters.toFixed(2) }) : null;
+
+  if (growth.state === "complete") {
+    return (
+      <span className="text-emerald-700 dark:text-emerald-400">
+        {height ? `${height} · ` : ""}{t("growth.complete")}
+      </span>
+    );
+  }
+
+  return (
+    <span>
+      {height ? `${height} · ` : ""}
+      {t("growth.percent", { percent: growth.percent })} · {t("growth.remaining", { time: formatDurationMs(growth.secondsRemaining * 1000, t) })}
+    </span>
+  );
 }
 
 function LastLoginValue({ online, lastSeenMs }: { online: boolean; lastSeenMs: number }) {

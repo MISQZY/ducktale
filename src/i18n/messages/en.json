@@ -100,7 +100,10 @@
     },
     "growth": {
       "complete": "Growth complete",
-      "remaining": "{time} left"
+      "remaining": "{time} left",
+      "height": "{height} m",
+      "percent": "{percent}%",
+      "timeWithPercent": "{time} ({percent}%)"
     },
     "unit": {
       "daysHours": "{days}d {hours}h",

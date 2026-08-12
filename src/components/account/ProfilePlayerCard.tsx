@@ -31,8 +31,31 @@ function GeneralStat({ icon: Icon, label, children }: { icon: React.ElementType;
 
 function GrowthValue({ growth, t }: { growth: GrowthStatus; t: PlayerCardT }) {
   if (growth.state === "unknown") return <>{t("noData")}</>;
-  if (growth.state === "complete") return <span className="text-emerald-700 dark:text-emerald-400">{t("growth.complete")}</span>;
-  return <>{formatDurationMs(growth.secondsRemaining * 1000, t)}</>;
+
+  const heightText = growth.heightMeters !== null
+    ? t("growth.height", { height: growth.heightMeters.toFixed(2) })
+    : null;
+
+  if (growth.state === "complete") {
+    return (
+      <span className="flex flex-col items-center leading-tight gap-0.5">
+        <span className="text-emerald-700 dark:text-emerald-400">{t("growth.complete")}</span>
+        {heightText && <span className="text-foreground/45 text-[11px]">{heightText}</span>}
+      </span>
+    );
+  }
+
+  return (
+    <span className="flex flex-col items-center leading-tight gap-0.5">
+      <span>
+        {t("growth.timeWithPercent", {
+          time: formatDurationMs(growth.secondsRemaining * 1000, t),
+          percent: growth.percent,
+        })}
+      </span>
+      {heightText && <span className="text-foreground/45 text-[11px]">{heightText}</span>}
+    </span>
+  );
 }
 
 function LastLoginValue({ online, lastSeenMs, locale, t }: { online: boolean; lastSeenMs: number; locale: string; t: PlayerCardT }) {

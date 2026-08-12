@@ -100,7 +100,10 @@
     },
     "growth": {
       "complete": "Рост завершён",
-      "remaining": "Осталось {time}"
+      "remaining": "Осталось {time}",
+      "height": "{height} м",
+      "percent": "{percent}%",
+      "timeWithPercent": "{time} ({percent}%)"
     },
     "unit": {
       "daysHours": "{days} д {hours} ч",

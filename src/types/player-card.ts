@@ -4,8 +4,8 @@ export type Gender = "male" | "female" | null;
 
 export type GrowthStatus =
   | { state: "unknown" }                        // not tracked by the growth system
-  | { state: "growing"; secondsRemaining: number }
-  | { state: "complete" };
+  | { state: "growing"; secondsRemaining: number; percent: number; heightMeters: number | null }
+  | { state: "complete"; heightMeters: number | null };
 
 /** Per-server breakdown — whitelist status is genuinely per-server (fp_moderation.server); city/nation/role are Towny data, which currently only exists for DuckBurg. */
 export interface PlayerServerStatus {

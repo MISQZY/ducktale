@@ -78,6 +78,8 @@ function buildServerStatuses(
 // and cheap to look up.
 const GROWTH_TTL_MS = 5 * 60_000;
 const TOWNY_TTL_MS  = 3 * 60_000;
+/** Minecraft's default player model height, in blocks (~meters) — FlectoneGrowth's scale is a multiplier of this. */
+const FULL_HEIGHT_METERS = 1.88;
 export const IDENTITY_SEARCH_TTL_MS = 60_000;
 // The *random* identity pick gets a much shorter TTL than a real search —
 // long enough to absorb a burst of rapid page reloads (each one otherwise
@@ -185,29 +187,46 @@ async function resolveGrowthDataUncached(uuid: string): Promise<{ gender: Gender
       SELECT
         g.gender_key AS genderKey,
         gt.growth_seconds AS growthSeconds,
-        (SELECT COALESCE(SUM(pt.total_seconds), 0) FROM flectonegrowth_playtime pt WHERE pt.player_id = fp.id) AS growthPlaytimeSeconds
+        (SELECT COALESCE(SUM(pt.total_seconds), 0) FROM flectonegrowth_playtime pt WHERE pt.player_id = fp.id) AS growthPlaytimeSeconds,
+        s.scale AS scale
       FROM flectonegrowth_player fp
       LEFT JOIN flectonegrowth_genders g ON g.player_id = fp.id
       LEFT JOIN flectonegrowth_growth_time gt ON gt.player_id = fp.id
+      LEFT JOIN flectonegrowth_scales s ON s.player_id = fp.id AND s.valid = 1
       WHERE fp.uuid = ${uuid}
       LIMIT 1
-    `) as { genderKey: string | null; growthSeconds: bigint | null; growthPlaytimeSeconds: bigint | null }[];
+    `) as { genderKey: string | null; growthSeconds: bigint | null; growthPlaytimeSeconds: bigint | null; scale: number | null }[];
   });
 
   const gender: Gender = row?.genderKey === "male" || row?.genderKey === "female" ? row.genderKey : null;
 
+  // FlectoneGrowth's scale is a multiplier of FULL_HEIGHT_METERS
+  // (scale=1 -> full height). The join above only picks up valid=1 rows,
+  // so a null here just means "no reliable height reading yet" — shown as
+  // absent, never guessed.
+  const scaleHeightMeters = row?.scale != null ? row.scale * FULL_HEIGHT_METERS : null;
+
   // growth_seconds is a fixed target: growth is complete once the player's
   // accumulated growth-tracked playtime reaches it. flectonegrowth_scales
-  // was tried as the completion signal first, but it's unreliable — several
+  // was tried as the *completion* signal first, but it's unreliable — several
   // players are well past their threshold with no scales row at all, or with
-  // valid=1 despite being 2x over target, so it can't be trusted here.
+  // valid=1 despite being 2x over target, so it can't be trusted for that;
+  // it's only used above for the display-only height figure. That same
+  // unreliability means a *complete* player can still have no valid scale
+  // row — but completion (derived from the trustworthy playtime data) by
+  // definition means full size, so it doesn't need the scales table at all.
   let growth: GrowthStatus = { state: "unknown" };
   if (row?.growthSeconds !== null && row?.growthSeconds !== undefined) {
     const target = Number(row.growthSeconds);
     const played = Number(row.growthPlaytimeSeconds ?? 0);
     growth = played >= target
-      ? { state: "complete" }
-      : { state: "growing", secondsRemaining: target - played };
+      ? { state: "complete", heightMeters: scaleHeightMeters ?? FULL_HEIGHT_METERS }
+      : {
+          state: "growing",
+          secondsRemaining: target - played,
+          heightMeters: scaleHeightMeters,
+          percent: Math.min(100, Math.round((played / target) * 100)),
+        };
   }
 
   return { gender, growth };
