@@ -6,10 +6,15 @@ services:
     image: ghcr.io/misqzy/ducktale:latest
     container_name: ducktale_app
     restart: unless-stopped
+    # Loads every var from the server's .env into the container at runtime
+    # (DATABASE_URL, DATABASE_URL_SITE, AUTH_SECRET, NEXT_PUBLIC_SITE_URL,
+    # etc. — see .env.example for the full list). The image itself carries
+    # none of these: it's built in CI, which never has this file, so there's
+    # nothing here to bake in even by accident.
+    env_file:
+      - .env
     environment:
       - NODE_ENV=production
-      # Prisma использует эту переменную в рантайме для подключения к БД
-      - DATABASE_URL=${DATABASE_URL}
     volumes:
       - ./uploads:/app/uploads
     expose:
