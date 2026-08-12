@@ -98,6 +98,7 @@ export const NETWORK_SERVERS: NetworkServer[] = [
 ];
 
 export const NETWORK_HOST = "mc.ducktale.online";
+export const NETWORK_BEDROCK_PORT = 25567;
 
 /** Hidden destination the animated duck easter egg (DuckyPet) links to. */
 export const DUCKY_EASTER_EGG_HOST = "duckeldor.ducktale.online";

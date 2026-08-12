@@ -133,7 +133,7 @@
     "switchLanguage": "Switch language"
   },
   "Hero": {
-    "badge": "Minecraft • Java Edition",
+    "badge": "Minecraft • Server network",
     "tagline": "Server network",
     "description": "{siteName} is a network of Minecraft servers, combining the survival server <duckburg>DuckBurg</duckburg> and the creative server <duckhood>DuckHood</duckhood>. Everyone will find their path here.",
     "ctaPrimary": "Choose a server",
@@ -164,7 +164,7 @@
     "detailsCta": "Learn more",
     "connect": {
       "label": "Connection address",
-      "edition": "Minecraft Java Edition • versions {version}"
+      "edition": "Minecraft"
     },
     "status": {
       "loading": "Loading...",
@@ -210,7 +210,7 @@
       "aux": "Auxiliary service"
     },
     "nodes": {
-      "client":   { "label": "Player",     "sublabel": "Minecraft client",   "tooltip": "The client connects with Minecraft Java Edition ≥ 1.21.x" },
+      "client":   { "label": "Player",     "sublabel": "Minecraft client",   "tooltip": "The client connects to the Minecraft server" },
       "proxy":    { "label": "Velocity",   "sublabel": "Single entry point", "tooltip": "The Velocity proxy is the entry point to the DuckTale network. Routes traffic between all servers." },
       "auth":     { "label": "Auth",       "sublabel": "Authorization",      "tooltip": "Authorizes players before letting them onto the servers." },
       "hub":      { "label": "Hub",        "sublabel": "Server lobby",       "tooltip": "The lobby server used to pick a game server." },

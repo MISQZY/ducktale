@@ -133,7 +133,7 @@
     "switchLanguage": "Переключить язык"
   },
   "Hero": {
-    "badge": "Minecraft • Java Edition",
+    "badge": "Minecraft • Server network",
     "tagline": "Сеть серверов",
     "description": "{siteName} — это сеть Minecraft серверов, объединяющая сервер выживания <duckburg>DuckBurg</duckburg> и сервер творчества <duckhood>DuckHood</duckhood>. Каждый найдёт здесь свой путь.",
     "ctaPrimary": "Выбрать сервер",
@@ -164,7 +164,7 @@
     "detailsCta": "Подробнее",
     "connect": {
       "label": "Адрес для подключения",
-      "edition": "Minecraft Java Edition • версии {version}"
+      "edition": "Minecraft"
     },
     "status": {
       "loading": "Загрузка...",
@@ -210,7 +210,7 @@
       "aux": "Вспомогательный сервис"
     },
     "nodes": {
-      "client":   { "label": "Игрок",      "sublabel": "Minecraft клиент",      "tooltip": "Клиент подключается с Minecraft Java Edition ≥ 1.21.x" },
+      "client":   { "label": "Игрок",      "sublabel": "Minecraft клиент",      "tooltip": "Клиент подключается к серверам Minecraft" },
       "proxy":    { "label": "Velocity",   "sublabel": "Единая точка входа",    "tooltip": "Proxy-сервер Velocity — точка входа в сеть DuckTale. Маршрутизирует трафик между всеми серверами." },
       "auth":     { "label": "Auth",       "sublabel": "Авторизация",           "tooltip": "Система авторизации игроков перед допуском на серверы." },
       "hub":      { "label": "Hub",        "sublabel": "Лобби серверов",        "tooltip": "Сервер-лобби для выбора игрового сервера." },
