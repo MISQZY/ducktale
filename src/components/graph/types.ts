@@ -67,7 +67,7 @@ export interface GraphDiagramProps {
   /** Initial position of each node, as an offset from the content center. */
   initOffsets: Record<string, Vec2>;
   /** Rendered above the graph canvas (e.g. a terminal-style title bar). Kept as-is in fullscreen too. */
-  header?: React.ReactNode | ((props: { fullscreen: boolean; toggleFullscreen: () => void; closeButtonRef: React.RefObject<HTMLButtonElement | null> }) => React.ReactNode);
+  header?: React.ReactNode;
   /** Rendered as an absolutely-positioned overlay on top of the canvas (e.g. a legend). */
   overlay?: React.ReactNode;
   /** Card width/height in px. Defaults to the shared diagram card size. */

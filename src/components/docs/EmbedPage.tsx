@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useRef, ReactNode, RefObject } from "react";
+import { useState, useCallback, useRef, ReactNode, RefObject, useEffect } from "react";
 import { Maximize2, Minimize2, Lock } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useFullscreen } from "@/hooks/useFullscreen";
@@ -32,8 +32,7 @@ export function EmbedPage({
   const isControlled = open !== undefined;
   const fullscreen = isControlled ? open : internalFullscreen;
 
-  const [placeholderHeight, setPlaceholderHeight] = useState<number | undefined>(undefined);
-  const containerRef = useRef<HTMLDivElement>(null);
+  const dialogRef = useRef<HTMLDialogElement>(null);
 
   const handleClose = useCallback(() => {
     if (isControlled) onOpenChange?.(false);
@@ -46,19 +45,35 @@ export function EmbedPage({
     if (isControlled) {
       onOpenChange?.(!fullscreen);
     } else {
-      setInternalFullscreen((v) => {
-        if (!v && containerRef.current) {
-          setPlaceholderHeight(containerRef.current.offsetHeight);
-        }
-        return !v;
-      });
+      setInternalFullscreen((v) => !v);
     }
   }, [isControlled, fullscreen, onOpenChange]);
+
+  // Handle native dialog close event (e.g. from ESC key)
+  const onDialogClose = useCallback(() => {
+    if (fullscreen) handleClose();
+  }, [fullscreen, handleClose]);
+
+  // Sync dialog state with fullscreen state
+  useEffect(() => {
+    const dialog = dialogRef.current;
+    if (!dialog) return;
+
+    if (fullscreen) {
+      if (!dialog.open) {
+        dialog.showModal();
+      }
+    } else {
+      if (dialog.open) {
+        dialog.close();
+      }
+    }
+  }, [fullscreen]);
 
   const isHeaderFunction = typeof header === "function";
 
   const defaultHeader = (
-    <div className="flex items-center gap-2 px-5 py-3 border-b border-primary/20 bg-card/40 relative z-10">
+    <div className="flex items-center gap-2 px-5 py-3 border-b border-primary/20 bg-card/40 relative z-10 shrink-0">
       <div className="flex gap-1.5">
         <span className="w-2.5 h-2.5 rounded-full bg-rose-500/70" />
         <span className="w-2.5 h-2.5 rounded-full bg-primary/70" />
@@ -87,28 +102,21 @@ export function EmbedPage({
   return (
     <>
       {fullscreen && (
-        <div style={{ height: placeholderHeight }} className="w-full my-4" aria-hidden="true" />
+        <div style={{ height: height }} className="w-full my-4" aria-hidden="true" />
       )}
 
-      {fullscreen && (
-        <div
-          className="fixed inset-0 z-50 bg-black/50 animate-in fade-in duration-500 ease-out"
-          onClick={handleClose}
-          aria-hidden="true"
-        />
-      )}
-
-      <div
-        ref={containerRef}
-        role={fullscreen ? "dialog" : undefined}
-        aria-modal={fullscreen ? true : undefined}
+      {/* When not fullscreen, we render it as a normal div. When fullscreen, we render it as a dialog. 
+          Wait, React doesn't allow changing tag names without unmounting.
+          But we can just render the dialog always, and when not fullscreen, style it to behave like a normal div! */}
+      <dialog
+        ref={dialogRef}
+        onClose={onDialogClose}
         className={cn(
-          "relative overflow-hidden rounded-2xl border border-primary/25 bg-card/60 not-prose",
-          fullscreen ? "fixed inset-10 z-50 flex flex-col bg-card animate-in fade-in zoom-in-[0.98] duration-500 ease-out" : "my-4"
+          "relative overflow-hidden rounded-2xl border border-primary/25 bg-card/60 not-prose p-0 text-foreground m-0 max-w-none max-h-none",
+          fullscreen 
+            ? "fixed inset-10 z-50 flex flex-col bg-card animate-in fade-in zoom-in-[0.98] duration-500 ease-out backdrop:bg-black/50 backdrop:animate-in backdrop:fade-in backdrop:duration-500 w-[calc(100vw-5rem)] h-[calc(100vh-5rem)] shadow-[0_0_60px_rgba(0,0,0,0.6),_inset_0_1px_0_rgba(212,160,23,0.06)]" 
+            : "my-4 w-full block shadow-[0_2px_10px_rgba(0,0,0,0.4),_inset_0_1px_0_rgba(212,160,23,0.06)]"
         )}
-        style={{ 
-          boxShadow: "0 0 60px rgba(0,0,0,0.6), inset 0 1px 0 rgba(212,160,23,0.06)"
-        }}
       >
         {(["tl", "tr", "bl", "br"] as const).map((p) => (
           <div
@@ -124,6 +132,7 @@ export function EmbedPage({
         ))}
 
         {isHeaderFunction 
+          // eslint-disable-next-line react-hooks/refs
           ? header({ fullscreen, toggleFullscreen, closeButtonRef }) 
           : (header || defaultHeader)}
 
@@ -133,7 +142,7 @@ export function EmbedPage({
         >
           {children}
         </div>
-      </div>
+      </dialog>
     </>
   );
 }

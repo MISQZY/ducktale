@@ -1,6 +1,6 @@
 "use client";
 
-import { Lock, Zap, Maximize2, Minimize2 } from "lucide-react";
+import { Zap } from "lucide-react";
 import { useTranslations } from "next-intl";
 import dynamic from "next/dynamic";
 import { DIAGRAM, DIAGRAM_LINE as LINE } from "@/config/site";
@@ -95,33 +95,7 @@ function DiagramChrome() {
   );
 }
 
-function DiagramTitleBar({ fullscreen, toggleFullscreen, closeButtonRef, expandLabel, collapseLabel }: any) {
-  const t = useTranslations("Infrastructure");
-  return (
-    <div className="flex items-center gap-2 px-5 py-3 border-b border-primary/20 bg-card/40 relative z-10">
-      <div className="flex gap-1.5">
-        <span className="w-2.5 h-2.5 rounded-full bg-rose-500/70" />
-        <span className="w-2.5 h-2.5 rounded-full bg-primary/70" />
-        <span className="w-2.5 h-2.5 rounded-full bg-emerald-500/70" />
-      </div>
-      <p className="text-foreground/25 text-xs tracking-widest ml-3 font-mono">
-        {t("titleBar")}
-      </p>
-      <div className="ml-auto flex items-center gap-3">
-        <button
-          ref={closeButtonRef}
-          onClick={toggleFullscreen}
-          aria-label={fullscreen ? collapseLabel : expandLabel}
-          title={fullscreen ? collapseLabel : expandLabel}
-          className="flex items-center justify-center text-primary/40 hover:text-primary transition-colors outline-none rounded"
-        >
-          {fullscreen ? <Minimize2 size={12} /> : <Maximize2 size={12} />}
-        </button>
-        <Lock size={10} className="text-primary/40" />
-      </div>
-    </div>
-  );
-}
+
 
 // ─── Section ──────────────────────────────────────────────────────────────────
 
@@ -160,13 +134,7 @@ export default function NetworkDiagram() {
           nodes={nodes}
           edges={edges}
           initOffsets={DIAGRAM_INIT_OFFSETS}
-          header={(props) => (
-            <DiagramTitleBar 
-              {...props} 
-              expandLabel={t("expand")} 
-              collapseLabel={t("collapse")} 
-            />
-          )}
+          header={t("titleBar")}
           overlay={<DiagramChrome />}
           expandLabel={t("expand")}
           collapseLabel={t("collapse")}
