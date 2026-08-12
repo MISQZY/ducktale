@@ -136,11 +136,11 @@ export function CommandCard({
         {/* Left: command + description */}
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 min-w-0">
-            <span className="text-foreground/60 font-mono text-sm shrink-0 select-none leading-none">
+            <span className="text-foreground/60 font-minecraft text-sm shrink-0 select-none leading-none">
               /
             </span>
 
-            <code className="font-mono text-sm text-foreground font-medium tracking-wide leading-tight whitespace-nowrap">
+            <code className="font-minecraft text-sm text-foreground font-medium tracking-wide leading-tight whitespace-nowrap">
               {command.replace(/^\//, "")}
             </code>
           </div>
@@ -221,7 +221,7 @@ export function CommandCard({
           )}
         >
           <div className="border-t border-border/50 bg-card/60 px-3 py-2.5 space-y-2.5">
-            <code className="block text-xs font-mono text-foreground/70">
+            <code className="block text-xs font-minecraft text-foreground/70">
               {buildUsage(command, required, optional)}
             </code>
 
@@ -232,7 +232,7 @@ export function CommandCard({
                 </p>
                 {required!.map((arg) => (
                   <div key={arg.name} className="flex items-baseline gap-2">
-                    <code className="text-xs font-mono text-rose-700 dark:text-rose-300 shrink-0">
+                    <code className="text-xs font-minecraft text-rose-700 dark:text-rose-300 shrink-0">
                       {"<"}
                       {arg.name}
                       {">"}
@@ -252,7 +252,7 @@ export function CommandCard({
                 </p>
                 {optional!.map((arg) => (
                   <div key={arg.name} className="flex items-baseline gap-2">
-                    <code className="text-xs font-mono text-sky-700 dark:text-sky-300 shrink-0">
+                    <code className="text-xs font-minecraft text-sky-700 dark:text-sky-300 shrink-0">
                       [{arg.name}]
                     </code>
                     <span className="text-xs text-muted-foreground">
@@ -275,7 +275,7 @@ export function CommandCard({
           {aliases.map((a) => (
             <code
               key={a}
-              className="liquid-badge text-[11px] font-mono text-muted-foreground border border-border bg-card px-1.5 py-0.5 rounded"
+              className="liquid-badge text-[11px] font-minecraft text-muted-foreground border border-border bg-card px-1.5 py-0.5 rounded"
             >
               {a}
             </code>
