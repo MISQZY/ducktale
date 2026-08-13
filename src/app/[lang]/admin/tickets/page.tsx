@@ -5,6 +5,15 @@ import { AdminPageShell } from "@/components/admin/AdminPageShell";
 import { TicketStatusBadge } from "@/components/tickets/TicketStatusBadge";
 import { Link } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
+import {
+  DocsTable,
+  DocsTableHeader,
+  DocsTableBody,
+  DocsTableRow,
+  DocsTableHead,
+  DocsTableCell,
+  DOCS_TABLE_THEME,
+} from "@/components/ui/docs-table";
 import type { TicketStatus } from ".prisma/site-client";
 
 const PAGE_SIZE = 10;
@@ -54,6 +63,7 @@ export default async function AdminTicketsPage({
         subject: true,
         status: true,
         updatedAt: true,
+        createdAt: true,
         user: { select: { nickname: true } },
         _count: { select: { messages: true } },
       },
@@ -67,7 +77,7 @@ export default async function AdminTicketsPage({
 
   return (
     <AdminPageShell title={t("ticketsTitle")} description={t("ticketsDescription", { count: total })} active="tickets">
-      <div className="max-w-2xl mx-auto">
+      <div className="w-full">
         <form className="mb-4 flex justify-center">
           <input
             type="text"
@@ -95,31 +105,71 @@ export default async function AdminTicketsPage({
           ))}
         </div>
 
-        <div className="space-y-4 min-h-[42vh]">
-          {tickets.length === 0 ? (
-            <p className="rounded-2xl border border-primary/20 bg-card/50 p-10 text-center text-foreground/40 text-sm">
-              {tt("noTickets")}
-            </p>
-          ) : (
-            tickets.map((ticket) => (
-              <Link
-                key={ticket.id}
-                href={`/tickets/${ticket.id}`}
-                className="corner-ornament block rounded-2xl border border-primary/20 bg-card/50 p-5 relative overflow-hidden hover:border-primary/40 transition-colors"
-              >
-                <div className="flex items-center justify-between gap-3 flex-wrap mb-1">
-                  <span className="text-foreground/90 font-medium">{ticket.subject}</span>
-                  <TicketStatusBadge status={ticket.status} label={tt(`status.${ticket.status}`)} />
-                </div>
-                <p className="text-foreground/45 text-xs">
-                  {tt("openedBy", { nickname: ticket.user.nickname })} · {tt("messageCount", { count: ticket._count.messages })}
-                </p>
-                <p className="text-foreground/40 text-xs mt-0.5">
-                  {tt("updatedAt", { date: ticket.updatedAt.toLocaleString(lang === "ru" ? "ru-RU" : "en-US") })}
-                </p>
-              </Link>
-            ))
-          )}
+        <div className="min-h-[42vh]">
+          <DocsTable>
+            <DocsTableHeader>
+              <DocsTableRow>
+                <DocsTableHead className="w-[40%] align-middle" withRightBorder>{tt("ticketColumn")}</DocsTableHead>
+                <DocsTableHead className="w-[150px] align-middle text-center" withRightBorder>{tt("initiatorColumn")}</DocsTableHead>
+                <DocsTableHead className="w-[180px] align-middle text-center" withRightBorder>{tt("statusColumn")}</DocsTableHead>
+                <DocsTableHead className="w-[180px] align-middle text-center" withRightBorder>{tt("updatedColumn")}</DocsTableHead>
+                <DocsTableHead className="w-[180px] align-middle text-center">{tt("createdColumn")}</DocsTableHead>
+              </DocsTableRow>
+            </DocsTableHeader>
+            <DocsTableBody className="[&_tr:last-child]:border-0">
+              {tickets.length === 0 ? (
+                <DocsTableRow>
+                  <DocsTableCell colSpan={5} className="text-center py-10">
+                    <p className={cn("text-sm", DOCS_TABLE_THEME.textFaint)}>{tt("noTickets")}</p>
+                  </DocsTableCell>
+                </DocsTableRow>
+              ) : (
+                tickets.map((ticket) => (
+                  <DocsTableRow key={ticket.id}>
+                    <DocsTableCell className="align-middle" withRightBorder>
+                      <div className="flex flex-col gap-1">
+                        <Link
+                          href={`/tickets/${ticket.id}`}
+                          className="text-foreground/90 font-medium hover:text-primary/90 hover:underline underline-offset-4 transition-colors"
+                        >
+                          {ticket.subject}
+                        </Link>
+                        <span className="text-foreground/45 text-xs">
+                          {tt("messageCount", { count: ticket._count.messages })}
+                        </span>
+                      </div>
+                    </DocsTableCell>
+
+                    <DocsTableCell className="align-middle text-center" withRightBorder>
+                      <Link
+                        href={`/profile/${encodeURIComponent(ticket.user.nickname)}`}
+                        target="_blank"
+                        className="text-foreground/80 text-sm font-medium hover:text-primary/90 hover:underline underline-offset-4 transition-colors"
+                      >
+                        {ticket.user.nickname}
+                      </Link>
+                    </DocsTableCell>
+
+                    <DocsTableCell className="align-middle text-center" withRightBorder>
+                      <TicketStatusBadge status={ticket.status} label={tt(`status.${ticket.status}`)} />
+                    </DocsTableCell>
+
+                    <DocsTableCell className="align-middle text-center" withRightBorder>
+                      <span className="text-foreground/50 text-xs">
+                        {ticket.updatedAt.toLocaleString(lang === "ru" ? "ru-RU" : "en-US")}
+                      </span>
+                    </DocsTableCell>
+
+                    <DocsTableCell className="align-middle text-center">
+                      <span className="text-foreground/50 text-xs">
+                        {ticket.createdAt.toLocaleString(lang === "ru" ? "ru-RU" : "en-US")}
+                      </span>
+                    </DocsTableCell>
+                  </DocsTableRow>
+                ))
+              )}
+            </DocsTableBody>
+          </DocsTable>
         </div>
 
         {totalPages > 1 && (

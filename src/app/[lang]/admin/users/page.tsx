@@ -6,8 +6,18 @@ import { AdminPageShell } from "@/components/admin/AdminPageShell";
 import { StatusBadge } from "@/components/common/StatusBadge";
 import { BadgeChip } from "@/components/badges/BadgeChip";
 import { AdminUserActions } from "@/components/admin/AdminUserActions";
+import { UserBadgesCell } from "@/components/admin/UserBadgesCell";
 import { Link } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
+import {
+  DocsTable,
+  DocsTableHeader,
+  DocsTableBody,
+  DocsTableRow,
+  DocsTableHead,
+  DocsTableCell,
+  DOCS_TABLE_THEME,
+} from "@/components/ui/docs-table";
 
 const PAGE_SIZE = 10;
 
@@ -58,13 +68,7 @@ export default async function AdminUsersPage({
 
   return (
     <AdminPageShell title={t("title")} description={t("description", { count: total })} active="users">
-      {/* Narrower than the shell on purpose — the shell's max-w-[1600px] is
-          sized for /admin/content's tree+editor layout, but a stretched-out
-          list of user rows (nickname far left, actions far right) looks
-          broken at that width. This keeps the shell width consistent
-          across admin pages while giving the list a comfortable reading
-          width of its own. */}
-      <div className="max-w-2xl mx-auto">
+      <div className="w-full">
         <form className="mb-6 flex justify-center">
           <input
             type="text"
@@ -75,57 +79,78 @@ export default async function AdminUsersPage({
           />
         </form>
 
-        <div className="space-y-4 min-h-[42vh]">
-          {users.length === 0 ? (
-            <p className="rounded-2xl border border-primary/20 bg-card/50 p-10 text-center text-foreground/40 text-sm">
-              {t("noResults")}
-            </p>
-          ) : (
-            users.map((user) => (
-              <div key={user.id} className="corner-ornament rounded-2xl border border-primary/20 bg-card/50 p-5 relative overflow-hidden">
-                <div className="flex items-center gap-2 flex-wrap mb-1">
-                  <Link
-                    href={`/profile/${encodeURIComponent(user.nickname)}`}
-                    target="_blank"
-                    className="text-foreground/90 font-medium hover:text-primary/90 hover:underline underline-offset-4 transition-colors"
-                  >
-                    {user.nickname}
-                  </Link>
-                  {user.isAdmin && <StatusBadge label={t("adminBadge")} className="px-2.5 py-0.5 text-[0.6rem]" />}
-                </div>
-                <p className="text-foreground/40 text-xs">
-                  {t("createdAt", { date: user.createdAt.toLocaleDateString(lang === "ru" ? "ru-RU" : "en-US") })}
-                </p>
-                <p className="text-foreground/45 text-xs mt-1">
-                  {user.accountLink?.status === "CONFIRMED"
-                    ? t("linkedAs", { name: user.accountLink.minecraftName ?? "" })
-                    : user.accountLink?.status === "PENDING"
-                      ? t("pending")
-                      : t("notLinked")}
-                </p>
-                {user.badges.length > 0 && (
-                  <div className="flex flex-wrap gap-1.5 mt-2">
-                    {user.badges.map(({ badge }) => (
-                      <BadgeChip key={badge.id} name={badge.name} icon={badge.icon} color={badge.color} size="sm" />
-                    ))}
-                  </div>
-                )}
+        <div className="min-h-[42vh]">
+          <DocsTable>
+            <DocsTableHeader>
+              <DocsTableRow>
+                <DocsTableHead className="w-[280px] align-middle" withRightBorder>{t("userColumn")}</DocsTableHead>
+                <DocsTableHead className="align-middle" withRightBorder>{t("badgesLabel")}</DocsTableHead>
+                <DocsTableHead className="w-[160px] align-middle text-center" withRightBorder>{t("registrationColumn")}</DocsTableHead>
+                <DocsTableHead className="w-[180px] align-middle text-right">{t("actionsColumn")}</DocsTableHead>
+              </DocsTableRow>
+            </DocsTableHeader>
+            <DocsTableBody className="[&_tr:last-child]:border-0">
+              {users.length === 0 ? (
+                <DocsTableRow>
+                  <DocsTableCell colSpan={4} className="text-center py-10">
+                    <p className={cn("text-sm", DOCS_TABLE_THEME.textFaint)}>{t("noResults")}</p>
+                  </DocsTableCell>
+                </DocsTableRow>
+              ) : (
+                users.map((user) => (
+                  <DocsTableRow key={user.id}>
+                    <DocsTableCell className="align-middle" withRightBorder>
+                      <div className="flex flex-col gap-1.5">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <Link
+                            href={`/profile/${encodeURIComponent(user.nickname)}`}
+                            target="_blank"
+                            className="text-foreground/90 font-medium hover:text-primary/90 hover:underline underline-offset-4 transition-colors"
+                          >
+                            {user.nickname}
+                          </Link>
+                          {user.isAdmin && <StatusBadge label={t("adminBadge")} className="px-2 py-0.5 text-[0.6rem]" />}
+                        </div>
+                        <span className="text-foreground/45 text-xs">
+                          {user.accountLink?.status === "CONFIRMED"
+                            ? t("linkedAs", { name: user.accountLink.minecraftName ?? "" })
+                            : user.accountLink?.status === "PENDING"
+                              ? t("pending")
+                              : t("notLinked")}
+                        </span>
+                      </div>
+                    </DocsTableCell>
 
-                <div className="mt-4 pt-4 border-t border-primary/10">
-                  <AdminUserActions
-                    lang={lang}
-                    userId={user.id}
-                    nickname={user.nickname}
-                    isSelf={user.id === admin.id}
-                    hasLink={user.accountLink?.status === "CONFIRMED"}
-                    isAdmin={user.isAdmin}
-                    badges={badges}
-                    currentBadgeIds={user.badges.map(({ badge }) => badge.id)}
-                  />
-                </div>
-              </div>
-            ))
-          )}
+                    <DocsTableCell className="align-middle" withRightBorder>
+                      <UserBadgesCell
+                        lang={lang}
+                        userId={user.id}
+                        badges={badges}
+                        currentBadgeIds={user.badges.map(({ badge }) => badge.id)}
+                      />
+                    </DocsTableCell>
+
+                    <DocsTableCell className="align-middle text-center" withRightBorder>
+                      <span className="text-foreground/50 text-xs">
+                        {user.createdAt.toLocaleDateString(lang === "ru" ? "ru-RU" : "en-US")}
+                      </span>
+                    </DocsTableCell>
+
+                    <DocsTableCell className="align-middle text-right">
+                      <AdminUserActions
+                        lang={lang}
+                        userId={user.id}
+                        nickname={user.nickname}
+                        isSelf={user.id === admin.id}
+                        hasLink={user.accountLink?.status === "CONFIRMED"}
+                        isAdmin={user.isAdmin}
+                      />
+                    </DocsTableCell>
+                  </DocsTableRow>
+                ))
+              )}
+            </DocsTableBody>
+          </DocsTable>
         </div>
 
         {totalPages > 1 && (
