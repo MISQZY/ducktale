@@ -17,11 +17,13 @@ interface SwarmDuck {
 
 export default function DuckySwarm() {
   const [active, setActive] = useState(false);
+  const [duckCount, setDuckCount] = useState(0);
   const ducksRef = useRef<SwarmDuck[]>([]);
   const divRefs = useRef<(HTMLDivElement | null)[]>([]);
   const rafRef = useRef(0);
   const frameMsRef = useRef(0);
   const runAwayRef = useRef(false);
+  const audioPoolRef = useRef<HTMLAudioElement[]>([]);
 
   // Reacts to the toggle event directly (a real external-system callback)
   // instead of syncing a `visible` state value through an effect, which
@@ -35,17 +37,35 @@ export default function DuckySwarm() {
   }, []);
 
   useEffect(() => {
+    // Initialize audio pool on first interaction to avoid creating 
+    // hundreds of Audio objects during the animation loop
+    const initAudioPool = () => {
+      if (audioPoolRef.current.length === 0) {
+        audioPoolRef.current = Array.from({ length: 5 }, () => {
+          const a = new Audio('/sounds/quack.mp3');
+          a.preload = "auto";
+          return a;
+        });
+      }
+    };
+
     const onSwarm = () => {
       if (!getDuckyVisible()) return;
       if (active) return;
+      
+      initAudioPool();
       
       const W = window.innerWidth;
       const H = window.innerHeight;
       const sX = window.scrollX;
       const sY = window.scrollY;
       
+      // Reduce duck count heavily on mobile devices for performance
+      const count = W < 768 ? 15 : 50;
+      setDuckCount(count);
+      
       const newDucks: SwarmDuck[] = [];
-      for (let i = 0; i < 50; i++) {
+      for (let i = 0; i < count; i++) {
         const isLeft = Math.random() > 0.5;
         newDucks.push({
           x: sX + (isLeft ? -DISPLAY_SIZE : W + DISPLAY_SIZE),
@@ -61,9 +81,12 @@ export default function DuckySwarm() {
       setActive(true);
       
       try {
-        const audio = new Audio('/sounds/quack.mp3');
-        audio.volume = 0.5;
-        audio.play().catch(() => {});
+        const initialAudio = audioPoolRef.current[0];
+        if (initialAudio) {
+          initialAudio.volume = 0.5;
+          initialAudio.currentTime = 0;
+          initialAudio.play().catch(() => {});
+        }
       } catch(e) {}
       
       setTimeout(() => {
@@ -133,18 +156,19 @@ export default function DuckySwarm() {
           const screenX = duck.x - sX;
           const screenY = duck.y - sY;
           const scale = duck.vx >= 0 ? 1 : -1;
-          div.style.transform = `translate(${screenX}px, ${screenY}px) scaleX(${scale})`;
+          // Use translate3d to force hardware acceleration
+          div.style.transform = `translate3d(${screenX}px, ${screenY}px, 0) scaleX(${scale})`;
           div.style.backgroundPosition = `-${duck.frame * DISPLAY_SIZE}px 0`;
         }
       }
 
-      // Random quacking during the swarm (about 2-3 quacks per second)
-      if (Math.random() < 0.04) {
+      // Random quacking using the pre-initialized audio pool (much better for GC)
+      if (Math.random() < 0.04 && audioPoolRef.current.length > 0) {
         try {
-          const audio = new Audio('/sounds/quack.mp3');
-          audio.volume = 0.15 + Math.random() * 0.15; // random volume 0.15 - 0.30
-          // Randomize pitch slightly by changing playbackRate
+          const audio = audioPoolRef.current[Math.floor(Math.random() * audioPoolRef.current.length)];
+          audio.volume = 0.15 + Math.random() * 0.15;
           audio.playbackRate = 0.9 + Math.random() * 0.4;
+          audio.currentTime = 0;
           audio.play().catch(() => {});
         } catch(e) {}
       }
@@ -164,7 +188,7 @@ export default function DuckySwarm() {
 
   return (
     <div className="fixed inset-0 pointer-events-none" style={{ zIndex: 0 }}>
-      {Array.from({ length: 50 }).map((_, i) => (
+      {Array.from({ length: duckCount }).map((_, i) => (
         <div
           key={i}
           ref={(el) => { divRefs.current[i] = el; }}
@@ -178,6 +202,7 @@ export default function DuckySwarm() {
             backgroundSize: "400% 100%",
             imageRendering: "pixelated",
             filter: "drop-shadow(0 4px 6px rgba(0,0,0,0.3))",
+            willChange: "transform, background-position",
           }}
         />
       ))}
