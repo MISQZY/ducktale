@@ -88,7 +88,7 @@ export default async function ProfilePage({
             {t("title", { name: session.user.name ?? "" })}
           </h1>
 
-          <div className="mb-4">
+          <div className="mb-1">
             <ProfileQuickActions
               lang={lang}
               publicProfileHref={`/profile/${encodeURIComponent(session.user.name ?? "")}`}
@@ -102,7 +102,11 @@ export default async function ProfilePage({
             />
           </div>
 
-
+          {user?.createdAt && (
+            <p className="text-center text-xs text-foreground/35 mb-4">
+              {tp("memberSince", { date: user.createdAt.toLocaleDateString(lang === "ru" ? "ru-RU" : "en-US") })}
+            </p>
+          )}
 
           {link?.status === "CONFIRMED" && link.minecraftName ? (
             <div className="mb-4">
@@ -113,11 +117,6 @@ export default async function ProfilePage({
                 minecraftName={link.minecraftName}
                 locale={lang}
                 manage={{ lang }}
-                registeredLabel={
-                  user?.createdAt
-                    ? tp("memberSince", { date: user.createdAt.toLocaleDateString(lang === "ru" ? "ru-RU" : "en-US") })
-                    : undefined
-                }
                 badgesNode={badgesContent}
               />
             </div>

@@ -79,6 +79,9 @@
     "notFoundQuery": "Игрок «{query}» не найден",
     "noData": "Нет данных",
     "online": "Онлайн",
+    "siteOnline": "Онлайн",
+    "bothOnline": "Онлайн на сервере и на сайте",
+    "lastSeenOnSite": "Последний раз на сайте: {date}",
     "resident": "Житель",
     "labels": {
       "player": "Игрок",

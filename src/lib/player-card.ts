@@ -6,6 +6,7 @@ import { Prisma } from "@prisma/client";
 import { SERVERS, NETWORK_SERVERS } from "@/config/servers";
 import { FALLBACK_NICKNAME, PLAYER_NICKNAME_JOIN } from "@/lib/players";
 import { resolvePlayerTrackRoles } from "@/lib/luckperms";
+import { resolveSitePresence } from "@/lib/presence";
 import type { Gender, GrowthStatus, PlayerCard, PlayerServerStatus } from "@/types/player-card";
 import type { ResidentRole } from "@/types/towny";
 
@@ -275,11 +276,12 @@ export async function getPlayerCard(search: string): Promise<PlayerCard | null> 
   const identity = await resolveIdentity(search);
   if (!identity) return null;
 
-  const [{ gender, growth }, skinUrl, { city, nation, role }, roles] = await Promise.all([
+  const [{ gender, growth }, skinUrl, { city, nation, role }, roles, sitePresence] = await Promise.all([
     resolveGrowthData(identity.uuid),
     resolveSkinUrl(identity.uuid),
     resolveTownyData(identity.uuid),
     resolvePlayerTrackRoles(identity.uuid),
+    resolveSitePresence(identity.uuid),
   ]);
 
   return {
@@ -301,5 +303,7 @@ export async function getPlayerCard(search: string): Promise<PlayerCard | null> 
     whitelisted: Boolean(identity.whitelisted),
     servers: buildServerStatuses(identity, { city, nation, role }),
     roles,
+    siteOnline: sitePresence.online,
+    siteLastSeenMs: sitePresence.lastSeenMs,
   };
 }

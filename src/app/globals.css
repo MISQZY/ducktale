@@ -385,6 +385,31 @@ body {
   animation: borderGlowGreen 3.5s ease-in-out infinite;
 }
 
+/* Site-online (not Minecraft-server-online) — same shape, blue instead of emerald. */
+@keyframes borderGlowBlue {
+  0%, 100% { border-color: rgba(59,130,246,0.25); }
+  50%       { border-color: rgba(96,165,250,0.55); }
+}
+.animate-border-glow-blue {
+  animation: borderGlowBlue 3.5s ease-in-out infinite;
+}
+
+/* Both at once — the border itself sweeps between blue and green instead of picking one, since a border-color can't be a literal gradient. */
+@keyframes borderGlowDuo {
+  0%, 100% { border-color: rgba(59,130,246,0.55); }
+  50%      { border-color: rgba(52,211,153,0.55); }
+}
+.animate-border-glow-duo {
+  animation: borderGlowDuo 3s ease-in-out infinite;
+}
+
+/* Compact dot variant of the same three states (PlayerChip's unlinked-profile case) — small enough that a literal spatial gradient reads better than an animated color sweep. */
+.dot-online-green { background-color: #10b981; }
+.dot-online-blue   { background-color: #3b82f6; }
+.dot-online-duo {
+  background: linear-gradient(135deg, #3b82f6 0%, #10b981 100%);
+}
+
 @keyframes fadeUp {
   from { opacity: 0; transform: translateY(20px); }
   to   { opacity: 1; transform: translateY(0); }

@@ -20,6 +20,10 @@ export interface LeaderboardPlayer {
   badges: LeaderboardPlayerBadge[];
   /** Actual skin URL resolved from SkinRestorer. */
   skinUrl: string | null;
+  /** Currently browsing the site (see src/lib/presence.ts) — always false when not linked. */
+  siteOnline: boolean;
+  /** Last known site activity, unix ms — null when never linked/seen. */
+  siteLastSeenMs: number | null;
 }
 
 export interface LeaderboardResponse {

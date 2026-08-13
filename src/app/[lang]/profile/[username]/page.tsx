@@ -2,6 +2,8 @@ import { cache } from "react";
 import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { siteDb } from "@/lib/site-db";
+import { isUserOnline } from "@/lib/presence";
+import { formatLastSeen } from "@/lib/player-card-format";
 import Navbar from "@/components/Navbar";
 import { ProfilePlayerCard } from "@/components/account/ProfilePlayerCard";
 import { ProfileBadgeChip } from "@/components/badges/ProfileBadgeChip";
@@ -18,7 +20,9 @@ const findUser = cache(async (username: string) => {
   return siteDb.user.findUnique({
     where: { nickname: username },
     select: {
+      id: true,
       createdAt: true,
+      lastSeenAt: true,
       accountLink: { select: { status: true, minecraftName: true } },
       badges: { select: { badge: { select: { id: true, name: true, icon: true, color: true, description: true, earnCondition: true } } } },
     },
@@ -36,6 +40,14 @@ export default async function PublicProfilePage({
 
   const t = await getTranslations("Profile");
   const td = await getTranslations("Account.dashboard");
+  const tc = await getTranslations("PlayerCard");
+
+  // Site-only presence (Minecraft-server online is already shown inside
+  // ProfilePlayerCard's own "Last login" row, no need to repeat it here).
+  // A free in-memory check — see src/lib/presence.ts.
+  const siteOnline = isUserOnline(user.id);
+  const siteLastSeenMs = user.lastSeenAt?.getTime() ?? null;
+  const memberSince = t("memberSince", { date: user.createdAt.toLocaleDateString(lang === "ru" ? "ru-RU" : "en-US") });
 
   const badgesContent = user.badges.length > 0 ? (
     <div>
@@ -69,9 +81,23 @@ export default async function PublicProfilePage({
             {t("pageTitle", { name: username })}
           </h1>
 
+          <div className="flex flex-col items-center gap-1 mb-4">
+            {siteOnline ? (
+              <span className="inline-flex items-center gap-2 text-xs font-medium text-blue-600 dark:text-blue-400">
+                <span className="relative flex h-2 w-2 shrink-0">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75" />
+                  <span className="relative inline-flex h-2 w-2 rounded-full bg-blue-500" />
+                </span>
+                {tc("siteOnline")}
+              </span>
+            ) : siteLastSeenMs ? (
+              <span className="text-xs text-foreground/40">
+                {tc("lastSeenOnSite", { date: formatLastSeen(siteLastSeenMs, lang) })}
+              </span>
+            ) : null}
 
-
-
+            <span className="text-xs text-foreground/35">{memberSince}</span>
+          </div>
 
           {user.accountLink?.status === "CONFIRMED" && user.accountLink.minecraftName ? (
             <div className="mb-4">
@@ -81,7 +107,6 @@ export default async function PublicProfilePage({
               <ProfilePlayerCard
                 minecraftName={user.accountLink.minecraftName}
                 locale={lang}
-                registeredLabel={t("memberSince", { date: user.createdAt.toLocaleDateString(lang === "ru" ? "ru-RU" : "en-US") })}
                 badgesNode={badgesContent}
               />
             </div>

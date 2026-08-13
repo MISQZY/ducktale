@@ -3,6 +3,7 @@ import { cn } from "@/lib/utils";
 import { SkinFace } from "@/components/common/SkinFace";
 import { HighlightMatch } from "@/components/docs/paged-table";
 import { CompactBadgeChip } from "@/components/badges/CompactBadgeChip";
+import { presenceGlowClass, presenceDotClass } from "@/lib/presence-ui";
 import { useTranslations } from "next-intl";
 
 const MAX_VISIBLE_BADGES = 3;
@@ -11,7 +12,10 @@ export interface PlayerChipProps {
   name: string;
   profileUsername: string | null;
   skinUrl: string | null;
+  /** Currently connected to the Minecraft server. */
   online: boolean;
+  /** Currently browsing the site (see src/lib/presence.ts) — false when there's no linked account. */
+  siteOnline?: boolean;
   badges: {
     name: string;
     icon: string;
@@ -28,11 +32,20 @@ export function PlayerChip({
   profileUsername,
   skinUrl,
   online,
+  siteOnline = false,
   badges,
   query = "",
   className,
 }: PlayerChipProps) {
   const tCard = useTranslations("PlayerCard");
+  const glowClass = presenceGlowClass(online, siteOnline);
+  const borderClass = online && siteOnline
+    ? "border-cyan-400/40"
+    : online
+      ? "border-emerald-500/40"
+      : siteOnline
+        ? "border-blue-500/40"
+        : "border-primary/20 hover:border-primary/40";
 
   if (profileUsername) {
     return (
@@ -41,7 +54,8 @@ export function PlayerChip({
         target="_blank"
         className={cn(
           "relative overflow-hidden inline-flex h-11 items-center gap-3 py-1.5 pr-5 pl-1.5 rounded-lg border bg-card/40 transition-colors shadow-sm group hover:bg-card/60",
-          online ? "animate-border-glow-green border-emerald-500/40" : "border-primary/20 hover:border-primary/40",
+          glowClass,
+          borderClass,
           className
         )}
       >
@@ -81,13 +95,16 @@ export function PlayerChip({
     );
   }
 
+  const dotClass = presenceDotClass(online, siteOnline);
+  const dotTitle = online && siteOnline ? tCard("bothOnline") : online ? tCard("online") : tCard("siteOnline");
+
   return (
     <div className={cn("flex h-11 items-center gap-2", className)}>
       <HighlightMatch text={name} query={query} className="text-base" />
-      {online && (
-        <span className="relative flex h-1.5 w-1.5 shrink-0" title={tCard("online")}>
-          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
-          <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-emerald-500" />
+      {dotClass && (
+        <span className="relative flex h-1.5 w-1.5 shrink-0" title={dotTitle}>
+          <span className={cn("animate-ping absolute inline-flex h-full w-full rounded-full opacity-75", online ? "bg-emerald-400" : "bg-blue-400")} />
+          <span className={cn("relative inline-flex h-1.5 w-1.5 rounded-full", dotClass)} />
         </span>
       )}
     </div>

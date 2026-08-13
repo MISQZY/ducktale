@@ -6,6 +6,7 @@ import { Prisma } from "@prisma/client";
 import { isRateLimited } from "@/lib/rate-limit";
 import { PLAYER_NICKNAME_JOIN } from "@/lib/players";
 import { resolveSkinUrl } from "@/lib/skin";
+import { isUserOnline } from "@/lib/presence";
 import type { LeaderboardPlayer, LeaderboardResponse } from "@/types/leaderboard";
 
 export type { LeaderboardPlayer, LeaderboardResponse };
@@ -83,21 +84,27 @@ async function buildLeaderboardResponse(
 
   // Only this page's rows, not the whole leaderboard — a plain indexed
   // lookup by minecraftUuid, cheap regardless of page size (capped at 100).
+  // Also carries what's needed for site presence (userId + persisted
+  // lastSeenAt) so that doesn't need its own separate query — see
+  // src/lib/presence.ts for why "online now" itself is an in-memory check
+  // (isUserOnline), not something this query could answer on its own.
   const links = rows.length > 0
     ? await siteDb.accountLink.findMany({
         where: { minecraftUuid: { in: rows.map((r) => r.uuid) }, status: "CONFIRMED" },
         select: {
           minecraftUuid: true,
+          userId: true,
           user: {
             select: {
               nickname: true,
+              lastSeenAt: true,
               badges: { select: { badge: { select: { name: true, icon: true, color: true, description: true, earnCondition: true } } } },
             },
           },
         },
       })
     : [];
-  const linkByUuid = new Map(links.map((l) => [l.minecraftUuid, l.user]));
+  const linkByUuid = new Map(links.map((l) => [l.minecraftUuid, l]));
 
   // Fetch skins for all players on the current page
   const skinUrls = await Promise.all(rows.map((r) => resolveSkinUrl(r.uuid)));
@@ -105,7 +112,9 @@ async function buildLeaderboardResponse(
 
   return {
     players: rows.map((r) => {
-      const linkedUser = linkByUuid.get(r.uuid);
+      const link = linkByUuid.get(r.uuid);
+      const siteOnline = link ? isUserOnline(link.userId) : false;
+      const dbLastSeenMs = link?.user.lastSeenAt?.getTime() ?? undefined;
       return {
         uuid:       r.uuid,
         name:       r.name,
@@ -113,9 +122,11 @@ async function buildLeaderboardResponse(
         playtimeMs: Number(r.playtimeMs),
         online:     Boolean(r.online),
         rank:       Number(r.rank),
-        profileUsername: linkedUser?.nickname ?? null,
-        badges: linkedUser?.badges.map(({ badge }) => badge) ?? [],
+        profileUsername: link?.user.nickname ?? null,
+        badges: link?.user.badges.map(({ badge }) => badge) ?? [],
         skinUrl: skinByUuid.get(r.uuid) ?? null,
+        siteOnline,
+        siteLastSeenMs: dbLastSeenMs ?? null,
       };
     }),
     total,

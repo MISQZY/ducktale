@@ -102,6 +102,7 @@ export default async function TicketPage({
                     profileUsername={ticket.user.nickname}
                     skinUrl={playerCard.skinUrl}
                     online={playerCard.online}
+                    siteOnline={playerCard.siteOnline}
                     badges={ticket.user.badges.map(b => b.badge)}
                   />
                 </div>

@@ -35,6 +35,13 @@ model User {
   passwordHash        String               @db.VarChar(255)
   isAdmin             Boolean              @default(false)
   createdAt           DateTime             @default(now())
+  // Persisted floor for "last seen on the site" — updated at most once per
+  // PERSIST_MIN_INTERVAL_MS by src/lib/presence.ts, not on every heartbeat.
+  // "Online right now" is served from that module's in-memory map instead of
+  // this column, which only exists so an offline user still shows a
+  // meaningful last-seen time (and so presence survives a process restart,
+  // if briefly stale by up to that interval).
+  lastSeenAt          DateTime?
   accountLink         AccountLink?
   tickets             Ticket[]
   ticketMessages      TicketMessage[]

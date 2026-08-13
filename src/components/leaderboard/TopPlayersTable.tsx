@@ -149,6 +149,7 @@ export function TopPlayersTable({ pageSize = 10, className }: TopPlayersTablePro
                     profileUsername={player.profileUsername}
                     skinUrl={player.skinUrl}
                     online={player.online}
+                    siteOnline={player.siteOnline}
                     badges={player.badges}
                     query={query}
                   />

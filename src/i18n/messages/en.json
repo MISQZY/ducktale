@@ -79,6 +79,9 @@
     "notFoundQuery": "Player \"{query}\" not found",
     "noData": "No data",
     "online": "Online",
+    "siteOnline": "Online",
+    "bothOnline": "Online on the server and the site",
+    "lastSeenOnSite": "Last seen on the site {date}",
     "resident": "Resident",
     "labels": {
       "player": "Player",

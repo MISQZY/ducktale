@@ -35,6 +35,8 @@ export interface PlayerCard {
   whitelisted:  boolean;        // Flectone (fp_moderation type=whitelist) status on DuckBurg specifically — kept for the existing docs player-card search UI
   servers:      PlayerServerStatus[];
   roles:        PlayerTrackRole[]; // LuckPerms roles, one per admin-configured track — see resolvePlayerTrackRoles
+  siteOnline:   boolean;        // currently browsing the site — see src/lib/presence.ts. Always false when there's no linked/confirmed site account.
+  siteLastSeenMs: number | null; // last known site activity, null if never linked or never seen
 }
 
 export interface PlayerCardResponse {

@@ -8,6 +8,7 @@ import type { ReactNode } from "react";
 import type { Session } from "next-auth";
 import DuckyPet from "@/components/DuckyPet";
 import DuckySwarm from "@/components/DuckySwarm";
+import PresenceHeartbeat from "@/components/PresenceHeartbeat";
 
 export function AppProvider({
   children,
@@ -41,6 +42,7 @@ export function AppProvider({
         {children}
         <DuckyPet />
         <DuckySwarm />
+        <PresenceHeartbeat />
       </RootProvider>
     </SessionProvider>
   );
