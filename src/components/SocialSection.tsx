@@ -1,11 +1,14 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { cn } from "@/lib/utils";
 import { SOCIALS } from "@/config/site";
 import { SOCIAL_ICON_MAP } from "@/components/ui/social-icons";
 import SectionHeader from "@/components/SectionHeader";
+import { SkinFace } from "@/components/common/SkinFace";
+import { getShowcasePlayers } from "@/lib/actions/showcase";
 
 /** Corner ornament positioned at one of the four card corners. */
 function CornerOrnament({
@@ -31,8 +34,41 @@ function CornerOrnament({
 
 const CORNERS = ["tl", "tr", "bl", "br"] as const;
 
+const SHOWCASE_PLAYERS = [
+  { name: "6ojieh", skinUrl: null, profileUsername: null },
+  { name: "MISQZY", skinUrl: null, profileUsername: null },
+  { name: "Flectone", skinUrl: null, profileUsername: null },
+  { name: "_Oleg_", skinUrl: null, profileUsername: null },
+  { name: "Notch", skinUrl: null, profileUsername: null },
+  { name: "Jeb_", skinUrl: null, profileUsername: null },
+  { name: "Dinnerbone", skinUrl: null, profileUsername: null },
+  { name: "Steve", skinUrl: null, profileUsername: null },
+  { name: "Alex", skinUrl: null, profileUsername: null },
+  { name: "DuckTale", skinUrl: null, profileUsername: null },
+];
+
 export default function SocialSection() {
   const t = useTranslations("Social");
+  
+  const [players, setPlayers] = useState<{name: string, skinUrl: string | null, profileUsername?: string | null}[]>(SHOWCASE_PLAYERS);
+  const [totalPlayers, setTotalPlayers] = useState<number | null>(null);
+
+  useEffect(() => {
+    let active = true;
+    getShowcasePlayers().then((data) => {
+      if (!active) return;
+      if (data.players && data.players.length > 0) {
+        // Shuffle the players on the client so it's different on every page refresh
+        // even though the underlying data is cached for 12 hours
+        const shuffled = [...data.players].sort(() => 0.5 - Math.random());
+        setPlayers(shuffled);
+      }
+      setTotalPlayers(Math.floor(data.total / 100) * 100);
+    });
+    return () => { active = false; };
+  }, []);
+
+  const MARQUEE_PLAYERS = [...players, ...players];
 
   return (
     <section id="community" className="py-16 px-6 relative">
@@ -43,7 +79,60 @@ export default function SocialSection() {
           description={t("description")}
         />
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-12">
+        {/* Player Marquee */}
+        <div className="relative flex w-full overflow-hidden mt-6 mb-8 [mask-image:linear-gradient(to_right,transparent,black_10%,black_90%,transparent)]">
+          <div className="flex w-max animate-marquee items-center gap-4 py-2 hover:[animation-play-state:paused]">
+            {MARQUEE_PLAYERS.map((p, i) => {
+              const hasProfile = Boolean(p.profileUsername);
+              
+              if (hasProfile) {
+                return (
+                  <Link
+                    key={`${p.name}-${i}`}
+                    href={`/profile/${p.profileUsername}`}
+                    className="relative overflow-hidden inline-flex items-center gap-3 rounded-lg border-2 border-primary/60 bg-card/70 py-2 pr-6 pl-2 shadow-sm shrink-0 transition-transform duration-300 hover:scale-105 hover:border-primary"
+                  >
+                    <SkinFace skinUrl={p.skinUrl || `https://minotar.net/skin/${p.name}`} size={40} className="rounded-md border-none" />
+                    <span
+                      title={p.name}
+                      className="font-bold text-amber-500 dark:text-amber-400 text-base tracking-wide max-w-40 truncate"
+                      style={{ fontFamily: "var(--font-display)" }}
+                    >
+                      {p.name}
+                    </span>
+                  </Link>
+                );
+              }
+
+              return (
+                <div
+                  key={`${p.name}-${i}`}
+                  className="relative overflow-hidden inline-flex items-center gap-3 rounded-lg border border-primary/25 bg-card/70 py-2 pr-6 pl-2 shadow-sm shrink-0 transition-transform duration-300 hover:scale-105"
+                >
+                  <SkinFace skinUrl={p.skinUrl || `https://minotar.net/skin/${p.name}`} size={40} className="rounded-md border-none" />
+                  <span
+                    title={p.name}
+                    className="font-semibold text-foreground/90 text-base tracking-wide max-w-40 truncate"
+                    style={{ fontFamily: "var(--font-display)" }}
+                  >
+                    {p.name}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Visitor Stats */}
+        <p
+          className="text-center text-foreground/50 text-sm mb-10"
+          style={{ fontFamily: "var(--font-mono)" }}
+        >
+          {t("playersVisited", { count: totalPlayers !== null ? totalPlayers.toString() : "1000+" })}
+        </p>
+
+        {/* Social Cards (Small & Centered) */}
+        <div className="flex flex-wrap justify-center items-center gap-4">
           {SOCIALS.map((social) => {
             const Icon = SOCIAL_ICON_MAP[social.id];
             return (
@@ -53,21 +142,22 @@ export default function SocialSection() {
                 target="_blank"
                 rel="noopener noreferrer"
                 className={cn(
-                  "group relative flex flex-col items-center gap-3 rounded-2xl border px-6 py-8",
+                  "liquid-card group relative flex flex-row items-center gap-3 rounded-xl border px-4 py-3 min-w-[200px]",
                   "transition-all duration-300",
                   "hover:-translate-y-1 hover:scale-[1.02]",
                   social.color.bg,
                   social.color.border,
                   "hover:border-opacity-60"
                 )}
-                style={{ boxShadow: "0 2px 20px rgba(0,0,0,0.4)" }}
                 onMouseEnter={(e) => {
-                  (e.currentTarget as HTMLElement).style.boxShadow =
-                    `0 8px 32px ${social.color.glow}, 0 2px 20px rgba(0,0,0,0.5)`;
+                  (e.currentTarget as HTMLElement).style.setProperty(
+                    "box-shadow",
+                    `0 8px 32px ${social.color.glow}, 0 4px 30px rgba(0,0,0,0.5), 0 1px 0 rgba(212,160,23,0.04)`,
+                    "important"
+                  );
                 }}
                 onMouseLeave={(e) => {
-                  (e.currentTarget as HTMLElement).style.boxShadow =
-                    "0 2px 20px rgba(0,0,0,0.4)";
+                  (e.currentTarget as HTMLElement).style.removeProperty("box-shadow");
                 }}
               >
                 {CORNERS.map((pos) => (
@@ -76,7 +166,7 @@ export default function SocialSection() {
 
                 <div
                   className={cn(
-                    "w-12 h-12 rounded-xl flex items-center justify-center border",
+                    "w-10 h-10 shrink-0 rounded-lg flex items-center justify-center border",
                     "transition-all duration-300 group-hover:scale-110",
                     social.color.bg,
                     social.color.border
@@ -85,30 +175,20 @@ export default function SocialSection() {
                   {Icon && <Icon className={cn("w-5 h-5", social.color.icon)} />}
                 </div>
 
-                <div className="text-center">
+                <div className="flex flex-col text-left">
                   <p
-                    className="text-foreground/90 font-semibold text-sm tracking-wide mb-1"
+                    className="text-foreground/90 font-semibold text-sm tracking-wide"
                     style={{ fontFamily: "var(--font-body)" }}
                   >
                     {social.label}
                   </p>
                   <p
-                    className="text-foreground/35 text-xs"
+                    className="text-foreground/45 text-xs mt-0.5"
                     style={{ fontFamily: "var(--font-mono)" }}
                   >
                     {t(`items.${social.id}.sublabel`)}
                   </p>
                 </div>
-
-                <span
-                  className={cn(
-                    "text-xs opacity-0 group-hover:opacity-70 transition-opacity duration-300 mt-1",
-                    social.color.icon
-                  )}
-                  style={{ fontFamily: "var(--font-mono)", fontSize: "0.6rem" }}
-                >
-                  {t("visit")}
-                </span>
               </Link>
             );
           })}

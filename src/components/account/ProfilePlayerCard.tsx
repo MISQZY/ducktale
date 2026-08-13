@@ -22,7 +22,7 @@ type PlayerCardT = Awaited<ReturnType<typeof getTranslations>>;
 
 function GeneralStat({ icon: Icon, label, children }: { icon: React.ElementType; label: string; children: React.ReactNode }) {
   return (
-    <div className="flex flex-col items-center gap-0.5 rounded-lg bg-muted/60 border border-border/40 px-3 py-2 text-center">
+    <div className="liquid-card flex flex-col items-center gap-0.5 rounded-lg bg-muted/60 border border-border/40 px-3 py-2 text-center">
       <Icon size={15} className="text-primary/60" />
       <span className="text-foreground/40 text-[11px] uppercase tracking-wide">{label}</span>
       <span className="text-foreground/90 text-sm font-medium">{children}</span>
@@ -74,7 +74,7 @@ function ServerStatusCard({ status, t }: { status: PlayerServerStatus; t: Player
   return (
     <div
       className={cn(
-        "shrink-0 snap-start w-44 rounded-xl border p-4 bg-linear-to-br flex flex-col items-center text-center gap-2.5",
+        "liquid-card shrink-0 snap-start w-44 rounded-xl border p-4 bg-linear-to-br flex flex-col items-center text-center gap-2.5",
         config.color, config.border,
         status.online && "animate-border-glow-green"
       )}

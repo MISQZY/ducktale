@@ -23,7 +23,7 @@ export default function ServersSection() {
               <div
                 key={server.id}
                 className={cn(
-                  "relative rounded-2xl border p-8 transition-all duration-300 group",
+                  "liquid-card relative rounded-2xl border p-8 transition-all duration-300 group",
                   server.border,
                   "bg-linear-to-br",
                   server.color,
@@ -98,7 +98,7 @@ export default function ServersSection() {
 
         <div
           id="connect"
-          className="mt-12 rounded-2xl border border-primary/18 bg-card/55 p-8 text-center relative overflow-hidden"
+          className="liquid-card mt-12 rounded-2xl border border-primary/18 bg-card/55 p-8 text-center relative overflow-hidden"
         >
           <div className="absolute top-3 left-3 w-5 h-5 border-t border-l border-primary/20" />
           <div className="absolute bottom-3 right-3 w-5 h-5 border-b border-r border-primary/20" />

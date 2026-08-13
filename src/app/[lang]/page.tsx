@@ -29,11 +29,11 @@ export default function HomePage() {
         </ScrollReveal>
         
         <ScrollReveal>
-          <NetworkDiagram />
+          <SocialSection />
         </ScrollReveal>
         
         <ScrollReveal>
-          <SocialSection />
+          <NetworkDiagram />
         </ScrollReveal>
       </main>
 

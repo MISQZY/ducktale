@@ -81,7 +81,7 @@
     "online": "Online",
     "siteOnline": "Online",
     "bothOnline": "Online on the server and the site",
-    "lastSeenOnSite": "Last seen on the site {date}",
+    "lastSeenOnSite": "Last seen: {date}",
     "resident": "Resident",
     "labels": {
       "player": "Player",
@@ -150,6 +150,10 @@
     "title": "What is DuckTale?",
     "description": "DuckTale is more than just Minecraft. It's a community of people who love building, exploring and creating. We've been running since {year} and have grown a warm, close-knit community.",
     "features": {
+      "history": {
+        "title": "Over 2 years running",
+        "desc": "Since 2024, we've been continuously developing the project, keeping the world and progress safe."
+      },
       "protection": {
         "title": "Protection & stability",
         "desc": "Dedicated servers with DDoS protection, daily backups, 99.9% uptime."
@@ -158,10 +162,6 @@
         "title": "Living community",
         "desc": "A friendly Discord, regular events, active admins always around."
       }
-    },
-    "stats": {
-      "years": { "n": "2+", "label": "years running" },
-      "visitors": { "n": "1000+", "label": "people visited the project" }
     }
   },
   "Servers": {
@@ -244,6 +244,7 @@
     "title": "Find us online",
     "description": "Join our channels — follow the news, take part in events and chat with other players.",
     "visit": "Visit →",
+    "playersVisited": "Over {count} players have visited our project",
     "footerNote": "Join us, it's fun here",
     "items": {
       "discord": { "sublabel": "Main community" },

@@ -137,7 +137,7 @@ async function buildLeaderboardResponse(
 }
 
 export async function GET(req: Request) {
-  if (isRateLimited(req, "leaderboard", 30, 60_000)) {
+  if (isRateLimited(req, "leaderboard", 60, 60_000)) {
     return NextResponse.json({ error: "Too many requests" }, { status: 429 });
   }
 

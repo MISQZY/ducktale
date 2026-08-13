@@ -121,14 +121,7 @@ export default function NetworkDiagram() {
           label={t("label")}
           title={t("title")}
           description={t("description")}
-        >
-          {/* Custom divider with Zap icon */}
-          <div className="flex items-center justify-center gap-3 mt-5 mb-0">
-            <div className="h-px flex-1 max-w-20 bg-linear-to-r from-transparent to-primary/35" />
-            <Zap size={12} className="text-primary/50" />
-            <div className="h-px flex-1 max-w-20 bg-linear-to-l from-transparent to-primary/35" />
-          </div>
-        </SectionHeader>
+        />
 
         <GraphDiagram
           nodes={nodes}

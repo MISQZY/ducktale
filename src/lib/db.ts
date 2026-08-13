@@ -95,13 +95,33 @@ function isConnectionError(err: unknown): boolean {
   return false;
 }
 
+const reconnectingPromises = new Map<DbKey, Promise<PrismaClient>>();
+
 async function reconnect(key: DbKey): Promise<PrismaClient> {
-  console.warn(`[db:${key}] Connection lost — reconnecting...`);
-  const old = registry.get(key);
-  await old?.$disconnect().catch(() => {});
-  const client = createClient(key);
-  registry.set(key, client);
-  return client;
+  const existing = reconnectingPromises.get(key);
+  if (existing) return existing;
+
+  const promise = (async () => {
+    console.warn(`[db:${key}] Connection lost — reconnecting...`);
+    const old = registry.get(key);
+    
+    // Disconnect with a timeout to prevent hanging if the server dropped the TCP connection
+    if (old) {
+      await Promise.race([
+        old.$disconnect().catch(() => {}),
+        new Promise((resolve) => setTimeout(resolve, 2000))
+      ]);
+    }
+    
+    const client = createClient(key);
+    registry.set(key, client);
+    return client;
+  })().finally(() => {
+    reconnectingPromises.delete(key);
+  });
+
+  reconnectingPromises.set(key, promise);
+  return promise;
 }
 
 /**

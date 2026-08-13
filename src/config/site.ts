@@ -17,9 +17,8 @@ export const REPO = {
   },
 } as const;
 
-/** Keys into `About.stats` / `About.features`, in display order. */
-export const STAT_KEYS = ["years", "visitors"] as const;
-export const FEATURE_KEYS = ["protection", "community"] as const;
+/** Keys into `About.features`, in display order. */
+export const FEATURE_KEYS = ["history", "protection", "community"] as const;
 
 export interface SocialLink {
   /** Also the key into the `Social.items` message namespace. */
