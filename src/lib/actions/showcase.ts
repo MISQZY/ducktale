@@ -21,7 +21,7 @@ export const getShowcasePlayers = unstable_cache(
           FROM fp_player
           ORDER BY RAND()
           LIMIT ${half}
-        `) as any[];
+        `) as { uuid: string; name: string }[];
       });
       
       const links = rows.length > 0
@@ -44,7 +44,7 @@ export const getShowcasePlayers = unstable_cache(
       const TARGET_COUNT = 50;
       const selectedProfile = profileRows.slice(0, TARGET_COUNT);
       
-      let finalRows = [...selectedProfile];
+      const finalRows = [...selectedProfile];
       let needed = TARGET_COUNT - finalRows.length;
 
       const candidatesWithSkin = [];
