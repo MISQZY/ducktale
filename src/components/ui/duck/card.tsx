@@ -20,6 +20,13 @@ function DuckCard({
         "data-[size=sm]:gap-3",
         className
       )}
+      // MouseTracker (src/components/common/MouseTracker.tsx) sets
+      // --mouse-x/--mouse-y on any `.liquid-card` directly via
+      // style.setProperty, outside React — expected to differ from
+      // the server-rendered style attribute, most visibly on content
+      // that streams in via Suspense (e.g. ProfilePlayerCard) while the
+      // cursor already sits over where it lands.
+      suppressHydrationWarning={liquid}
       {...props}
     >
       <span
