@@ -1,10 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { RefreshCw, Unlink2 } from "lucide-react";
+import { Unlink2 } from "lucide-react";
 import { buttonVariants } from "@/components/ui/button";
 import { unlinkAccount } from "@/lib/actions/account-link";
-import { Link, useRouter } from "@/i18n/navigation";
+import { useRouter } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
 
 interface ManageActionsProps {

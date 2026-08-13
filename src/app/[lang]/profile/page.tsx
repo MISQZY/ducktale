@@ -6,7 +6,6 @@ import { evaluateAutoBadges } from "@/lib/luckperms";
 import Navbar from "@/components/Navbar";
 
 import { CtaButton } from "@/components/common/CtaButton";
-import { StatusBadge } from "@/components/common/StatusBadge";
 import { ProfileQuickActions } from "@/components/account/ProfileQuickActions";
 import { ProfilePlayerCard } from "@/components/account/ProfilePlayerCard";
 import { ProfileSectionCard } from "@/components/account/ProfileSectionCard";

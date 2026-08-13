@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useTranslations } from "next-intl";
-import { CtaButton } from "@/components/common/CtaButton";
 import { FormButton } from "@/components/common/FormButton";
 import { StatusBadge } from "@/components/common/StatusBadge";
 import CopyToClipboard from "@/components/ui/CopyToClipboard";
@@ -92,15 +91,6 @@ export function LinkAccountFlow({ lang, initialLink }: LinkAccountFlowProps) {
     }
   }
 
-  async function handleUnlink() {
-    setSubmitting(true);
-    try {
-      await unlinkAccount(lang);
-      setLink(null);
-    } finally {
-      setSubmitting(false);
-    }
-  }
 
   if (link?.status === "CONFIRMED" && link) {
     return null;
