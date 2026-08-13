@@ -187,7 +187,7 @@ export default function DuckySwarm() {
   if (!active) return null;
 
   return (
-    <div style={{ position: "fixed", top: 0, left: 0, width: 0, height: 0, pointerEvents: "none", zIndex: 50 }}>
+    <div style={{ position: "fixed", top: 0, left: 0, width: 0, height: 0, pointerEvents: "none", zIndex: 0 }}>
       {Array.from({ length: duckCount }).map((_, i) => (
         <div
           key={i}

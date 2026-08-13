@@ -336,7 +336,7 @@ export default function DuckyPet() {
   const showBubble = isHovered || activePhrase !== null;
 
   return (
-    <div ref={sectionRef} style={{ position: "fixed", top: 0, left: 0, width: 0, height: 0, pointerEvents: "none", zIndex: 50 }}>
+    <div ref={sectionRef} style={{ position: "fixed", top: 0, left: 0, width: 0, height: 0, pointerEvents: "none", zIndex: 0 }}>
       <div
         ref={duckRef}
         style={{
