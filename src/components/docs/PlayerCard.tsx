@@ -10,6 +10,7 @@ import { DuckCard, DuckCardContent } from "@/components/ui/duck/card";
 import { TableSearch } from "@/components/docs/paged-table";
 import { RESIDENT_ROLE_COLOR } from "@/lib/towny";
 import { SkinFace } from "@/components/common/SkinFace";
+import { RoleBadgeChip } from "@/components/badges/RoleBadgeChip";
 import { formatDurationMs, formatLastSeen } from "@/lib/player-card-format";
 import type {
   GrowthStatus, PlayerCard as PlayerCardData, PlayerCardResponse,
@@ -34,14 +35,14 @@ function setStoredPlayer(name: string) {
   try { localStorage.setItem(LAST_PLAYER_STORAGE_KEY, name); } catch { /* */ }
 }
 
-// ─── Info rows ────────────────────────────────────────────────────────────────
-
-function InfoRow({ icon: Icon, label, children }: { icon: React.ElementType; label: string; children: React.ReactNode }) {
+function MobileInfoRow({ icon: Icon, label, children }: { icon: React.ElementType; label: string; children: React.ReactNode }) {
   return (
-    <div className="flex items-start gap-2 text-sm">
-      <Icon size={14} className="text-primary/60 shrink-0 mt-0.5" />
-      <span className="text-foreground/45 w-28 shrink-0 whitespace-nowrap">{label}</span>
-      <span className="text-foreground/85 font-medium wrap-break-word min-w-0">{children}</span>
+    <div className="flex flex-col items-center gap-0.5 text-sm text-center">
+      <div className="flex items-center justify-center gap-1.5 shrink-0">
+        <Icon size={14} className="text-primary/60 shrink-0" />
+        <span className="text-foreground/45 whitespace-nowrap">{label}</span>
+      </div>
+      <span className="text-foreground/85 font-medium wrap-break-word min-w-0 leading-tight">{children}</span>
     </div>
   );
 }
@@ -103,47 +104,47 @@ function PlayerCardView({ player }: { player: PlayerCardData }) {
               <CircleCheck size={16} className="text-emerald-500 shrink-0" aria-label={t("whitelistedTitle")} />
             </span>
           )}
+          {player.roles.map((role) => (
+            <RoleBadgeChip key={role.trackKey} name={role.name} icon={role.icon} color={role.color} size={15} />
+          ))}
         </div>
 
         {/* flex-1: fills the remaining height of the card (min-h-[280px]) instead of a fixed px height */}
-        <div className="flex-1 flex gap-5 mt-3">
-          {/* Left: head, sized to its own content so the info column keeps whatever's left */}
-          <div className="shrink-0 flex items-center justify-center" style={{ width: CARD_BODY_HEIGHT - 24 }}>
+        <div className="flex-1 flex flex-col gap-5 mt-3">
+          <div className="shrink-0 flex items-center justify-center w-full">
             <SkinFace skinUrl={player.skinUrl} size={CARD_BODY_HEIGHT - 24} />
           </div>
 
-          {/* Right: info, stretches to the row's full height and takes all remaining width; scrolls if it overflows */}
-          <div className="flex-1 min-w-0 flex flex-col gap-1.5 overflow-y-auto pr-1">
-            <InfoRow icon={UserRound} label={t("labels.player")}>
+          <div className="flex-1 min-w-0 grid grid-cols-2 gap-4 pb-2 pr-1">
+            <MobileInfoRow icon={UserRound} label={t("labels.player")}>
               {player.username}
-            </InfoRow>
-            <InfoRow icon={LogIn} label={t("labels.lastLogin")}>
+            </MobileInfoRow>
+            <MobileInfoRow icon={LogIn} label={t("labels.lastLogin")}>
               <LastLoginValue online={player.online} lastSeenMs={player.lastSeenMs} />
-            </InfoRow>
-            <InfoRow icon={Clock} label={t("labels.playtime")}>
+            </MobileInfoRow>
+            <MobileInfoRow icon={Clock} label={t("labels.playtime")}>
               {formatDurationMs(player.playtimeMs, t)}
-            </InfoRow>
-            <InfoRow icon={VenusAndMars} label={t("labels.gender")}>
+            </MobileInfoRow>
+            <MobileInfoRow icon={VenusAndMars} label={t("labels.gender")}>
               {player.gender ? t(`gender.${player.gender}`) : <span className="text-foreground/40 italic font-normal">{t("noData")}</span>}
-            </InfoRow>
-            <InfoRow icon={Sprout} label={t("labels.growth")}>
+            </MobileInfoRow>
+            <MobileInfoRow icon={Sprout} label={t("labels.growth")}>
               <GrowthValue growth={player.growth} />
-            </InfoRow>
-            {/* City/position/nation are optional — the whole line is omitted when the player has no data for it */}
+            </MobileInfoRow>
             {player.city && (
-              <InfoRow icon={Castle} label={t("labels.city")}>
+              <MobileInfoRow icon={Castle} label={t("labels.city")}>
                 {player.city}
-              </InfoRow>
+              </MobileInfoRow>
             )}
             {player.city && (
-              <InfoRow icon={BadgeCheck} label={t("labels.position")}>
+              <MobileInfoRow icon={BadgeCheck} label={t("labels.position")}>
                 <PositionValue role={player.role} />
-              </InfoRow>
+              </MobileInfoRow>
             )}
             {player.nation && (
-              <InfoRow icon={Flag} label={t("labels.nation")}>
+              <MobileInfoRow icon={Flag} label={t("labels.nation")}>
                 {player.nation}
-              </InfoRow>
+              </MobileInfoRow>
             )}
           </div>
         </div>
@@ -171,13 +172,16 @@ function SkeletonCard() {
     <DuckCard className="border-primary/20 bg-duck-stone/40 min-h-70">
       <DuckCardContent className="pt-4 flex-1 flex flex-col animate-pulse">
         <div className="h-5 w-40 mx-auto rounded bg-muted" />
-        <div className="flex-1 flex gap-5 mt-3">
-          <div className="shrink-0 flex items-center justify-center" style={{ width: CARD_BODY_HEIGHT - 24 }}>
+        <div className="flex-1 flex flex-col gap-5 mt-3">
+          <div className="shrink-0 flex items-center justify-center w-full">
             <div className="rounded-xl bg-muted" style={{ width: CARD_BODY_HEIGHT - 24, height: CARD_BODY_HEIGHT - 24 }} />
           </div>
-          <div className="flex-1 min-w-0 flex flex-col gap-2.5 pt-1">
+          <div className="flex-1 min-w-0 grid grid-cols-2 gap-4 pt-1 pb-2">
             {Array.from({ length: 8 }).map((_, i) => (
-              <div key={i} className="h-3.5 w-full max-w-40 rounded bg-muted" />
+              <div key={i} className="flex flex-col gap-1.5">
+                <div className="h-3.5 w-16 rounded bg-muted shrink-0" />
+                <div className="h-3.5 w-24 rounded bg-muted" />
+              </div>
             ))}
           </div>
         </div>
