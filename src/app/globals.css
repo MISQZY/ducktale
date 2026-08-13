@@ -738,8 +738,8 @@ body {
   position: absolute;
   inset: 0;
   background: radial-gradient(
-    circle 500px at var(--mouse-x, 0) var(--mouse-y, 0),
-    rgba(255, 255, 255, 0.05),
+    circle 600px at var(--mouse-x, 0) var(--mouse-y, 0),
+    color-mix(in srgb, var(--color-primary) 5%, transparent),
     transparent 100%
   );
   opacity: 0;
@@ -756,8 +756,8 @@ body {
   border-radius: inherit;
   padding: 1px;
   background: radial-gradient(
-    circle 200px at var(--mouse-x, 0) var(--mouse-y, 0),
-    rgba(255, 255, 255, 0.4),
+    circle 300px at var(--mouse-x, 0) var(--mouse-y, 0),
+    color-mix(in srgb, var(--color-primary) 30%, transparent),
     transparent 100%
   );
   -webkit-mask:
@@ -812,8 +812,8 @@ body {
 .light .liquid-card::after,
 .light [data-card]:not(:is(h1, h2, h3, h4, h5, h6) a)::after {
   background: radial-gradient(
-    circle 500px at var(--mouse-x, 0) var(--mouse-y, 0),
-    rgba(0, 0, 0, 0.03),
+    circle 600px at var(--mouse-x, 0) var(--mouse-y, 0),
+    color-mix(in srgb, var(--color-primary) 8%, transparent),
     transparent 100%
   ) !important;
 }
@@ -821,8 +821,8 @@ body {
 .light .liquid-card::before,
 .light [data-card]:not(:is(h1, h2, h3, h4, h5, h6) a)::before {
   background: radial-gradient(
-    circle 200px at var(--mouse-x, 0) var(--mouse-y, 0),
-    rgba(0, 0, 0, 0.15),
+    circle 300px at var(--mouse-x, 0) var(--mouse-y, 0),
+    color-mix(in srgb, var(--color-primary) 50%, transparent),
     transparent 100%
   ) !important;
 }
