@@ -27,19 +27,29 @@ interface BadgeFormValues {
   earnCondition: string | null;
   icon: string;
   color: string | null;
+  /** IDs of currently-linked auto-grant roles — holding ANY of them qualifies. */
+  autoRoleIds: string[];
+}
+
+export interface RoleOption {
+  id: string;
+  group: string;
+  name: string;
 }
 
 interface BadgeFormDialogProps {
   lang: string;
   /** Omitted = create mode. */
   badge?: BadgeFormValues;
+  /** Full LuckPermsRole catalog to pick auto-grant roles from — the same role can be linked to more than one badge, so this isn't filtered down. */
+  roleOptions: RoleOption[];
   trigger: ReactNode;
 }
 
 const DEFAULT_COLOR = "#d4a017";
 const DEFAULT_ICON = "trophy";
 
-export function BadgeFormDialog({ lang, badge, trigger }: BadgeFormDialogProps) {
+export function BadgeFormDialog({ lang, badge, roleOptions, trigger }: BadgeFormDialogProps) {
   const t = useTranslations("Admin.badges");
   const [open, setOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -117,6 +127,31 @@ export function BadgeFormDialog({ lang, badge, trigger }: BadgeFormDialogProps) 
             rows={2}
             maxLength={255}
           />
+
+          <div className="flex flex-col gap-1.5">
+            <label className="text-xs uppercase tracking-widest text-foreground/50">
+              {t("autoConditionLabel")}
+            </label>
+            {roleOptions.length === 0 ? (
+              <p className="text-xs text-foreground/30">{t("autoConditionEmpty")}</p>
+            ) : (
+              <div className="flex flex-col gap-1 max-h-[136px] overflow-y-auto rounded-lg border border-primary/10 p-2">
+                {roleOptions.map((role) => (
+                  <label key={role.id} className="flex items-center gap-2 text-sm text-foreground/80 py-0.5 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      name="autoRoleIds"
+                      value={role.id}
+                      defaultChecked={badge?.autoRoleIds.includes(role.id) ?? false}
+                      className="accent-primary"
+                    />
+                    {role.name} <span className="text-foreground/40 font-mono text-xs">({role.group})</span>
+                  </label>
+                ))}
+              </div>
+            )}
+            <p className="text-xs text-foreground/30">{t("autoConditionHint")}</p>
+          </div>
 
           <div className="flex flex-col gap-1.5">
             <label className="text-xs uppercase tracking-widest text-foreground/50">{t("iconLabel")}</label>
