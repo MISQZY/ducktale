@@ -2,11 +2,9 @@
 
 import { useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
-import { X, Plus } from "lucide-react";
+import { Plus } from "lucide-react";
 import { awardBadge, revokeBadge } from "@/lib/actions/admin-badges";
 import { BadgeChip } from "@/components/badges/BadgeChip";
-import { buttonVariants } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger,
 } from "@/components/ui/dialog";
