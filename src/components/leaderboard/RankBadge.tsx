@@ -52,10 +52,10 @@ export function RankBadge({ rank, size = 16, className, title, variant = "circle
   return (
     <span
       className={cn(
-        "liquid-badge inline-flex items-center justify-center shrink-0 rounded-full border border-primary/25 bg-primary/10 font-mono tabular-nums text-foreground/70",
+        "liquid-badge inline-flex items-center justify-center shrink-0 rounded-full border border-primary/25 bg-primary/10 font-mono tabular-nums text-foreground/70 leading-none",
         className
       )}
-      style={{ width: size, height: size, fontSize: size * 0.65 }}
+      style={{ width: size, height: size, fontSize: size * 0.65, lineHeight: 1 }}
       title={title}
     >
       {rank}
