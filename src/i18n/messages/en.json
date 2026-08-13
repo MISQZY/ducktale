@@ -362,7 +362,7 @@
       }
     },
     "dashboard": {
-      "title": "Profile",
+      "title": "Profile {name}",
       "welcome": "Welcome, {nickname}",
       "signOut": "Sign out",
       "linkSectionTitle": "Minecraft account",
@@ -388,11 +388,7 @@
       "codeInstructions": "Join the server and run this command:",
       "codeExpires": "The code is valid for 10 minutes",
       "waiting": "Waiting for confirmation...",
-      "confirmed": "Account {name} linked successfully!",
       "expired": "The code expired. Request a new one.",
-      "backToDashboard": "Back to profile",
-      "relink": "Link a different account",
-      "unlink": "Unlink account",
       "errors": {
         "generic": "Couldn't generate a code. Please try again later."
       }
@@ -448,10 +444,22 @@
     "badgesLabel": "Badges",
     "selectBadge": "Select a badge...",
     "awardBadge": "Award",
-    "revokeBadge": "Remove {name}",
+    "revokeBadge": "Revoke {name}",
+    "confirmRevokeBadge": "Revoke this badge from the user?",
+    "navRoles": "Roles",
+    "rolesTitle": "LuckPerms roles",
+    "actionsColumn": "Actions",
+    "userColumn": "User",
+    "registrationColumn": "Registered",
+    "noSearchResults": "Nothing found",
+    "noBadgesHeld": "No badges",
+    "badgeSearchPlaceholder": "Search...",
     "badges": {
       "description": "{count, plural, one {# badge} other {# badges}}",
       "noResults": "No badges yet.",
+      "badgeColumn": "Badge",
+      "descriptionColumn": "Description",
+      "awardedColumn": "Awarded",
       "createTitle": "Create badge",
       "editTitle": "Edit badge",
       "nameLabel": "Name",
@@ -459,6 +467,9 @@
       "descriptionHint": "What the badge represents — shown on hover on a user's profile.",
       "earnConditionLabel": "How to earn it",
       "earnConditionHint": "Optional — shown on hover under the description if set.",
+      "autoConditionLabel": "Auto-grant by roles",
+      "autoConditionEmpty": "Configure some roles under \"Roles\" first.",
+      "autoConditionHint": "Automatically awarded to any linked account currently holding at least one of the checked LuckPerms roles — checked when the player opens their own profile.",
       "iconLabel": "Icon",
       "iconSearchPlaceholder": "Search icons...",
       "iconSearchEmpty": "No icons match that search.",
@@ -474,10 +485,33 @@
       "errors": {
         "generic": "Something went wrong. Please try again."
       }
+    },
+    "roles": {
+      "description": "{count, plural, one {# role} other {# roles}}",
+      "noResults": "No roles configured yet.",
+      "createTitle": "Create role",
+      "editTitle": "Edit role",
+      "groupLabel": "LuckPerms group",
+      "groupHint": "The exact group name in LuckPerms (the group.<name> node).",
+      "nameLabel": "Name",
+      "tracksLabel": "Tracks",
+      "iconLabel": "Icon",
+      "iconSearchPlaceholder": "Search icons...",
+      "iconSearchEmpty": "No icons match that search.",
+      "colorLabel": "Color",
+      "create": "Create",
+      "save": "Save",
+      "saving": "Saving...",
+      "edit": "Edit",
+      "delete": "Delete",
+      "confirmDelete": "Permanently delete the role \"{name}\"?",
+      "errors": {
+        "generic": "Something went wrong. Please try again."
+      }
     }
   },
   "Profile": {
-    "pageTitle": "Player profile",
+    "pageTitle": "Player profile {name}",
     "memberSince": "Member since {date}",
     "notLinked": "No Minecraft account linked."
   },
@@ -547,6 +581,12 @@
     },
     "backToList": "← Back to tickets",
     "openedBy": "Opened by: {nickname}",
+    "initiatorLabel": "Initiator:",
+    "ticketColumn": "Ticket",
+    "initiatorColumn": "Initiator",
+    "statusColumn": "Status",
+    "updatedColumn": "Updated",
+    "createdColumn": "Created",
     "closeTicket": "Close ticket",
     "reopenTicket": "Reopen",
     "deleteTicket": "Delete ticket",

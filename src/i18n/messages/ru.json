@@ -361,7 +361,7 @@
       }
     },
     "dashboard": {
-      "title": "Профиль",
+      "title": "Профиль {name}",
       "welcome": "Добро пожаловать, {nickname}",
       "signOut": "Выйти",
       "linkSectionTitle": "Minecraft-аккаунт",
@@ -387,11 +387,7 @@
       "codeInstructions": "Зайдите на сервер и введите команду:",
       "codeExpires": "Код действителен 10 минут",
       "waiting": "Ожидание подтверждения...",
-      "confirmed": "Аккаунт {name} успешно привязан!",
       "expired": "Код истёк. Запросите новый.",
-      "backToDashboard": "Вернуться в профиль",
-      "relink": "Привязать другой аккаунт",
-      "unlink": "Отвязать аккаунт",
       "errors": {
         "generic": "Не удалось создать код. Попробуйте позже."
       }
@@ -448,9 +444,21 @@
     "selectBadge": "Выберите бейдж...",
     "awardBadge": "Выдать",
     "revokeBadge": "Убрать {name}",
+    "confirmRevokeBadge": "Забрать этот бейдж у пользователя?",
+    "navRoles": "Роли",
+    "rolesTitle": "Роли LuckPerms",
+    "actionsColumn": "Действия",
+    "userColumn": "Пользователь",
+    "registrationColumn": "Регистрация",
+    "noSearchResults": "Ничего не найдено",
+    "noBadgesHeld": "Нет значков",
+    "badgeSearchPlaceholder": "Поиск...",
     "badges": {
       "description": "{count, plural, one {# бейдж} few {# бейджа} many {# бейджей} other {# бейджей}}",
       "noResults": "Бейджей пока нет.",
+      "badgeColumn": "Бейдж",
+      "descriptionColumn": "Описание",
+      "awardedColumn": "Выдано",
       "createTitle": "Создать бейдж",
       "editTitle": "Редактировать бейдж",
       "nameLabel": "Название",
@@ -458,6 +466,9 @@
       "descriptionHint": "Что означает бейдж — показывается при наведении в профиле пользователя.",
       "earnConditionLabel": "Условие получения",
       "earnConditionHint": "Необязательно — показывается при наведении под описанием, если задано.",
+      "autoConditionLabel": "Автовыдача по ролям",
+      "autoConditionEmpty": "Сначала настройте роли в разделе «Роли».",
+      "autoConditionHint": "Бейдж выдаётся автоматически всем, у кого привязан аккаунт хотя бы с одной из отмеченных ролей LuckPerms. Проверяется при заходе игрока в свой профиль.",
       "iconLabel": "Иконка",
       "iconSearchPlaceholder": "Поиск иконок...",
       "iconSearchEmpty": "По запросу ничего не найдено.",
@@ -473,10 +484,33 @@
       "errors": {
         "generic": "Что-то пошло не так. Попробуйте позже."
       }
+    },
+    "roles": {
+      "description": "{count, plural, one {# роль} few {# роли} many {# ролей} other {# роли}}",
+      "noResults": "Роли пока не заданы.",
+      "createTitle": "Создать роль",
+      "editTitle": "Редактировать роль",
+      "groupLabel": "Группа LuckPerms",
+      "groupHint": "Точное имя группы в LuckPerms (узел group.<имя>).",
+      "nameLabel": "Название",
+      "tracksLabel": "Треки",
+      "iconLabel": "Иконка",
+      "iconSearchPlaceholder": "Поиск иконок...",
+      "iconSearchEmpty": "По запросу ничего не найдено.",
+      "colorLabel": "Цвет",
+      "create": "Создать",
+      "save": "Сохранить",
+      "saving": "Сохранение...",
+      "edit": "Редактировать",
+      "delete": "Удалить",
+      "confirmDelete": "Удалить роль «{name}» безвозвратно?",
+      "errors": {
+        "generic": "Что-то пошло не так. Попробуйте позже."
+      }
     }
   },
   "Profile": {
-    "pageTitle": "Профиль игрока",
+    "pageTitle": "Профиль игрока {name}",
     "memberSince": "На сайте с {date}",
     "notLinked": "Аккаунт Minecraft не привязан."
   },
@@ -546,6 +580,12 @@
     },
     "backToList": "← К списку тикетов",
     "openedBy": "Открыт: {nickname}",
+    "initiatorLabel": "Инициатор:",
+    "ticketColumn": "Тикет",
+    "initiatorColumn": "Инициатор",
+    "statusColumn": "Статус",
+    "updatedColumn": "Обновлен",
+    "createdColumn": "Создан",
     "closeTicket": "Закрыть тикет",
     "reopenTicket": "Переоткрыть",
     "deleteTicket": "Удалить тикет",
