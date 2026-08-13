@@ -32,7 +32,7 @@ export const ImageViewer = memo(
       [images.length]
     );
 
-    const { closeButtonRef } = useFullscreen({
+    useFullscreen({
       open,
       onClose: handleClose,
       withArrows: hasMultiple
