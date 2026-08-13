@@ -1,4 +1,5 @@
 import type { ResidentRole } from "@/types/towny";
+import type { PlayerTrackRole } from "@/lib/luckperms";
 
 export type Gender = "male" | "female" | null;
 
@@ -33,6 +34,7 @@ export interface PlayerCard {
   role:         ResidentRole;   // resident's role within `city`, null if not a resident/plain resident
   whitelisted:  boolean;        // Flectone (fp_moderation type=whitelist) status on DuckBurg specifically — kept for the existing docs player-card search UI
   servers:      PlayerServerStatus[];
+  roles:        PlayerTrackRole[]; // LuckPerms roles, one per admin-configured track — see resolvePlayerTrackRoles
 }
 
 export interface PlayerCardResponse {

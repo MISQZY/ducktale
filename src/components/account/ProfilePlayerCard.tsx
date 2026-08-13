@@ -5,6 +5,7 @@ import {
 } from "lucide-react";
 import { DuckCard, DuckCardContent } from "@/components/ui/duck/card";
 import { SkinFace } from "@/components/common/SkinFace";
+import { RoleBadgeChip } from "@/components/badges/RoleBadgeChip";
 import { formatDurationMs, formatLastSeen } from "@/lib/player-card-format";
 import { RESIDENT_ROLE_COLOR } from "@/lib/towny";
 import { NETWORK_SERVERS } from "@/config/servers";
@@ -21,7 +22,7 @@ type PlayerCardT = Awaited<ReturnType<typeof getTranslations>>;
 
 function GeneralStat({ icon: Icon, label, children }: { icon: React.ElementType; label: string; children: React.ReactNode }) {
   return (
-    <div className="flex flex-col items-center gap-1 rounded-lg bg-muted/60 border border-border/40 px-3 py-3 text-center">
+    <div className="flex flex-col items-center gap-0.5 rounded-lg bg-muted/60 border border-border/40 px-3 py-2 text-center">
       <Icon size={15} className="text-primary/60" />
       <span className="text-foreground/40 text-[11px] uppercase tracking-wide">{label}</span>
       <span className="text-foreground/90 text-sm font-medium">{children}</span>
@@ -142,7 +143,7 @@ function SkeletonCard() {
 function ErrorCard({ t, manage }: { t: PlayerCardT; manage?: { lang: string } }) {
   return (
     <DuckCard className="border-red-900/30 bg-duck-stone/40">
-      {manage && <ManageActions lang={manage.lang} relinkLabel={t("relinkAction")} unlinkLabel={t("unlinkAction")} />}
+      {manage && <ManageActions lang={manage.lang} unlinkLabel={t("unlinkAction")} />}
       <DuckCardContent className="flex items-center gap-3 py-6 justify-center text-center">
         <AlertCircle size={18} className="text-red-600/70 dark:text-red-400/70 shrink-0" />
         <p className="text-sm text-red-600/70 dark:text-red-400/70">{t("loadError")}</p>
@@ -168,6 +169,8 @@ interface ProfilePlayerCardProps {
    * (rather than a raw Date) since the locale/wording belongs to that
    * page's own "Profile" i18n namespace, not this component's "PlayerCard" one. */
   registeredLabel?: string;
+  /** Optional slot to render the badges block between the main card and the servers list. */
+  badgesNode?: React.ReactNode;
 }
 
 /**
@@ -189,17 +192,17 @@ export function ProfilePlayerCard(props: ProfilePlayerCardProps) {
   );
 }
 
-async function ProfilePlayerCardContent({ minecraftName, className, locale, manage, registeredLabel }: ProfilePlayerCardProps) {
+async function ProfilePlayerCardContent({ minecraftName, className, locale, manage, registeredLabel, badgesNode }: ProfilePlayerCardProps) {
   const t = await getTranslations("PlayerCard");
   const player = await getPlayerCard(minecraftName);
 
   if (!player) return <ErrorCard t={t} manage={manage} />;
 
   return (
-    <div className={cn("flex flex-col gap-4", className)}>
+    <div className={cn("flex flex-col gap-3", className)}>
       <DuckCard className="border-primary/20 bg-duck-stone/40">
-        {manage && <ManageActions lang={manage.lang} relinkLabel={t("relinkAction")} unlinkLabel={t("unlinkAction")} />}
-        <DuckCardContent className="pt-5 flex flex-col items-center text-center gap-3">
+        {manage && <ManageActions lang={manage.lang} unlinkLabel={t("unlinkAction")} />}
+        <DuckCardContent className="pt-4 flex flex-col items-center text-center gap-2">
           <SkinFace skinUrl={player.skinUrl} size={96} />
 
           <h2
@@ -211,6 +214,13 @@ async function ProfilePlayerCardContent({ minecraftName, className, locale, mana
           {player.nickname && player.nickname !== player.username && (
             <p className="text-foreground/40 text-sm -mt-1.5">{player.nickname}</p>
           )}
+          {player.roles.length > 0 && (
+            <div className="flex items-center gap-2">
+              {player.roles.map((role) => (
+                <RoleBadgeChip key={role.trackKey} name={role.name} icon={role.icon} color={role.color} size={18} />
+              ))}
+            </div>
+          )}
           {registeredLabel && (
             <p className="text-foreground/35 text-xs -mt-1">{registeredLabel}</p>
           )}
@@ -218,7 +228,7 @@ async function ProfilePlayerCardContent({ minecraftName, className, locale, mana
           <p className="text-foreground/35 text-[11px] uppercase tracking-widest mt-1">
             {t("generalTitle")}
           </p>
-          <div className="w-full grid grid-cols-2 gap-2.5">
+          <div className="w-full grid grid-cols-2 gap-2 mt-1">
             <GeneralStat icon={LogIn} label={t("labels.lastLogin")}>
               <LastLoginValue online={player.online} lastSeenMs={player.lastSeenMs} locale={locale} t={t} />
             </GeneralStat>
@@ -226,7 +236,7 @@ async function ProfilePlayerCardContent({ minecraftName, className, locale, mana
               <span className="inline-flex items-center gap-1.5">
                 {formatDurationMs(player.playtimeMs, t)}
                 {player.rank !== null && (
-                  <RankBadge rank={player.rank} size={13} title={t("rankTooltip", { rank: player.rank })} />
+                  <RankBadge rank={player.rank} size={16} className="relative top-[1px]" title={t("rankTooltip", { rank: player.rank })} />
                 )}
               </span>
             </GeneralStat>
@@ -239,6 +249,12 @@ async function ProfilePlayerCardContent({ minecraftName, className, locale, mana
           </div>
         </DuckCardContent>
       </DuckCard>
+
+      {badgesNode && (
+        <div className="mt-1">
+          {badgesNode}
+        </div>
+      )}
 
       <div>
         <p className="text-foreground/35 text-[11px] uppercase tracking-widest mb-2.5 text-center">

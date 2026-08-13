@@ -343,3 +343,52 @@ model sr_player_skins {
   signature       String  @db.MediumText
   timestamp       BigInt
 }
+
+// ─── LuckPerms (network-wide, shared by the whole proxy setup) ─────────────
+// One LuckPerms install shared across the Velocity proxy and every backend
+// server — not DuckBurg-specific like Towny/FlectoneGrowth/SkinRestorer, so
+// this uses its own top-level withDb("luckperms", ...) key
+// (DATABASE_URL_LUCKPERMS), the same "no server prefix" pattern as the
+// default FlectonePulse (fp_*) database. Table names/columns confirmed live
+// against the real database (`lp_` prefix, not the `luckperms_` this repo
+// originally guessed) — group membership is `group.<name>` permission nodes
+// in lp_user_permissions (LuckPerms has no separate "group membership"
+// table); lp_tracks DOES store each track's ordered group list as a JSON
+// array (contrary to the assumption that tracks are config-file-only), so
+// track structure/order is read live from here rather than mirrored by
+// hand in the site DB — only display metadata (name/icon/color per group)
+// lives there (LuckPermsRole in src/prisma/site/schema.prisma.template).
+
+model lp_user_permissions {
+  id         Int     @id @default(autoincrement())
+  uuid       String  @db.VarChar(36)
+  permission String  @db.VarChar(200)
+  value      Boolean @default(true)
+  server     String  @default("global") @db.VarChar(36)
+  world      String  @default("global") @db.VarChar(64)
+  expiry     BigInt  @default(0)
+  contexts   String  @default("{}") @db.VarChar(200)
+
+  @@index([uuid])
+}
+
+/// `groups` is a JSON array of group names as a single TEXT column
+/// (`["support","moderator","admin"]`), ordered lowest -> highest rank —
+/// not a normalized join table. Read with JSON_TABLE or parsed in JS after
+/// a plain SELECT; either way, this is LuckPerms' own data, never written
+/// to from this app.
+model lp_tracks {
+  name   String @id @db.VarChar(36)
+  groups String @db.Text
+}
+
+/// The full group catalog — every group LuckPerms knows about, including
+/// ones that aren't a member of any track (e.g. "supporter", a perk group
+/// with no ranked progression) and ones nobody currently holds. This is
+/// what /admin/roles offers as suggestions when curating a role's display,
+/// rather than only groups derived from lp_tracks or already-configured
+/// roles (which would miss exactly the standalone case this table exists
+/// to cover).
+model lp_groups {
+  name String @id @db.VarChar(36)
+}

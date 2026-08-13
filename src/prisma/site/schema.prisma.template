@@ -62,11 +62,21 @@ model Badge {
   // deliberately separate from `description` (what the badge represents)
   // so the hover tooltip can show both distinctly. Optional: plenty of
   // badges (admin-discretion awards especially) have no fixed condition.
+  // Free text only — display, never evaluated. autoConditionRoleId below is
+  // the one machine-readable auto-earn condition that actually exists.
   earnCondition String?  @db.VarChar(255)
   icon          String   @db.VarChar(64)
   color         String?  @db.VarChar(16)
   createdAt     DateTime @default(now())
   userBadges    UserBadge[]
+
+  // Zero or more LuckPerms roles that auto-grant this badge — a player
+  // holding ANY of them qualifies (e.g. one "Staff" badge triggered by
+  // moderator OR admin OR support, not a separate badge per rank). Checked
+  // by evaluateAutoBadges() (src/lib/luckperms.ts) lazily whenever the
+  // linked account's own profile page loads (no cron/worker in this
+  // codebase).
+  autoRoles BadgeAutoRole[]
 
   @@map("{{PREFIX}}badge")
 }
@@ -86,6 +96,46 @@ model UserBadge {
   @@index([userId])
   @@index([badgeId])
   @@map("{{PREFIX}}user_badge")
+}
+
+/// Admin-configured display metadata for one LuckPerms group — name/icon/
+/// color to show when a player currently holds it, nothing else. Track
+/// membership and rank (which track a group belongs to, and whether it's
+/// the highest one a player holds) are read live from LuckPerms' own
+/// lp_tracks table (src/prisma/schema.prisma) instead of being duplicated
+/// here by hand — lp_tracks.groups is already an ordered array per track,
+/// so this table only needs to answer "how should group X look as a
+/// badge", not "which track is X in" or "where does X rank". `group` is
+/// free text (not an FK) since LuckPerms' own group names live in a
+/// different database entirely.
+model LuckPermsRole {
+  id        String   @id @default(uuid())
+  group     String   @unique @db.VarChar(64)
+  name      String   @db.VarChar(64)
+  icon      String   @db.VarChar(64)
+  color     String?  @db.VarChar(16)
+  createdAt DateTime @default(now())
+  autoRoleFor BadgeAutoRole[]
+
+  @@map("{{PREFIX}}luckperms_role")
+}
+
+/// Join row for the N:N between Badge and LuckPermsRole (a badge's
+/// "auto-grant if the player holds any of these roles" set). Deleting the
+/// role definition (/admin/roles) or the badge itself cascades here — an
+/// orphaned link isn't meaningful in either direction, unlike
+/// UserBadge/User where the award record has its own standalone value.
+model BadgeAutoRole {
+  id      String        @id @default(uuid())
+  badgeId String
+  badge   Badge         @relation(fields: [badgeId], references: [id], onDelete: Cascade)
+  roleId  String
+  role    LuckPermsRole @relation(fields: [roleId], references: [id], onDelete: Cascade)
+
+  @@unique([badgeId, roleId])
+  @@index([badgeId])
+  @@index([roleId])
+  @@map("{{PREFIX}}badge_auto_role")
 }
 
 enum LinkStatus {

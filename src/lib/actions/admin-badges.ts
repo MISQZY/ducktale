@@ -34,13 +34,26 @@ function readBadgeFields(formData: FormData): BadgeFields {
   return { name, description, earnCondition, icon, color: rawColor || null };
 }
 
+/** A badge can auto-grant from any number of roles (held ANY of them qualifies) — <select multiple name="autoRoleIds"> submits one entry per selection. */
+function readAutoRoleIds(formData: FormData): string[] {
+  const ids = formData.getAll("autoRoleIds").map((v) => String(v).trim()).filter(Boolean);
+  return [...new Set(ids)];
+}
+
 export async function createBadge(lang: string, formData: FormData): Promise<void> {
   await requireAdminId();
 
   const fields = readBadgeFields(formData);
+  const autoRoleIds = readAutoRoleIds(formData);
   const key = await generateUniqueBadgeKey(fields.name);
 
-  await siteDb.badge.create({ data: { ...fields, key } });
+  await siteDb.badge.create({
+    data: {
+      ...fields,
+      key,
+      autoRoles: autoRoleIds.length > 0 ? { create: autoRoleIds.map((roleId) => ({ roleId })) } : undefined,
+    },
+  });
 
   revalidatePath(`/${lang}/admin/badges`);
 }
@@ -49,11 +62,21 @@ export async function updateBadge(lang: string, badgeId: string, formData: FormD
   await requireAdminId();
 
   const fields = readBadgeFields(formData);
+  const autoRoleIds = readAutoRoleIds(formData);
 
   // `key` is immutable once created — it's how code (BADGE_DEFINITIONS,
   // future awardBadge-by-key callers) references a specific badge, so
   // renaming the display name must never change it out from under them.
-  await siteDb.badge.update({ where: { id: badgeId }, data: fields });
+  // autoRoles is a join model (BadgeAutoRole), not a direct many-to-many —
+  // "replace the set" means delete-then-recreate the link rows, not a
+  // Prisma connect/set shorthand.
+  await siteDb.$transaction([
+    siteDb.badge.update({ where: { id: badgeId }, data: fields }),
+    siteDb.badgeAutoRole.deleteMany({ where: { badgeId } }),
+    ...(autoRoleIds.length > 0
+      ? [siteDb.badgeAutoRole.createMany({ data: autoRoleIds.map((roleId) => ({ badgeId, roleId })) })]
+      : []),
+  ]);
 
   revalidatePath(`/${lang}/admin/badges`);
   revalidatePath(`/${lang}/admin/users`);
@@ -62,8 +85,9 @@ export async function updateBadge(lang: string, badgeId: string, formData: FormD
 export async function deleteBadge(lang: string, badgeId: string): Promise<void> {
   await requireAdminId();
 
-  // UserBadge rows for this badge are onDelete: Cascade, so this just
-  // removes it from whoever had it rather than touching those user rows.
+  // UserBadge/BadgeAutoRole rows for this badge are onDelete: Cascade, so
+  // this just removes it from whoever had it (and any auto-grant links)
+  // rather than touching those rows directly.
   await siteDb.badge.delete({ where: { id: badgeId } });
 
   revalidatePath(`/${lang}/admin/badges`);
