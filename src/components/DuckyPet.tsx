@@ -233,16 +233,16 @@ export default function DuckyPet() {
 
       // Update DOM directly for smooth scroll following
       if (duckRef.current && posRef.current) {
-        const screenX = posRef.current.x - window.scrollX;
-        const screenY = posRef.current.y - window.scrollY;
+        const docX = posRef.current.x;
+        const docY = posRef.current.y;
         const scale = dirRef.current === "left" ? -1 : 1;
-        duckRef.current.style.transform = `translate(${screenX}px, ${screenY}px) scaleX(${scale})`;
+        duckRef.current.style.transform = `translate(${docX}px, ${docY}px) scaleX(${scale})`;
       }
       
       if (bubbleRef.current && posRef.current) {
-        const screenX = posRef.current.x - window.scrollX + DISPLAY_SIZE / 2;
-        const screenY = posRef.current.y - window.scrollY + 18;
-        bubbleRef.current.style.transform = `translate(${screenX}px, ${screenY}px) translate(-50%, -100%)`;
+        const docX = posRef.current.x + DISPLAY_SIZE / 2;
+        const docY = posRef.current.y + 18;
+        bubbleRef.current.style.transform = `translate(${docX}px, ${docY}px) translate(-50%, -100%)`;
       }
 
       drawFrame();
@@ -333,9 +333,9 @@ export default function DuckyPet() {
   // on every subsequent frame once it's running.
   useLayoutEffect(() => {
     if ((isHovered || activePhrase !== null) && bubbleRef.current && posRef.current) {
-      const screenX = posRef.current.x - window.scrollX + DISPLAY_SIZE / 2;
-      const screenY = posRef.current.y - window.scrollY + 18;
-      bubbleRef.current.style.transform = `translate(${screenX}px, ${screenY}px) translate(-50%, -100%)`;
+      const docX = posRef.current.x + DISPLAY_SIZE / 2;
+      const docY = posRef.current.y + 18;
+      bubbleRef.current.style.transform = `translate(${docX}px, ${docY}px) translate(-50%, -100%)`;
     }
   }, [isHovered, activePhrase]);
 
@@ -347,7 +347,7 @@ export default function DuckyPet() {
   const showBubble = isHovered || activePhrase !== null;
 
   return (
-    <div ref={sectionRef} className="fixed inset-0 pointer-events-none" style={{ zIndex: 0 }}>
+    <div ref={sectionRef} style={{ position: "absolute", top: 0, left: 0, width: 0, height: 0, pointerEvents: "none", zIndex: 0 }}>
       <div
         ref={duckRef}
         style={{

@@ -153,11 +153,11 @@ export default function DuckySwarm() {
 
         const div = divRefs.current[i];
         if (div) {
-          const screenX = duck.x - sX;
-          const screenY = duck.y - sY;
+          const docX = duck.x;
+          const docY = duck.y;
           const scale = duck.vx >= 0 ? 1 : -1;
           // Use translate3d to force hardware acceleration
-          div.style.transform = `translate3d(${screenX}px, ${screenY}px, 0) scaleX(${scale})`;
+          div.style.transform = `translate3d(${docX}px, ${docY}px, 0) scaleX(${scale})`;
           div.style.backgroundPosition = `-${duck.frame * DISPLAY_SIZE}px 0`;
         }
       }
@@ -187,7 +187,7 @@ export default function DuckySwarm() {
   if (!active) return null;
 
   return (
-    <div className="fixed inset-0 pointer-events-none" style={{ zIndex: 0 }}>
+    <div style={{ position: "absolute", top: 0, left: 0, width: 0, height: 0, pointerEvents: "none", zIndex: 0 }}>
       {Array.from({ length: duckCount }).map((_, i) => (
         <div
           key={i}
