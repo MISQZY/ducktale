@@ -5,7 +5,6 @@ import { Graph } from "@antv/x6";
 import { EmbedPage } from "@/components/docs";
 import { DIAGRAM } from "@/config/site";
 import { Plus, Minus, Target, Maximize2, Minimize2, Lock } from "lucide-react";
-import { cn } from "@/lib/utils";
 
 const GRID_CELL = DIAGRAM.gridCell;
 const GRID_BG_URL =

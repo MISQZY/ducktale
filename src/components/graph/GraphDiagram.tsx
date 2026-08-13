@@ -2,7 +2,6 @@
 
 import React, { useState, useId } from "react";
 import { Graph, type Edge } from "@antv/x6";
-import { cn } from "@/lib/utils";
 import { DIAGRAM } from "@/config/site";
 import { NODE_SHAPE, edgeLineAttrs } from "./shapes";
 import { wireNodeCollisionResolution } from "./utils";

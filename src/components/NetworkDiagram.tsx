@@ -1,6 +1,5 @@
 "use client";
 
-import { Zap } from "lucide-react";
 import { useTranslations } from "next-intl";
 import dynamic from "next/dynamic";
 import { DIAGRAM, DIAGRAM_LINE as LINE } from "@/config/site";

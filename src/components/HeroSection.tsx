@@ -2,7 +2,7 @@
 
 import { useRef } from "react";
 import { Link } from "@/i18n/navigation";
-import { ChevronDown, Sword } from "lucide-react";
+import { ChevronDown } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 import { PageBackground } from "@/components/common/PageBackground";
 import { StatusBadge } from "@/components/common/StatusBadge";

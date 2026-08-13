@@ -3,7 +3,7 @@
 import { Link } from "@/i18n/navigation";
 import { useTranslations } from "next-intl";
 import { ArrowRight, Sword } from "lucide-react";
-import { SERVERS, NETWORK_HOST } from "@/config/servers";
+import { SERVERS } from "@/config/servers";
 import { ServerAddress } from "@/components/docs/ServerAddress";
 import SectionHeader from "@/components/SectionHeader";
 import ServerStatusBadge from "./ServerStatusBadge";
