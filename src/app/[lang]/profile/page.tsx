@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { auth } from "@/auth";
 import { siteDb } from "@/lib/site-db";
+import { evaluateAutoBadges } from "@/lib/luckperms";
 import Navbar from "@/components/Navbar";
 
 import { CtaButton } from "@/components/common/CtaButton";
@@ -23,22 +24,50 @@ export default async function ProfilePage({
 
   const t = await getTranslations("Account.dashboard");
   const tp = await getTranslations("Profile");
-  const [link, user] = await Promise.all([
-    siteDb.accountLink.findUnique({
-      where: { userId: session.user.id },
-      select: { status: true, minecraftName: true },
-    }),
-    // isAdmin isn't selected here — it's already on session.user, which
-    // auth()'s session() callback fetched from the DB (and cache() now
-    // dedupes across every auth() call in this request, see src/auth.ts).
-    siteDb.user.findUnique({
-      where: { id: session.user.id },
-      select: {
-        createdAt: true,
-        badges: { select: { badge: { select: { id: true, name: true, icon: true, color: true, description: true, earnCondition: true } } } },
-      },
-    }),
-  ]);
+
+  const link = await siteDb.accountLink.findUnique({
+    where: { userId: session.user.id },
+    select: { status: true, minecraftName: true, minecraftUuid: true },
+  });
+
+  // Lazy auto-grant check — no cron/worker in this codebase, so this is the
+  // one place a linked account's LuckPerms roles get checked against
+  // auto-condition badges (src/lib/luckperms.ts). Awaited before reading
+  // `badges` below so a newly-earned one shows up on this same page load.
+  if (link?.status === "CONFIRMED" && link.minecraftUuid) {
+    await evaluateAutoBadges(session.user.id, link.minecraftUuid);
+  }
+
+  // isAdmin isn't selected here — it's already on session.user, which
+  // auth()'s session() callback fetched from the DB (and cache() now
+  // dedupes across every auth() call in this request, see src/auth.ts).
+  const user = await siteDb.user.findUnique({
+    where: { id: session.user.id },
+    select: {
+      createdAt: true,
+      badges: { select: { badge: { select: { id: true, name: true, icon: true, color: true, description: true, earnCondition: true } } } },
+    },
+  });
+
+  const badgesContent = user && user.badges.length > 0 ? (
+    <div>
+      <h2 className="text-xs uppercase tracking-widest text-foreground/50 mb-2 text-center">
+        {t("badgesSectionTitle")}
+      </h2>
+      <div className="flex flex-wrap justify-center gap-2">
+        {user.badges.map(({ badge }) => (
+          <ProfileBadgeChip
+            key={badge.id}
+            name={badge.name}
+            icon={badge.icon}
+            color={badge.color}
+            description={badge.description}
+            earnCondition={badge.earnCondition}
+          />
+        ))}
+      </div>
+    </div>
+  ) : undefined;
 
   return (
     <>
@@ -48,7 +77,7 @@ export default async function ProfilePage({
           on this shorter page its absolutely-positioned orbs overflowed the
           viewport and produced scrollbars). Just the body's own base fill,
           relative+overflow-hidden only so DuckyPet has somewhere to wander. */}
-      <main className="relative overflow-hidden min-h-screen px-6 pt-24 pb-16">
+      <main className="relative overflow-hidden min-h-[calc(100vh-1px)] px-6 pt-20 pb-8">
 
 
         <div className="relative z-10 max-w-2xl mx-auto">
@@ -56,10 +85,10 @@ export default async function ProfilePage({
             className="text-3xl text-primary/90 mb-4 leading-tight text-center"
             style={{ fontFamily: "var(--font-body)" }}
           >
-            {t("title")}
+            {t("title", { name: session.user.name ?? "" })}
           </h1>
 
-          <div className="mb-8">
+          <div className="mb-4">
             <ProfileQuickActions
               lang={lang}
               publicProfileHref={`/profile/${encodeURIComponent(session.user.name ?? "")}`}
@@ -67,31 +96,16 @@ export default async function ProfilePage({
               viewProfileLabel={t("viewProfile")}
               adminPanelLabel={t("adminPanel")}
               signOutLabel={t("signOut")}
+              unlinkedHref={link?.status !== "CONFIRMED" ? "/account/link" : undefined}
+              unlinkedLabel={t("linkCta")}
+              isPending={link?.status === "PENDING"}
             />
           </div>
 
-          {user && user.badges.length > 0 && (
-            <div className="mb-4">
-              <h2 className="text-xs uppercase tracking-widest text-foreground/50 mb-2 text-center">
-                {t("badgesSectionTitle")}
-              </h2>
-              <div className="flex flex-wrap justify-center gap-2">
-                {user.badges.map(({ badge }) => (
-                  <ProfileBadgeChip
-                    key={badge.id}
-                    name={badge.name}
-                    icon={badge.icon}
-                    color={badge.color}
-                    description={badge.description}
-                    earnCondition={badge.earnCondition}
-                  />
-                ))}
-              </div>
-            </div>
-          )}
+
 
           {link?.status === "CONFIRMED" && link.minecraftName ? (
-            <div className="mb-6">
+            <div className="mb-4">
               <h2 className="text-xs uppercase tracking-widest text-foreground/50 mb-3 text-center">
                 {t("playerCardTitle")}
               </h2>
@@ -104,23 +118,13 @@ export default async function ProfilePage({
                     ? tp("memberSince", { date: user.createdAt.toLocaleDateString(lang === "ru" ? "ru-RU" : "en-US") })
                     : undefined
                 }
+                badgesNode={badgesContent}
               />
             </div>
           ) : (
-            <ProfileSectionCard title={t("linkSectionTitle")}>
-              <div className="mb-5">
-                {link?.status === "PENDING" ? (
-                  <StatusBadge label={t("pending")} pulse />
-                ) : (
-                  <p className="text-foreground/45 text-sm">{t("notLinked")}</p>
-                )}
-              </div>
-
-              <CtaButton href={`/${lang}/account/link`} variant="primary">
-                {t("linkCta")}
-              </CtaButton>
-            </ProfileSectionCard>
+            badgesContent ? <div className="mb-4">{badgesContent}</div> : null
           )}
+
 
           <ProfileSectionCard title={t("supportSectionTitle")}>
             <p className="text-foreground/45 text-sm mb-5">{t("supportSectionDescription")}</p>

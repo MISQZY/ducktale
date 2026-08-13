@@ -37,40 +37,44 @@ export default async function PublicProfilePage({
   const t = await getTranslations("Profile");
   const td = await getTranslations("Account.dashboard");
 
+  const badgesContent = user.badges.length > 0 ? (
+    <div>
+      <h2 className="text-xs uppercase tracking-widest text-foreground/50 mb-2 text-center">
+        {td("badgesSectionTitle")}
+      </h2>
+      <div className="flex flex-wrap justify-center gap-2">
+        {user.badges.map(({ badge }) => (
+          <ProfileBadgeChip
+            key={badge.id}
+            name={badge.name}
+            icon={badge.icon}
+            color={badge.color}
+            description={badge.description}
+            earnCondition={badge.earnCondition}
+          />
+        ))}
+      </div>
+    </div>
+  ) : undefined;
+
   return (
     <>
       <Navbar />
-      <main className="relative overflow-hidden min-h-screen px-6 pt-24 pb-16">
+      <main className="relative overflow-hidden min-h-[calc(100vh-1px)] px-6 pt-20 pb-8">
         <div className="relative z-10 max-w-2xl mx-auto">
           <h1
-            className="text-3xl text-primary/90 mb-8 leading-tight text-center"
+            className="text-3xl text-primary/90 mb-5 leading-tight text-center"
             style={{ fontFamily: "var(--font-body)" }}
           >
-            {t("pageTitle")}
+            {t("pageTitle", { name: username })}
           </h1>
 
-          {user.badges.length > 0 && (
-            <div className="mb-4">
-              <h2 className="text-xs uppercase tracking-widest text-foreground/50 mb-2 text-center">
-                {td("badgesSectionTitle")}
-              </h2>
-              <div className="flex flex-wrap justify-center gap-2">
-                {user.badges.map(({ badge }) => (
-                  <ProfileBadgeChip
-                    key={badge.id}
-                    name={badge.name}
-                    icon={badge.icon}
-                    color={badge.color}
-                    description={badge.description}
-                    earnCondition={badge.earnCondition}
-                  />
-                ))}
-              </div>
-            </div>
-          )}
+
+
+
 
           {user.accountLink?.status === "CONFIRMED" && user.accountLink.minecraftName ? (
-            <div className="mb-6">
+            <div className="mb-4">
               <h2 className="text-xs uppercase tracking-widest text-foreground/50 mb-3 text-center">
                 {td("playerCardTitle")}
               </h2>
@@ -78,11 +82,16 @@ export default async function PublicProfilePage({
                 minecraftName={user.accountLink.minecraftName}
                 locale={lang}
                 registeredLabel={t("memberSince", { date: user.createdAt.toLocaleDateString(lang === "ru" ? "ru-RU" : "en-US") })}
+                badgesNode={badgesContent}
               />
             </div>
           ) : (
-            <p className="text-foreground/45 text-sm">{t("notLinked")}</p>
+            <div className="flex flex-col gap-6">
+              <p className="text-foreground/45 text-sm mb-4 text-center">{t("notLinked")}</p>
+              {badgesContent}
+            </div>
           )}
+
         </div>
       </main>
     </>
@@ -100,6 +109,6 @@ export async function generateMetadata({
 
   const t = await getTranslations("Profile");
   return {
-    title: t("pageTitle"),
+    title: t("pageTitle", { name: username }),
   };
 }

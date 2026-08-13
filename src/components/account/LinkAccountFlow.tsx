@@ -6,6 +6,7 @@ import { CtaButton } from "@/components/common/CtaButton";
 import { FormButton } from "@/components/common/FormButton";
 import { StatusBadge } from "@/components/common/StatusBadge";
 import CopyToClipboard from "@/components/ui/CopyToClipboard";
+import { useRouter } from "@/i18n/navigation";
 import { unlinkAccount } from "@/lib/actions/account-link";
 
 type LinkStatusValue = "PENDING" | "CONFIRMED" | "EXPIRED";
@@ -24,9 +25,16 @@ interface LinkAccountFlowProps {
 
 export function LinkAccountFlow({ lang, initialLink }: LinkAccountFlowProps) {
   const t = useTranslations("Account.link");
+  const router = useRouter();
   const [link, setLink] = useState<LinkState | null>(initialLink);
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+
+  useEffect(() => {
+    if (link?.status === "CONFIRMED") {
+      router.push("/profile");
+    }
+  }, [link?.status, router]);
 
   const poll = useCallback(async () => {
     const res = await fetch("/api/account/link/status");
@@ -95,22 +103,7 @@ export function LinkAccountFlow({ lang, initialLink }: LinkAccountFlowProps) {
   }
 
   if (link?.status === "CONFIRMED" && link) {
-    return (
-      <div className="text-center">
-        <p className="text-foreground/80 mb-6">{t("confirmed", { name: link.minecraftName ?? "" })}</p>
-        <div className="flex flex-col sm:flex-row items-center justify-center gap-3 mb-5">
-          <CtaButton href={`/${lang}/profile`} variant="primary">
-            {t("backToDashboard")}
-          </CtaButton>
-          <FormButton onClick={requestCode} disabled={submitting} variant="outline">
-            {t("relink")}
-          </FormButton>
-        </div>
-        <FormButton onClick={handleUnlink} disabled={submitting} variant="destructive" className="px-5 py-2 text-xs">
-          {t("unlink")}
-        </FormButton>
-      </div>
-    );
+    return null;
   }
 
   if (link?.status === "PENDING" && link) {

@@ -21,13 +21,16 @@ export default async function LinkAccountPage({
     select: { status: true, code: true, minecraftName: true, expiresAt: true },
   });
 
+  if (existing?.status === "CONFIRMED") {
+    redirect(`/${lang}/profile`);
+  }
+
   // No extra "get code" click for the common case: a fresh code is ready
   // server-side before this page ever renders, unless there's already a
   // valid one in flight (don't invalidate a code the player might be
-  // mid-typing in-game) or the account is already linked (shows that
-  // state instead — relinking is still one explicit click away).
+  // mid-typing in-game).
   const link =
-    existing && (existing.status === "CONFIRMED" || isUsablePendingCode(existing))
+    existing && isUsablePendingCode(existing)
       ? existing
       : await requestNewLinkCode(session.user.id);
 

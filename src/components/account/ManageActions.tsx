@@ -9,7 +9,6 @@ import { cn } from "@/lib/utils";
 
 interface ManageActionsProps {
   lang: string;
-  relinkLabel: string;
   unlinkLabel: string;
 }
 
@@ -22,7 +21,7 @@ const iconButtonClasses = cn(buttonVariants({ variant: "outline", size: "icon-sm
  * status (and this card's visibility) catches up. Split out of
  * ProfilePlayerCard so that component can be a plain Server Component.
  */
-export function ManageActions({ lang, relinkLabel, unlinkLabel }: ManageActionsProps) {
+export function ManageActions({ lang, unlinkLabel }: ManageActionsProps) {
   const router = useRouter();
   const [pending, setPending] = useState(false);
 
@@ -38,9 +37,6 @@ export function ManageActions({ lang, relinkLabel, unlinkLabel }: ManageActionsP
 
   return (
     <div className="absolute top-3 right-3 z-10 flex items-center gap-1.5">
-      <Link href="/account/link" className={iconButtonClasses} aria-label={relinkLabel} title={relinkLabel}>
-        <RefreshCw size={14} />
-      </Link>
       <button
         type="button"
         onClick={handleUnlink}

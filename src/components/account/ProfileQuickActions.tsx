@@ -1,7 +1,7 @@
 "use client";
 
 import { signOut } from "next-auth/react";
-import { UserRound, ShieldCheck, LogOut } from "lucide-react";
+import { UserRound, ShieldCheck, LogOut, Link2 } from "lucide-react";
 import { buttonVariants } from "@/components/ui/button";
 import { Link } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
@@ -13,6 +13,9 @@ interface ProfileQuickActionsProps {
   viewProfileLabel: string;
   adminPanelLabel: string;
   signOutLabel: string;
+  unlinkedHref?: string;
+  unlinkedLabel?: string;
+  isPending?: boolean;
 }
 
 const iconButtonClasses = cn(buttonVariants({ variant: "outline", size: "icon" }), "bg-card/60");
@@ -31,6 +34,9 @@ export function ProfileQuickActions({
   viewProfileLabel,
   adminPanelLabel,
   signOutLabel,
+  unlinkedHref,
+  unlinkedLabel,
+  isPending,
 }: ProfileQuickActionsProps) {
   return (
     <div className="flex items-center justify-center gap-2">
@@ -40,6 +46,16 @@ export function ProfileQuickActions({
       {isAdmin && (
         <Link href="/admin" className={iconButtonClasses} aria-label={adminPanelLabel} title={adminPanelLabel}>
           <ShieldCheck size={16} />
+        </Link>
+      )}
+      {unlinkedHref && (
+        <Link 
+          href={unlinkedHref} 
+          className={cn(iconButtonClasses, "hover:text-primary hover:border-primary/40", isPending && "animate-pulse border-primary/50 text-primary")} 
+          aria-label={unlinkedLabel} 
+          title={unlinkedLabel}
+        >
+          <Link2 size={16} />
         </Link>
       )}
       <button
