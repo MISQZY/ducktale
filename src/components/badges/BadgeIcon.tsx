@@ -1,8 +1,7 @@
-"use client";
-
 import type { CSSProperties } from "react";
 import { DynamicIcon } from "lucide-react/dynamic";
 import { isBadgeIconName } from "@/config/badges";
+import * as GiIcons from "react-icons/gi";
 
 interface BadgeIconProps {
   name: string;
@@ -14,18 +13,20 @@ interface BadgeIconProps {
 const FALLBACK_ICON = "award";
 
 /**
- * Renders one lucide icon by (kebab-case) name via lucide's own
- * <DynamicIcon>, which fetches just that icon's tiny module on demand
- * instead of the whole ~2000-icon package being bundled — see
- * src/config/badges.ts for why the catalog isn't a hand-picked allowlist.
- * Client-only (DynamicIcon uses state/effects internally), but its parents
- * (BadgeChip, the admin icon picker) don't need to be — Server Components
- * can render this as a leaf just fine.
+ * Renders an icon from either lucide-react (via DynamicIcon for code splitting)
+ * or react-icons/gi (Game Icons).
  */
 export function BadgeIcon({ name, size, className, style }: BadgeIconProps) {
+  if (name.startsWith("Gi")) {
+    const IconComponent = GiIcons[name as keyof typeof GiIcons];
+    if (IconComponent) {
+      return <IconComponent size={size} className={className} style={style} />;
+    }
+  }
+
   return (
     <DynamicIcon
-      name={isBadgeIconName(name) ? name : FALLBACK_ICON}
+      name={isBadgeIconName(name) ? (name as keyof typeof import("lucide-react/dynamicIconImports")) : FALLBACK_ICON}
       size={size}
       className={className}
       style={style}

@@ -105,7 +105,7 @@ export function TownRankingTable({ pageSize = 15, className }: TownRankingTableP
           >
             <DocsTableCell className="text-center align-middle" withRightBorder>
               <div className="flex justify-center">
-                <RankBadge rank={town.rank} size={18} variant="text" />
+                <RankBadge rank={town.rank} size={18} medalScale={1.35} variant="text" />
               </div>
             </DocsTableCell>
 

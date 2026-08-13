@@ -1,4 +1,4 @@
-"use client";
+
 
 import { BadgeIcon } from "@/components/badges/BadgeIcon";
 import { BadgeTooltipWrapper } from "./BadgeTooltipWrapper";

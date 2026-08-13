@@ -106,7 +106,7 @@ export function TopPlayersTable({ pageSize = 10, className }: TopPlayersTablePro
           >
             <DocsTableCell className="text-center align-middle">
               <div className="flex justify-center">
-                <RankBadge rank={player.rank} size={18} variant="text" />
+                <RankBadge rank={player.rank} size={18} medalScale={1.35} variant="text" />
               </div>
             </DocsTableCell>
 

@@ -1,4 +1,4 @@
-import { Medal } from "lucide-react";
+import { GiRibbonMedal } from "react-icons/gi";
 import { cn } from "@/lib/utils";
 
 const MEDAL_COLOR: Record<1 | 2 | 3, string> = {
@@ -12,6 +12,8 @@ export interface RankBadgeProps {
   rank: number;
   /** Icon/text size in px. Default 16. */
   size?: number;
+  /** Multiplier for the medal icon size (since Gi icons might look smaller). Defaults to 1. */
+  medalScale?: number;
   className?: string;
   title?: string;
   /**
@@ -24,12 +26,12 @@ export interface RankBadgeProps {
 }
 
 /** Ranks 1-3 render as a colored medal (gold/silver/bronze); everything else per `variant`. */
-export function RankBadge({ rank, size = 16, className, title, variant = "circle" }: RankBadgeProps) {
+export function RankBadge({ rank, size = 16, medalScale = 1, className, title, variant = "circle" }: RankBadgeProps) {
   if (rank >= 1 && rank <= 3) {
     const medalRank = rank as 1 | 2 | 3;
     return (
-      <Medal
-        size={size}
+      <GiRibbonMedal
+        size={Math.round(size * medalScale)}
         className={cn(MEDAL_COLOR[medalRank], className)}
         aria-label={title}
         role={title ? "img" : undefined}

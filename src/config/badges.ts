@@ -1,6 +1,6 @@
 import dynamicIconImports from "lucide-react/dynamicIconImports";
 
-export type IconName = keyof typeof dynamicIconImports;
+export type IconName = string;
 export type BadgeIconName = IconName;
 
 /**
@@ -13,12 +13,12 @@ export type BadgeIconName = IconName;
  * one it actually uses, and the admin picker only loads the ones currently
  * visible/searched, not the whole catalog at once.
  */
-export const BADGE_ICON_NAMES: readonly IconName[] = Object.keys(dynamicIconImports) as IconName[];
+export const LUCIDE_ICON_NAMES = Object.keys(dynamicIconImports) as string[];
 
-const BADGE_ICON_NAME_SET = new Set<string>(BADGE_ICON_NAMES);
+const LUCIDE_ICON_NAME_SET = new Set<string>(LUCIDE_ICON_NAMES);
 
-export function isBadgeIconName(value: string): value is IconName {
-  return BADGE_ICON_NAME_SET.has(value);
+export function isBadgeIconName(value: string): boolean {
+  return LUCIDE_ICON_NAME_SET.has(value) || value.startsWith("Gi");
 }
 
 /** Shown by default in the admin picker before a search is typed — a small, on-theme starting point into the full catalog. */

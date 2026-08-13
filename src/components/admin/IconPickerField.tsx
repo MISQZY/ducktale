@@ -1,8 +1,9 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { BadgeIcon } from "@/components/badges/BadgeIcon";
-import { BADGE_ICON_NAMES, DEFAULT_BADGE_ICONS } from "@/config/badges";
+import { LUCIDE_ICON_NAMES, DEFAULT_BADGE_ICONS } from "@/config/badges";
+import { getGiIconKeys } from "@/lib/actions/icons";
 import { cn } from "@/lib/utils";
 
 const MAX_ICON_RESULTS = 200;
@@ -26,11 +27,18 @@ export function IconPickerField({
   searchPlaceholder,
   emptyMessage,
 }: IconPickerFieldProps) {
+  const [giIcons, setGiIcons] = useState<string[]>([]);
+
+  useEffect(() => {
+    getGiIconKeys().then((keys) => setGiIcons(keys)).catch(console.error);
+  }, []);
+
   const visibleIcons = useMemo(() => {
     const query = iconQuery.trim().toLowerCase();
     if (!query) return DEFAULT_BADGE_ICONS;
-    return BADGE_ICON_NAMES.filter((name) => name.includes(query)).slice(0, MAX_ICON_RESULTS);
-  }, [iconQuery]);
+    const allNames = [...LUCIDE_ICON_NAMES, ...giIcons];
+    return allNames.filter((name) => name.toLowerCase().includes(query)).slice(0, MAX_ICON_RESULTS);
+  }, [iconQuery, giIcons]);
 
   return (
     <div className="flex flex-col gap-1.5">
