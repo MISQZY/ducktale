@@ -49,8 +49,25 @@ const ROLE_ORDER: Record<Exclude<ResidentRole, null>, number> = { mayor: 0, depu
 // search) combo so repeat requests within the window skip all of it.
 const TOWNS_TTL_MS = 60_000;
 
-async function buildTownsResponse(page: number, pageSize: number, search: string): Promise<TownyResponse> {
+async function buildTownsResponse(page: number, pageSize: number, search: string, sort: string, order: string): Promise<TownyResponse> {
   const offset = (page - 1) * pageSize;
+
+  let orderSql = Prisma.sql`ORDER BY sub.size DESC`;
+  const dir = order === "asc" ? Prisma.sql`ASC` : Prisma.sql`DESC`;
+  switch (sort) {
+    case "town":
+      orderSql = Prisma.sql`ORDER BY sub.name ${dir}`;
+      break;
+    case "mayor":
+      orderSql = Prisma.sql`ORDER BY sub.mayor ${dir}`;
+      break;
+    case "nation":
+      orderSql = Prisma.sql`ORDER BY sub.nation ${dir}`;
+      break;
+    case "size":
+      orderSql = Prisma.sql`ORDER BY sub.size ${dir}`;
+      break;
+  }
 
   const { townRows, residentRows } = await withDb("duckburg_towns", async (db) => {
     const townRows = await db.$queryRaw(Prisma.sql`
@@ -59,7 +76,7 @@ async function buildTownsResponse(page: number, pageSize: number, search: string
         ${townBaseQuery(Prisma.sql`, t.uuid AS uuid, t.mayor AS mayorUuid`)}
       ) sub
       ${search ? Prisma.sql`WHERE sub.name LIKE ${"%" + search + "%"}` : Prisma.empty}
-      ORDER BY sub.size DESC
+      ${orderSql}
       LIMIT ${pageSize} OFFSET ${offset}
     `) as TownRow[];
 
@@ -124,12 +141,14 @@ export async function GET(req: Request) {
   const page     = Math.max(1, parseInt(searchParams.get("page") ?? "1",  10));
   const pageSize = Math.min(100, Math.max(1, parseInt(searchParams.get("pageSize") ?? "10", 10)));
   const search   = searchParams.get("search")?.trim() ?? "";
+  const sort     = searchParams.get("sort")?.trim() ?? "";
+  const order    = searchParams.get("order")?.trim() ?? "";
 
   try {
     const result = await withCache(
-      `towns:${page}:${pageSize}:${search.toLowerCase()}`,
+      `towns:${page}:${pageSize}:${search.toLowerCase()}:${sort}:${order}`,
       TOWNS_TTL_MS,
-      () => buildTownsResponse(page, pageSize, search)
+      () => buildTownsResponse(page, pageSize, search, sort, order)
     );
 
     return NextResponse.json(result, {

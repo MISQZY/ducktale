@@ -26,6 +26,7 @@ import { formatDurationMs } from "@/lib/player-card-format";
 import { RankBadge } from "./RankBadge";
 import { CompactBadgeChip } from "@/components/badges/CompactBadgeChip";
 import { SkinFace } from "@/components/common/SkinFace";
+import { PlayerChip } from "@/components/common/PlayerChip";
 import type { LeaderboardPlayer, LeaderboardResponse } from "@/types/leaderboard";
 
 export type { LeaderboardPlayer, LeaderboardResponse };
@@ -42,11 +43,13 @@ export function TopPlayersTable({ pageSize = 10, className }: TopPlayersTablePro
   const t = useTranslations("Leaderboard");
   const tCard = useTranslations("PlayerCard");
 
-  const fetcher = useCallback(async (page: number, query: string) => {
+  const fetcher = useCallback(async (page: number, query: string, sort?: string, order?: string) => {
     const params = new URLSearchParams({
       page:     String(page),
       pageSize: String(pageSize),
       ...(query ? { search: query } : {}),
+      ...(sort ? { sort } : {}),
+      ...(order ? { order } : {}),
     });
     const r = await fetch(`/api/leaderboard?${params}`);
     if (!r.ok) throw new Error(`HTTP ${r.status}`);
@@ -56,9 +59,10 @@ export function TopPlayersTable({ pageSize = 10, className }: TopPlayersTablePro
 
   const {
     state, query, page, data,
+    sortColumn, sortDirection,
     isLoading, isRefreshing,
     pageStart, totalPages,
-    pageNumbers, setQuery, goTo,
+    pageNumbers, setQuery, setSort, goTo,
   } = usePagedTable<LeaderboardPlayer>({ fetcher });
 
   const total = data?.total ?? null;
@@ -96,9 +100,9 @@ export function TopPlayersTable({ pageSize = 10, className }: TopPlayersTablePro
         <DocsTable>
           <DocsTableHeader>
             <DocsTableRow>
-              <DocsTableHead className="w-14 text-center align-middle">{t("columns.rank")}</DocsTableHead>
-              <DocsTableHead className="align-middle">{t("columns.player")}</DocsTableHead>
-              <DocsTableHead className="w-32 text-center align-middle">{t("columns.playtime")}</DocsTableHead>
+              <DocsTableHead sortable sortDirection={sortColumn === "rank" ? sortDirection : undefined} onSort={() => setSort("rank", "asc")} className="w-16 text-center align-middle" withRightBorder>{t("columns.rank")}</DocsTableHead>
+            <DocsTableHead sortable sortDirection={sortColumn === "player" ? sortDirection : undefined} onSort={() => setSort("player", "asc")} className="align-middle"                  withRightBorder>{t("columns.player")}</DocsTableHead>
+            <DocsTableHead sortable sortDirection={sortColumn === "playtime" ? sortDirection : undefined} onSort={() => setSort("playtime", "desc")} className="w-40 text-center align-middle"               >{t("columns.playtime")}</DocsTableHead>
             </DocsTableRow>
           </DocsTableHeader>
 
@@ -140,59 +144,14 @@ export function TopPlayersTable({ pageSize = 10, className }: TopPlayersTablePro
                 </DocsTableCell>
 
                 <DocsTableCell className="align-middle">
-                  {player.profileUsername ? (
-                    <Link
-                      href={`/profile/${encodeURIComponent(player.profileUsername)}`}
-                      target="_blank"
-                      className={cn(
-                        "relative overflow-hidden inline-flex h-11 items-center gap-3 py-1.5 pr-5 pl-1.5 rounded-lg border bg-card/40 transition-colors shadow-sm group hover:bg-card/60",
-                        player.online ? "animate-border-glow-green border-emerald-500/40" : "border-primary/20 hover:border-primary/40"
-                      )}
-                    >
-                      <SkinFace skinUrl={player.skinUrl} size={32} className="rounded-md border-none shrink-0" />
-                      <div className="flex items-center gap-2.5 relative z-10">
-                        <HighlightMatch
-                          text={player.name}
-                          query={query}
-                          className="font-bold text-amber-600 dark:text-amber-400 text-base transition-colors group-hover:text-amber-500 dark:group-hover:text-amber-300"
-                        />
-                        
-                        {player.badges.length > 0 && (
-                          <div className="flex items-center gap-1">
-                            {player.badges.slice(0, MAX_VISIBLE_BADGES).map((badge) => (
-                              <CompactBadgeChip
-                                key={badge.name}
-                                name={badge.name}
-                                icon={badge.icon}
-                                color={badge.color}
-                                description={badge.description}
-                                earnCondition={badge.earnCondition}
-                                size={17}
-                              />
-                            ))}
-                            {player.badges.length > MAX_VISIBLE_BADGES && (
-                              <span
-                                className="text-[0.65rem] text-foreground/40 shrink-0"
-                                title={player.badges.slice(MAX_VISIBLE_BADGES).map((b) => b.name).join(", ")}
-                              >
-                                +{player.badges.length - MAX_VISIBLE_BADGES}
-                              </span>
-                            )}
-                          </div>
-                        )}
-                      </div>
-                    </Link>
-                  ) : (
-                    <div className="flex h-11 items-center gap-2">
-                      <HighlightMatch text={player.name} query={query} className="text-base" />
-                      {player.online && (
-                        <span className="relative flex h-1.5 w-1.5 shrink-0" title={tCard("online")}>
-                          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
-                          <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-emerald-500" />
-                        </span>
-                      )}
-                    </div>
-                  )}
+                  <PlayerChip
+                    name={player.name}
+                    profileUsername={player.profileUsername}
+                    skinUrl={player.skinUrl}
+                    online={player.online}
+                    badges={player.badges}
+                    query={query}
+                  />
                 </DocsTableCell>
 
                 <DocsTableCell className="text-center align-middle">

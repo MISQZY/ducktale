@@ -20,10 +20,10 @@ export type TableFetchState<T> =
 
 export interface UsePagedTableOptions<T> {
   /**
-   * Called whenever a new page/search combination is needed.
+   * Called whenever a new page/search/sort combination is needed.
    * Must return a Promise<PagedResponse<T>> with the standardised shape.
    */
-  fetcher: (page: number, query: string) => Promise<PagedResponse<T>>;
+  fetcher: (page: number, query: string, sort?: string, order?: "asc" | "desc") => Promise<PagedResponse<T>>;
   /** Debounce delay in ms for search input changes. Default: 300. */
   debounceMs?: number;
   /** TTL in ms for each cached entry. Default: 60_000 (1 min). */
@@ -34,6 +34,8 @@ export interface UsePagedTableResult<T> {
   state:      TableFetchState<T>;
   query:      string;
   page:       number;
+  sortColumn: string | undefined;
+  sortDirection: "asc" | "desc" | undefined;
   data:       PagedResponse<T> | null;
   isLoading:  boolean;
   isRefreshing: boolean;
@@ -41,6 +43,8 @@ export interface UsePagedTableResult<T> {
   totalPages: number;
   pageNumbers: () => (number | "…")[];
   setQuery:   (value: string) => void;
+  /** defaultDirection is what the first click on this column should mean ("desc" if omitted) — e.g. "asc" for rank/name columns, "desc" for playtime/size. */
+  setSort:    (column: string, defaultDirection?: "asc" | "desc") => void;
   goTo:       (page: number) => void;
   refresh:    () => void;
 }
@@ -60,6 +64,8 @@ export function usePagedTable<T>({
   const [state, setState] = useState<TableFetchState<T>>({ status: "loading" });
   const [query, setQueryState] = useState("");
   const [page,  setPage]  = useState(1);
+  const [sortColumn, setSortColumn] = useState<string | undefined>();
+  const [sortDirection, setSortDirection] = useState<"asc" | "desc" | undefined>();
 
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const cacheRef    = useRef<Map<string, CacheEntry<T>>>(new Map());
@@ -75,8 +81,8 @@ export function usePagedTable<T>({
 
   // ── Core fetch ──────────────────────────────────────────────────────────────
 
-  const fetchPage = useCallback((p: number, q: string) => {
-    const key   = `${q}:${p}`;
+  const fetchPage = useCallback((p: number, q: string, sc?: string, sd?: "asc" | "desc") => {
+    const key   = `${q}:${p}:${sc || ""}:${sd || ""}`;
     const now   = Date.now();
     const entry = cacheRef.current.get(key);
 
@@ -93,7 +99,7 @@ export function usePagedTable<T>({
       );
     }
 
-    fetcher(p, q)
+    fetcher(p, q, sc, sd)
       .then((data) => {
         if (!mountedRef.current) return;
         cacheRef.current.set(key, { data, expiresAt: now + cacheTtlMs });
@@ -108,7 +114,7 @@ export function usePagedTable<T>({
       });
   }, [fetcher, cacheTtlMs]);
 
-  useEffect(() => { fetchPage(1, ""); }, [fetchPage]);
+  useEffect(() => { fetchPage(1, "", undefined, undefined); }, [fetchPage]);
 
   // ── Search with debounce ────────────────────────────────────────────────────
 
@@ -117,21 +123,43 @@ export function usePagedTable<T>({
     setPage(1);
     if (debounceRef.current) clearTimeout(debounceRef.current);
     debounceRef.current = setTimeout(() => {
-      if (mountedRef.current) fetchPage(1, value);
+      if (mountedRef.current) fetchPage(1, value, sortColumn, sortDirection);
     }, debounceMs);
-  }, [fetchPage, debounceMs]);
+  }, [fetchPage, debounceMs, sortColumn, sortDirection]);
+
+  // ── Sort ────────────────────────────────────────────────────────────────────
+
+  // First click always went to "desc", regardless of column — fine for a
+  // numeric "most X first" column (playtime, size), backwards for a "rank"
+  // column (1st place is the smallest number, not the largest) and for
+  // alphabetical text columns (A→Z is the expected first click, not Z→A).
+  // Callers now say what "first click" should mean for that column; the
+  // cycle is defaultDirection -> the other direction -> cleared.
+  const setSort = useCallback((column: string, defaultDirection: "asc" | "desc" = "desc") => {
+    let newDir: "asc" | "desc" | undefined = defaultDirection;
+    if (sortColumn === column) {
+      if (sortDirection === defaultDirection) newDir = defaultDirection === "desc" ? "asc" : "desc";
+      else newDir = undefined;
+    }
+
+    const newCol = newDir ? column : undefined;
+    setSortColumn(newCol);
+    setSortDirection(newDir);
+    setPage(1);
+    fetchPage(1, query, newCol, newDir);
+  }, [sortColumn, sortDirection, fetchPage, query]);
 
   // ── Pagination ──────────────────────────────────────────────────────────────
 
   const goTo = useCallback((p: number) => {
     setPage(p);
-    fetchPage(p, query);
-  }, [fetchPage, query]);
+    fetchPage(p, query, sortColumn, sortDirection);
+  }, [fetchPage, query, sortColumn, sortDirection]);
 
   const refresh = useCallback(() => {
     cacheRef.current.clear();
-    fetchPage(page, query);
-  }, [fetchPage, page, query]);
+    fetchPage(page, query, sortColumn, sortDirection);
+  }, [fetchPage, page, query, sortColumn, sortDirection]);
 
   // ── Derived ─────────────────────────────────────────────────────────────────
 
@@ -154,9 +182,9 @@ export function usePagedTable<T>({
   }, [page, totalPages]);
 
   return {
-    state, query, page, data,
+    state, query, page, sortColumn, sortDirection, data,
     isLoading, isRefreshing,
     pageStart, totalPages, pageNumbers,
-    setQuery, goTo, refresh,
+    setQuery, setSort, goTo, refresh,
   };
 }

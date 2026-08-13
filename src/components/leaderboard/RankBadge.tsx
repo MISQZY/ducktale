@@ -55,7 +55,7 @@ export function RankBadge({ rank, size = 16, className, title, variant = "circle
         "liquid-badge inline-flex items-center justify-center shrink-0 rounded-full border border-primary/25 bg-primary/10 font-mono tabular-nums text-foreground/70",
         className
       )}
-      style={{ width: size, height: size, fontSize: size * 0.55 }}
+      style={{ width: size, height: size, fontSize: size * 0.65 }}
       title={title}
     >
       {rank}

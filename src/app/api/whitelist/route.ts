@@ -20,9 +20,30 @@ interface RawRow {
 const WHITELIST_TTL_MS = 60_000;
 
 async function buildWhitelistResponse(
-  page: number, pageSize: number, search: string, serverId: string
+  page: number, pageSize: number, search: string, serverId: string,
+  sort: string, order: string
 ): Promise<WhitelistResponse> {
   const offset = (page - 1) * pageSize;
+
+  let orderSql = Prisma.sql`ORDER BY p.name ASC`;
+  const dir = order === "desc" ? Prisma.sql`DESC` : Prisma.sql`ASC`;
+  switch (sort) {
+    case "id":
+      orderSql = Prisma.sql`ORDER BY p.id ${dir}`;
+      break;
+    case "name":
+      orderSql = Prisma.sql`ORDER BY p.name ${dir}`;
+      break;
+    case "moderator":
+      orderSql = Prisma.sql`ORDER BY moderator ${dir}`;
+      break;
+    case "addedAt":
+      orderSql = Prisma.sql`ORDER BY addedAt ${dir}`;
+      break;
+    case "expiresAt":
+      orderSql = Prisma.sql`ORDER BY duration ${dir}`;
+      break;
+  }
 
   const rows: RawRow[] = await withDb(async (db) => {
     return await db.$queryRaw(Prisma.sql`
@@ -51,7 +72,7 @@ async function buildWhitelistResponse(
       LEFT JOIN fp_player mod_player
         ON mod_player.id = m.moderator
       ${search ? Prisma.sql`WHERE p.name LIKE ${"%" + search + "%"}` : Prisma.empty}
-      ORDER BY p.name ASC
+      ${orderSql}
       LIMIT  ${pageSize}
       OFFSET ${offset}
     `) as RawRow[];
@@ -90,12 +111,14 @@ export async function GET(req: Request) {
   const pageSize = Math.min(100, Math.max(1, parseInt(searchParams.get("pageSize") ?? "10", 10)));
   const search   = searchParams.get("search")?.trim() ?? "";
   const serverId = searchParams.get("serverId")?.trim() ?? "";
+  const sort     = searchParams.get("sort")?.trim() ?? "";
+  const order    = searchParams.get("order")?.trim() ?? "";
 
   try {
     const result = await withCache(
-      `whitelist:${page}:${pageSize}:${search.toLowerCase()}:${serverId}`,
+      `whitelist:${page}:${pageSize}:${search.toLowerCase()}:${serverId}:${sort}:${order}`,
       WHITELIST_TTL_MS,
-      () => buildWhitelistResponse(page, pageSize, search, serverId)
+      () => buildWhitelistResponse(page, pageSize, search, serverId, sort, order)
     );
 
     return NextResponse.json(result, {

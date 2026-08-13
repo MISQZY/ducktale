@@ -36,11 +36,13 @@ export interface TownRankingTableProps {
 export function TownRankingTable({ pageSize = 15, className }: TownRankingTableProps) {
   const t = useTranslations("Leaderboard");
 
-  const fetcher = useCallback(async (page: number, query: string) => {
+  const fetcher = useCallback(async (page: number, query: string, sort?: string, order?: string) => {
     const params = new URLSearchParams({
       page:     String(page),
       pageSize: String(pageSize),
       ...(query ? { search: query } : {}),
+      ...(sort ? { sort } : {}),
+      ...(order ? { order } : {}),
     });
     const r = await fetch(`/api/leaderboard/towns?${params}`);
     if (!r.ok) throw new Error(`HTTP ${r.status}`);
@@ -50,9 +52,10 @@ export function TownRankingTable({ pageSize = 15, className }: TownRankingTableP
 
   const {
     state, query, page, data,
+    sortColumn, sortDirection,
     isLoading, isRefreshing,
     pageStart, totalPages,
-    pageNumbers, setQuery, goTo,
+    pageNumbers, setQuery, setSort, goTo,
   } = usePagedTable<RankedTown>({ fetcher });
 
   const total = data?.total ?? null;
@@ -89,10 +92,10 @@ export function TownRankingTable({ pageSize = 15, className }: TownRankingTableP
       <DocsTable>
         <DocsTableHeader>
           <DocsTableRow>
-            <DocsTableHead className="w-14 text-center align-middle" withRightBorder>{t("columns.rank")}</DocsTableHead>
-            <DocsTableHead className="align-middle"                  withRightBorder>{t("columns.town")}</DocsTableHead>
-            <DocsTableHead className="w-32 align-middle" withRightBorder>{t("columns.nation")}</DocsTableHead>
-            <DocsTableHead className="w-24 text-center align-middle"               >{t("columns.size")}</DocsTableHead>
+            <DocsTableHead sortable sortDirection={sortColumn === "rank" ? sortDirection : undefined} onSort={() => setSort("rank", "asc")} className="w-14 text-center align-middle" withRightBorder>{t("columns.rank")}</DocsTableHead>
+            <DocsTableHead sortable sortDirection={sortColumn === "town" ? sortDirection : undefined} onSort={() => setSort("town", "asc")} className="align-middle"                  withRightBorder>{t("columns.town")}</DocsTableHead>
+            <DocsTableHead sortable sortDirection={sortColumn === "nation" ? sortDirection : undefined} onSort={() => setSort("nation", "asc")} className="w-32 align-middle" withRightBorder>{t("columns.nation")}</DocsTableHead>
+            <DocsTableHead sortable sortDirection={sortColumn === "size" ? sortDirection : undefined} onSort={() => setSort("size", "desc")} className="w-24 text-center align-middle"               >{t("columns.size")}</DocsTableHead>
           </DocsTableRow>
         </DocsTableHeader>
 

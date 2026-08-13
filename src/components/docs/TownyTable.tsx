@@ -62,11 +62,13 @@ export function TownyTable({
   }, []);
 
   // Build a stable fetcher that maps the API response to the generic PagedResponse<T> shape.
-  const fetcher = useCallback(async (page: number, query: string) => {
+  const fetcher = useCallback(async (page: number, query: string, sort?: string, order?: string) => {
     const params = new URLSearchParams({
       page:     String(page),
       pageSize: String(pageSize),
       ...(query ? { search: query } : {}),
+      ...(sort ? { sort } : {}),
+      ...(order ? { order } : {}),
     });
     const r = await fetch(`/api/towns?${params}`);
     if (!r.ok) throw new Error(`HTTP ${r.status}`);
@@ -77,9 +79,10 @@ export function TownyTable({
 
   const {
     state, query, page, data,
+    sortColumn, sortDirection,
     isLoading, isRefreshing,
     pageStart, totalPages,
-    pageNumbers, setQuery, goTo,
+    pageNumbers, setQuery, setSort, goTo,
   } = usePagedTable<Town>({ fetcher });
 
   const total = data?.total ?? null;
@@ -116,9 +119,9 @@ export function TownyTable({
       <DocsTable>
         <DocsTableHeader>
           <DocsTableRow>
-            <DocsTableHead                  withRightBorder>Город</DocsTableHead>
-            <DocsTableHead className="w-40" withRightBorder>Нация</DocsTableHead>
-            <DocsTableHead className="w-24"               >Размер</DocsTableHead>
+            <DocsTableHead sortable sortDirection={sortColumn === "town" ? sortDirection : undefined} onSort={() => setSort("town")} withRightBorder>Город</DocsTableHead>
+            <DocsTableHead sortable sortDirection={sortColumn === "nation" ? sortDirection : undefined} onSort={() => setSort("nation")} className="w-40" withRightBorder>Нация</DocsTableHead>
+            <DocsTableHead sortable sortDirection={sortColumn === "size" ? sortDirection : undefined} onSort={() => setSort("size")} className="w-24">Размер</DocsTableHead>
           </DocsTableRow>
         </DocsTableHeader>
 

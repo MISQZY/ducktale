@@ -82,12 +82,14 @@ export function WhitelistTable({
 }: WhitelistTableProps) {
 
   // Build a stable fetcher that maps the API response to the generic PagedResponse<T> shape.
-  const fetcher = useCallback(async (page: number, query: string) => {
+  const fetcher = useCallback(async (page: number, query: string, sort?: string, order?: string) => {
     const params = new URLSearchParams({
       page:     String(page),
       pageSize: String(pageSize),
-      ...(query    ? { search:   query    } : {}),
-      ...(serverId ? { serverId: serverId } : {}),
+      ...(serverId ? { serverId } : {}),
+      ...(query ? { search: query } : {}),
+      ...(sort ? { sort } : {}),
+      ...(order ? { order } : {}),
     });
     const r = await fetch(`/api/whitelist?${params}`);
     if (!r.ok) throw new Error(`HTTP ${r.status}`);
@@ -98,9 +100,10 @@ export function WhitelistTable({
 
   const {
     state, query, page, data,
+    sortColumn, sortDirection,
     isLoading, isRefreshing,
     pageStart, totalPages,
-    pageNumbers, setQuery, goTo,
+    pageNumbers, setQuery, setSort, goTo,
   } = usePagedTable<WhitelistPlayer>({ fetcher });
 
   const total = data?.total ?? null;
@@ -137,11 +140,11 @@ export function WhitelistTable({
       <DocsTable>
         <DocsTableHeader>
           <DocsTableRow>
-            <DocsTableHead className="w-12" withRightBorder>№</DocsTableHead>
-            <DocsTableHead                  withRightBorder>Игрок</DocsTableHead>
-            <DocsTableHead className="w-28" withRightBorder>Добавил</DocsTableHead>
-            <DocsTableHead className="w-28" withRightBorder>Добавлен</DocsTableHead>
-            <DocsTableHead className="w-28"               >Действителен до</DocsTableHead>
+            <DocsTableHead sortable sortDirection={sortColumn === "id" ? sortDirection : undefined} onSort={() => setSort("id")} className="w-16" withRightBorder>№</DocsTableHead>
+            <DocsTableHead sortable sortDirection={sortColumn === "name" ? sortDirection : undefined} onSort={() => setSort("name")} withRightBorder>Игрок</DocsTableHead>
+            <DocsTableHead sortable sortDirection={sortColumn === "moderator" ? sortDirection : undefined} onSort={() => setSort("moderator")} className="w-28" withRightBorder>Добавил</DocsTableHead>
+            <DocsTableHead sortable sortDirection={sortColumn === "addedAt" ? sortDirection : undefined} onSort={() => setSort("addedAt")} className="w-28" withRightBorder>Добавлен</DocsTableHead>
+            <DocsTableHead sortable sortDirection={sortColumn === "expiresAt" ? sortDirection : undefined} onSort={() => setSort("expiresAt")} className="w-32">Действителен до</DocsTableHead>
           </DocsTableRow>
         </DocsTableHeader>
 

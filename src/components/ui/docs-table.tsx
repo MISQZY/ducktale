@@ -1,5 +1,6 @@
 import * as React from "react";
 import { cn } from "@/lib/utils";
+import { ChevronsUpDown, ChevronUp, ChevronDown } from "lucide-react";
 import {
   Table,
   TableHeader,
@@ -81,9 +82,34 @@ export function DocsTableRow({ className, ...props }: React.ComponentPropsWithou
 
 export interface DocsTableHeadProps extends React.ComponentPropsWithoutRef<typeof TableHead> {
   withRightBorder?: boolean;
+  sortable?: boolean;
+  sortDirection?: "asc" | "desc" | undefined;
+  onSort?: () => void;
 }
 
-export function DocsTableHead({ className, withRightBorder, ...props }: DocsTableHeadProps) {
+export function DocsTableHead({ className, withRightBorder, sortable, sortDirection, onSort, children, ...props }: DocsTableHeadProps) {
+  const content = sortable ? (
+    <button
+      type="button"
+      onClick={onSort}
+      className={cn(
+        "flex w-full items-center gap-1.5 transition-colors focus:outline-none hover:opacity-80",
+        className?.includes("text-center") ? "justify-center" : className?.includes("text-right") ? "justify-end" : "justify-between"
+      )}
+    >
+      <span>{children}</span>
+      {sortDirection === "asc" ? (
+        <ChevronUp size={14} className="shrink-0" />
+      ) : sortDirection === "desc" ? (
+        <ChevronDown size={14} className="shrink-0" />
+      ) : (
+        <ChevronsUpDown size={14} className="shrink-0 opacity-40 hover:opacity-100 transition-opacity" />
+      )}
+    </button>
+  ) : (
+    children
+  );
+
   return (
     <TableHead
       className={cn(
@@ -95,7 +121,9 @@ export function DocsTableHead({ className, withRightBorder, ...props }: DocsTabl
         className
       )}
       {...props}
-    />
+    >
+      {content}
+    </TableHead>
   );
 }
 

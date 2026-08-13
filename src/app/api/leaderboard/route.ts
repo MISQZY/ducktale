@@ -35,9 +35,27 @@ const LEADERBOARD_TTL_MS = 60_000;
  * give, since window functions only ever see already-filtered rows).
  */
 async function buildLeaderboardResponse(
-  page: number, pageSize: number, search: string
+  page: number, pageSize: number, search: string, sort: string, order: string
 ): Promise<LeaderboardResponse> {
   const offset = (page - 1) * pageSize;
+
+  // sub.uuid tiebreaker on every branch: ties (equal playtime, or the
+  // default rank ASC when several players share a rank) would otherwise
+  // sort in whatever order MySQL feels like per-query, which can reshuffle
+  // rows between pages — a stable secondary key keeps pagination consistent.
+  let orderSql = Prisma.sql`ORDER BY sub.\`rank\` ASC, sub.uuid ASC`;
+  const dir = order === "desc" ? Prisma.sql`DESC` : Prisma.sql`ASC`;
+  switch (sort) {
+    case "rank":
+      orderSql = Prisma.sql`ORDER BY sub.\`rank\` ${dir}, sub.uuid ASC`;
+      break;
+    case "player":
+      orderSql = Prisma.sql`ORDER BY sub.name ${dir}, sub.uuid ASC`;
+      break;
+    case "playtime":
+      orderSql = Prisma.sql`ORDER BY sub.playtimeMs ${dir}, sub.uuid ASC`;
+      break;
+  }
 
   const rows: RawRow[] = await withDb(async (db) => {
     return await db.$queryRaw(Prisma.sql`
@@ -55,7 +73,7 @@ async function buildLeaderboardResponse(
         INNER JOIN fp_time t ON t.player = p.id
       ) sub
       ${search ? Prisma.sql`WHERE sub.name LIKE ${"%" + search + "%"} OR sub.nickname LIKE ${"%" + search + "%"}` : Prisma.empty}
-      ORDER BY sub.\`rank\` ASC
+      ${orderSql}
       LIMIT  ${pageSize}
       OFFSET ${offset}
     `) as RawRow[];
@@ -117,12 +135,14 @@ export async function GET(req: Request) {
   const page     = Math.max(1, parseInt(searchParams.get("page") ?? "1",  10));
   const pageSize = Math.min(100, Math.max(1, parseInt(searchParams.get("pageSize") ?? "10", 10)));
   const search   = searchParams.get("search")?.trim() ?? "";
+  const sort     = searchParams.get("sort")?.trim() ?? "";
+  const order    = searchParams.get("order")?.trim() ?? "";
 
   try {
     const result = await withCache(
-      `leaderboard:${page}:${pageSize}:${search.toLowerCase()}`,
+      `leaderboard:${page}:${pageSize}:${search.toLowerCase()}:${sort}:${order}`,
       LEADERBOARD_TTL_MS,
-      () => buildLeaderboardResponse(page, pageSize, search)
+      () => buildLeaderboardResponse(page, pageSize, search, sort, order)
     );
 
     return NextResponse.json(result, {
