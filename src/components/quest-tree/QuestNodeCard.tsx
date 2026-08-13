@@ -6,7 +6,7 @@ import { cn } from "@/lib/utils";
 import { SkinFace } from "@/components/common/SkinFace";
 import { EXTERNAL_APIS } from "@/config/external-apis";
 import { CheckSquare, Square, Lock, Gift, Target, Minus, Plus, Quote } from "lucide-react";
-import type { QuestNodeDef, QuestStatus, QuestObjective, QuestReward } from "./types";
+import type { QuestNodeDef } from "./types";
 
 /** Same concealment convention as ResourceCard's SkeletonCard — solid bars, not blur — so a locked node reads as "there's real content here, hidden" rather than a faded copy of the real text. Real text is never rendered, so nothing to zoom/select into legibility. */
 function SkeletonLines({ widths = ["100%", "80%", "55%"], barClassName = "h-2.5" }: { widths?: string[]; barClassName?: string }) {

@@ -1,12 +1,11 @@
 "use client";
 
 import React, { useEffect, useRef, useState, useId } from "react";
-import { Graph, type Edge } from "@antv/x6";
+import { Graph } from "@antv/x6";
 import { GraphCanvas } from "@/components/graph/GraphCanvas";
 import { edgeLineAttrs } from "@/components/graph/shapes";
 import { QUEST_NODE_SHAPE } from "./shapes";
-import type { QuestTreeProps, QuestNodeDef, QuestStatus } from "./types";
-import type { QuestNodeData } from "./QuestNodeCard";
+import type { QuestTreeProps, QuestStatus } from "./types";
 import { wireNodeCollisionResolution } from "@/components/graph/utils";
 
 export function QuestTree({
@@ -16,11 +15,10 @@ export function QuestTree({
   frameHeight = 600,
   mockLocalStorage = false,
 }: QuestTreeProps) {
-  const rawId = useId();
   const graphRef = useRef<Graph | null>(null);
 
   // Local storage state for quest completions (only used if mockLocalStorage is true)
-  const [completions, setCompletions] = useState<Record<string, number | boolean>>({});
+  const [, setCompletions] = useState<Record<string, number | boolean>>({});
   const initialCompletionsRef = useRef<Record<string, number | boolean>>({});
 
 
