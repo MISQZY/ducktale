@@ -87,7 +87,7 @@ export default function DuckySwarm() {
           initialAudio.currentTime = 0;
           initialAudio.play().catch(() => {});
         }
-      } catch(e) {}
+      } catch {}
       
       setTimeout(() => {
         runAwayRef.current = true;
@@ -170,7 +170,7 @@ export default function DuckySwarm() {
           audio.playbackRate = 0.9 + Math.random() * 0.4;
           audio.currentTime = 0;
           audio.play().catch(() => {});
-        } catch(e) {}
+        } catch {}
       }
 
       if (runAwayRef.current && allGone) {

@@ -25,15 +25,6 @@ function rnd(min: number, max: number) {
   return min + Math.random() * (max - min);
 }
 
-function randomSpawn(W: number, H: number): Vec2 {
-  const pad = 80;
-  const isLeft = Math.random() > 0.5;
-  // Start fully off-screen on left or right
-  return {
-    x: isLeft ? -DISPLAY_SIZE : W,
-    y: rnd(pad, Math.max(pad + 1, H - pad - DISPLAY_SIZE)),
-  };
-}
 
 export function getDuckyVisible(): boolean {
   try { return localStorage.getItem(STORAGE_KEY) !== "false"; } catch { return true; }
@@ -76,7 +67,6 @@ export default function DuckyPet() {
   const bubbleRef = useRef<HTMLDivElement>(null);
 
   const [mounted, setMounted] = useState(false);
-  const [dir, setDir] = useState<Direction>("right");
   const [isHovered, setIsHovered] = useState(false);
   const [activePhrase, setActivePhrase] = useState<string | null>(null);
   const activePhraseRef = useRef<string | null>(null);
@@ -130,7 +120,6 @@ export default function DuckyPet() {
     
     const newDir = velRef.current.x >= 0 ? "right" : "left";
     dirRef.current = newDir;
-    setDir(newDir);
     wanderTimerRef.current = rnd(1500, 4000);
   }, []);
 
@@ -211,8 +200,8 @@ export default function DuckyPet() {
         const docW = Math.max(document.documentElement.scrollWidth, window.innerWidth) - DISPLAY_SIZE;
         const docH = Math.max(document.documentElement.scrollHeight, window.innerHeight) - DISPLAY_SIZE;
 
-        if (nx < 0) { nx = 0; velRef.current.x = Math.abs(velRef.current.x); dirRef.current = "right"; setDir("right"); }
-        if (nx > docW) { nx = docW; velRef.current.x = -Math.abs(velRef.current.x); dirRef.current = "left"; setDir("left"); }
+        if (nx < 0) { nx = 0; velRef.current.x = Math.abs(velRef.current.x); dirRef.current = "right"; }
+        if (nx > docW) { nx = docW; velRef.current.x = -Math.abs(velRef.current.x); dirRef.current = "left"; }
         if (ny < 0) { ny = 0; velRef.current.y = Math.abs(velRef.current.y); }
         if (ny > docH) { ny = docH; velRef.current.y = -Math.abs(velRef.current.y); }
 
@@ -280,7 +269,7 @@ export default function DuckyPet() {
           audio.volume = DUCKY_CONFIG.volume;
           audio.playbackRate = 0.9 + Math.random() * 0.2;
           audio.play().catch(() => {});
-        } catch (e) {}
+        } catch {}
         setTimeout(() => {
           setActivePhrase(null);
           activePhraseRef.current = null;
@@ -373,7 +362,7 @@ export default function DuckyPet() {
             audio.volume = DUCKY_CONFIG.volume;
             audio.playbackRate = 0.9 + Math.random() * 0.2;
             audio.play().catch(() => {});
-          } catch(e) {}
+          } catch {}
         }}
         onMouseLeave={() => { isHoveredRef.current = false; setIsHovered(false); frameRef.current = 0; frameMsRef.current = 0; }}
         onClick={() => window.open("https://" + DUCKY_EASTER_EGG_HOST, "_blank", "noopener,noreferrer")}
