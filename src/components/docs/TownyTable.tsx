@@ -2,11 +2,9 @@
 
 import { Fragment, useCallback, useState } from "react";
 import { cn } from "@/lib/utils";
-import { Landmark, Castle, ChevronDown, Users } from "lucide-react";
+import { Landmark, ChevronDown, Users } from "lucide-react";
 import {
-  DocsTable,
   DocsTableHeader,
-  DocsTableBody,
   DocsTableRow,
   DocsTableHead,
   DocsTableCell,
@@ -14,9 +12,7 @@ import {
 } from "@/components/ui/docs-table";
 import { DuckBadge } from "@/components/ui/duck/badge";
 import {
-  TableSearch,
-  TablePagination,
-  TableSkeleton,
+  PagedTableLayout,
 } from "@/components/docs/paged-table";
 import { usePagedTable } from "@/hooks/usePagedTable";
 import { RESIDENT_ROLE_COLOR } from "@/lib/towny";
@@ -88,35 +84,33 @@ export function TownyTable({
   const total = data?.total ?? null;
 
   return (
-    <div className={cn("not-prose flex flex-col gap-3", className)}>
-
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <div className="flex items-center gap-2">
-          <Castle size={15} className="text-primary/80 shrink-0" />
-          <span
-            className="text-sm font-semibold text-foreground/80 tracking-wide"
-            style={{ fontFamily: "var(--font-body)" }}
-          >
-            {title ?? "Города"}
-          </span>
-          {total !== null && (
-            <DuckBadge variant="outline" className="gap-1 border-primary/35 text-primary bg-primary/10">
-              <Landmark size={10} />
-              {total}
-            </DuckBadge>
-          )}
-        </div>
-
-        <TableSearch
-          value={query}
-          onChange={setQuery}
-          placeholder="Поиск по названию…"
-        />
-      </div>
-
-      {/* Table */}
-      <DocsTable>
+    <PagedTableLayout
+      className={className}
+      titleNode={
+        <span
+          className="text-sm font-semibold text-foreground/80 tracking-wide"
+          style={{ fontFamily: "var(--font-body)" }}
+        >
+          {title ?? "Города"}
+        </span>
+      }
+      total={total}
+      totalIcon={<Landmark size={10} />}
+      query={query}
+      onQueryChange={setQuery}
+      searchPlaceholder="Поиск по названию…"
+      isLoading={isLoading}
+      error={state.status === "error" ? `Не удалось загрузить список: ${state.message}` : null}
+      isEmpty={!!data && data.items.length === 0}
+      emptyMessage={query ? `Город «${query}» не найден` : "Городов пока нет"}
+      skeletonWidths={SKELETON_WIDTHS}
+      page={page}
+      totalPages={totalPages}
+      pageStart={pageStart}
+      pageSize={pageSize}
+      pageNumbers={pageNumbers}
+      goTo={goTo}
+      tableHeader={
         <DocsTableHeader>
           <DocsTableRow>
             <DocsTableHead sortable sortDirection={sortColumn === "town" ? sortDirection : undefined} onSort={() => setSort("town")} withRightBorder>Город</DocsTableHead>
@@ -124,117 +118,82 @@ export function TownyTable({
             <DocsTableHead sortable sortDirection={sortColumn === "size" ? sortDirection : undefined} onSort={() => setSort("size")} className="w-24">Размер</DocsTableHead>
           </DocsTableRow>
         </DocsTableHeader>
+      }
+    >
+      {data && data.items.map((town) => {
+        const isOpen = expanded.has(town.name);
+        const hasResidents = town.residents.length > 0;
 
-        <DocsTableBody className="[&_tr:last-child]:border-0">
-          {isLoading && <TableSkeleton rows={pageSize} cellWidths={SKELETON_WIDTHS} />}
-
-          {state.status === "error" && (
-            <DocsTableRow>
-              <DocsTableCell colSpan={3} className="text-center py-10">
-                <p className="text-sm text-red-600/70 dark:text-red-400/70">Не удалось загрузить список: {state.message}</p>
-              </DocsTableCell>
-            </DocsTableRow>
-          )}
-
-          {data && !isLoading && data.items.length === 0 && (
-            <DocsTableRow>
-              <DocsTableCell colSpan={3} className="text-center py-10">
-                <p className={cn("text-sm", DOCS_TABLE_THEME.textFaint)}>
-                  {query ? `Город «${query}» не найден` : "Городов пока нет"}
-                </p>
-              </DocsTableCell>
-            </DocsTableRow>
-          )}
-
-          {data && data.items.map((town) => {
-            const isOpen = expanded.has(town.name);
-            const hasResidents = town.residents.length > 0;
-
-            return (
-              <Fragment key={town.name}>
-                <DocsTableRow
-                  className={cn(isRefreshing && "opacity-40 transition-opacity")}
+        return (
+          <Fragment key={town.name}>
+            <DocsTableRow
+              className={cn(isRefreshing && "opacity-40 transition-opacity")}
+            >
+              <DocsTableCell withRightBorder>
+                <button
+                  type="button"
+                  onClick={() => hasResidents && toggle(town.name)}
+                  disabled={!hasResidents}
+                  className={cn(
+                    "flex items-center gap-1.5 text-left",
+                    hasResidents ? "cursor-pointer group/town" : "cursor-default",
+                  )}
+                  aria-expanded={isOpen}
                 >
-                  <DocsTableCell withRightBorder>
-                    <button
-                      type="button"
-                      onClick={() => hasResidents && toggle(town.name)}
-                      disabled={!hasResidents}
+                  {hasResidents ? (
+                    <ChevronDown
+                      size={13}
                       className={cn(
-                        "flex items-center gap-1.5 text-left",
-                        hasResidents ? "cursor-pointer group/town" : "cursor-default",
+                        "shrink-0 transition-transform duration-200",
+                        DOCS_TABLE_THEME.iconFaint,
+                        "group-hover/town:text-foreground",
+                        isOpen && "rotate-180"
                       )}
-                      aria-expanded={isOpen}
-                    >
-                      {hasResidents ? (
-                        <ChevronDown
-                          size={13}
-                          className={cn(
-                            "shrink-0 transition-transform duration-200",
-                            DOCS_TABLE_THEME.iconFaint,
-                            "group-hover/town:text-foreground",
-                            isOpen && "rotate-180"
-                          )}
-                        />
-                      ) : (
-                        <span className="w-3.25 shrink-0" />
-                      )}
-                      <TownNameLabel tag={town.tag} name={town.name} query={query} />
-                    </button>
-                  </DocsTableCell>
+                    />
+                  ) : (
+                    <span className="w-3.25 shrink-0" />
+                  )}
+                  <TownNameLabel tag={town.tag} name={town.name} query={query} />
+                </button>
+              </DocsTableCell>
 
-                  <DocsTableCell withRightBorder>
-                    <TownNationBadge nation={town.nation} nationTag={town.nationTag} independentLabel="Независимый" />
-                  </DocsTableCell>
+              <DocsTableCell withRightBorder>
+                <TownNationBadge nation={town.nation} nationTag={town.nationTag} independentLabel="Независимый" />
+              </DocsTableCell>
 
-                  <DocsTableCell>
-                    <span className={cn("text-xs font-mono tabular-nums", DOCS_TABLE_THEME.textSoft)}>
-                      {town.size}
-                    </span>
-                  </DocsTableCell>
-                </DocsTableRow>
+              <DocsTableCell>
+                <span className={cn("text-xs font-mono tabular-nums", DOCS_TABLE_THEME.textSoft)}>
+                  {town.size}
+                </span>
+              </DocsTableCell>
+            </DocsTableRow>
 
-                {isOpen && hasResidents && (
-                  <DocsTableRow className={DOCS_TABLE_THEME.rowHover}>
-                    <DocsTableCell colSpan={3} className="bg-muted/40 py-2.5">
-                      <div className="flex items-center gap-1.5 flex-wrap">
-                        <Users size={12} className={cn("shrink-0", DOCS_TABLE_THEME.iconFaint)} />
-                        {town.residents.map((resident: Resident) => (
-                          <DuckBadge
-                            key={resident.display}
-                            variant="outline"
-                            className={cn(
-                              "text-xs",
-                              resident.role
-                                ? RESIDENT_BADGE_STYLE[resident.role]
-                                : "bg-card text-foreground/70 border-border"
-                            )}
-                          >
-                            {resident.display}
-                          </DuckBadge>
-                        ))}
-                      </div>
-                    </DocsTableCell>
-                  </DocsTableRow>
-                )}
-              </Fragment>
-            );
-          })}
-        </DocsTableBody>
-      </DocsTable>
-
-      {/* Footer */}
-      {data && (
-        <TablePagination
-          page={page}
-          totalPages={totalPages}
-          pageStart={pageStart}
-          pageSize={pageSize}
-          total={data.total}
-          pageNumbers={pageNumbers}
-          goTo={goTo}
-        />
-      )}
-    </div>
+            {isOpen && hasResidents && (
+              <DocsTableRow className={DOCS_TABLE_THEME.rowHover}>
+                <DocsTableCell colSpan={3} className="bg-muted/40 py-2.5">
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    <Users size={12} className={cn("shrink-0", DOCS_TABLE_THEME.iconFaint)} />
+                    {town.residents.map((resident: Resident) => (
+                      <DuckBadge
+                        key={resident.display}
+                        variant="outline"
+                        className={cn(
+                          "text-xs",
+                          resident.role
+                            ? RESIDENT_BADGE_STYLE[resident.role]
+                            : "bg-card text-foreground/70 border-border"
+                        )}
+                      >
+                        {resident.display}
+                      </DuckBadge>
+                    ))}
+                  </div>
+                </DocsTableCell>
+              </DocsTableRow>
+            )}
+          </Fragment>
+        );
+      })}
+    </PagedTableLayout>
   );
 }

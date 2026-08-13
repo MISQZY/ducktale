@@ -204,7 +204,7 @@ export function QuestTree({
         console.error("Failed to parse quest completions", e);
       }
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, [id, mockLocalStorage, updateAllNodes]);
 
   const initGraph = React.useCallback((graph: Graph) => {

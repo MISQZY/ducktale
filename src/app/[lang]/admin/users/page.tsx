@@ -2,9 +2,10 @@ import { getTranslations } from "next-intl/server";
 import { requireAdmin } from "@/lib/admin";
 import { siteDb } from "@/lib/site-db";
 import { seedBuiltinBadges } from "@/lib/badges";
+import { isUserOnline } from "@/lib/presence";
+import { formatLastSeen } from "@/lib/player-card-format";
 import { AdminPageShell } from "@/components/admin/AdminPageShell";
 import { StatusBadge } from "@/components/common/StatusBadge";
-import { BadgeChip } from "@/components/badges/BadgeChip";
 import { AdminUserActions } from "@/components/admin/AdminUserActions";
 import { UserBadgesCell } from "@/components/admin/UserBadgesCell";
 import { Link } from "@/i18n/navigation";
@@ -36,6 +37,7 @@ export default async function AdminUsersPage({
   const page = Math.max(1, parseInt(rawPage ?? "1", 10) || 1);
 
   const t = await getTranslations("Admin");
+  const tc = await getTranslations("PlayerCard");
 
   // Relies on the site DB's case-insensitive collation (same as elsewhere
   // in this codebase) — no explicit `mode: "insensitive"` needed.
@@ -56,6 +58,7 @@ export default async function AdminUsersPage({
         nickname: true,
         isAdmin: true,
         createdAt: true,
+        lastSeenAt: true,
         accountLink: { select: { status: true, minecraftName: true } },
         badges: { select: { badge: { select: { id: true, name: true, icon: true, color: true } } } },
       },
@@ -83,71 +86,96 @@ export default async function AdminUsersPage({
           <DocsTable>
             <DocsTableHeader>
               <DocsTableRow>
-                <DocsTableHead className="w-[280px] align-middle" withRightBorder>{t("userColumn")}</DocsTableHead>
+                <DocsTableHead className="w-[240px] align-middle" withRightBorder>{t("userColumn")}</DocsTableHead>
                 <DocsTableHead className="align-middle" withRightBorder>{t("badgesLabel")}</DocsTableHead>
-                <DocsTableHead className="w-[160px] align-middle text-center" withRightBorder>{t("registrationColumn")}</DocsTableHead>
+                <DocsTableHead className="w-[140px] align-middle text-center" withRightBorder>{tc("lastSeenOnSite", { date: "" }).split(":")[0] || "Last seen"}</DocsTableHead>
+                <DocsTableHead className="w-[120px] align-middle text-center" withRightBorder>{t("registrationColumn")}</DocsTableHead>
                 <DocsTableHead className="w-[180px] align-middle text-right">{t("actionsColumn")}</DocsTableHead>
               </DocsTableRow>
             </DocsTableHeader>
             <DocsTableBody className="[&_tr:last-child]:border-0">
               {users.length === 0 ? (
                 <DocsTableRow>
-                  <DocsTableCell colSpan={4} className="text-center py-10">
+                  <DocsTableCell colSpan={5} className="text-center py-10">
                     <p className={cn("text-sm", DOCS_TABLE_THEME.textFaint)}>{t("noResults")}</p>
                   </DocsTableCell>
                 </DocsTableRow>
               ) : (
-                users.map((user) => (
-                  <DocsTableRow key={user.id}>
-                    <DocsTableCell className="align-middle" withRightBorder>
-                      <div className="flex flex-col gap-1.5">
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <Link
-                            href={`/profile/${encodeURIComponent(user.nickname)}`}
-                            target="_blank"
-                            className="text-foreground/90 font-medium hover:text-primary/90 hover:underline underline-offset-4 transition-colors"
-                          >
-                            {user.nickname}
-                          </Link>
-                          {user.isAdmin && <StatusBadge label={t("adminBadge")} className="px-2 py-0.5 text-[0.6rem]" />}
+                users.map((user) => {
+                  const siteOnline = isUserOnline(user.id);
+                  const siteLastSeenMs = user.lastSeenAt?.getTime() ?? null;
+                  return (
+                    <DocsTableRow key={user.id}>
+                      <DocsTableCell className="align-middle" withRightBorder>
+                        <div className="flex flex-col gap-1.5">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <Link
+                              href={`/profile/${encodeURIComponent(user.nickname)}`}
+                              target="_blank"
+                              className="text-foreground/90 font-medium hover:text-primary/90 hover:underline underline-offset-4 transition-colors"
+                            >
+                              {user.nickname}
+                            </Link>
+                            {user.isAdmin && <StatusBadge label={t("adminBadge")} className="px-2 py-0.5 text-[0.6rem]" />}
+                          </div>
+                          <span className="text-foreground/45 text-xs">
+                            {user.accountLink?.status === "CONFIRMED"
+                              ? t("linkedAs", { name: user.accountLink.minecraftName ?? "" })
+                              : user.accountLink?.status === "PENDING"
+                                ? t("pending")
+                                : t("notLinked")}
+                          </span>
                         </div>
-                        <span className="text-foreground/45 text-xs">
-                          {user.accountLink?.status === "CONFIRMED"
-                            ? t("linkedAs", { name: user.accountLink.minecraftName ?? "" })
-                            : user.accountLink?.status === "PENDING"
-                              ? t("pending")
-                              : t("notLinked")}
+                      </DocsTableCell>
+
+                      <DocsTableCell className="align-middle max-w-0" withRightBorder>
+                        <UserBadgesCell
+                          lang={lang}
+                          userId={user.id}
+                          badges={badges}
+                          currentBadgeIds={user.badges.map(({ badge }) => badge.id)}
+                        />
+                      </DocsTableCell>
+
+                      <DocsTableCell className="align-middle text-center" withRightBorder>
+                        {siteOnline ? (
+                          <span className="inline-flex items-center justify-center gap-2 text-xs font-medium text-blue-600 dark:text-blue-400">
+                            <span className="relative flex h-2 w-2 shrink-0">
+                              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75" />
+                              <span className="relative inline-flex h-2 w-2 rounded-full bg-blue-500" />
+                            </span>
+                            {tc("siteOnline")}
+                          </span>
+                        ) : siteLastSeenMs ? (
+                          <span className="text-foreground/50 text-xs">
+                            {formatLastSeen(siteLastSeenMs, lang)}
+                          </span>
+                        ) : (
+                          <span className="text-foreground/30 text-xs italic">
+                            —
+                          </span>
+                        )}
+                      </DocsTableCell>
+
+                      <DocsTableCell className="align-middle text-center" withRightBorder>
+                        <span className="text-foreground/50 text-xs">
+                          {user.createdAt.toLocaleDateString(lang === "ru" ? "ru-RU" : "en-US")}
                         </span>
-                      </div>
-                    </DocsTableCell>
+                      </DocsTableCell>
 
-                    <DocsTableCell className="align-middle" withRightBorder>
-                      <UserBadgesCell
-                        lang={lang}
-                        userId={user.id}
-                        badges={badges}
-                        currentBadgeIds={user.badges.map(({ badge }) => badge.id)}
-                      />
-                    </DocsTableCell>
-
-                    <DocsTableCell className="align-middle text-center" withRightBorder>
-                      <span className="text-foreground/50 text-xs">
-                        {user.createdAt.toLocaleDateString(lang === "ru" ? "ru-RU" : "en-US")}
-                      </span>
-                    </DocsTableCell>
-
-                    <DocsTableCell className="align-middle text-right">
-                      <AdminUserActions
-                        lang={lang}
-                        userId={user.id}
-                        nickname={user.nickname}
-                        isSelf={user.id === admin.id}
-                        hasLink={user.accountLink?.status === "CONFIRMED"}
-                        isAdmin={user.isAdmin}
-                      />
-                    </DocsTableCell>
-                  </DocsTableRow>
-                ))
+                      <DocsTableCell className="align-middle text-right">
+                        <AdminUserActions
+                          lang={lang}
+                          userId={user.id}
+                          nickname={user.nickname}
+                          isSelf={user.id === admin.id}
+                          hasLink={user.accountLink?.status === "CONFIRMED"}
+                          isAdmin={user.isAdmin}
+                        />
+                      </DocsTableCell>
+                    </DocsTableRow>
+                  );
+                })
               )}
             </DocsTableBody>
           </DocsTable>

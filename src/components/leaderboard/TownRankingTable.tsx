@@ -3,21 +3,16 @@
 import { useCallback } from "react";
 import { useTranslations } from "next-intl";
 import { cn } from "@/lib/utils";
-import { Castle, Landmark } from "lucide-react";
+import { Landmark } from "lucide-react";
 import {
-  DocsTable,
   DocsTableHeader,
-  DocsTableBody,
   DocsTableRow,
   DocsTableHead,
   DocsTableCell,
   DOCS_TABLE_THEME,
 } from "@/components/ui/docs-table";
-import { DuckBadge } from "@/components/ui/duck/badge";
 import {
-  TableSearch,
-  TablePagination,
-  TableSkeleton,
+  PagedTableLayout,
 } from "@/components/docs/paged-table";
 import { usePagedTable } from "@/hooks/usePagedTable";
 import { TownNameLabel, TownNationBadge } from "@/components/towny/TownCells";
@@ -61,35 +56,33 @@ export function TownRankingTable({ pageSize = 15, className }: TownRankingTableP
   const total = data?.total ?? null;
 
   return (
-    <div className={cn("not-prose flex flex-col gap-3", className)}>
-
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <div className="flex items-center gap-2">
-          <Castle size={15} className="text-primary/80 shrink-0" />
-          <span
-            className="text-sm font-semibold text-foreground/80 tracking-wide"
-            style={{ fontFamily: "var(--font-body)" }}
-          >
-            {t("townsTitle")}
-          </span>
-          {total !== null && (
-            <DuckBadge variant="outline" className="gap-1 border-primary/35 text-primary bg-primary/10">
-              <Landmark size={10} />
-              {total}
-            </DuckBadge>
-          )}
-        </div>
-
-        <TableSearch
-          value={query}
-          onChange={setQuery}
-          placeholder={t("townsSearchPlaceholder")}
-        />
-      </div>
-
-      {/* Table */}
-      <DocsTable>
+    <PagedTableLayout
+      className={className}
+      titleNode={
+        <span
+          className="text-sm font-semibold text-foreground/80 tracking-wide"
+          style={{ fontFamily: "var(--font-body)" }}
+        >
+          {t("townsTitle")}
+        </span>
+      }
+      total={total}
+      totalIcon={<Landmark size={10} />}
+      query={query}
+      onQueryChange={setQuery}
+      searchPlaceholder={t("townsSearchPlaceholder")}
+      isLoading={isLoading}
+      error={state.status === "error" ? t("loadError", { message: state.message }) : null}
+      isEmpty={!!data && data.items.length === 0}
+      emptyMessage={query ? t("townsNotFound", { query }) : t("townsEmpty")}
+      skeletonWidths={SKELETON_WIDTHS}
+      page={page}
+      totalPages={totalPages}
+      pageStart={pageStart}
+      pageSize={pageSize}
+      pageNumbers={pageNumbers}
+      goTo={goTo}
+      tableHeader={
         <DocsTableHeader>
           <DocsTableRow>
             <DocsTableHead sortable sortDirection={sortColumn === "rank" ? sortDirection : undefined} onSort={() => setSort("rank", "asc")} className="w-14 text-center align-middle" withRightBorder>{t("columns.rank")}</DocsTableHead>
@@ -98,75 +91,40 @@ export function TownRankingTable({ pageSize = 15, className }: TownRankingTableP
             <DocsTableHead sortable sortDirection={sortColumn === "size" ? sortDirection : undefined} onSort={() => setSort("size", "desc")} className="w-24 text-center align-middle"               >{t("columns.size")}</DocsTableHead>
           </DocsTableRow>
         </DocsTableHeader>
+      }
+    >
+      {data && data.items.map((town) => {
+        const isTopTen = town.rank <= 10;
+        return (
+          <DocsTableRow
+            key={town.name}
+            className={cn(
+              isTopTen && "bg-amber-500/[0.06] border-l-2 border-l-amber-500/50",
+              isRefreshing && "opacity-40 transition-opacity"
+            )}
+          >
+            <DocsTableCell className="text-center align-middle" withRightBorder>
+              <div className="flex justify-center">
+                <RankBadge rank={town.rank} size={18} variant="text" />
+              </div>
+            </DocsTableCell>
 
-        <DocsTableBody className="[&_tr:last-child]:border-0">
-          {isLoading && <TableSkeleton rows={pageSize} cellWidths={SKELETON_WIDTHS} />}
+            <DocsTableCell className="align-middle" withRightBorder>
+              <TownNameLabel tag={town.tag} name={town.name} query={query} />
+            </DocsTableCell>
 
-          {state.status === "error" && (
-            <DocsTableRow>
-              <DocsTableCell colSpan={4} className="text-center py-10">
-                <p className="text-sm text-red-600/70 dark:text-red-400/70">{t("loadError", { message: state.message })}</p>
-              </DocsTableCell>
-            </DocsTableRow>
-          )}
+            <DocsTableCell className="align-middle" withRightBorder>
+              <TownNationBadge nation={town.nation} nationTag={town.nationTag} independentLabel={t("townIndependent")} />
+            </DocsTableCell>
 
-          {data && !isLoading && data.items.length === 0 && (
-            <DocsTableRow>
-              <DocsTableCell colSpan={4} className="text-center py-10">
-                <p className={cn("text-sm", DOCS_TABLE_THEME.textFaint)}>
-                  {query ? t("townsNotFound", { query }) : t("townsEmpty")}
-                </p>
-              </DocsTableCell>
-            </DocsTableRow>
-          )}
-
-          {data && data.items.map((town) => {
-            const isTopTen = town.rank <= 10;
-            return (
-              <DocsTableRow
-                key={town.name}
-                className={cn(
-                  isTopTen && "bg-amber-500/[0.06] border-l-2 border-l-amber-500/50",
-                  isRefreshing && "opacity-40 transition-opacity"
-                )}
-              >
-                <DocsTableCell className="text-center align-middle" withRightBorder>
-                  <div className="flex justify-center">
-                    <RankBadge rank={town.rank} size={18} variant="text" />
-                  </div>
-                </DocsTableCell>
-
-                <DocsTableCell className="align-middle" withRightBorder>
-                  <TownNameLabel tag={town.tag} name={town.name} query={query} />
-                </DocsTableCell>
-
-                <DocsTableCell className="align-middle" withRightBorder>
-                  <TownNationBadge nation={town.nation} nationTag={town.nationTag} independentLabel={t("townIndependent")} />
-                </DocsTableCell>
-
-                <DocsTableCell className="text-center align-middle">
-                  <span className={cn("text-xs font-mono tabular-nums", DOCS_TABLE_THEME.textSoft)}>
-                    {town.size}
-                  </span>
-                </DocsTableCell>
-              </DocsTableRow>
-            );
-          })}
-        </DocsTableBody>
-      </DocsTable>
-
-      {/* Footer */}
-      {data && (
-        <TablePagination
-          page={page}
-          totalPages={totalPages}
-          pageStart={pageStart}
-          pageSize={pageSize}
-          total={data.total}
-          pageNumbers={pageNumbers}
-          goTo={goTo}
-        />
-      )}
-    </div>
+            <DocsTableCell className="text-center align-middle">
+              <span className={cn("text-xs font-mono tabular-nums", DOCS_TABLE_THEME.textSoft)}>
+                {town.size}
+              </span>
+            </DocsTableCell>
+          </DocsTableRow>
+        );
+      })}
+    </PagedTableLayout>
   );
 }

@@ -2,22 +2,17 @@
 
 import { useCallback } from "react";
 import { cn } from "@/lib/utils";
-import { ShieldCheck, Users, Infinity as InfinityIcon } from "lucide-react";
+import { Users, Infinity as InfinityIcon } from "lucide-react";
 import {
-  DocsTable,
   DocsTableHeader,
-  DocsTableBody,
   DocsTableRow,
   DocsTableHead,
   DocsTableCell,
   DOCS_TABLE_THEME,
 } from "@/components/ui/docs-table";
-import { DuckBadge } from "@/components/ui/duck/badge";
 import {
-  TableSearch,
-  TablePagination,
-  TableSkeleton,
   HighlightMatch,
+  PagedTableLayout,
 } from "@/components/docs/paged-table";
 import { usePagedTable } from "@/hooks/usePagedTable";
 import type { WhitelistPlayer, WhitelistResponse } from "@/types/whitelist";
@@ -109,35 +104,33 @@ export function WhitelistTable({
   const total = data?.total ?? null;
 
   return (
-    <div className={cn("not-prose flex flex-col gap-3", className)}>
-
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <div className="flex items-center gap-2">
-          <ShieldCheck size={15} className="text-emerald-600/80 dark:text-emerald-400/80 shrink-0" />
-          <span
-            className="text-sm font-semibold text-foreground/80 tracking-wide"
-            style={{ fontFamily: "var(--font-body)" }}
-          >
-            {title ?? "Вайтлист"}
-          </span>
-          {total !== null && (
-            <DuckBadge variant="outline" className="gap-1 border-emerald-700/35 text-emerald-700 dark:text-emerald-300/80 bg-emerald-950/20">
-              <Users size={10} />
-              {total}
-            </DuckBadge>
-          )}
-        </div>
-
-        <TableSearch
-          value={query}
-          onChange={setQuery}
-          placeholder="Поиск по нику…"
-        />
-      </div>
-
-      {/* Table */}
-      <DocsTable>
+    <PagedTableLayout
+      className={className}
+      titleNode={
+        <span
+          className="text-sm font-semibold text-foreground/80 tracking-wide"
+          style={{ fontFamily: "var(--font-body)" }}
+        >
+          {title ?? "Вайтлист"}
+        </span>
+      }
+      total={total}
+      totalIcon={<Users size={10} />}
+      query={query}
+      onQueryChange={setQuery}
+      searchPlaceholder="Поиск по нику…"
+      isLoading={isLoading}
+      error={state.status === "error" ? `Не удалось загрузить список: ${state.message}` : null}
+      isEmpty={!!data && data.items.length === 0}
+      emptyMessage={query ? `Игрок «${query}» не найден` : "Вайтлист пуст"}
+      skeletonWidths={SKELETON_WIDTHS}
+      page={page}
+      totalPages={totalPages}
+      pageStart={pageStart}
+      pageSize={pageSize}
+      pageNumbers={pageNumbers}
+      goTo={goTo}
+      tableHeader={
         <DocsTableHeader>
           <DocsTableRow>
             <DocsTableHead sortable sortDirection={sortColumn === "id" ? sortDirection : undefined} onSort={() => setSort("id")} className="w-16" withRightBorder>№</DocsTableHead>
@@ -147,73 +140,38 @@ export function WhitelistTable({
             <DocsTableHead sortable sortDirection={sortColumn === "expiresAt" ? sortDirection : undefined} onSort={() => setSort("expiresAt")} className="w-32">Действителен до</DocsTableHead>
           </DocsTableRow>
         </DocsTableHeader>
+      }
+    >
+      {data && data.items.map((player, index) => (
+        <DocsTableRow
+          key={player.id}
+          className={cn(isRefreshing && "opacity-40 transition-opacity")}
+        >
+          <DocsTableCell withRightBorder className={cn("font-mono text-xs tabular-nums", DOCS_TABLE_THEME.textFaint)}>
+            {pageStart + index + 1}
+          </DocsTableCell>
 
-        <DocsTableBody className="[&_tr:last-child]:border-0">
-          {isLoading && <TableSkeleton rows={pageSize} cellWidths={SKELETON_WIDTHS} />}
+          <DocsTableCell withRightBorder>
+            <HighlightMatch text={player.name} query={query} />
+          </DocsTableCell>
 
-          {state.status === "error" && (
-            <DocsTableRow>
-              <DocsTableCell colSpan={5} className="text-center py-10">
-                <p className="text-sm text-red-600/70 dark:text-red-400/70">Не удалось загрузить список: {state.message}</p>
-              </DocsTableCell>
-            </DocsTableRow>
-          )}
+          <DocsTableCell withRightBorder>
+            <span className={cn("text-xs font-medium", DOCS_TABLE_THEME.textSoft)}>
+              {player.moderator}
+            </span>
+          </DocsTableCell>
 
-          {data && !isLoading && data.items.length === 0 && (
-            <DocsTableRow>
-              <DocsTableCell colSpan={5} className="text-center py-10">
-                <p className={cn("text-sm", DOCS_TABLE_THEME.textFaint)}>
-                  {query ? `Игрок «${query}» не найден` : "Вайтлист пуст"}
-                </p>
-              </DocsTableCell>
-            </DocsTableRow>
-          )}
+          <DocsTableCell withRightBorder>
+            <span className={cn("text-xs tabular-nums", DOCS_TABLE_THEME.textFaint)}>
+              {formatDate(player.addedAt)}
+            </span>
+          </DocsTableCell>
 
-          {data && data.items.map((player, index) => (
-            <DocsTableRow
-              key={player.id}
-              className={cn(isRefreshing && "opacity-40 transition-opacity")}
-            >
-              <DocsTableCell withRightBorder className={cn("font-mono text-xs tabular-nums", DOCS_TABLE_THEME.textFaint)}>
-                {pageStart + index + 1}
-              </DocsTableCell>
-
-              <DocsTableCell withRightBorder>
-                <HighlightMatch text={player.name} query={query} />
-              </DocsTableCell>
-
-              <DocsTableCell withRightBorder>
-                <span className={cn("text-xs font-medium", DOCS_TABLE_THEME.textSoft)}>
-                  {player.moderator}
-                </span>
-              </DocsTableCell>
-
-              <DocsTableCell withRightBorder>
-                <span className={cn("text-xs tabular-nums", DOCS_TABLE_THEME.textFaint)}>
-                  {formatDate(player.addedAt)}
-                </span>
-              </DocsTableCell>
-
-              <DocsTableCell>
-                <ExpiryCell expiresAt={player.expiresAt} />
-              </DocsTableCell>
-            </DocsTableRow>
-          ))}
-        </DocsTableBody>
-      </DocsTable>
-
-      {/* Footer */}
-      {data && (
-        <TablePagination
-          page={page}
-          totalPages={totalPages}
-          pageStart={pageStart}
-          pageSize={pageSize}
-          total={data.total}
-          pageNumbers={pageNumbers}
-          goTo={goTo}
-        />
-      )}
-    </div>
+          <DocsTableCell>
+            <ExpiryCell expiresAt={player.expiresAt} />
+          </DocsTableCell>
+        </DocsTableRow>
+      ))}
+    </PagedTableLayout>
   );
 }

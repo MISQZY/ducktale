@@ -54,6 +54,19 @@ interface CacheEntry<T> {
   expiresAt: number;
 }
 
+// ─── URL helpers ────────────────────────────────────────────────────────────────
+// We read/write the query string directly via the History API instead of the
+// Next.js router: router.push()/replace() treats a search-param-only change as
+// a real navigation, which makes the App Router re-fetch the page's RSC payload
+// from the server on top of the fetch this hook already does. That turned every
+// keystroke/page/sort click into two network round-trips. history.replaceState
+// just updates the address bar for shareable links — no navigation, no refetch.
+
+function readParam(key: string): string | null {
+  if (typeof window === "undefined") return null;
+  return new URLSearchParams(window.location.search).get(key);
+}
+
 // ─── Hook ─────────────────────────────────────────────────────────────────────
 
 export function usePagedTable<T>({
@@ -62,14 +75,34 @@ export function usePagedTable<T>({
   cacheTtlMs  = 60_000,
 }: UsePagedTableOptions<T>): UsePagedTableResult<T> {
   const [state, setState] = useState<TableFetchState<T>>({ status: "loading" });
-  const [query, setQueryState] = useState("");
-  const [page,  setPage]  = useState(1);
-  const [sortColumn, setSortColumn] = useState<string | undefined>();
-  const [sortDirection, setSortDirection] = useState<"asc" | "desc" | undefined>();
+  const [query, setQueryState] = useState(() => readParam("search") ?? "");
+  const [page,  setPage]  = useState(() => parseInt(readParam("page") ?? "1", 10) || 1);
+  const [sortColumn, setSortColumn] = useState<string | undefined>(() => readParam("sort") ?? undefined);
+  const [sortDirection, setSortDirection] = useState<"asc" | "desc" | undefined>(
+    () => (readParam("order") as "asc" | "desc" | null) ?? undefined,
+  );
 
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const cacheRef    = useRef<Map<string, CacheEntry<T>>>(new Map());
+  const inFlightRef = useRef<Map<string, Promise<PagedResponse<T>>>>(new Map());
   const mountedRef  = useRef(true);
+
+  const syncUrl = useCallback((p: number, q: string, sc?: string, sd?: "asc" | "desc") => {
+    if (typeof window === "undefined") return;
+    const params = new URLSearchParams(window.location.search);
+    if (p > 1) params.set("page", p.toString());
+    else params.delete("page");
+    if (q) params.set("search", q);
+    else params.delete("search");
+    if (sc) params.set("sort", sc);
+    else params.delete("sort");
+    if (sd) params.set("order", sd);
+    else params.delete("order");
+
+    const qs  = params.toString();
+    const url = `${window.location.pathname}${qs ? `?${qs}` : ""}`;
+    window.history.replaceState(window.history.state, "", url);
+  }, []);
 
   useEffect(() => {
     mountedRef.current = true;
@@ -99,7 +132,16 @@ export function usePagedTable<T>({
       );
     }
 
-    fetcher(p, q, sc, sd)
+    let promise = inFlightRef.current.get(key);
+    if (!promise) {
+      promise = fetcher(p, q, sc, sd);
+      inFlightRef.current.set(key, promise);
+      promise.finally(() => {
+        if (mountedRef.current) inFlightRef.current.delete(key);
+      });
+    }
+
+    promise
       .then((data) => {
         if (!mountedRef.current) return;
         cacheRef.current.set(key, { data, expiresAt: now + cacheTtlMs });
@@ -114,7 +156,10 @@ export function usePagedTable<T>({
       });
   }, [fetcher, cacheTtlMs]);
 
-  useEffect(() => { fetchPage(1, "", undefined, undefined); }, [fetchPage]);
+  // Initial fetch, respecting whatever page/search/sort came in via the URL.
+  // Intentionally mount-only — page/query/sort below are only the initial values.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => { fetchPage(page, query, sortColumn, sortDirection); }, [fetchPage]);
 
   // ── Search with debounce ────────────────────────────────────────────────────
 
@@ -123,9 +168,12 @@ export function usePagedTable<T>({
     setPage(1);
     if (debounceRef.current) clearTimeout(debounceRef.current);
     debounceRef.current = setTimeout(() => {
-      if (mountedRef.current) fetchPage(1, value, sortColumn, sortDirection);
+      if (mountedRef.current) {
+        fetchPage(1, value, sortColumn, sortDirection);
+        syncUrl(1, value, sortColumn, sortDirection);
+      }
     }, debounceMs);
-  }, [fetchPage, debounceMs, sortColumn, sortDirection]);
+  }, [fetchPage, syncUrl, debounceMs, sortColumn, sortDirection]);
 
   // ── Sort ────────────────────────────────────────────────────────────────────
 
@@ -147,14 +195,16 @@ export function usePagedTable<T>({
     setSortDirection(newDir);
     setPage(1);
     fetchPage(1, query, newCol, newDir);
-  }, [sortColumn, sortDirection, fetchPage, query]);
+    syncUrl(1, query, newCol, newDir);
+  }, [sortColumn, sortDirection, fetchPage, syncUrl, query]);
 
   // ── Pagination ──────────────────────────────────────────────────────────────
 
   const goTo = useCallback((p: number) => {
     setPage(p);
     fetchPage(p, query, sortColumn, sortDirection);
-  }, [fetchPage, query, sortColumn, sortDirection]);
+    syncUrl(p, query, sortColumn, sortDirection);
+  }, [fetchPage, syncUrl, query, sortColumn, sortDirection]);
 
   const refresh = useCallback(() => {
     cacheRef.current.clear();
