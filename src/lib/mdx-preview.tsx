@@ -52,6 +52,7 @@ const CLIENT_ONLY_COMPONENT_NAMES = [
   "ServerStatusWidget", "ServerVersion", "TownyTable", "WhitelistTable",
   "ItemCard", "RuleTable", "ServerAddress", "GitHubLastModified", "PermissionTable",
   "Steps", "Step", "Accordion", "Accordions", "Tab", "Tabs", "TabsContent", "TabsList", "TabsTrigger",
+  "LiveQuestTree",
 ];
 
 function PreviewUnavailable({ name }: { name: string }) {
@@ -148,7 +149,7 @@ function getPreviewMdxComponents(): MDXComponents {
 // syntax error, just reported before ever reaching evaluate() instead of
 // after. Editing and saving the file are completely unaffected; this only
 // disables the live preview for that one file.
-const UNSUPPORTED_MODULE_SYNTAX_PATTERN = /^\s*import\s|^\s*export\s[^;\n]*\sfrom\s|import\.meta\.url/m;
+
 
 export type MdxPreviewResult = { node: ReactNode } | { error: string };
 
@@ -156,16 +157,22 @@ export type MdxPreviewResult = { node: ReactNode } | { error: string };
 export async function compileMdxPreview(source: string): Promise<MdxPreviewResult> {
   const body = source.replace(FRONTMATTER_PATTERN, "");
 
-  if (UNSUPPORTED_MODULE_SYNTAX_PATTERN.test(body)) {
-    return {
-      error:
-        "Предпросмотр недоступен: файл импортирует внешний модуль (например, иконку из lucide-react). " +
-        "Редактирование и сохранение работают как обычно — это ограничение только самого предпросмотра.",
-    };
-  }
+  // Mock named imports (e.g. `import { Sword, Shield } from "lucide-react"`) 
+  // by replacing them with dummy React components inline. This prevents Node 
+  // from trying to actually import the module and causing a React Hook error.
+  const previewBody = body.replace(
+    /^\s*import\s+{([^}]+)}\s+from\s+['"][^'"]+['"];?/gm,
+    (match, p1) => {
+      const vars = p1.split(',').map((s: string) => s.trim().split(' as ')[0]).filter(Boolean);
+      return vars.map((v: string) => `export const ${v} = () => <span style={{ display: 'inline-block', width: '1em', height: '1em', borderRadius: '0.2em', background: 'var(--color-primary)', opacity: 0.2 }} title="${v}" />;`).join('\n');
+    }
+  ).replace(
+    /^\s*import\s+[^{][^;]*\s+from\s+['"][^'"]+['"];?/gm, 
+    "/* default import stripped */"
+  );
 
   try {
-    const { default: Content } = await evaluate(body, {
+    const { default: Content } = await evaluate(previewBody, {
       ...runtime,
       remarkPlugins: [remarkGfm],
     });

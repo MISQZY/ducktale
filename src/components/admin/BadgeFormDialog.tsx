@@ -8,6 +8,12 @@ import { AdminFormDialog } from "./AdminFormDialog";
 import { IconPickerField } from "./IconPickerField";
 import { ColorPickerField } from "./ColorPickerField";
 import { createBadge, updateBadge } from "@/lib/actions/admin-badges";
+import { Checkbox } from "@/components/ui/checkbox";
+import { SearchInput } from "@/components/ui/search-input";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { ChevronDown, HelpCircle } from "lucide-react";
+import { formInputClasses, formInputStyle } from "@/components/common/form-styles";
 
 interface BadgeFormValues {
   id: string;
@@ -46,8 +52,11 @@ export function BadgeFormDialog({ lang, badge, roleOptions, trigger }: BadgeForm
   const [icon, setIcon] = useState<string>(badge?.icon ?? DEFAULT_ICON);
   const [color, setColor] = useState<string>(badge?.color ?? DEFAULT_COLOR);
   const [iconQuery, setIconQuery] = useState("");
+  const [roleQuery, setRoleQuery] = useState("");
+  const [rolesOpen, setRolesOpen] = useState(false);
+  const [selectedRoleIds, setSelectedRoleIds] = useState<string[]>(badge?.autoRoleIds ?? []);
 
-
+  const visibleRoles = roleOptions.filter((r) => r.name.toLowerCase().includes(roleQuery.toLowerCase()) || r.group.toLowerCase().includes(roleQuery.toLowerCase()));
 
   async function handleSubmit(formData: FormData) {
     setError(null);
@@ -76,6 +85,8 @@ export function BadgeFormDialog({ lang, badge, roleOptions, trigger }: BadgeForm
           setIcon(badge?.icon ?? DEFAULT_ICON);
           setColor(badge?.color ?? DEFAULT_COLOR);
           setIconQuery("");
+          setRoleQuery("");
+          setSelectedRoleIds(badge?.autoRoleIds ?? []);
         }
       }}
       trigger={trigger}
@@ -85,6 +96,7 @@ export function BadgeFormDialog({ lang, badge, roleOptions, trigger }: BadgeForm
       submitLabel={badge ? t("save") : t("create")}
       submittingLabel={t("saving")}
       onSubmit={handleSubmit}
+      className="sm:max-w-lg"
     >
       <FormInput
         id="name"
@@ -114,45 +126,98 @@ export function BadgeFormDialog({ lang, badge, roleOptions, trigger }: BadgeForm
       />
 
       <div className="flex flex-col gap-1.5">
-        <label className="text-xs uppercase tracking-widest text-foreground/50">
-          {t("autoConditionLabel")}
-        </label>
+        <div className="flex items-center gap-1.5">
+          <label className="text-xs uppercase tracking-widest text-foreground/50 leading-none">
+            {t("autoConditionLabel")}
+          </label>
+          <TooltipProvider>
+            <Tooltip delayDuration={200}>
+              <TooltipTrigger type="button" tabIndex={-1} className="text-foreground/40 hover:text-foreground/70 transition-colors">
+                <HelpCircle className="h-3.5 w-3.5" />
+              </TooltipTrigger>
+              <TooltipContent className="max-w-xs text-xs liquid-card border-primary/20 p-2 leading-tight">
+                <p>{t("autoConditionHint")}</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        </div>
         {roleOptions.length === 0 ? (
           <p className="text-xs text-foreground/30">{t("autoConditionEmpty")}</p>
         ) : (
-          <div className="flex flex-col gap-1 max-h-[136px] overflow-y-auto rounded-lg border border-primary/10 p-2">
-            {roleOptions.map((role) => (
-              <label key={role.id} className="flex items-center gap-2 text-sm text-foreground/80 py-0.5 cursor-pointer">
-                <input
-                  type="checkbox"
-                  name="autoRoleIds"
-                  value={role.id}
-                  defaultChecked={badge?.autoRoleIds.includes(role.id) ?? false}
-                  className="accent-primary"
-                />
-                {role.name} <span className="text-foreground/40 font-mono text-xs">({role.group})</span>
-              </label>
+          <>
+            {selectedRoleIds.map((id) => (
+              <input key={id} type="hidden" name="autoRoleIds" value={id} />
             ))}
-          </div>
+            <Popover open={rolesOpen} onOpenChange={setRolesOpen} modal={true}>
+              <PopoverTrigger asChild>
+                <button
+                  type="button"
+                  className={formInputClasses(false, "flex w-full items-center justify-between cursor-pointer")}
+                  style={formInputStyle}
+                >
+                  <span className="truncate">
+                    {selectedRoleIds.length > 0
+                      ? (lang === "ru" ? `Выбрано: ${selectedRoleIds.length}` : `Selected: ${selectedRoleIds.length}`)
+                      : (lang === "ru" ? "Выбрать роли..." : "Select roles...")}
+                  </span>
+                  <ChevronDown className="h-4 w-4 opacity-50" />
+                </button>
+              </PopoverTrigger>
+              <PopoverContent className="w-75 p-2 rounded-xl liquid-card border-primary/20" align="start">
+                <SearchInput
+                  value={roleQuery}
+                  onChange={(e) => setRoleQuery(e.target.value)}
+                  placeholder={lang === "ru" ? "Найти" : "Search"}
+                  className="text-xs"
+                  wrapperClassName="mb-2"
+                />
+                <div className="flex flex-col gap-1 max-h-55 overflow-y-auto rounded-lg border border-primary/10 p-2">
+                  {visibleRoles.map((role) => (
+                    <label key={role.id} className="flex items-center gap-2.5 text-sm text-foreground/80 py-1 cursor-pointer hover:bg-primary/5 px-1 rounded transition-colors">
+                      <Checkbox
+                        checked={selectedRoleIds.includes(role.id)}
+                        onCheckedChange={(checked) => {
+                          if (checked) {
+                            setSelectedRoleIds((prev) => [...prev, role.id]);
+                          } else {
+                            setSelectedRoleIds((prev) => prev.filter((id) => id !== role.id));
+                          }
+                        }}
+                      />
+                      <span className="truncate">
+                        {role.name} <span className="text-foreground/40 font-mono text-xs ml-1">({role.group})</span>
+                      </span>
+                    </label>
+                  ))}
+                  {visibleRoles.length === 0 && (
+                    <p className="text-xs text-foreground/35 py-2 text-center">
+                      {lang === "ru" ? "Не найдено" : "No results"}
+                    </p>
+                  )}
+                </div>
+              </PopoverContent>
+            </Popover>
+          </>
         )}
-        <p className="text-xs text-foreground/30">{t("autoConditionHint")}</p>
       </div>
 
-      <IconPickerField
-        icon={icon}
-        setIcon={setIcon}
-        iconQuery={iconQuery}
-        setIconQuery={setIconQuery}
-        label={t("iconLabel")}
-        searchPlaceholder={t("iconSearchPlaceholder")}
-        emptyMessage={t("iconSearchEmpty")}
-      />
+      <div className="grid grid-cols-2 gap-4">
+        <IconPickerField
+          icon={icon}
+          setIcon={setIcon}
+          iconQuery={iconQuery}
+          setIconQuery={setIconQuery}
+          label={t("iconLabel")}
+          searchPlaceholder={t("iconSearchPlaceholder")}
+          emptyMessage={t("iconSearchEmpty")}
+        />
 
-      <ColorPickerField
-        color={color}
-        setColor={setColor}
-        label={t("colorLabel")}
-      />
+        <ColorPickerField
+          color={color}
+          setColor={setColor}
+          label={t("colorLabel")}
+        />
+      </div>
     </AdminFormDialog>
   );
 }

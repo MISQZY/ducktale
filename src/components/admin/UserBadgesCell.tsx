@@ -6,9 +6,18 @@ import { Plus } from "lucide-react";
 import { awardBadge, revokeBadge } from "@/lib/actions/admin-badges";
 import { BadgeChip } from "@/components/badges/BadgeChip";
 import {
-  Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger,
-} from "@/components/ui/dialog";
-import { ScrollArea as ScrollAreaPrimitive } from "radix-ui";
+  Popover, PopoverContent, PopoverTrigger,
+} from "@/components/ui/popover";
+import { cn } from "@/lib/utils";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationPrevious,
+  PaginationNext,
+} from "@/components/ui/pagination";
+import { SearchInput } from "@/components/ui/search-input";
+import { useConfirm } from "@/components/common/ConfirmDialogProvider";
 
 interface BadgeOption {
   id: string;
@@ -26,6 +35,7 @@ interface UserBadgesCellProps {
 
 export function UserBadgesCell({ lang, userId, badges, currentBadgeIds }: UserBadgesCellProps) {
   const t = useTranslations("Admin");
+  const confirm = useConfirm();
   const [isPending, startTransition] = useTransition();
   const [heldIds, setHeldIds] = useState<string[]>(currentBadgeIds ?? []);
   const [pickerOpen, setPickerOpen] = useState(false);
@@ -44,8 +54,8 @@ export function UserBadgesCell({ lang, userId, badges, currentBadgeIds }: UserBa
     });
   }
 
-  function handleRevokeBadge(badgeId: string) {
-    if (!window.confirm(t("confirmRevokeBadge"))) return;
+  async function handleRevokeBadge(badgeId: string) {
+    if (!(await confirm({ description: t("confirmRevokeBadge"), variant: "destructive" }))) return;
     setError(null);
     startTransition(async () => {
       try {
@@ -73,19 +83,13 @@ export function UserBadgesCell({ lang, userId, badges, currentBadgeIds }: UserBa
   const paginatedBadges = filteredBadges.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
   return (
-    <ScrollAreaPrimitive.Root
-      type="auto"
-      className="relative min-w-0 -mx-4 -my-3.5"
-    >
-      <ScrollAreaPrimitive.Viewport className="w-full px-4 py-3.5">
-        <div className="flex items-center gap-1.5">
+    <div className="relative min-w-0 flex items-center gap-2 py-1 overflow-x-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] mask-edges">
           {heldBadges.map((b) => (
             <div key={b.id} className="shrink-0">
               <BadgeChip
                 name={b.name}
                 icon={b.icon}
                 color={b.color}
-                size="sm"
                 onRemove={() => handleRevokeBadge(b.id)}
                 disabled={isPending}
               />
@@ -93,14 +97,14 @@ export function UserBadgesCell({ lang, userId, badges, currentBadgeIds }: UserBa
           ))}
 
           {availableBadges.length > 0 && (
-            <Dialog open={pickerOpen} onOpenChange={(open) => {
+            <Popover open={pickerOpen} onOpenChange={(open) => {
               setPickerOpen(open);
               if (!open) {
                 setSearchQuery("");
                 setPage(1);
               }
-            }}>
-              <DialogTrigger asChild>
+            }} modal={true}>
+              <PopoverTrigger asChild>
                 <button
                   type="button"
                   disabled={isPending}
@@ -110,81 +114,72 @@ export function UserBadgesCell({ lang, userId, badges, currentBadgeIds }: UserBa
                 >
                   <Plus size={12} />
                 </button>
-              </DialogTrigger>
-              <DialogContent className="sm:max-w-sm max-h-[85vh] overflow-hidden flex flex-col">
-                <DialogHeader>
-                  <DialogTitle className="text-center">{t("awardBadge")}</DialogTitle>
-                </DialogHeader>
+              </PopoverTrigger>
+              <PopoverContent className="w-[300px] p-3 rounded-xl liquid-card border-primary/20 flex flex-col gap-3" align="start">
+                <SearchInput
+                  placeholder={t("badgeSearchPlaceholder")}
+                  value={searchQuery}
+                  onChange={(e) => {
+                    setSearchQuery(e.target.value);
+                    setPage(1);
+                  }}
+                  className="h-8 text-xs"
+                />
 
-                <div className="px-1 pt-2 pb-1">
-                  <input
-                    type="text"
-                    placeholder={t("badgeSearchPlaceholder")}
-                    value={searchQuery}
-                    onChange={(e) => {
-                      setSearchQuery(e.target.value);
-                      setPage(1);
-                    }}
-                    className="w-full rounded-lg border border-primary/20 bg-card/50 px-3 py-1.5 text-xs text-foreground/90 focus:outline-none focus:border-primary/50"
-                  />
-                </div>
-
-                <div className="flex flex-col gap-2 overflow-y-auto mt-2 min-h-[250px]">
+                <div className="flex flex-col gap-1.5 overflow-y-auto max-h-[220px]">
                   {paginatedBadges.length === 0 ? (
-                    <p className="text-center text-xs text-foreground/40 py-8">{t("noSearchResults")}</p>
+                    <p className="text-center text-xs text-foreground/40 py-6">{t("noSearchResults")}</p>
                   ) : (
                     paginatedBadges.map((b) => (
                       <button
                         key={b.id}
                         onClick={() => handleAwardBadge(b.id)}
                         disabled={isPending}
-                        className="flex items-center justify-between gap-3 rounded-lg border border-primary/10 bg-card/40 hover:bg-primary/10 hover:border-primary/30 p-2.5 transition-all text-left"
+                        className="flex items-center justify-between gap-3 rounded-lg border border-primary/10 bg-card/40 hover:bg-primary/10 hover:border-primary/30 p-2 transition-all text-left"
                       >
-                        <BadgeChip name={b.name} icon={b.icon} color={b.color} size="sm" />
-                        <span className="text-xs text-foreground/50">{t("awardBadge")}</span>
+                        <BadgeChip name={b.name} icon={b.icon} color={b.color} />
                       </button>
                     ))
                   )}
                 </div>
 
                 {totalPages > 1 && (
-                  <div className="flex items-center justify-between pt-3 border-t border-primary/10 mt-2">
-                    <button
-                      onClick={() => setPage((p) => Math.max(1, p - 1))}
-                      disabled={page <= 1}
-                      className="px-3 py-1 text-xs rounded-md hover:bg-primary/10 disabled:opacity-30 disabled:pointer-events-none"
-                    >
-                      {t("prevPage")}
-                    </button>
-                    <span className="text-xs text-foreground/50 tabular-nums">{page} / {totalPages}</span>
-                    <button
-                      onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                      disabled={page >= totalPages}
-                      className="px-3 py-1 text-xs rounded-md hover:bg-primary/10 disabled:opacity-30 disabled:pointer-events-none"
-                    >
-                      {t("nextPage")}
-                    </button>
+                  <div className="pt-2 border-t border-primary/10 mt-1">
+                    <Pagination>
+                      <PaginationContent className="w-full justify-between gap-0">
+                        <PaginationItem>
+                          <PaginationPrevious
+                            href="#"
+                            onClick={(e) => { e.preventDefault(); setPage((p) => Math.max(1, p - 1)); }}
+                            className={cn("h-7 px-2 py-1 text-[10px]", page <= 1 && "pointer-events-none opacity-50")}
+                            text={t("prevPage")}
+                          />
+                        </PaginationItem>
+                        <PaginationItem>
+                          <span className="text-[10px] text-foreground/50 tabular-nums">
+                            {page} / {totalPages}
+                          </span>
+                        </PaginationItem>
+                        <PaginationItem>
+                          <PaginationNext
+                            href="#"
+                            onClick={(e) => { e.preventDefault(); setPage((p) => Math.min(totalPages, p + 1)); }}
+                            className={cn("h-7 px-2 py-1 text-[10px]", page >= totalPages && "pointer-events-none opacity-50")}
+                            text={t("nextPage")}
+                          />
+                        </PaginationItem>
+                      </PaginationContent>
+                    </Pagination>
                   </div>
                 )}
-              </DialogContent>
-            </Dialog>
+              </PopoverContent>
+            </Popover>
           )}
 
           {heldBadges.length === 0 && availableBadges.length === 0 && (
             <span className="text-foreground/30 text-xs italic shrink-0">{t("noBadgesHeld")}</span>
           )}
-        </div>
-      </ScrollAreaPrimitive.Viewport>
-      
-      <ScrollAreaPrimitive.Scrollbar
-        orientation="horizontal"
-        className="flex touch-none p-px transition-colors select-none h-1.5 flex-col border-t border-t-transparent bg-transparent"
-      >
-        <ScrollAreaPrimitive.Thumb className="relative flex-1 rounded-full bg-primary/30 hover:bg-primary/45 transition-colors" />
-      </ScrollAreaPrimitive.Scrollbar>
-      <ScrollAreaPrimitive.Corner />
-
       {error && <p className="absolute -bottom-4 left-4 w-full text-xs text-destructive">{error}</p>}
-    </ScrollAreaPrimitive.Root>
+    </div>
   );
 }

@@ -7,6 +7,8 @@ import { isSafeSlug, isMetaSlug, type ServerContentTree } from "@/lib/content-tr
 import { loadContentFile } from "@/lib/actions/admin-content";
 import { ContentTree } from "@/components/admin/ContentTree";
 import { FormButton } from "@/components/common/FormButton";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useContentWorkspaceStore } from "./store";
 
 const NEW_FILE_TEMPLATE = "---\ntitle: \ndescription: \n---\n\n";
@@ -36,7 +38,6 @@ export function ContentWorkspaceSidebar({ trees }: ContentWorkspaceSidebarProps)
   function loadFor(server: string, targetLocale: string, slug: string) {
     setContent("");
     startLoadTransition(async () => {
-      // @ts-expect-error - targetLocale is ContentLocale
       const result = await loadContentFile({ server, locale: targetLocale, slug });
       const exists = result.content !== null;
       setContent(result.content ?? (isMetaSlug(slug) ? NEW_META_TEMPLATE : ""));
@@ -65,30 +66,33 @@ export function ContentWorkspaceSidebar({ trees }: ContentWorkspaceSidebarProps)
   }
 
   return (
-    <aside className="w-64 shrink-0">
-      <div className="rounded-2xl border border-primary/20 bg-card/50 p-3 mb-4">
+    <aside className="w-full h-full flex flex-col min-w-0 overflow-hidden rounded-2xl border border-primary/20 bg-card/50 p-4">
+      <div className="mb-4 shrink-0">
         <h3 className="text-xs uppercase tracking-widest text-foreground/50 mb-2">{t("newFileTitle")}</h3>
-        <select
-          value={newServer}
-          onChange={(e) => setNewServer(e.target.value)}
-          className="w-full mb-2 rounded-lg border border-primary/20 bg-card/50 px-2 py-1.5 text-sm text-foreground/90 focus:outline-none focus:border-primary/50"
-        >
-          {SERVERS.map((s) => (
-            <option key={s.id} value={s.id}>{s.name}</option>
-          ))}
-        </select>
-        <input
+        <Select value={newServer} onValueChange={setNewServer}>
+          <SelectTrigger className="w-full mb-2 h-auto px-2 py-1.5 bg-card/50">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {SERVERS.map((s) => (
+              <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <Input
           value={newSlug}
           onChange={(e) => setNewSlug(e.target.value)}
           placeholder={t("newFileSlugPlaceholder")}
-          className="w-full mb-2 rounded-lg border border-primary/20 bg-card/50 px-2 py-1.5 text-sm text-foreground/90 font-mono focus:outline-none focus:border-primary/50"
+          className="w-full mb-2 h-auto px-2 py-1.5 font-mono bg-card/50"
         />
         <FormButton variant="outline" className="w-full px-3 py-1.5 text-xs" onClick={handleCreateFile}>
           {t("newFileCreate")}
         </FormButton>
       </div>
 
-      <div className="rounded-2xl border border-primary/20 bg-card/50 p-3 max-h-[60vh] overflow-y-auto">
+      <div className="h-px bg-primary/10 shrink-0 -mx-4 mb-4" />
+
+      <div className="flex-1 min-h-0 overflow-y-auto custom-scrollbar pr-2">
         <ContentTree trees={trees} selected={selected} onSelect={selectTreeFile} />
       </div>
     </aside>

@@ -5,6 +5,7 @@ import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter,
 } from "@/components/ui/dialog";
 import { FormButton } from "@/components/common/FormButton";
+import { cn } from "@/lib/utils";
 
 interface AdminFormDialogProps {
   open: boolean;
@@ -17,6 +18,7 @@ interface AdminFormDialogProps {
   submittingLabel: string;
   onSubmit: (formData: FormData) => void;
   children: ReactNode;
+  className?: string;
 }
 
 export function AdminFormDialog({
@@ -30,13 +32,19 @@ export function AdminFormDialog({
   submittingLabel,
   onSubmit,
   children,
+  className,
 }: AdminFormDialogProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogTrigger asChild>{trigger}</DialogTrigger>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className={cn("sm:max-w-md", className)}>
         <DialogHeader>
-          <DialogTitle>{title}</DialogTitle>
+          <DialogTitle 
+            className="text-2xl text-primary/90 text-center leading-tight mb-2" 
+            style={{ fontFamily: "var(--font-body)" }}
+          >
+            {title}
+          </DialogTitle>
         </DialogHeader>
 
         <form action={onSubmit} className="flex flex-col gap-4">

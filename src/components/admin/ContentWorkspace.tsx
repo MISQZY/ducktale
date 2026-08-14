@@ -9,11 +9,29 @@ interface ContentWorkspaceProps {
   trees: ServerContentTree[];
 }
 
+import {
+  ResizableHandle,
+  ResizablePanel,
+  ResizablePanelGroup,
+} from "@/components/ui/resizable";
+
 export function ContentWorkspace({ lang, trees }: ContentWorkspaceProps) {
   return (
-    <div className="flex flex-row gap-6 items-start">
-      <ContentWorkspaceSidebar trees={trees} />
-      <ContentWorkspaceEditor lang={lang} trees={trees} />
+    <div className="w-full" style={{ height: "calc(100vh - 380px)", minHeight: "500px" }}>
+      <ResizablePanelGroup
+        orientation="horizontal"
+        className="h-full w-full"
+      >
+        <ResizablePanel defaultSize="20" minSize="15" maxSize="40">
+          <ContentWorkspaceSidebar trees={trees} />
+        </ResizablePanel>
+
+        <ResizableHandle withHandle className="w-[2px] mx-2 rounded-full bg-primary/10 hover:bg-primary/30 transition-colors" />
+
+        <ResizablePanel defaultSize="80" minSize="40">
+          <ContentWorkspaceEditor lang={lang} trees={trees} />
+        </ResizablePanel>
+      </ResizablePanelGroup>
     </div>
   );
 }

@@ -2,6 +2,7 @@
 
 import { ChevronUp, ChevronDown, X } from "lucide-react";
 import { useTranslations } from "next-intl";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface MetaOrderEditorProps {
   content: string;
@@ -11,8 +12,15 @@ interface MetaOrderEditorProps {
 }
 
 export function MetaOrderEditor({ content, onChange, availableEntries }: MetaOrderEditorProps) {
+  const t = useTranslations("AdminContent");
+
   let parsed: Record<string, unknown> | null = null;
   let parseError: string | null = null;
+
+  if (!content.trim()) {
+    return null;
+  }
+
   try {
     const value = JSON.parse(content) as unknown;
     if (typeof value !== "object" || value === null || Array.isArray(value)) {
@@ -23,8 +31,6 @@ export function MetaOrderEditor({ content, onChange, availableEntries }: MetaOrd
   } catch (e) {
     parseError = e instanceof Error ? e.message : "Invalid JSON";
   }
-
-  const t = useTranslations("AdminContent");
 
   if (parseError) {
     return <p className="text-destructive text-sm font-mono whitespace-pre-wrap not-prose">{parseError}</p>;
@@ -100,16 +106,16 @@ export function MetaOrderEditor({ content, onChange, availableEntries }: MetaOrd
       </ul>
 
       {notListed.length > 0 && (
-        <select
-          value=""
-          onChange={(e) => add(e.target.value)}
-          className="w-full rounded-lg border border-primary/20 bg-card/50 px-2 py-1.5 text-xs text-foreground/90 focus:outline-none focus:border-primary/50"
-        >
-          <option value="" disabled>{t("metaAddPage")}</option>
-          {notListed.map((name) => (
-            <option key={name} value={name}>{name}</option>
-          ))}
-        </select>
+        <Select value="" onValueChange={add}>
+          <SelectTrigger className="w-full h-auto px-2 py-1.5 text-xs bg-card/50">
+            <SelectValue placeholder={t("metaAddPage")} />
+          </SelectTrigger>
+          <SelectContent>
+            {notListed.map((name) => (
+              <SelectItem key={name} value={name}>{name}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       )}
     </div>
   );

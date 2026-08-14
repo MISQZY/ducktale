@@ -3,6 +3,9 @@
 import { useState, type ReactNode } from "react";
 import { useTranslations } from "next-intl";
 import { FormInput } from "@/components/common/FormInput";
+import { FormField } from "@/components/common/FormField";
+import { formInputClasses, formInputStyle } from "@/components/common/form-styles";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { AdminFormDialog } from "./AdminFormDialog";
 import { IconPickerField } from "./IconPickerField";
 import { ColorPickerField } from "./ColorPickerField";
@@ -75,20 +78,26 @@ export function RoleFormDialog({ lang, role, groupSuggestions, trigger }: RoleFo
       submitLabel={role ? t("save") : t("create")}
       submittingLabel={t("saving")}
       onSubmit={handleSubmit}
+      className="sm:max-w-lg"
     >
-      <FormInput
-        id="group"
-        name="group"
-        label={t("groupLabel")}
-        hint={t("groupHint")}
-        defaultValue={role?.group}
-        required
-        maxLength={64}
-        list="group-suggestions"
-      />
-      <datalist id="group-suggestions">
-        {groupSuggestions.map((group) => <option key={group} value={group} />)}
-      </datalist>
+      <FormField id="group" label={t("groupLabel")} hint={t("groupHint")}>
+        <Select name="group" defaultValue={role?.group} required>
+          <SelectTrigger 
+            id="group" 
+            className={formInputClasses(false, "w-full")}
+            style={formInputStyle}
+          >
+            <SelectValue placeholder={lang === "ru" ? "Выберите группу..." : "Select a group..."} />
+          </SelectTrigger>
+          <SelectContent className="liquid-card border-primary/20 rounded-xl">
+            {groupSuggestions.map((group) => (
+              <SelectItem key={group} value={group} className="cursor-pointer">
+                {group}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </FormField>
 
       <FormInput
         id="name"
@@ -99,21 +108,23 @@ export function RoleFormDialog({ lang, role, groupSuggestions, trigger }: RoleFo
         maxLength={64}
       />
 
-      <IconPickerField
-        icon={icon}
-        setIcon={setIcon}
-        iconQuery={iconQuery}
-        setIconQuery={setIconQuery}
-        label={t("iconLabel")}
-        searchPlaceholder={t("iconSearchPlaceholder")}
-        emptyMessage={t("iconSearchEmpty")}
-      />
+      <div className="grid grid-cols-2 gap-4">
+        <IconPickerField
+          icon={icon}
+          setIcon={setIcon}
+          iconQuery={iconQuery}
+          setIconQuery={setIconQuery}
+          label={t("iconLabel")}
+          searchPlaceholder={t("iconSearchPlaceholder")}
+          emptyMessage={t("iconSearchEmpty")}
+        />
 
-      <ColorPickerField
-        color={color}
-        setColor={setColor}
-        label={t("colorLabel")}
-      />
+        <ColorPickerField
+          color={color}
+          setColor={setColor}
+          label={t("colorLabel")}
+        />
+      </div>
     </AdminFormDialog>
   );
 }

@@ -6,8 +6,9 @@ import { AdminPageShell } from "@/components/admin/AdminPageShell";
 import { BadgeChip } from "@/components/badges/BadgeChip";
 import { BadgeFormDialog } from "@/components/admin/BadgeFormDialog";
 import { BadgeRowActions } from "@/components/admin/BadgeRowActions";
+import { BadgeUsersDialog } from "@/components/admin/BadgeUsersDialog";
 import { FormButton } from "@/components/common/FormButton";
-import { Link } from "@/i18n/navigation";
+
 import { cn } from "@/lib/utils";
 import {
   DocsTable,
@@ -18,6 +19,7 @@ import {
   DocsTableCell,
   DOCS_TABLE_THEME,
 } from "@/components/ui/docs-table";
+import { ServerPagination } from "@/components/common/ServerPagination";
 
 const PAGE_SIZE = 10;
 
@@ -39,23 +41,23 @@ export default async function AdminBadgesPage({
   // this is the very first time anyone's visited this page.
   await seedBuiltinBadges();
 
-  const [badgeRows, total, roleOptions] = await Promise.all([
-    siteDb.badge.findMany({
-      orderBy: { createdAt: "asc" },
-      skip: (page - 1) * PAGE_SIZE,
-      take: PAGE_SIZE,
-      select: {
-        id: true, name: true, description: true, earnCondition: true, icon: true, color: true,
-        autoRoles: { select: { roleId: true } },
-        _count: { select: { userBadges: true } },
-      },
-    }),
-    siteDb.badge.count(),
-    siteDb.luckPermsRole.findMany({
-      orderBy: { name: "asc" },
-      select: { id: true, group: true, name: true },
-    }),
-  ]);
+  const badgeRows = await siteDb.badge.findMany({
+    orderBy: { createdAt: "asc" },
+    skip: (page - 1) * PAGE_SIZE,
+    take: PAGE_SIZE,
+    select: {
+      id: true, name: true, description: true, earnCondition: true, icon: true, color: true,
+      autoRoles: { select: { roleId: true } },
+      _count: { select: { userBadges: true } },
+    },
+  });
+
+  const total = await siteDb.badge.count();
+
+  const roleOptions = await siteDb.luckPermsRole.findMany({
+    orderBy: { name: "asc" },
+    select: { id: true, group: true, name: true },
+  });
 
   const badges = badgeRows.map(({ autoRoles, ...badge }) => ({
     ...badge,
@@ -114,9 +116,12 @@ export default async function AdminBadgesPage({
                     </DocsTableCell>
 
                     <DocsTableCell className="align-middle text-center" withRightBorder>
-                      <span className="text-foreground/50 text-xs tabular-nums">
-                        {badge._count.userBadges}
-                      </span>
+                      <BadgeUsersDialog
+                        lang={lang}
+                        badgeId={badge.id}
+                        badgeName={badge.name}
+                        count={badge._count.userBadges}
+                      />
                     </DocsTableCell>
 
                     <DocsTableCell className="align-middle text-right">
@@ -129,29 +134,14 @@ export default async function AdminBadgesPage({
           </DocsTable>
         </div>
 
-        {totalPages > 1 && (
-          <div className="flex items-center justify-center gap-3 mt-6">
-            <Link
-              href={{ pathname: "/admin/badges", query: { page: String(Math.max(1, page - 1)) } }}
-              className={cn(
-                "px-3 py-1.5 rounded-lg text-xs border border-primary/20 text-foreground/60 hover:text-foreground hover:border-primary/40 transition-colors",
-                page <= 1 && "pointer-events-none opacity-30"
-              )}
-            >
-              {t("prevPage")}
-            </Link>
-            <span className="text-xs text-foreground/50 tabular-nums">{t("pageInfo", { page, totalPages })}</span>
-            <Link
-              href={{ pathname: "/admin/badges", query: { page: String(Math.min(totalPages, page + 1)) } }}
-              className={cn(
-                "px-3 py-1.5 rounded-lg text-xs border border-primary/20 text-foreground/60 hover:text-foreground hover:border-primary/40 transition-colors",
-                page >= totalPages && "pointer-events-none opacity-30"
-              )}
-            >
-              {t("nextPage")}
-            </Link>
-          </div>
-        )}
+        <ServerPagination
+          page={page}
+          totalPages={totalPages}
+          pathname="/admin/badges"
+          buildQuery={(p) => ({ page: String(p) })}
+          prevText={t("prevPage")}
+          nextText={t("nextPage")}
+        />
       </div>
     </AdminPageShell>
   );

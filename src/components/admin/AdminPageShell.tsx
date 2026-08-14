@@ -10,6 +10,8 @@ interface AdminPageShellProps {
   children: ReactNode;
 }
 
+import { useTranslations } from "next-intl";
+
 /**
  * Shared frame for every admin page — same max-width and spacing on both
  * /admin and /admin/content, so switching between them doesn't visibly
@@ -17,6 +19,8 @@ interface AdminPageShellProps {
  * differs per page.
  */
 export function AdminPageShell({ title, description, active, children }: AdminPageShellProps) {
+  const t = useTranslations("Admin");
+
   return (
     <>
       <Navbar />
@@ -26,7 +30,7 @@ export function AdminPageShell({ title, description, active, children }: AdminPa
             className="text-3xl text-primary/90 mb-2 leading-tight text-center"
             style={{ fontFamily: "var(--font-body)" }}
           >
-            {title}
+            {t("title")}
           </h1>
           <p className="text-foreground/60 mb-6 text-center">{description}</p>
 

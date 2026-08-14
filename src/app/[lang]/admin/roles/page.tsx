@@ -6,6 +6,7 @@ import { AdminPageShell } from "@/components/admin/AdminPageShell";
 import { BadgeIcon } from "@/components/badges/BadgeIcon";
 import { RoleFormDialog } from "@/components/admin/RoleFormDialog";
 import { RoleRowActions } from "@/components/admin/RoleRowActions";
+import { RoleUsersDialog } from "@/components/admin/RoleUsersDialog";
 import { FormButton } from "@/components/common/FormButton";
 import { cn } from "@/lib/utils";
 import {
@@ -49,6 +50,26 @@ async function resolveAllGroups(): Promise<string[]> {
   return groups.map((g) => g.name);
 }
 
+async function resolveGroupUserCounts(): Promise<Map<string, number>> {
+  const rows = await withDb("luckperms", (db) =>
+    db.$queryRaw`
+      SELECT permission, COUNT(DISTINCT uuid) as cnt
+      FROM lp_user_permissions
+      WHERE permission LIKE 'group.%'
+        AND value = 1
+        AND (expiry = 0 OR expiry > UNIX_TIMESTAMP())
+      GROUP BY permission
+    `
+  ) as { permission: string, cnt: bigint }[];
+  
+  const map = new Map<string, number>();
+  for (const r of rows) {
+    const group = r.permission.slice(6); // remove 'group.'
+    map.set(group, Number(r.cnt));
+  }
+  return map;
+}
+
 export default async function AdminRolesPage({
   params,
 }: {
@@ -57,11 +78,10 @@ export default async function AdminRolesPage({
   const { lang } = await params;
   await requireAdmin(lang);
 
-  const [roles, tracksByGroup, allGroups] = await Promise.all([
-    siteDb.luckPermsRole.findMany({ orderBy: { name: "asc" } }),
-    resolveTracksByGroup().catch(() => new Map<string, string[]>()), // LuckPerms DB unreachable shouldn't break this whole admin page
-    resolveAllGroups().catch(() => [] as string[]),
-  ]);
+  const roles = await siteDb.luckPermsRole.findMany({ orderBy: { name: "asc" } });
+  const tracksByGroup = await resolveTracksByGroup().catch(() => new Map<string, string[]>()); // LuckPerms DB unreachable shouldn't break this whole admin page
+  const allGroups = await resolveAllGroups().catch(() => [] as string[]);
+  const userCounts = await resolveGroupUserCounts().catch(() => new Map<string, number>());
 
   const groupSuggestions = [...new Set([...allGroups, ...tracksByGroup.keys(), ...roles.map((r) => r.group)])].sort();
 
@@ -86,13 +106,14 @@ export default async function AdminRolesPage({
                 <DocsTableHead className="w-[250px] align-middle" withRightBorder>{tr("nameLabel")}</DocsTableHead>
                 <DocsTableHead className="align-middle" withRightBorder>{tr("groupLabel")}</DocsTableHead>
                 <DocsTableHead className="align-middle" withRightBorder>{tr("tracksLabel")}</DocsTableHead>
+                <DocsTableHead className="w-[120px] text-center align-middle" withRightBorder>Пользователи</DocsTableHead>
                 <DocsTableHead className="w-[120px] align-middle text-right">{t("actionsColumn")}</DocsTableHead>
               </DocsTableRow>
             </DocsTableHeader>
             <DocsTableBody className="[&_tr:last-child]:border-0">
               {roles.length === 0 ? (
                 <DocsTableRow>
-                  <DocsTableCell colSpan={4} className="text-center py-10">
+                  <DocsTableCell colSpan={5} className="text-center py-10">
                     <p className={cn("text-sm", DOCS_TABLE_THEME.textFaint)}>{tr("noResults")}</p>
                   </DocsTableCell>
                 </DocsTableRow>
@@ -110,6 +131,13 @@ export default async function AdminRolesPage({
                     </DocsTableCell>
                     <DocsTableCell className="align-middle text-xs text-foreground/50" withRightBorder>
                       {(tracksByGroup.get(role.group) ?? []).join(", ") || "—"}
+                    </DocsTableCell>
+                    <DocsTableCell className="align-middle text-center" withRightBorder>
+                      <RoleUsersDialog
+                        lang={lang}
+                        group={role.group}
+                        count={userCounts.get(role.group) || 0}
+                      />
                     </DocsTableCell>
                     <DocsTableCell className="align-middle text-right">
                       <RoleRowActions lang={lang} role={role} groupSuggestions={groupSuggestions} />

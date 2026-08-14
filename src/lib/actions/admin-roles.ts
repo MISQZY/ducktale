@@ -1,10 +1,12 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { Prisma } from "@prisma/client";
 import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
 import { siteDb } from "@/lib/site-db";
 import { requireAdminId } from "@/lib/admin";
 import { isBadgeIconName } from "@/config/badges";
+import { withDb } from "@/lib/db";
 
 const NAME_MAX = 64;
 const HEX_COLOR_PATTERN = /^#[0-9a-fA-F]{6}$/;
@@ -76,4 +78,70 @@ export async function deleteRole(lang: string, roleId: string): Promise<void> {
 
   revalidatePath(`/${lang}/admin/roles`);
   revalidatePath(`/${lang}/admin/badges`);
+}
+
+export async function getRoleUsers(group: string) {
+  await requireAdminId();
+  
+  // Find all UUIDs that have this group permission
+  const rows = await withDb("luckperms", async (db) => {
+    return await db.$queryRaw`
+      SELECT DISTINCT uuid
+      FROM lp_user_permissions
+      WHERE permission = ${'group.' + group}
+        AND value = 1
+        AND (expiry = 0 OR expiry > UNIX_TIMESTAMP())
+    ` as { uuid: string }[];
+  });
+  
+  const uuids = rows.map(r => r.uuid);
+  
+  if (uuids.length === 0) {
+    return [];
+  }
+  
+  // Find the minecraft names for these UUIDs if they linked their account
+  // Some users might not be linked, so we'll just return their UUIDs if we can't find a name
+  const links = await siteDb.accountLink.findMany({
+    where: { minecraftUuid: { in: uuids } },
+    select: { minecraftUuid: true, minecraftName: true, user: { select: { nickname: true } } }
+  });
+  
+  const nameMap = new Map<string, string>(
+    links.map(l => [l.minecraftUuid!, l.user?.nickname || l.minecraftName || "Unknown"])
+  );
+  
+  const missingUuids = uuids.filter(u => !nameMap.has(u));
+  if (missingUuids.length > 0) {
+    const fpPlayers = await withDb("default", async (db) => {
+      return await db.$queryRaw`
+        SELECT uuid, name as username
+        FROM fp_player
+        WHERE uuid IN (${Prisma.join(missingUuids)})
+      ` as { uuid: string, username: string }[];
+    });
+    for (const p of fpPlayers) {
+      nameMap.set(p.uuid, p.username);
+    }
+  }
+  
+  const { resolveSkinUrl } = await import("@/lib/skin");
+
+  const result = [];
+  const chunkSize = 3;
+  for (let i = 0; i < uuids.length; i += chunkSize) {
+    const chunk = uuids.slice(i, i + chunkSize);
+    const chunkResults = await Promise.all(chunk.map(async (uuid) => {
+      const skinUrl = await resolveSkinUrl(uuid);
+      return {
+        uuid,
+        name: nameMap.get(uuid) || null,
+        skinUrl,
+        hasSiteProfile: !!links.find(l => l.minecraftUuid === uuid)?.user
+      };
+    }));
+    result.push(...chunkResults);
+  }
+  
+  return result;
 }
