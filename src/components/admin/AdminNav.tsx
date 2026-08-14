@@ -1,6 +1,8 @@
+"use client";
+
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
-import { cn } from "@/lib/utils";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface AdminNavProps {
   active: "users" | "content" | "tickets" | "badges" | "roles";
@@ -9,31 +11,27 @@ interface AdminNavProps {
 export function AdminNav({ active }: AdminNavProps) {
   const t = useTranslations("Admin");
 
-  const tabClass = (tab: "users" | "content" | "tickets" | "badges" | "roles") =>
-    cn(
-      "px-4 py-1.5 rounded-full text-xs uppercase tracking-widest transition-colors border",
-      active === tab
-        ? "border-primary/40 bg-primary/10 text-primary/90"
-        : "border-primary/15 text-foreground/45 hover:text-foreground/70 hover:border-primary/30"
-    );
-
   return (
-    <div className="flex items-center gap-2 mb-6">
-      <Link href="/admin/users" className={tabClass("users")}>
-        {t("navUsers")}
-      </Link>
-      <Link href="/admin/content" className={tabClass("content")}>
-        {t("navContent")}
-      </Link>
-      <Link href="/admin/tickets" className={tabClass("tickets")}>
-        {t("navTickets")}
-      </Link>
-      <Link href="/admin/badges" className={tabClass("badges")}>
-        {t("navBadges")}
-      </Link>
-      <Link href="/admin/roles" className={tabClass("roles")}>
-        {t("navRoles")}
-      </Link>
+    <div className="flex items-center justify-center mb-6">
+      <Tabs value={active}>
+        <TabsList>
+          <TabsTrigger value="users" asChild>
+            <Link href="/admin/users">{t("navUsers")}</Link>
+          </TabsTrigger>
+          <TabsTrigger value="content" asChild>
+            <Link href="/admin/content">{t("navContent")}</Link>
+          </TabsTrigger>
+          <TabsTrigger value="tickets" asChild>
+            <Link href="/admin/tickets">{t("navTickets")}</Link>
+          </TabsTrigger>
+          <TabsTrigger value="badges" asChild>
+            <Link href="/admin/badges">{t("navBadges")}</Link>
+          </TabsTrigger>
+          <TabsTrigger value="roles" asChild>
+            <Link href="/admin/roles">{t("navRoles")}</Link>
+          </TabsTrigger>
+        </TabsList>
+      </Tabs>
     </div>
   );
 }

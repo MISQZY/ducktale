@@ -1,4 +1,5 @@
 import { cn } from "@/lib/utils";
+import { Badge } from "@/components/ui/badge";
 
 interface StatusBadgeProps {
   label: string;
@@ -9,13 +10,14 @@ interface StatusBadgeProps {
 
 export function StatusBadge({ label, pulse = false, className, onClick }: StatusBadgeProps) {
   return (
-    <div
+    <Badge
+      variant="outline"
       onClick={onClick}
       className={cn(
-        "inline-flex items-center gap-2.5 px-5 py-2 rounded-full",
+        "h-auto inline-flex items-center gap-2.5 px-5 py-2 rounded-full",
         "border border-primary/25 bg-primary/5 text-primary/90 text-xs tracking-[0.3em] uppercase",
         "backdrop-blur-sm",
-        onClick && "select-none active:scale-95 transition-transform",
+        onClick && "select-none active:scale-95 transition-transform cursor-pointer",
         className
       )}
       style={{ boxShadow: "inset 0 1px 0 rgba(212,160,23,0.06), 0 1px 8px rgba(0,0,0,0.3)" }}
@@ -27,6 +29,6 @@ export function StatusBadge({ label, pulse = false, className, onClick }: Status
         )}
       />
       {label}
-    </div>
+    </Badge>
   );
 }

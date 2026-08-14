@@ -13,7 +13,7 @@ export function SkinFace({ skinUrl, size = 88, className }: SkinFaceProps) {
   if (!skinUrl) {
     return (
       <div
-        className={cn("flex items-center justify-center shrink-0 rounded-xl border border-primary/20 bg-muted", className)}
+        className={cn("flex items-center justify-center shrink-0 rounded-xl ring-1 ring-inset ring-primary/20 bg-muted", className)}
         style={{ width: size, height: size }}
       >
         <UserRound size={size * 0.4} className="text-foreground/25" />
@@ -32,7 +32,7 @@ export function SkinFace({ skinUrl, size = 88, className }: SkinFaceProps) {
 
   return (
     <div
-      className={cn("relative shrink-0 overflow-hidden rounded-xl border border-primary/20 bg-muted", className)}
+      className={cn("relative shrink-0 overflow-hidden rounded-xl ring-1 ring-inset ring-primary/20 bg-muted", className)}
       style={{ width: size, height: size, imageRendering: "pixelated" }}
     >
       <div

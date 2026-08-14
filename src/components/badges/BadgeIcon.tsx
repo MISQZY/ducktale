@@ -26,7 +26,7 @@ export function BadgeIcon({ name, size, className, style }: BadgeIconProps) {
 
   return (
     <DynamicIcon
-      name={isBadgeIconName(name) ? (name as keyof typeof import("lucide-react/dynamicIconImports")) : FALLBACK_ICON}
+      name={isBadgeIconName(name) ? (name as "award") : FALLBACK_ICON}
       size={size}
       className={className}
       style={style}

@@ -24,15 +24,15 @@ export function BadgeChip({ name, icon, color, size = "md", className, onRemove,
   return (
     <span
       className={cn(
-        "inline-flex items-center gap-1.5 rounded-full border border-primary/25 bg-card/70 px-3 py-1 text-xs font-medium text-foreground/90 transition-colors",
-        size === "sm" && "px-2 py-0.5 text-[0.7rem] gap-1",
-        onRemove && "pr-1",
+        "inline-flex items-center gap-1.5 rounded-full border border-primary/25 bg-card/70 px-3.5 py-1 text-sm font-medium text-foreground/90 transition-colors",
+        size === "sm" && "px-2 py-0.5 text-xs gap-1",
+        onRemove && "pr-1.5",
         disabled && "opacity-50 pointer-events-none",
         className
       )}
     >
-      <BadgeIcon name={icon} size={size === "sm" ? 12 : 14} style={{ color: accent }} className="shrink-0" />
-      <span style={{ color: accent }}>{name}</span>
+      <BadgeIcon name={icon} size={size === "sm" ? 14 : 16} style={{ color: accent }} className="shrink-0" />
+      <span style={{ color: accent }} className="leading-tight">{name}</span>
       {onRemove && (
         <button
           type="button"
@@ -43,12 +43,12 @@ export function BadgeChip({ name, icon, color, size = "md", className, onRemove,
           }}
           disabled={disabled}
           className={cn(
-            "ml-0.5 rounded-full p-0.5 text-foreground/40 hover:bg-destructive/20 hover:text-destructive transition-colors focus:outline-none",
-            size === "sm" ? "p-[2px]" : "p-1"
+            "ml-0.5 rounded-full text-foreground/40 hover:bg-foreground/15 hover:text-foreground transition-colors focus:outline-none flex items-center justify-center",
+            size === "sm" ? "h-4 w-4" : "h-5 w-5"
           )}
           aria-label="Remove badge"
         >
-          <X size={size === "sm" ? 10 : 12} strokeWidth={2.5} />
+          <X size={size === "sm" ? 12 : 14} strokeWidth={2.5} />
         </button>
       )}
     </span>

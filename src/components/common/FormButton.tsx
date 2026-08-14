@@ -1,6 +1,7 @@
 "use client";
 
 import type { ButtonHTMLAttributes, ReactNode } from "react";
+import { Button } from "@/components/ui/button";
 import { ctaButtonClasses, CtaShine, CTA_FONT_STYLE, type CtaVariant } from "./cta-button-styles";
 
 interface FormButtonProps extends Omit<ButtonHTMLAttributes<HTMLButtonElement>, "className"> {
@@ -22,8 +23,9 @@ export function FormButton({
   ...props
 }: FormButtonProps) {
   return (
-    <button
+    <Button
       type={type}
+      variant="ghost"
       className={ctaButtonClasses(variant, className)}
       style={CTA_FONT_STYLE}
       {...props}
@@ -31,6 +33,6 @@ export function FormButton({
       <CtaShine variant={variant} />
       {icon}
       {children}
-    </button>
+    </Button>
   );
 }

@@ -2,13 +2,11 @@
 
 import Link from "next/link";
 import type { ReactNode } from "react";
+import { Button } from "@/components/ui/button";
 import { ctaButtonClasses, CtaShine, CTA_FONT_STYLE, type CtaVariant } from "./cta-button-styles";
 
 interface CtaButtonProps {
-  /** Pass an already locale-prefixed path (e.g. `/${locale}#servers`) — this
-   * uses plain next/link, not next-intl's Link, because it's also rendered
-   * from app/global-not-found.tsx, which has no NextIntlClientProvider for
-   * next-intl's Link to read the current locale from. */
+  /** Pass an already locale-prefixed path (e.g. `/${locale}#servers`) */
   href: string;
   children: ReactNode;
   variant?: CtaVariant;
@@ -35,15 +33,17 @@ export function CtaButton({
   };
 
   return (
-    <Link
-      href={href}
-      onClick={handleClick}
+    <Button
+      variant="ghost"
       className={ctaButtonClasses(variant, className)}
       style={CTA_FONT_STYLE}
+      asChild
     >
-      <CtaShine variant={variant} />
-      {icon}
-      {children}
-    </Link>
+      <Link href={href} onClick={handleClick}>
+        <CtaShine variant={variant} />
+        {icon}
+        {children}
+      </Link>
+    </Button>
   );
 }

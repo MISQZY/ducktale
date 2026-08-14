@@ -3,6 +3,7 @@
 import { useRef } from "react";
 import { cn } from "@/lib/utils";
 import { Search, X } from "lucide-react";
+import { Input } from "@/components/ui/input";
 import { DOCS_TABLE_THEME } from "@/components/ui/docs-table";
 
 interface TrailingAction {
@@ -20,32 +21,24 @@ interface TableSearchProps {
   trailingAction?: TrailingAction;
 }
 
-export function TableSearch({ value, onChange, placeholder = "Поиск…", className, trailingAction }: TableSearchProps) {
+export function TableSearch({ value, onChange, placeholder = "Найти", className, trailingAction }: TableSearchProps) {
   const inputRef = useRef<HTMLInputElement>(null);
 
   return (
     <div className={cn("relative w-full sm:w-56", className)}>
-      <Search size={13} className={cn("pointer-events-none absolute left-3 top-1/2 -translate-y-1/2", DOCS_TABLE_THEME.iconMuted)} />
-      <input
+      <Search size={16} className={cn("pointer-events-none absolute left-3 top-1/2 -translate-y-1/2", DOCS_TABLE_THEME.iconMuted)} />
+      <Input
         ref={inputRef}
         type="text"
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
-        spellCheck={false}
-        autoComplete="off"
         className={cn(
-          "w-full rounded-lg border py-1.5 pl-8",
           trailingAction ? (value ? "pr-14" : "pr-8") : "pr-8",
-          DOCS_TABLE_THEME.surfaceBg,
-          "text-sm",
-          DOCS_TABLE_THEME.text,
-          DOCS_TABLE_THEME.placeholder,
-          DOCS_TABLE_THEME.border,
-          DOCS_TABLE_THEME.borderFocus,
           "focus:outline-none",
           "transition-colors duration-150",
         )}
+        style={{ paddingLeft: "2.5rem" }}
       />
       <div className="absolute right-2.5 top-1/2 -translate-y-1/2 flex items-center gap-1">
         {value && (

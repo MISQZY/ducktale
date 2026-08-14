@@ -1,33 +1,16 @@
 "use client";
 
 import { cn } from "@/lib/utils";
-import { ChevronLeft, ChevronRight } from "lucide-react";
 import { DOCS_TABLE_THEME } from "@/components/ui/docs-table";
-
-interface PageButtonProps {
-  onClick:   () => void;
-  disabled?: boolean;
-  active?:   boolean;
-  children:  React.ReactNode;
-}
-
-function PageButton({ onClick, disabled, active, children }: PageButtonProps) {
-  return (
-    <button
-      onClick={onClick}
-      disabled={disabled}
-      className={cn(
-        "inline-flex items-center justify-center min-w-7 h-7 px-1.5 rounded text-xs font-mono transition-colors",
-        active
-          ? cn(DOCS_TABLE_THEME.activeBg, DOCS_TABLE_THEME.activeText, "border", DOCS_TABLE_THEME.activeBorder)
-          : cn(DOCS_TABLE_THEME.inactiveText, "border border-transparent", DOCS_TABLE_THEME.borderHover, DOCS_TABLE_THEME.inactiveHoverText),
-        disabled && "pointer-events-none opacity-30",
-      )}
-    >
-      {children}
-    </button>
-  );
-}
+import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
 
 interface TablePaginationProps {
   page:        number;
@@ -45,29 +28,49 @@ export function TablePagination({
   if (total === 0) return null;
 
   return (
-    <div className="flex items-center justify-between gap-4">
-      <span className={cn("text-xs tabular-nums", DOCS_TABLE_THEME.textFaint)}>
+    <div className="flex items-center justify-between gap-4 w-full">
+      <span className={cn("text-xs tabular-nums shrink-0", DOCS_TABLE_THEME.textFaint)}>
         {pageStart + 1}–{Math.min(pageStart + pageSize, total)} из {total}
       </span>
 
       {totalPages > 1 && (
-        <div className="flex items-center gap-0.5">
-          <PageButton onClick={() => goTo(page - 1)} disabled={page === 1}>
-            <ChevronLeft size={13} />
-          </PageButton>
+        <Pagination className="justify-end w-auto mx-0">
+          <PaginationContent>
+            <PaginationItem>
+              <PaginationPrevious
+                href="#"
+                onClick={(e) => { e.preventDefault(); goTo(page - 1); }}
+                className={page === 1 ? "pointer-events-none opacity-50" : ""}
+                text=""
+              />
+            </PaginationItem>
 
-          {pageNumbers().map((p, i) =>
-            p === "…" ? (
-              <span key={`ellipsis-${i}`} className={cn("px-1 text-xs", DOCS_TABLE_THEME.textFaint)}>…</span>
-            ) : (
-              <PageButton key={p} onClick={() => goTo(p as number)} active={p === page}>{p}</PageButton>
-            ),
-          )}
+            {pageNumbers().map((p, i) => (
+              <PaginationItem key={p === "…" ? `ellipsis-${i}` : p}>
+                {p === "…" ? (
+                  <PaginationEllipsis />
+                ) : (
+                  <PaginationLink
+                    href="#"
+                    onClick={(e) => { e.preventDefault(); goTo(p as number); }}
+                    isActive={p === page}
+                  >
+                    {p}
+                  </PaginationLink>
+                )}
+              </PaginationItem>
+            ))}
 
-          <PageButton onClick={() => goTo(page + 1)} disabled={page === totalPages}>
-            <ChevronRight size={13} />
-          </PageButton>
-        </div>
+            <PaginationItem>
+              <PaginationNext
+                href="#"
+                onClick={(e) => { e.preventDefault(); goTo(page + 1); }}
+                className={page === totalPages ? "pointer-events-none opacity-50" : ""}
+                text=""
+              />
+            </PaginationItem>
+          </PaginationContent>
+        </Pagination>
       )}
     </div>
   );

@@ -118,7 +118,7 @@ export function WhitelistTable({
       totalIcon={<Users size={10} />}
       query={query}
       onQueryChange={setQuery}
-      searchPlaceholder="Поиск по нику…"
+      searchPlaceholder="Найти"
       isLoading={isLoading}
       error={state.status === "error" ? `Не удалось загрузить список: ${state.message}` : null}
       isEmpty={!!data && data.items.length === 0}

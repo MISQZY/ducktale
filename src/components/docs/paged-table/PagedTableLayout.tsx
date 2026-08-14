@@ -88,7 +88,7 @@ export function PagedTableLayout({
         <TableSearch
           value={query}
           onChange={onQueryChange}
-          placeholder={searchPlaceholder ?? "Поиск…"}
+          placeholder={searchPlaceholder ?? "Найти"}
         />
       </div>
 

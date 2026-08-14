@@ -14,7 +14,7 @@ export const CTA_FONT_STYLE = {
  */
 export function ctaButtonClasses(variant: CtaVariant, className?: string) {
   return cn(
-    "relative flex items-center justify-center gap-2 px-8 py-3.5 rounded-xl font-semibold tracking-wide transition-all duration-200 active:scale-95 overflow-hidden group",
+    "h-auto relative flex items-center justify-center gap-2 px-8 py-3.5 rounded-xl font-semibold tracking-wide transition-all duration-200 active:scale-95 overflow-hidden group",
     "disabled:opacity-40 disabled:pointer-events-none disabled:active:scale-100",
     variant === "primary" && [
       "bg-linear-to-b from-gold-400 to-gold-600 text-neutral-950",

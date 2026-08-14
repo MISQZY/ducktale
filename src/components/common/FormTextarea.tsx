@@ -2,6 +2,7 @@ import { cn } from "@/lib/utils";
 import type { TextareaHTMLAttributes } from "react";
 import { FormField } from "./FormField";
 import { formInputClasses, formInputStyle } from "./form-styles";
+import { Textarea } from "@/components/ui/textarea";
 
 interface FormTextareaProps extends TextareaHTMLAttributes<HTMLTextAreaElement> {
   label?: string;
@@ -13,7 +14,7 @@ interface FormTextareaProps extends TextareaHTMLAttributes<HTMLTextAreaElement> 
 export function FormTextarea({ label, hint, error, className, id, ...props }: FormTextareaProps) {
   return (
     <FormField id={id} label={label} hint={hint} error={error}>
-      <textarea
+      <Textarea
         id={id}
         className={cn("resize-none", formInputClasses(!!error, className))}
         style={formInputStyle}

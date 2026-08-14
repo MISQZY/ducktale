@@ -1,4 +1,11 @@
 import type { ReactNode } from "react";
+import { HelpCircle } from "lucide-react";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 interface FormFieldProps {
   id?: string;
@@ -12,16 +19,28 @@ export function FormField({ id, label, hint, error, children }: FormFieldProps) 
   return (
     <div className="flex flex-col gap-1.5">
       {label && (
-        <label htmlFor={id} className="text-xs uppercase tracking-widest text-foreground/50">
-          {label}
-        </label>
+        <div className="flex items-center gap-1.5">
+          <label htmlFor={id} className="text-xs uppercase tracking-widest text-foreground/50 leading-none">
+            {label}
+          </label>
+          {hint && (
+            <TooltipProvider>
+              <Tooltip delayDuration={200}>
+                <TooltipTrigger type="button" tabIndex={-1} className="text-foreground/40 hover:text-foreground/70 transition-colors">
+                  <HelpCircle className="h-3.5 w-3.5" />
+                </TooltipTrigger>
+                <TooltipContent className="max-w-xs text-xs liquid-card border-primary/20 p-2 leading-tight">
+                  <p>{hint}</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          )}
+        </div>
       )}
       {children}
-      {error ? (
+      {error && (
         <p className="text-xs text-destructive">{error}</p>
-      ) : hint ? (
-        <p className="text-xs text-foreground/30">{hint}</p>
-      ) : null}
+      )}
     </div>
   );
 }
