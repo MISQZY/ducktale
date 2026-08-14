@@ -11,6 +11,7 @@ import {
   HighlightMatch,
 } from "@/components/docs/paged-table";
 import { usePagedTable } from "@/hooks/usePagedTable";
+import { httpErrorKey } from "@/lib/http-error-message";
 import { formatDurationMs } from "@/lib/player-card-format";
 import { RankBadge } from "./RankBadge";
 import { PlayerAvatar } from "@/components/common/PlayerAvatar";
@@ -29,6 +30,7 @@ export interface TopPlayersTableProps {
 export function TopPlayersTable({ pageSize = 10, className }: TopPlayersTableProps) {
   const t = useTranslations("Leaderboard");
   const tCard = useTranslations("PlayerCard");
+  const tCommon = useTranslations("Common");
 
   const fetcher = useCallback(async (page: number, query: string, sort?: string, order?: string) => {
     const params = new URLSearchParams({
@@ -39,11 +41,19 @@ export function TopPlayersTable({ pageSize = 10, className }: TopPlayersTablePro
       ...(sort ? { sort } : {}),
       ...(order ? { order } : {}),
     });
-    const r = await fetch(`/api/leaderboard?${params}`);
-    if (!r.ok) throw new Error(`HTTP ${r.status}`);
+    let r: Response;
+    try {
+      r = await fetch(`/api/leaderboard?${params}`);
+    } catch {
+      // fetch() itself throwing (offline, DNS, CORS, ...) never carries a
+      // real HTTP status — 0 stands in for "no response at all" (see
+      // httpErrorKey).
+      throw new Error(tCommon(httpErrorKey(0)));
+    }
+    if (!r.ok) throw new Error(tCommon(httpErrorKey(r.status)));
     const res: LeaderboardResponse = await r.json();
     return { ...res, items: res.players };
-  }, [pageSize]);
+  }, [pageSize, tCommon]);
 
   const {
     state, query, page, data,
@@ -143,7 +153,7 @@ export function TopPlayersTable({ pageSize = 10, className }: TopPlayersTablePro
       onQueryChange={setQuery}
       searchPlaceholder={t("searchPlaceholder")}
       isLoading={isLoading}
-      error={state.status === "error" ? t("loadError", { message: state.message }) : null}
+      error={state.status === "error" ? state.message : null}
       isEmpty={!!data && data.items.length === 0}
       emptyMessage={query ? t("notFound", { query }) : t("empty")}
       skeletonWidths={SKELETON_WIDTHS}

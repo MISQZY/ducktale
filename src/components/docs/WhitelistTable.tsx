@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useMemo } from "react";
+import { useTranslations } from "next-intl";
 import type { ColumnDef } from "@tanstack/react-table";
 import { cn } from "@/lib/utils";
 import { Users, Infinity as InfinityIcon } from "lucide-react";
@@ -10,6 +11,7 @@ import {
   PagedTableLayout,
 } from "@/components/docs/paged-table";
 import { usePagedTable } from "@/hooks/usePagedTable";
+import { httpErrorKey } from "@/lib/http-error-message";
 import type { WhitelistPlayer, WhitelistResponse } from "@/types/whitelist";
 
 // ─── Re-export types so consumers import from one place ────────────────────────
@@ -70,6 +72,7 @@ export function WhitelistTable({
   pageSize = 10,
   className,
 }: WhitelistTableProps) {
+  const tCommon = useTranslations("Common");
 
   // Build a stable fetcher that maps the API response to the generic PagedResponse<T> shape.
   const fetcher = useCallback(async (page: number, query: string, sort?: string, order?: string) => {
@@ -81,12 +84,17 @@ export function WhitelistTable({
       ...(sort ? { sort } : {}),
       ...(order ? { order } : {}),
     });
-    const r = await fetch(`/api/whitelist?${params}`);
-    if (!r.ok) throw new Error(`HTTP ${r.status}`);
+    let r: Response;
+    try {
+      r = await fetch(`/api/whitelist?${params}`);
+    } catch {
+      throw new Error(tCommon(httpErrorKey(0)));
+    }
+    if (!r.ok) throw new Error(tCommon(httpErrorKey(r.status)));
     const res: WhitelistResponse = await r.json();
     // Normalise to the generic PagedResponse<WhitelistPlayer> shape.
     return { ...res, items: res.players };
-  }, [pageSize, serverId]);
+  }, [pageSize, serverId, tCommon]);
 
   const {
     state, query, page, data,
@@ -159,7 +167,7 @@ export function WhitelistTable({
       onQueryChange={setQuery}
       searchPlaceholder="Найти"
       isLoading={isLoading}
-      error={state.status === "error" ? `Не удалось загрузить список: ${state.message}` : null}
+      error={state.status === "error" ? state.message : null}
       isEmpty={!!data && data.items.length === 0}
       emptyMessage={query ? `Игрок «${query}» не найден` : "Вайтлист пуст"}
       skeletonWidths={SKELETON_WIDTHS}

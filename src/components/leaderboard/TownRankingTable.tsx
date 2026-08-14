@@ -10,6 +10,7 @@ import {
   PagedTableLayout,
 } from "@/components/docs/paged-table";
 import { usePagedTable } from "@/hooks/usePagedTable";
+import { httpErrorKey } from "@/lib/http-error-message";
 import { TownNameLabel, TownNationBadge } from "@/components/towny/TownCells";
 import { RankBadge } from "./RankBadge";
 import type { RankedTown, TownRankingResponse } from "@/types/town-ranking";
@@ -25,6 +26,7 @@ export interface TownRankingTableProps {
 
 export function TownRankingTable({ pageSize = 15, className }: TownRankingTableProps) {
   const t = useTranslations("Leaderboard");
+  const tCommon = useTranslations("Common");
 
   const fetcher = useCallback(async (page: number, query: string, sort?: string, order?: string) => {
     const params = new URLSearchParams({
@@ -35,11 +37,16 @@ export function TownRankingTable({ pageSize = 15, className }: TownRankingTableP
       ...(sort ? { sort } : {}),
       ...(order ? { order } : {}),
     });
-    const r = await fetch(`/api/leaderboard?${params}`);
-    if (!r.ok) throw new Error(`HTTP ${r.status}`);
+    let r: Response;
+    try {
+      r = await fetch(`/api/leaderboard?${params}`);
+    } catch {
+      throw new Error(tCommon(httpErrorKey(0)));
+    }
+    if (!r.ok) throw new Error(tCommon(httpErrorKey(r.status)));
     const res: TownRankingResponse = await r.json();
     return { ...res, items: res.towns };
-  }, [pageSize]);
+  }, [pageSize, tCommon]);
 
   const {
     state, query, page, data,
@@ -116,7 +123,7 @@ export function TownRankingTable({ pageSize = 15, className }: TownRankingTableP
       onQueryChange={setQuery}
       searchPlaceholder={t("townsSearchPlaceholder")}
       isLoading={isLoading}
-      error={state.status === "error" ? t("loadError", { message: state.message }) : null}
+      error={state.status === "error" ? state.message : null}
       isEmpty={!!data && data.items.length === 0}
       emptyMessage={query ? t("townsNotFound", { query }) : t("townsEmpty")}
       skeletonWidths={SKELETON_WIDTHS}

@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useMemo, useState } from "react";
+import { useTranslations } from "next-intl";
 import type { ColumnDef } from "@tanstack/react-table";
 import { cn } from "@/lib/utils";
 import { Landmark, ChevronDown, Users } from "lucide-react";
@@ -14,6 +15,7 @@ import {
   PagedTableLayout,
 } from "@/components/docs/paged-table";
 import { usePagedTable } from "@/hooks/usePagedTable";
+import { httpErrorKey } from "@/lib/http-error-message";
 import { RESIDENT_ROLE_COLOR } from "@/lib/towny";
 import { TownNameLabel, TownNationBadge } from "@/components/towny/TownCells";
 import type { Resident, ResidentRole, Town, TownyResponse } from "@/types/towny";
@@ -45,6 +47,7 @@ export function TownyTable({
   pageSize = 10,
   className,
 }: TownyTableProps) {
+  const tCommon = useTranslations("Common");
   const [expanded, setExpanded] = useState<Set<string>>(() => new Set());
 
   const toggle = useCallback((name: string) => {
@@ -65,12 +68,17 @@ export function TownyTable({
       ...(sort ? { sort } : {}),
       ...(order ? { order } : {}),
     });
-    const r = await fetch(`/api/towns?${params}`);
-    if (!r.ok) throw new Error(`HTTP ${r.status}`);
+    let r: Response;
+    try {
+      r = await fetch(`/api/towns?${params}`);
+    } catch {
+      throw new Error(tCommon(httpErrorKey(0)));
+    }
+    if (!r.ok) throw new Error(tCommon(httpErrorKey(r.status)));
     const res: TownyResponse = await r.json();
     // Normalise to the generic PagedResponse<Town> shape.
     return { ...res, items: res.towns };
-  }, [pageSize]);
+  }, [pageSize, tCommon]);
 
   const {
     state, query, page, data,
@@ -164,7 +172,7 @@ export function TownyTable({
       onQueryChange={setQuery}
       searchPlaceholder="Найти"
       isLoading={isLoading}
-      error={state.status === "error" ? `Не удалось загрузить список: ${state.message}` : null}
+      error={state.status === "error" ? state.message : null}
       isEmpty={!!data && data.items.length === 0}
       emptyMessage={query ? `Город «${query}» не найден` : "Городов пока нет"}
       skeletonWidths={SKELETON_WIDTHS}

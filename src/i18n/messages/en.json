@@ -675,7 +675,6 @@
     },
     "empty": "No data yet",
     "notFound": "Player “{query}” not found",
-    "loadError": "Couldn't load the leaderboard: {message}",
     "townsTitle": "Top by town size",
     "townsSearchPlaceholder": "Search by name…",
     "townsEmpty": "No towns yet",
@@ -685,6 +684,13 @@
   "Common": {
     "confirmTitle": "Confirm action",
     "confirm": "Confirm",
-    "cancel": "Cancel"
+    "cancel": "Cancel",
+    "errors": {
+      "rateLimited": "Too many requests — please wait a moment and try again",
+      "serverError": "The server is temporarily unavailable — try again shortly",
+      "notFound": "The requested data wasn't found",
+      "network": "Couldn't reach the server — check your internet connection",
+      "generic": "Something went wrong while loading — try again"
+    }
   }
 }
