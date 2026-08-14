@@ -2,16 +2,31 @@ import { NextResponse } from "next/server";
 import { withDb } from "@/lib/db";
 import { siteDb } from "@/lib/site-db";
 import { withCache } from "@/lib/query-cache";
+import { townBaseQuery } from "@/lib/towny";
 import { Prisma } from "@prisma/client";
 import { isRateLimited } from "@/lib/rate-limit";
 import { PLAYER_NICKNAME_JOIN } from "@/lib/players";
 import { resolveSkinUrl } from "@/lib/skin";
 import { isUserOnline } from "@/lib/presence";
 import type { LeaderboardPlayer, LeaderboardResponse } from "@/types/leaderboard";
+import type { RankedTown, TownRankingResponse } from "@/types/town-ranking";
 
-export type { LeaderboardPlayer, LeaderboardResponse };
+export type { LeaderboardPlayer, LeaderboardResponse, RankedTown, TownRankingResponse };
 
-interface RawRow {
+/**
+ * One endpoint for every ranking category, selected by `?type=` — same
+ * shape as pagination's `?page=`: a single route parameterized by a query
+ * argument instead of a separate route per category. `players` (default)
+ * and `towns` share the pagination/search/sort/order query contract, the
+ * withCache/rate-limit conventions, and this file, even though they hit
+ * different databases underneath.
+ */
+type LeaderboardType = "players" | "towns";
+
+const LEADERBOARD_TTL_MS = 60_000;
+const TOWN_RANKING_TTL_MS = 60_000;
+
+interface RawPlayerRow {
   uuid:       string;
   name:       string;
   nickname:   string | null;
@@ -20,8 +35,6 @@ interface RawRow {
   rank:       bigint;
   total:      bigint;
 }
-
-const LEADERBOARD_TTL_MS = 60_000;
 
 /**
  * Ranked purely by fp_time.total (network-wide playtime, same source as the
@@ -58,7 +71,7 @@ async function buildLeaderboardResponse(
       break;
   }
 
-  const rows: RawRow[] = await withDb(async (db) => {
+  const rows: RawPlayerRow[] = await withDb(async (db) => {
     return await db.$queryRaw(Prisma.sql`
       SELECT sub.uuid, sub.name, sub.nickname, sub.playtimeMs, sub.online, sub.\`rank\`,
              COUNT(*) OVER() AS total
@@ -77,7 +90,7 @@ async function buildLeaderboardResponse(
       ${orderSql}
       LIMIT  ${pageSize}
       OFFSET ${offset}
-    `) as RawRow[];
+    `) as RawPlayerRow[];
   });
 
   const total = rows.length > 0 ? Number(rows[0].total) : 0;
@@ -98,7 +111,13 @@ async function buildLeaderboardResponse(
             select: {
               nickname: true,
               lastSeenAt: true,
-              badges: { select: { badge: { select: { name: true, icon: true, color: true, description: true, earnCondition: true } } } },
+              // pinned first (there's at most one today), then earliest-awarded —
+              // badges[0] below is always exactly the one badge to display,
+              // pinned-or-default.
+              badges: {
+                orderBy: [{ pinned: "desc" }, { awardedAt: "asc" }],
+                select: { badge: { select: { name: true, icon: true, color: true, description: true, earnCondition: true } } },
+              },
             },
           },
         },
@@ -106,8 +125,14 @@ async function buildLeaderboardResponse(
     : [];
   const linkByUuid = new Map(links.map((l) => [l.minecraftUuid, l]));
 
-  // Fetch skins for all players on the current page
-  const skinUrls = await Promise.all(rows.map((r) => resolveSkinUrl(r.uuid)));
+  // Fetch skins for all players on the current page in chunks
+  const skinUrls: (string | null)[] = [];
+  const chunkSize = 5;
+  for (let i = 0; i < rows.length; i += chunkSize) {
+    const chunk = rows.slice(i, i + chunkSize);
+    const chunkResults = await Promise.all(chunk.map((r) => resolveSkinUrl(r.uuid)));
+    skinUrls.push(...chunkResults);
+  }
   const skinByUuid = new Map(rows.map((r, i) => [r.uuid, skinUrls[i]]));
 
   return {
@@ -115,6 +140,11 @@ async function buildLeaderboardResponse(
       const link = linkByUuid.get(r.uuid);
       const siteOnline = link ? isUserOnline(link.userId) : false;
       const dbLastSeenMs = link?.user.lastSeenAt?.getTime() ?? undefined;
+
+      // Already ordered pinned-first-then-earliest-awarded by the query
+      // above — the first entry is exactly the one badge to display.
+      const displayBadge = link?.user.badges[0]?.badge;
+
       return {
         uuid:       r.uuid,
         name:       r.name,
@@ -123,7 +153,7 @@ async function buildLeaderboardResponse(
         online:     Boolean(r.online),
         rank:       Number(r.rank),
         profileUsername: link?.user.nickname ?? null,
-        badges: link?.user.badges.map(({ badge }) => badge) ?? [],
+        badges: displayBadge ? [displayBadge] : [],
         skinUrl: skinByUuid.get(r.uuid) ?? null,
         siteOnline,
         siteLastSeenMs: dbLastSeenMs ?? null,
@@ -136,12 +166,93 @@ async function buildLeaderboardResponse(
   };
 }
 
+interface RawTownRow {
+  name:      string;
+  tag:       string | null;
+  nation:    string | null;
+  nationTag: string | null;
+  size:      bigint;
+  rank:      bigint;
+  total:     bigint;
+}
+
+/**
+ * Ranked by town size (claimed TOWNY_TOWNBLOCKS count) — the same metric
+ * /api/towns already sorts by for the docs page, just with an explicit
+ * rank column here. Same rule as the player leaderboard: RANK() is
+ * computed over the *unranked* inner query, then the search filter is
+ * applied as an outer WHERE — a search still has to show each town's real
+ * position in the full ranking, not its position among the search matches
+ * (which is what a WHERE-before-RANK() would give).
+ */
+async function buildTownRankingResponse(
+  page: number, pageSize: number, search: string, sort: string, order: string
+): Promise<TownRankingResponse> {
+  const offset = (page - 1) * pageSize;
+
+  const rows: RawTownRow[] = await withDb("duckburg_towns", async (db) => {
+      // outer2.name tiebreaker on every branch (town names are unique) —
+      // without it, ties (equal size, equal rank, or several towns sharing
+      // no nation) sort in whatever order MySQL feels like per-query,
+      // which can reshuffle rows between pages.
+      let orderSql = Prisma.sql`ORDER BY outer2.\`rank\` ASC, outer2.name ASC`;
+      const dir = order === "desc" ? Prisma.sql`DESC` : Prisma.sql`ASC`;
+      switch (sort) {
+        case "rank":
+          orderSql = Prisma.sql`ORDER BY outer2.\`rank\` ${dir}, outer2.name ASC`;
+          break;
+        case "town":
+          orderSql = Prisma.sql`ORDER BY outer2.name ${dir}`;
+          break;
+        case "nation":
+          orderSql = Prisma.sql`ORDER BY outer2.nation ${dir}, outer2.name ASC`;
+          break;
+        case "size":
+          orderSql = Prisma.sql`ORDER BY outer2.size ${dir}, outer2.name ASC`;
+          break;
+      }
+
+      return await db.$queryRaw(Prisma.sql`
+        SELECT outer2.name, outer2.tag, outer2.nation, outer2.nationTag, outer2.size, outer2.\`rank\`,
+               COUNT(*) OVER() AS total
+        FROM (
+          SELECT inner1.*, RANK() OVER (ORDER BY inner1.size DESC) AS \`rank\`
+          FROM (
+            ${townBaseQuery()}
+          ) inner1
+        ) outer2
+        ${search ? Prisma.sql`WHERE outer2.name LIKE ${"%" + search + "%"}` : Prisma.empty}
+        ${orderSql}
+        LIMIT  ${pageSize}
+        OFFSET ${offset}
+      `) as RawTownRow[];
+  });
+
+  const total = rows.length > 0 ? Number(rows[0].total) : 0;
+
+  return {
+    towns: rows.map((r) => ({
+      name:      r.name,
+      tag:       r.tag,
+      nation:    r.nation,
+      nationTag: r.nationTag,
+      size:      Number(r.size),
+      rank:      Number(r.rank),
+    })),
+    total,
+    page,
+    pageSize,
+    totalPages: Math.max(1, Math.ceil(total / pageSize)),
+  };
+}
+
 export async function GET(req: Request) {
-  if (isRateLimited(req, "leaderboard", 60, 60_000)) {
+  const { searchParams } = new URL(req.url);
+  const type: LeaderboardType = searchParams.get("type") === "towns" ? "towns" : "players";
+
+  if (isRateLimited(req, `leaderboard-${type}`, 60, 60_000)) {
     return NextResponse.json({ error: "Too many requests" }, { status: 429 });
   }
-
-  const { searchParams } = new URL(req.url);
 
   const page     = Math.max(1, parseInt(searchParams.get("page") ?? "1",  10));
   const pageSize = Math.min(100, Math.max(1, parseInt(searchParams.get("pageSize") ?? "10", 10)));
@@ -150,11 +261,17 @@ export async function GET(req: Request) {
   const order    = searchParams.get("order")?.trim() ?? "";
 
   try {
-    const result = await withCache(
-      `leaderboard:${page}:${pageSize}:${search.toLowerCase()}:${sort}:${order}`,
-      LEADERBOARD_TTL_MS,
-      () => buildLeaderboardResponse(page, pageSize, search, sort, order)
-    );
+    const result = type === "towns"
+      ? await withCache(
+          `leaderboard:towns:${page}:${pageSize}:${search.toLowerCase()}:${sort}:${order}`,
+          TOWN_RANKING_TTL_MS,
+          () => buildTownRankingResponse(page, pageSize, search, sort, order)
+        )
+      : await withCache(
+          `leaderboard:players:${page}:${pageSize}:${search.toLowerCase()}:${sort}:${order}`,
+          LEADERBOARD_TTL_MS,
+          () => buildLeaderboardResponse(page, pageSize, search, sort, order)
+        );
 
     return NextResponse.json(result, {
       headers: {
@@ -162,9 +279,9 @@ export async function GET(req: Request) {
       },
     });
   } catch (error) {
-    console.error("[leaderboard] DB error:", error);
+    console.error(`[leaderboard:${type}] DB error:`, error);
     return NextResponse.json(
-      { error: "Failed to fetch leaderboard" },
+      { error: type === "towns" ? "Failed to fetch town ranking" : "Failed to fetch leaderboard" },
       { status: 500 }
     );
   }

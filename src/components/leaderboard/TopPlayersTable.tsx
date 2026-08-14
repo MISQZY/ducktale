@@ -13,11 +13,13 @@ import {
 } from "@/components/ui/docs-table";
 import {
   PagedTableLayout,
+  HighlightMatch,
 } from "@/components/docs/paged-table";
 import { usePagedTable } from "@/hooks/usePagedTable";
 import { formatDurationMs } from "@/lib/player-card-format";
 import { RankBadge } from "./RankBadge";
-import { PlayerChip } from "@/components/common/PlayerChip";
+import { PlayerAvatar } from "@/components/common/PlayerAvatar";
+import { CompactBadgeChip } from "@/components/badges/CompactBadgeChip";
 import type { LeaderboardPlayer, LeaderboardResponse } from "@/types/leaderboard";
 
 export type { LeaderboardPlayer, LeaderboardResponse };
@@ -35,6 +37,7 @@ export function TopPlayersTable({ pageSize = 10, className }: TopPlayersTablePro
 
   const fetcher = useCallback(async (page: number, query: string, sort?: string, order?: string) => {
     const params = new URLSearchParams({
+      type:     "players",
       page:     String(page),
       pageSize: String(pageSize),
       ...(query ? { search: query } : {}),
@@ -100,6 +103,7 @@ export function TopPlayersTable({ pageSize = 10, className }: TopPlayersTablePro
           <DocsTableRow
             key={player.uuid}
             className={cn(
+              "h-[76px]",
               isTopTen && "bg-amber-500/[0.06] !border-l-2 border-l-amber-500/50",
               isRefreshing && "opacity-40 transition-opacity"
             )}
@@ -111,14 +115,34 @@ export function TopPlayersTable({ pageSize = 10, className }: TopPlayersTablePro
             </DocsTableCell>
 
             <DocsTableCell className="align-middle">
-              <PlayerChip
+              <PlayerAvatar
+                avatarSize={36}
                 name={player.name}
-                profileUsername={player.profileUsername}
                 skinUrl={player.skinUrl}
+                hasSiteProfile={!!player.profileUsername}
+                linked={!!player.profileUsername}
                 online={player.online}
                 siteOnline={player.siteOnline}
-                badges={player.badges}
-                query={query}
+                nameNode={
+                  query ? <HighlightMatch text={player.name} query={query} /> : undefined
+                }
+                appendNode={
+                  player.badges && player.badges.length > 0 ? (
+                    <div className="flex items-center gap-1">
+                      {player.badges.slice(0, 1).map((badge) => (
+                        <CompactBadgeChip
+                          key={badge.name}
+                          name={badge.name}
+                          icon={badge.icon}
+                          color={badge.color}
+                          description={badge.description}
+                          earnCondition={badge.earnCondition}
+                          size={15}
+                        />
+                      ))}
+                    </div>
+                  ) : null
+                }
               />
             </DocsTableCell>
 

@@ -33,13 +33,14 @@ export function TownRankingTable({ pageSize = 15, className }: TownRankingTableP
 
   const fetcher = useCallback(async (page: number, query: string, sort?: string, order?: string) => {
     const params = new URLSearchParams({
+      type:     "towns",
       page:     String(page),
       pageSize: String(pageSize),
       ...(query ? { search: query } : {}),
       ...(sort ? { sort } : {}),
       ...(order ? { order } : {}),
     });
-    const r = await fetch(`/api/leaderboard/towns?${params}`);
+    const r = await fetch(`/api/leaderboard?${params}`);
     if (!r.ok) throw new Error(`HTTP ${r.status}`);
     const res: TownRankingResponse = await r.json();
     return { ...res, items: res.towns };

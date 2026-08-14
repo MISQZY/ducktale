@@ -5,7 +5,7 @@ export const DEPUTY_RANK = "vice";
 
 /**
  * Town + nation + claimed-block-count join, shared by /api/towns (the docs
- * table) and /api/leaderboard/towns (ranked by the same size metric) —
+ * table) and /api/leaderboard?type=towns (ranked by the same size metric) —
  * the only two places this network's town roster gets queried from.
  * `extraColumns` lets a caller tack on its own columns (e.g. the docs
  * route's uuid/mayorUuid, needed to resolve residents) without duplicating

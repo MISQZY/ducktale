@@ -16,7 +16,7 @@ export interface LeaderboardPlayer {
   rank:       number;
   /** Site username to link to (/profile/<username>) — set only when this Minecraft account has a CONFIRMED site AccountLink, null otherwise. */
   profileUsername: string | null;
-  /** Same site-account badges shown on their profile — empty when not linked. */
+  /** The single badge to show next to this player's name — their pinned badge if set, otherwise whichever they earned first. Empty when not linked or no badges. */
   badges: LeaderboardPlayerBadge[];
   /** Actual skin URL resolved from SkinRestorer. */
   skinUrl: string | null;

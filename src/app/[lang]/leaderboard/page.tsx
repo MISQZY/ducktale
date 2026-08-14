@@ -10,7 +10,7 @@ export default async function LeaderboardPage() {
   return (
     <>
       <Navbar />
-      <main className="relative overflow-hidden min-h-screen px-6 pt-24 pb-16">
+      <main className="relative overflow-hidden min-h-screen px-6 pt-24 pb-6">
         <div className="relative z-10 max-w-3xl mx-auto">
           <h1
             className="text-3xl text-primary/90 mb-2 leading-tight text-center"
