@@ -42,6 +42,28 @@ if (process.env.NODE_ENV !== "production") {
   globalForPrisma.prismaClients = registry;
 }
 
+// Guarded by a globalThis flag (not module scope) for the same reason the
+// registry itself is on globalThis: dev/HMR re-evaluates this module on
+// every reload, and process.on would otherwise stack a fresh listener each
+// time. Without this, a killed dev server leaves every registry client's
+// TCP connection open on the DB server as an idle "Sleep" until the DB's
+// own wait_timeout reaps it — across enough restarts that exhausts
+// max_connections (see docs/DATA_LAYER.md).
+const globalForShutdown = globalThis as unknown as { prismaShutdownHookRegistered?: boolean };
+if (!globalForShutdown.prismaShutdownHookRegistered) {
+  globalForShutdown.prismaShutdownHookRegistered = true;
+  const disconnectAll = () =>
+    Promise.race([
+      Promise.all([...registry.values()].map((c) => c.$disconnect().catch(() => {}))),
+      new Promise((resolve) => setTimeout(resolve, 2000)),
+    ]);
+  for (const signal of ["SIGINT", "SIGTERM"] as const) {
+    process.once(signal, () => {
+      void disconnectAll().finally(() => process.exit(0));
+    });
+  }
+}
+
 function createClient(key: DbKey): PrismaClient {
   const client = new PrismaClient({
     // Same generated schema/client, pointed at a different connection string per key.
