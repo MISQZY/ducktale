@@ -111,7 +111,46 @@ export async function awardBadge(lang: string, userId: string, badgeId: string):
 export async function revokeBadge(lang: string, userId: string, badgeId: string): Promise<void> {
   await requireAdminId();
 
+  // pinned lives on this same row, so deleting it un-pins automatically —
+  // nothing extra to clean up.
   await siteDb.userBadge.deleteMany({ where: { userId, badgeId } });
 
   revalidatePath(`/${lang}/admin/users`);
+  revalidatePath(`/${lang}/admin/badges`);
+}
+
+export async function getBadgeUsers(badgeId: string) {
+  await requireAdminId();
+  const rows = await siteDb.userBadge.findMany({
+    where: { badgeId },
+    select: {
+      user: {
+        select: { id: true, nickname: true, accountLink: { select: { minecraftUuid: true } } },
+      },
+      awardedAt: true,
+    },
+    orderBy: { awardedAt: "desc" },
+  });
+
+  const { resolveSkinUrl } = await import("@/lib/skin");
+
+  const result = [];
+  const chunkSize = 3;
+  for (let i = 0; i < rows.length; i += chunkSize) {
+    const chunk = rows.slice(i, i + chunkSize);
+    const chunkResults = await Promise.all(chunk.map(async (r) => {
+      const uuid = r.user.accountLink?.minecraftUuid;
+      const skinUrl = uuid ? await resolveSkinUrl(uuid) : null;
+      return {
+        userId: r.user.id,
+        name: r.user.nickname,
+        skinUrl,
+        linked: !!uuid,
+        awardedAt: r.awardedAt,
+      };
+    }));
+    result.push(...chunkResults);
+  }
+  
+  return result;
 }

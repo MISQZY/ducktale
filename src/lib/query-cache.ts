@@ -40,6 +40,20 @@ export function hasFreshCache(key: string, ttlMs: number): boolean {
   return cached !== undefined && Date.now() - cached.fetchedAt < ttlMs;
 }
 
+/**
+ * Drops every cached entry whose key starts with `prefix` — for the rare
+ * case a write needs to bust a cache that's otherwise purely TTL-driven
+ * (e.g. leaderboard entries keyed by page/search/sort, all sharing a
+ * "leaderboard:" prefix). `revalidatePath` doesn't reach this cache — it's
+ * a plain in-memory Map, not Next's own data/router cache — so callers that
+ * need the *next* request to see a change have to clear it explicitly.
+ */
+export function invalidateByPrefix(prefix: string): void {
+  for (const key of store.keys()) {
+    if (key.startsWith(prefix)) store.delete(key);
+  }
+}
+
 export async function withCache<T>(
   key: string,
   ttlMs: number,

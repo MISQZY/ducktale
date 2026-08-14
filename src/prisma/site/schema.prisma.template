@@ -98,6 +98,14 @@ model UserBadge {
   badgeId   String
   badge     Badge    @relation(fields: [badgeId], references: [id], onDelete: Cascade)
   awardedAt DateTime @default(now())
+  // Shown next to this user's name on the leaderboard (see
+  // /api/leaderboard and BadgePinSelector). Lives on the join row rather
+  // than as a single FK on User specifically so this can loosen from "at
+  // most one pinned per user" to "several" later without a schema change —
+  // for now setPinnedBadge() enforces the one-pinned rule at the app level,
+  // not here. Deleting the UserBadge row (revoke) naturally un-pins it too,
+  // nothing extra to clean up on that path.
+  pinned    Boolean  @default(false)
 
   @@unique([userId, badgeId])
   @@index([userId])
