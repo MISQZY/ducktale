@@ -1,12 +1,11 @@
 "use client";
 
-import { Fragment, useCallback, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
+import type { ColumnDef } from "@tanstack/react-table";
 import { cn } from "@/lib/utils";
 import { Landmark, ChevronDown, Users } from "lucide-react";
 import {
-  DocsTableHeader,
   DocsTableRow,
-  DocsTableHead,
   DocsTableCell,
   DOCS_TABLE_THEME,
 } from "@/components/ui/docs-table";
@@ -83,6 +82,64 @@ export function TownyTable({
 
   const total = data?.total ?? null;
 
+  const columns = useMemo<ColumnDef<Town, unknown>[]>(() => [
+    {
+      id: "town",
+      header: "Город",
+      meta: { withRightBorder: true, sortKey: "town" },
+      cell: ({ row }) => {
+        const town = row.original;
+        const isOpen = expanded.has(town.name);
+        const hasResidents = town.residents.length > 0;
+        return (
+          <button
+            type="button"
+            onClick={() => hasResidents && toggle(town.name)}
+            disabled={!hasResidents}
+            className={cn(
+              "flex items-center gap-1.5 text-left",
+              hasResidents ? "cursor-pointer group/town" : "cursor-default",
+            )}
+            aria-expanded={isOpen}
+          >
+            {hasResidents ? (
+              <ChevronDown
+                size={13}
+                className={cn(
+                  "shrink-0 transition-transform duration-200",
+                  DOCS_TABLE_THEME.iconFaint,
+                  "group-hover/town:text-foreground",
+                  isOpen && "rotate-180"
+                )}
+              />
+            ) : (
+              <span className="w-3.25 shrink-0" />
+            )}
+            <TownNameLabel tag={town.tag} name={town.name} query={query} />
+          </button>
+        );
+      },
+    },
+    {
+      id: "nation",
+      header: "Нация",
+      meta: { headClassName: "w-40", withRightBorder: true, sortKey: "nation" },
+      cell: ({ row }) => (
+        <TownNationBadge nation={row.original.nation} nationTag={row.original.nationTag} independentLabel="Независимый" />
+      ),
+    },
+    {
+      id: "size",
+      header: "Размер",
+      meta: { headClassName: "w-24", sortKey: "size" },
+      cell: ({ row }) => (
+        <span className={cn("text-xs font-mono tabular-nums", DOCS_TABLE_THEME.textSoft)}>
+          {row.original.size}
+        </span>
+      ),
+    },
+  ], [query, expanded, toggle]);
+
   return (
     <PagedTableLayout
       className={className}
@@ -110,90 +167,41 @@ export function TownyTable({
       pageSize={pageSize}
       pageNumbers={pageNumbers}
       goTo={goTo}
-      tableHeader={
-        <DocsTableHeader>
-          <DocsTableRow>
-            <DocsTableHead sortable sortDirection={sortColumn === "town" ? sortDirection : undefined} onSort={() => setSort("town")} withRightBorder>Город</DocsTableHead>
-            <DocsTableHead sortable sortDirection={sortColumn === "nation" ? sortDirection : undefined} onSort={() => setSort("nation")} className="w-40" withRightBorder>Нация</DocsTableHead>
-            <DocsTableHead sortable sortDirection={sortColumn === "size" ? sortDirection : undefined} onSort={() => setSort("size")} className="w-24">Размер</DocsTableHead>
-          </DocsTableRow>
-        </DocsTableHeader>
-      }
-    >
-      {data && data.items.map((town) => {
+      columns={columns}
+      data={data?.items ?? []}
+      getRowId={(town) => town.name}
+      rowClassName={() => cn(isRefreshing && "opacity-40 transition-opacity")}
+      renderExtraRow={(town) => {
         const isOpen = expanded.has(town.name);
         const hasResidents = town.residents.length > 0;
-
+        if (!isOpen || !hasResidents) return null;
         return (
-          <Fragment key={town.name}>
-            <DocsTableRow
-              className={cn(isRefreshing && "opacity-40 transition-opacity")}
-            >
-              <DocsTableCell withRightBorder>
-                <button
-                  type="button"
-                  onClick={() => hasResidents && toggle(town.name)}
-                  disabled={!hasResidents}
-                  className={cn(
-                    "flex items-center gap-1.5 text-left",
-                    hasResidents ? "cursor-pointer group/town" : "cursor-default",
-                  )}
-                  aria-expanded={isOpen}
-                >
-                  {hasResidents ? (
-                    <ChevronDown
-                      size={13}
-                      className={cn(
-                        "shrink-0 transition-transform duration-200",
-                        DOCS_TABLE_THEME.iconFaint,
-                        "group-hover/town:text-foreground",
-                        isOpen && "rotate-180"
-                      )}
-                    />
-                  ) : (
-                    <span className="w-3.25 shrink-0" />
-                  )}
-                  <TownNameLabel tag={town.tag} name={town.name} query={query} />
-                </button>
-              </DocsTableCell>
-
-              <DocsTableCell withRightBorder>
-                <TownNationBadge nation={town.nation} nationTag={town.nationTag} independentLabel="Независимый" />
-              </DocsTableCell>
-
-              <DocsTableCell>
-                <span className={cn("text-xs font-mono tabular-nums", DOCS_TABLE_THEME.textSoft)}>
-                  {town.size}
-                </span>
-              </DocsTableCell>
-            </DocsTableRow>
-
-            {isOpen && hasResidents && (
-              <DocsTableRow className={DOCS_TABLE_THEME.rowHover}>
-                <DocsTableCell colSpan={3} className="bg-muted/40 py-2.5">
-                  <div className="flex items-center gap-1.5 flex-wrap">
-                    <Users size={12} className={cn("shrink-0", DOCS_TABLE_THEME.iconFaint)} />
-                    {town.residents.map((resident: Resident) => (
-                      <DuckBadge
-                        key={resident.display}
-                        variant="outline"
-                        className={cn(
-                          "text-xs",
-                          resident.role
-                            ? RESIDENT_BADGE_STYLE[resident.role]
-                            : "bg-card text-foreground/70 border-border"
-                        )}
-                      >
-                        {resident.display}
-                      </DuckBadge>
-                    ))}
-                  </div>
-                </DocsTableCell>
-              </DocsTableRow>
-            )}
-          </Fragment>
+          <DocsTableRow key={`${town.name}-residents`} className={DOCS_TABLE_THEME.rowHover}>
+            <DocsTableCell colSpan={3} className="bg-muted/40 py-2.5">
+              <div className="flex items-center gap-1.5 flex-wrap">
+                <Users size={12} className={cn("shrink-0", DOCS_TABLE_THEME.iconFaint)} />
+                {town.residents.map((resident: Resident) => (
+                  <DuckBadge
+                    key={resident.display}
+                    variant="outline"
+                    className={cn(
+                      "text-xs",
+                      resident.role
+                        ? RESIDENT_BADGE_STYLE[resident.role]
+                        : "bg-card text-foreground/70 border-border"
+                    )}
+                  >
+                    {resident.display}
+                  </DuckBadge>
+                ))}
+              </div>
+            </DocsTableCell>
+          </DocsTableRow>
         );
-      })}
-    </PagedTableLayout>
+      }}
+      sortColumn={sortColumn}
+      sortDirection={sortDirection}
+      onSort={setSort}
+    />
   );
 }

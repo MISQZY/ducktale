@@ -1,15 +1,10 @@
 "use client";
 
-import { useCallback } from "react";
+import { useCallback, useMemo } from "react";
+import type { ColumnDef } from "@tanstack/react-table";
 import { cn } from "@/lib/utils";
 import { Users, Infinity as InfinityIcon } from "lucide-react";
-import {
-  DocsTableHeader,
-  DocsTableRow,
-  DocsTableHead,
-  DocsTableCell,
-  DOCS_TABLE_THEME,
-} from "@/components/ui/docs-table";
+import { DOCS_TABLE_THEME } from "@/components/ui/docs-table";
 import {
   HighlightMatch,
   PagedTableLayout,
@@ -103,6 +98,47 @@ export function WhitelistTable({
 
   const total = data?.total ?? null;
 
+  const columns = useMemo<ColumnDef<WhitelistPlayer, unknown>[]>(() => [
+    {
+      id: "id",
+      header: "№",
+      meta: { headClassName: "w-16", cellClassName: cn("font-mono text-xs tabular-nums", DOCS_TABLE_THEME.textFaint), withRightBorder: true, sortKey: "id" },
+      cell: ({ row }) => pageStart + row.index + 1,
+    },
+    {
+      id: "name",
+      header: "Игрок",
+      meta: { withRightBorder: true, sortKey: "name" },
+      cell: ({ row }) => <HighlightMatch text={row.original.name} query={query} />,
+    },
+    {
+      id: "moderator",
+      header: "Добавил",
+      meta: { headClassName: "w-28", withRightBorder: true, sortKey: "moderator" },
+      cell: ({ row }) => (
+        <span className={cn("text-xs font-medium", DOCS_TABLE_THEME.textSoft)}>
+          {row.original.moderator}
+        </span>
+      ),
+    },
+    {
+      id: "addedAt",
+      header: "Добавлен",
+      meta: { headClassName: "w-28", withRightBorder: true, sortKey: "addedAt" },
+      cell: ({ row }) => (
+        <span className={cn("text-xs tabular-nums", DOCS_TABLE_THEME.textFaint)}>
+          {formatDate(row.original.addedAt)}
+        </span>
+      ),
+    },
+    {
+      id: "expiresAt",
+      header: "Действителен до",
+      meta: { headClassName: "w-32", sortKey: "expiresAt" },
+      cell: ({ row }) => <ExpiryCell expiresAt={row.original.expiresAt} />,
+    },
+  ], [query, pageStart]);
+
   return (
     <PagedTableLayout
       className={className}
@@ -130,48 +166,13 @@ export function WhitelistTable({
       pageSize={pageSize}
       pageNumbers={pageNumbers}
       goTo={goTo}
-      tableHeader={
-        <DocsTableHeader>
-          <DocsTableRow>
-            <DocsTableHead sortable sortDirection={sortColumn === "id" ? sortDirection : undefined} onSort={() => setSort("id")} className="w-16" withRightBorder>№</DocsTableHead>
-            <DocsTableHead sortable sortDirection={sortColumn === "name" ? sortDirection : undefined} onSort={() => setSort("name")} withRightBorder>Игрок</DocsTableHead>
-            <DocsTableHead sortable sortDirection={sortColumn === "moderator" ? sortDirection : undefined} onSort={() => setSort("moderator")} className="w-28" withRightBorder>Добавил</DocsTableHead>
-            <DocsTableHead sortable sortDirection={sortColumn === "addedAt" ? sortDirection : undefined} onSort={() => setSort("addedAt")} className="w-28" withRightBorder>Добавлен</DocsTableHead>
-            <DocsTableHead sortable sortDirection={sortColumn === "expiresAt" ? sortDirection : undefined} onSort={() => setSort("expiresAt")} className="w-32">Действителен до</DocsTableHead>
-          </DocsTableRow>
-        </DocsTableHeader>
-      }
-    >
-      {data && data.items.map((player, index) => (
-        <DocsTableRow
-          key={player.id}
-          className={cn(isRefreshing && "opacity-40 transition-opacity")}
-        >
-          <DocsTableCell withRightBorder className={cn("font-mono text-xs tabular-nums", DOCS_TABLE_THEME.textFaint)}>
-            {pageStart + index + 1}
-          </DocsTableCell>
-
-          <DocsTableCell withRightBorder>
-            <HighlightMatch text={player.name} query={query} />
-          </DocsTableCell>
-
-          <DocsTableCell withRightBorder>
-            <span className={cn("text-xs font-medium", DOCS_TABLE_THEME.textSoft)}>
-              {player.moderator}
-            </span>
-          </DocsTableCell>
-
-          <DocsTableCell withRightBorder>
-            <span className={cn("text-xs tabular-nums", DOCS_TABLE_THEME.textFaint)}>
-              {formatDate(player.addedAt)}
-            </span>
-          </DocsTableCell>
-
-          <DocsTableCell>
-            <ExpiryCell expiresAt={player.expiresAt} />
-          </DocsTableCell>
-        </DocsTableRow>
-      ))}
-    </PagedTableLayout>
+      columns={columns}
+      data={data?.items ?? []}
+      getRowId={(player) => String(player.id)}
+      rowClassName={() => cn(isRefreshing && "opacity-40 transition-opacity")}
+      sortColumn={sortColumn}
+      sortDirection={sortDirection}
+      onSort={setSort}
+    />
   );
 }

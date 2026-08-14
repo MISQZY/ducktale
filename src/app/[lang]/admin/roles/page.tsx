@@ -3,21 +3,9 @@ import { requireAdmin } from "@/lib/admin";
 import { siteDb } from "@/lib/site-db";
 import { withDb } from "@/lib/db";
 import { AdminPageShell } from "@/components/admin/AdminPageShell";
-import { BadgeIcon } from "@/components/badges/BadgeIcon";
 import { RoleFormDialog } from "@/components/admin/RoleFormDialog";
-import { RoleRowActions } from "@/components/admin/RoleRowActions";
-import { RoleUsersDialog } from "@/components/admin/RoleUsersDialog";
+import { AdminRolesTable } from "@/components/admin/AdminRolesTable";
 import { FormButton } from "@/components/common/FormButton";
-import { cn } from "@/lib/utils";
-import {
-  DocsTable,
-  DocsTableHeader,
-  DocsTableBody,
-  DocsTableRow,
-  DocsTableHead,
-  DocsTableCell,
-  DOCS_TABLE_THEME,
-} from "@/components/ui/docs-table";
 
 /** group -> which lp_tracks it appears in — read-only context shown next to each row so an admin styling a group can see where it actually ranks, without cross-referencing the LuckPerms server separately. */
 async function resolveTracksByGroup(): Promise<Map<string, string[]>> {
@@ -100,53 +88,13 @@ export default async function AdminRolesPage({
         </div>
 
         <div className="min-h-[42vh]">
-          <DocsTable>
-            <DocsTableHeader>
-              <DocsTableRow>
-                <DocsTableHead className="w-[250px] align-middle" withRightBorder>{tr("nameLabel")}</DocsTableHead>
-                <DocsTableHead className="align-middle" withRightBorder>{tr("groupLabel")}</DocsTableHead>
-                <DocsTableHead className="align-middle" withRightBorder>{tr("tracksLabel")}</DocsTableHead>
-                <DocsTableHead className="w-[120px] text-center align-middle" withRightBorder>Пользователи</DocsTableHead>
-                <DocsTableHead className="w-[120px] align-middle text-right">{t("actionsColumn")}</DocsTableHead>
-              </DocsTableRow>
-            </DocsTableHeader>
-            <DocsTableBody className="[&_tr:last-child]:border-0">
-              {roles.length === 0 ? (
-                <DocsTableRow>
-                  <DocsTableCell colSpan={5} className="text-center py-10">
-                    <p className={cn("text-sm", DOCS_TABLE_THEME.textFaint)}>{tr("noResults")}</p>
-                  </DocsTableCell>
-                </DocsTableRow>
-              ) : (
-                roles.map((role) => (
-                  <DocsTableRow key={role.id}>
-                    <DocsTableCell className="align-middle" withRightBorder>
-                      <span className="inline-flex items-center gap-2">
-                        <BadgeIcon name={role.icon} size={16} style={{ color: role.color ?? undefined }} />
-                        {role.name}
-                      </span>
-                    </DocsTableCell>
-                    <DocsTableCell className="align-middle font-mono text-xs text-foreground/60" withRightBorder>
-                      {role.group}
-                    </DocsTableCell>
-                    <DocsTableCell className="align-middle text-xs text-foreground/50" withRightBorder>
-                      {(tracksByGroup.get(role.group) ?? []).join(", ") || "—"}
-                    </DocsTableCell>
-                    <DocsTableCell className="align-middle text-center" withRightBorder>
-                      <RoleUsersDialog
-                        lang={lang}
-                        group={role.group}
-                        count={userCounts.get(role.group) || 0}
-                      />
-                    </DocsTableCell>
-                    <DocsTableCell className="align-middle text-right">
-                      <RoleRowActions lang={lang} role={role} groupSuggestions={groupSuggestions} />
-                    </DocsTableCell>
-                  </DocsTableRow>
-                ))
-              )}
-            </DocsTableBody>
-          </DocsTable>
+          <AdminRolesTable
+            lang={lang}
+            roles={roles}
+            tracksByGroup={[...tracksByGroup.entries()]}
+            userCounts={[...userCounts.entries()]}
+            groupSuggestions={groupSuggestions}
+          />
         </div>
       </div>
     </AdminPageShell>

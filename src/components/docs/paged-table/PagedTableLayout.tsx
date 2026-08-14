@@ -1,4 +1,5 @@
 import { type ReactNode } from "react";
+import type { ColumnDef } from "@tanstack/react-table";
 import { cn } from "@/lib/utils";
 import {
   DocsTable,
@@ -7,9 +8,10 @@ import {
   DocsTableCell,
   DOCS_TABLE_THEME,
 } from "@/components/ui/docs-table";
+import { useDataTable, DataTableHeader, DataTableBody } from "@/components/ui/data-table";
 import { TableSearch, TablePagination, TableSkeleton } from "@/components/docs/paged-table";
 
-interface PagedTableLayoutProps {
+interface PagedTableLayoutProps<TData> {
   className?: string;
 
   // Header props
@@ -31,8 +33,14 @@ interface PagedTableLayoutProps {
   // Table props
   skeletonWidths?: string[];
   skeletonRows?: number;
-  tableHeader: ReactNode;
-  children: ReactNode; // The actual rows
+  columns: ColumnDef<TData, unknown>[];
+  data: TData[];
+  getRowId?: (row: TData, index: number) => string;
+  rowClassName?: (row: TData) => string | undefined;
+  renderExtraRow?: (row: TData) => ReactNode;
+  sortColumn?: string;
+  sortDirection?: "asc" | "desc";
+  onSort?: (key: string, defaultDirection?: "asc" | "desc") => void;
 
   // Pagination props
   page: number;
@@ -44,7 +52,7 @@ interface PagedTableLayoutProps {
   showPagination?: boolean;
 }
 
-export function PagedTableLayout({
+export function PagedTableLayout<TData>({
   className,
   titleNode,
   total,
@@ -58,8 +66,14 @@ export function PagedTableLayout({
   emptyMessage,
   skeletonWidths = ["w-40", "w-24", "w-16"],
   skeletonRows = 10,
-  tableHeader,
-  children,
+  columns,
+  data,
+  getRowId,
+  rowClassName,
+  renderExtraRow,
+  sortColumn,
+  sortDirection,
+  onSort,
   page,
   totalPages,
   pageStart,
@@ -67,7 +81,9 @@ export function PagedTableLayout({
   pageNumbers,
   goTo,
   showPagination = true,
-}: PagedTableLayoutProps) {
+}: PagedTableLayoutProps<TData>) {
+  const table = useDataTable(columns, data, getRowId);
+
   // We need to count the columns from the skeletonWidths to span the empty/error states correctly
   const colSpan = skeletonWidths.length;
 
@@ -94,7 +110,7 @@ export function PagedTableLayout({
 
       {/* Table */}
       <DocsTable>
-        {tableHeader}
+        <DataTableHeader table={table} sortColumn={sortColumn} sortDirection={sortDirection} onSort={onSort} />
 
         <DocsTableBody className="[&_tr:last-child]:border-0">
           {isLoading && <TableSkeleton rows={skeletonRows} cellWidths={skeletonWidths} />}
@@ -117,7 +133,9 @@ export function PagedTableLayout({
             </DocsTableRow>
           )}
 
-          {!isLoading && !error && !isEmpty && children}
+          {!isLoading && !error && !isEmpty && (
+            <DataTableBody table={table} rowClassName={rowClassName} renderExtraRow={renderExtraRow} />
+          )}
         </DocsTableBody>
       </DocsTable>
 

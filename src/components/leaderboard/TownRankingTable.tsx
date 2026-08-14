@@ -1,16 +1,11 @@
 "use client";
 
-import { useCallback } from "react";
+import { useCallback, useMemo } from "react";
 import { useTranslations } from "next-intl";
+import type { ColumnDef } from "@tanstack/react-table";
 import { cn } from "@/lib/utils";
 import { Landmark } from "lucide-react";
-import {
-  DocsTableHeader,
-  DocsTableRow,
-  DocsTableHead,
-  DocsTableCell,
-  DOCS_TABLE_THEME,
-} from "@/components/ui/docs-table";
+import { DOCS_TABLE_THEME } from "@/components/ui/docs-table";
 import {
   PagedTableLayout,
 } from "@/components/docs/paged-table";
@@ -56,6 +51,44 @@ export function TownRankingTable({ pageSize = 15, className }: TownRankingTableP
 
   const total = data?.total ?? null;
 
+  const columns = useMemo<ColumnDef<RankedTown, unknown>[]>(() => [
+    {
+      id: "rank",
+      header: t("columns.rank"),
+      meta: { headClassName: "w-14 text-center align-middle", cellClassName: "text-center align-middle", withRightBorder: true, sortKey: "rank", defaultSortDirection: "asc" },
+      cell: ({ row }) => (
+        <div className="flex justify-center">
+          <RankBadge rank={row.original.rank} size={18} medalScale={1.35} variant="text" />
+        </div>
+      ),
+    },
+    {
+      id: "town",
+      header: t("columns.town"),
+      meta: { headClassName: "align-middle", cellClassName: "align-middle", withRightBorder: true, sortKey: "town", defaultSortDirection: "asc" },
+      cell: ({ row }) => <TownNameLabel tag={row.original.tag} name={row.original.name} query={query} />,
+    },
+    {
+      id: "nation",
+      header: t("columns.nation"),
+      meta: { headClassName: "w-32 align-middle", cellClassName: "align-middle", withRightBorder: true, sortKey: "nation", defaultSortDirection: "asc" },
+      cell: ({ row }) => (
+        <TownNationBadge nation={row.original.nation} nationTag={row.original.nationTag} independentLabel={t("townIndependent")} />
+      ),
+    },
+    {
+      id: "size",
+      header: t("columns.size"),
+      meta: { headClassName: "w-24 text-center align-middle", cellClassName: "text-center align-middle", sortKey: "size", defaultSortDirection: "desc" },
+      cell: ({ row }) => (
+        <span className={cn("text-xs font-mono tabular-nums", DOCS_TABLE_THEME.textSoft)}>
+          {row.original.size}
+        </span>
+      ),
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  ], [query]);
+
   return (
     <PagedTableLayout
       className={className}
@@ -83,49 +116,18 @@ export function TownRankingTable({ pageSize = 15, className }: TownRankingTableP
       pageSize={pageSize}
       pageNumbers={pageNumbers}
       goTo={goTo}
-      tableHeader={
-        <DocsTableHeader>
-          <DocsTableRow>
-            <DocsTableHead sortable sortDirection={sortColumn === "rank" ? sortDirection : undefined} onSort={() => setSort("rank", "asc")} className="w-14 text-center align-middle" withRightBorder>{t("columns.rank")}</DocsTableHead>
-            <DocsTableHead sortable sortDirection={sortColumn === "town" ? sortDirection : undefined} onSort={() => setSort("town", "asc")} className="align-middle"                  withRightBorder>{t("columns.town")}</DocsTableHead>
-            <DocsTableHead sortable sortDirection={sortColumn === "nation" ? sortDirection : undefined} onSort={() => setSort("nation", "asc")} className="w-32 align-middle" withRightBorder>{t("columns.nation")}</DocsTableHead>
-            <DocsTableHead sortable sortDirection={sortColumn === "size" ? sortDirection : undefined} onSort={() => setSort("size", "desc")} className="w-24 text-center align-middle"               >{t("columns.size")}</DocsTableHead>
-          </DocsTableRow>
-        </DocsTableHeader>
+      columns={columns}
+      data={data?.items ?? []}
+      getRowId={(town) => town.name}
+      rowClassName={(town) =>
+        cn(
+          town.rank <= 10 && "bg-amber-500/[0.06] border-l-2 border-l-amber-500/50",
+          isRefreshing && "opacity-40 transition-opacity"
+        )
       }
-    >
-      {data && data.items.map((town) => {
-        const isTopTen = town.rank <= 10;
-        return (
-          <DocsTableRow
-            key={town.name}
-            className={cn(
-              isTopTen && "bg-amber-500/[0.06] border-l-2 border-l-amber-500/50",
-              isRefreshing && "opacity-40 transition-opacity"
-            )}
-          >
-            <DocsTableCell className="text-center align-middle" withRightBorder>
-              <div className="flex justify-center">
-                <RankBadge rank={town.rank} size={18} medalScale={1.35} variant="text" />
-              </div>
-            </DocsTableCell>
-
-            <DocsTableCell className="align-middle" withRightBorder>
-              <TownNameLabel tag={town.tag} name={town.name} query={query} />
-            </DocsTableCell>
-
-            <DocsTableCell className="align-middle" withRightBorder>
-              <TownNationBadge nation={town.nation} nationTag={town.nationTag} independentLabel={t("townIndependent")} />
-            </DocsTableCell>
-
-            <DocsTableCell className="text-center align-middle">
-              <span className={cn("text-xs font-mono tabular-nums", DOCS_TABLE_THEME.textSoft)}>
-                {town.size}
-              </span>
-            </DocsTableCell>
-          </DocsTableRow>
-        );
-      })}
-    </PagedTableLayout>
+      sortColumn={sortColumn}
+      sortDirection={sortDirection}
+      onSort={setSort}
+    />
   );
 }

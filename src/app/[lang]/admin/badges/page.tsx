@@ -3,22 +3,9 @@ import { requireAdmin } from "@/lib/admin";
 import { siteDb } from "@/lib/site-db";
 import { seedBuiltinBadges } from "@/lib/badges";
 import { AdminPageShell } from "@/components/admin/AdminPageShell";
-import { BadgeChip } from "@/components/badges/BadgeChip";
 import { BadgeFormDialog } from "@/components/admin/BadgeFormDialog";
-import { BadgeRowActions } from "@/components/admin/BadgeRowActions";
-import { BadgeUsersDialog } from "@/components/admin/BadgeUsersDialog";
+import { AdminBadgesTable } from "@/components/admin/AdminBadgesTable";
 import { FormButton } from "@/components/common/FormButton";
-
-import { cn } from "@/lib/utils";
-import {
-  DocsTable,
-  DocsTableHeader,
-  DocsTableBody,
-  DocsTableRow,
-  DocsTableHead,
-  DocsTableCell,
-  DOCS_TABLE_THEME,
-} from "@/components/ui/docs-table";
 import { ServerPagination } from "@/components/common/ServerPagination";
 
 const PAGE_SIZE = 10;
@@ -81,57 +68,7 @@ export default async function AdminBadgesPage({
         </div>
 
         <div className="min-h-[42vh]">
-          <DocsTable>
-            <DocsTableHeader>
-              <DocsTableRow>
-                <DocsTableHead className="w-[250px] align-middle" withRightBorder>{tb("badgeColumn")}</DocsTableHead>
-                <DocsTableHead className="align-middle" withRightBorder>{tb("descriptionColumn")}</DocsTableHead>
-                <DocsTableHead className="w-[120px] text-center align-middle" withRightBorder>{tb("awardedColumn")}</DocsTableHead>
-                <DocsTableHead className="w-[120px] align-middle text-right">{t("actionsColumn")}</DocsTableHead>
-              </DocsTableRow>
-            </DocsTableHeader>
-            <DocsTableBody className="[&_tr:last-child]:border-0">
-              {badges.length === 0 ? (
-                <DocsTableRow>
-                  <DocsTableCell colSpan={4} className="text-center py-10">
-                    <p className={cn("text-sm", DOCS_TABLE_THEME.textFaint)}>{tb("noResults")}</p>
-                  </DocsTableCell>
-                </DocsTableRow>
-              ) : (
-                badges.map((badge) => (
-                  <DocsTableRow key={badge.id}>
-                    <DocsTableCell className="align-middle" withRightBorder>
-                      <BadgeChip name={badge.name} icon={badge.icon} color={badge.color} />
-                    </DocsTableCell>
-                    
-                    <DocsTableCell className="align-middle" withRightBorder>
-                      <div className="flex flex-col gap-1">
-                        {badge.description && (
-                          <span className="text-foreground/80 text-xs font-medium">{badge.description}</span>
-                        )}
-                        {badge.earnCondition && (
-                          <span className="text-foreground/45 text-[0.65rem]">{tb("earnConditionPrefix")} {badge.earnCondition}</span>
-                        )}
-                      </div>
-                    </DocsTableCell>
-
-                    <DocsTableCell className="align-middle text-center" withRightBorder>
-                      <BadgeUsersDialog
-                        lang={lang}
-                        badgeId={badge.id}
-                        badgeName={badge.name}
-                        count={badge._count.userBadges}
-                      />
-                    </DocsTableCell>
-
-                    <DocsTableCell className="align-middle text-right">
-                      <BadgeRowActions lang={lang} badge={badge} roleOptions={roleOptions} />
-                    </DocsTableCell>
-                  </DocsTableRow>
-                ))
-              )}
-            </DocsTableBody>
-          </DocsTable>
+          <AdminBadgesTable lang={lang} badges={badges} roleOptions={roleOptions} />
         </div>
 
         <ServerPagination
