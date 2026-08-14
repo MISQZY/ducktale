@@ -23,17 +23,16 @@ export async function resolveSkinUrl(uuid: string): Promise<string | null> {
   return withCache(`skin:${uuid}`, SKIN_TTL_MS, () => resolveSkinUrlUncached(uuid));
 }
 
-async function resolveSkinUrlUncached(uuid: string): Promise<string | null> {
-  // Get the player's name from the main DB, since cracked players might
-  // have their skin cached in sr_player_skins under their name rather than
-  // their offline UUID.
-  const nameRows = await withDb("default", async (db) => {
+async function resolvePlayerName(uuid: string): Promise<string | null> {
+  const rows = await withDb("default", async (db) => {
     return await db.$queryRaw(Prisma.sql`
       SELECT name FROM fp_player WHERE uuid = ${uuid} LIMIT 1
     `) as { name: string }[];
   });
-  const name = nameRows.length > 0 ? nameRows[0].name : null;
+  return rows.length > 0 ? rows[0].name : null;
+}
 
+async function resolveSkinUrlUncached(uuid: string): Promise<string | null> {
   return withDb("duckburg_skinrestorer", async (db) => {
     const [config] = await db.$queryRaw(Prisma.sql`
       SELECT skin_identifier, skin_type, skin_variant FROM sr_players WHERE uuid = ${uuid} LIMIT 1
@@ -57,21 +56,22 @@ async function resolveSkinUrlUncached(uuid: string): Promise<string | null> {
         SELECT value FROM sr_player_skins WHERE uuid = ${config.skin_identifier} LIMIT 1
       `) as { value: string }[];
     }
-    
-    // Fallback: If no explicit override or if the override query found nothing
+
+    // Fallback only when there's no explicit override (or its lookup came up
+    // empty). The cracked-player name lookup below hits a *second* database
+    // (the default/FlectonePulse one, not SkinRestorer's) — it used to run
+    // unconditionally before this override check, i.e. on every single call
+    // including the ~93% that already resolved via an override above and
+    // never needed the name at all. Fetching it lazily, only on this path,
+    // cuts a whole extra cross-database round trip off the common case.
     if (!valueRow) {
-      if (name) {
-        [valueRow] = await db.$queryRaw(Prisma.sql`
-          SELECT value FROM sr_player_skins 
-          WHERE uuid = ${uuid} OR last_known_name = ${name} 
-          ORDER BY timestamp DESC 
-          LIMIT 1
-        `) as { value: string }[];
-      } else {
-        [valueRow] = await db.$queryRaw(Prisma.sql`
-          SELECT value FROM sr_player_skins WHERE uuid = ${uuid} LIMIT 1
-        `) as { value: string }[];
-      }
+      const name = await resolvePlayerName(uuid);
+      [valueRow] = await db.$queryRaw(Prisma.sql`
+        SELECT value FROM sr_player_skins
+        WHERE uuid = ${uuid} ${name ? Prisma.sql`OR last_known_name = ${name}` : Prisma.empty}
+        ORDER BY timestamp DESC
+        LIMIT 1
+      `) as { value: string }[];
     }
 
     if (!valueRow) return null;
@@ -83,4 +83,31 @@ async function resolveSkinUrlUncached(uuid: string): Promise<string | null> {
       return null;
     }
   });
+}
+
+/**
+ * Resolves skin URLs for a list of UUIDs (a `null`/`undefined` slot — e.g. an
+ * unlinked or unconfirmed account — resolves to `null` without a query),
+ * chunked to keep concurrent SkinRestorer connections bounded.
+ *
+ * This is the one implementation of a pattern that used to be copy-pasted
+ * per call site (leaderboard, admin users/tickets/badges/roles, homepage
+ * showcase) — each with its own ad hoc chunk size (3 in some places, 5 in
+ * others) picked with no shared rationale. `resolveSkinUrl` itself already
+ * caches per uuid, so this only saves the boilerplate loop, not queries
+ * beyond what each individual call would already make.
+ */
+export async function resolveSkinUrls(
+  uuids: (string | null | undefined)[],
+  chunkSize = 5
+): Promise<(string | null)[]> {
+  const results: (string | null)[] = [];
+  for (let i = 0; i < uuids.length; i += chunkSize) {
+    const chunk = uuids.slice(i, i + chunkSize);
+    const chunkResults = await Promise.all(
+      chunk.map((uuid) => (uuid ? resolveSkinUrl(uuid) : Promise.resolve(null)))
+    );
+    results.push(...chunkResults);
+  }
+  return results;
 }

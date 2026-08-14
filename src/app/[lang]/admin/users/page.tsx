@@ -72,16 +72,8 @@ export default async function AdminUsersPage({
     siteDb.badge.findMany({ orderBy: { name: "asc" }, select: { id: true, name: true, icon: true, color: true } }),
   ]);
 
-  const { resolveSkinUrl } = await import("@/lib/skin");
-  const skinUrls: (string | null)[] = [];
-  const chunkSize = 3;
-  for (let i = 0; i < users.length; i += chunkSize) {
-    const chunk = users.slice(i, i + chunkSize);
-    const chunkSkins = await Promise.all(
-      chunk.map((u) => u.accountLink?.minecraftUuid ? resolveSkinUrl(u.accountLink.minecraftUuid) : Promise.resolve(null))
-    );
-    skinUrls.push(...chunkSkins);
-  }
+  const { resolveSkinUrls } = await import("@/lib/skin");
+  const skinUrls = await resolveSkinUrls(users.map((u) => u.accountLink?.minecraftUuid));
 
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
 

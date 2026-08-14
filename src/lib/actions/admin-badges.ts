@@ -132,25 +132,16 @@ export async function getBadgeUsers(badgeId: string) {
     orderBy: { awardedAt: "desc" },
   });
 
-  const { resolveSkinUrl } = await import("@/lib/skin");
+  const { resolveSkinUrls } = await import("@/lib/skin");
+  const skinUrls = await resolveSkinUrls(rows.map((r) => r.user.accountLink?.minecraftUuid));
 
-  const result = [];
-  const chunkSize = 3;
-  for (let i = 0; i < rows.length; i += chunkSize) {
-    const chunk = rows.slice(i, i + chunkSize);
-    const chunkResults = await Promise.all(chunk.map(async (r) => {
-      const uuid = r.user.accountLink?.minecraftUuid;
-      const skinUrl = uuid ? await resolveSkinUrl(uuid) : null;
-      return {
-        userId: r.user.id,
-        name: r.user.nickname,
-        skinUrl,
-        linked: !!uuid,
-        awardedAt: r.awardedAt,
-      };
-    }));
-    result.push(...chunkResults);
-  }
-  
+  const result = rows.map((r, i) => ({
+    userId: r.user.id,
+    name: r.user.nickname,
+    skinUrl: skinUrls[i],
+    linked: !!r.user.accountLink?.minecraftUuid,
+    awardedAt: r.awardedAt,
+  }));
+
   return result;
 }

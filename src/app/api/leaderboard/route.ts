@@ -6,7 +6,7 @@ import { townBaseQuery } from "@/lib/towny";
 import { Prisma } from "@prisma/client";
 import { isRateLimited } from "@/lib/rate-limit";
 import { PLAYER_NICKNAME_JOIN } from "@/lib/players";
-import { resolveSkinUrl } from "@/lib/skin";
+import { resolveSkinUrls } from "@/lib/skin";
 import { isUserOnline } from "@/lib/presence";
 import type { LeaderboardPlayer, LeaderboardResponse } from "@/types/leaderboard";
 import type { RankedTown, TownRankingResponse } from "@/types/town-ranking";
@@ -125,14 +125,7 @@ async function buildLeaderboardResponse(
     : [];
   const linkByUuid = new Map(links.map((l) => [l.minecraftUuid, l]));
 
-  // Fetch skins for all players on the current page in chunks
-  const skinUrls: (string | null)[] = [];
-  const chunkSize = 5;
-  for (let i = 0; i < rows.length; i += chunkSize) {
-    const chunk = rows.slice(i, i + chunkSize);
-    const chunkResults = await Promise.all(chunk.map((r) => resolveSkinUrl(r.uuid)));
-    skinUrls.push(...chunkResults);
-  }
+  const skinUrls = await resolveSkinUrls(rows.map((r) => r.uuid));
   const skinByUuid = new Map(rows.map((r, i) => [r.uuid, skinUrls[i]]));
 
   return {

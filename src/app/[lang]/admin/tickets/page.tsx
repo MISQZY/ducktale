@@ -77,16 +77,8 @@ export default async function AdminTicketsPage({
     siteDb.ticket.count({ where }),
   ]);
 
-  const { resolveSkinUrl } = await import("@/lib/skin");
-  const skinUrls: (string | null)[] = [];
-  const chunkSize = 3;
-  for (let i = 0; i < tickets.length; i += chunkSize) {
-    const chunk = tickets.slice(i, i + chunkSize);
-    const chunkSkins = await Promise.all(
-      chunk.map((t) => t.user.accountLink?.minecraftUuid ? resolveSkinUrl(t.user.accountLink.minecraftUuid) : Promise.resolve(null))
-    );
-    skinUrls.push(...chunkSkins);
-  }
+  const { resolveSkinUrls } = await import("@/lib/skin");
+  const skinUrls = await resolveSkinUrls(tickets.map((t) => t.user.accountLink?.minecraftUuid));
 
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
 

@@ -101,9 +101,16 @@ export async function getRoleUsers(group: string) {
   }
   
   // Find the minecraft names for these UUIDs if they linked their account
-  // Some users might not be linked, so we'll just return their UUIDs if we can't find a name
+  // Some users might not be linked, so we'll just return their UUIDs if we can't find a name.
+  // status: CONFIRMED is technically redundant here — minecraftUuid is null
+  // on any non-confirmed link (see MINECRAFT_ACCOUNT_LINK.md / requestNewLinkCode,
+  // which clears both fields on every reset to PENDING), so it can never
+  // match this uuids list anyway — kept for parity with every other
+  // accountLink-by-uuid lookup in the codebase (leaderboard, presence,
+  // admin users/tickets, showcase), all of which filter explicitly instead
+  // of relying on that invariant staying true.
   const links = await siteDb.accountLink.findMany({
-    where: { minecraftUuid: { in: uuids } },
+    where: { minecraftUuid: { in: uuids }, status: "CONFIRMED" },
     select: { minecraftUuid: true, minecraftName: true, user: { select: { nickname: true } } }
   });
   
@@ -125,23 +132,13 @@ export async function getRoleUsers(group: string) {
     }
   }
   
-  const { resolveSkinUrl } = await import("@/lib/skin");
+  const { resolveSkinUrls } = await import("@/lib/skin");
+  const skinUrls = await resolveSkinUrls(uuids);
 
-  const result = [];
-  const chunkSize = 3;
-  for (let i = 0; i < uuids.length; i += chunkSize) {
-    const chunk = uuids.slice(i, i + chunkSize);
-    const chunkResults = await Promise.all(chunk.map(async (uuid) => {
-      const skinUrl = await resolveSkinUrl(uuid);
-      return {
-        uuid,
-        name: nameMap.get(uuid) || null,
-        skinUrl,
-        hasSiteProfile: !!links.find(l => l.minecraftUuid === uuid)?.user
-      };
-    }));
-    result.push(...chunkResults);
-  }
-  
-  return result;
+  return uuids.map((uuid, i) => ({
+    uuid,
+    name: nameMap.get(uuid) || null,
+    skinUrl: skinUrls[i],
+    hasSiteProfile: !!links.find(l => l.minecraftUuid === uuid)?.user
+  }));
 }
