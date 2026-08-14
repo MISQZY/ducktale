@@ -1,7 +1,7 @@
 import { Suspense } from "react";
 import { getTranslations } from "next-intl/server";
 import {
-  Clock, LogIn, VenusAndMars, Sprout, CircleCheck, XCircle, Castle, Flag, BadgeCheck, AlertCircle,
+  Clock, LogIn, VenusAndMars, Sprout, CircleCheck, XCircle, Castle, Flag, BadgeCheck, AlertCircle, Settings,
 } from "lucide-react";
 import { DuckCard, DuckCardContent } from "@/components/ui/duck/card";
 import { SkinFace } from "@/components/common/SkinFace";
@@ -73,12 +73,17 @@ function ServerStatusCard({ status, t }: { status: PlayerServerStatus; t: Player
   return (
     <div
       className={cn(
-        "liquid-card shrink-0 snap-start w-44 rounded-xl border p-4 bg-linear-to-br flex flex-col items-center text-center gap-2.5",
+        "liquid-card shrink-0 snap-start w-44 rounded-xl border p-4 bg-linear-to-br flex flex-col items-center text-center gap-2.5 relative",
         config.color, config.border,
-        status.online && "animate-border-glow-green"
+        status.maintenanceEnabled ? "animate-border-glow" : (status.online && "animate-border-glow-green")
       )}
       suppressHydrationWarning
     >
+      {status.maintenanceEnabled && (
+        <div className="absolute top-2 right-2 text-yellow-500/80">
+          <Settings size={14} />
+        </div>
+      )}
       <div className="w-10 h-10 rounded-lg bg-muted border border-border/60 flex items-center justify-center text-lg shrink-0">
         {config.emoji}
       </div>
@@ -90,13 +95,15 @@ function ServerStatusCard({ status, t }: { status: PlayerServerStatus; t: Player
         {config.name}
       </span>
 
-      <div className={cn(
-        "inline-flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-full",
-        status.whitelisted ? "bg-emerald-900/40 text-emerald-300" : "bg-muted text-foreground/40"
-      )}>
-        {status.whitelisted ? <CircleCheck size={12} /> : <XCircle size={12} />}
-        {status.whitelisted ? t("whitelistedYes") : t("whitelistedNo")}
-      </div>
+      {status.whitelistEnabled && (
+        <div className={cn(
+          "inline-flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-full",
+          status.whitelisted ? "bg-emerald-900/40 text-emerald-300" : "bg-muted text-foreground/40"
+        )}>
+          {status.whitelisted ? <CircleCheck size={12} /> : <XCircle size={12} />}
+          {status.whitelisted ? t("whitelistedYes") : t("whitelistedNo")}
+        </div>
+      )}
 
       {status.city && (
         <div className="flex flex-col items-center gap-1 text-xs text-foreground/60 pt-2 mt-1 border-t border-border/30 w-full">

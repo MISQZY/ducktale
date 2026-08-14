@@ -33,14 +33,30 @@ function getDuckburgServerUuid(): string {
  */
 function perServerWhitelistColumnsSql() {
   return Prisma.join(
-    NETWORK_SERVERS.map(
-      (server) => Prisma.sql`
-        EXISTS (
-          SELECT 1 FROM fp_moderation m
-          WHERE m.player = p.id AND m.type = 'whitelist' AND m.valid = 1
-            AND m.server = ${server.uuid}
-        ) AS ${Prisma.raw(`whitelisted_${server.id}`)}
-      `
+    NETWORK_SERVERS.flatMap(
+      (server) => [
+        Prisma.sql`
+          EXISTS (
+            SELECT 1 FROM fp_moderation m
+            WHERE m.player = p.id AND m.type = 'whitelist' AND m.valid = 1
+              AND m.server = ${server.uuid}
+          ) AS ${Prisma.raw(`whitelisted_${server.id}`)}
+        `,
+        Prisma.sql`
+          EXISTS (
+            SELECT 1 FROM fp_moderation m
+            WHERE m.player = -1 AND m.type = 'whitelist' AND m.valid = 1
+              AND m.server = ${server.uuid}
+          ) AS ${Prisma.raw(`server_whitelist_enabled_${server.id}`)}
+        `,
+        Prisma.sql`
+          EXISTS (
+            SELECT 1 FROM fp_moderation m
+            WHERE m.player = -1 AND m.type = 'maintenance' AND m.valid = 1
+              AND m.server = ${server.uuid}
+          ) AS ${Prisma.raw(`server_maintenance_enabled_${server.id}`)}
+        `
+      ]
     ),
     ", "
   );
@@ -52,12 +68,26 @@ function readPerServerWhitelist(row: IdentityRow): Record<string, boolean> {
   );
 }
 
+function readPerServerWhitelistEnabled(row: IdentityRow): Record<string, boolean> {
+  return Object.fromEntries(
+    NETWORK_SERVERS.map((server) => [server.id, Boolean(row[`server_whitelist_enabled_${server.id}`])])
+  );
+}
+
+function readPerServerMaintenanceEnabled(row: IdentityRow): Record<string, boolean> {
+  return Object.fromEntries(
+    NETWORK_SERVERS.map((server) => [server.id, Boolean(row[`server_maintenance_enabled_${server.id}`])])
+  );
+}
+
 /** Towny (city/nation/role) is only tracked for DuckBurg — see resolveTownyData's own DuckBurg-only database connection. */
 function buildServerStatuses(
   identity: IdentityRow,
   towny: { city: string | null; nation: string | null; role: ResidentRole }
 ): PlayerServerStatus[] {
   const whitelistByServer = readPerServerWhitelist(identity);
+  const whitelistEnabledByServer = readPerServerWhitelistEnabled(identity);
+  const maintenanceEnabledByServer = readPerServerMaintenanceEnabled(identity);
   // Gated on the global online flag, not just "currentServerId is set" —
   // fp_setting's SERVER value is left over from the player's last session
   // once they log off, so trusting it alone would show a stale "online
@@ -66,6 +96,8 @@ function buildServerStatuses(
   return NETWORK_SERVERS.map((server) => ({
     serverId: server.id,
     whitelisted: whitelistByServer[server.id] ?? false,
+    whitelistEnabled: whitelistEnabledByServer[server.id] ?? false,
+    maintenanceEnabled: maintenanceEnabledByServer[server.id] ?? false,
     online: isOnline && identity.currentServerId === server.uuid,
     city: server.id === "duckburg" ? towny.city : null,
     nation: server.id === "duckburg" ? towny.nation : null,
@@ -107,9 +139,13 @@ interface IdentityRow {
   whitelisted:      number | boolean; // raw MySQL boolean from EXISTS(...) — 0/1, not a JS boolean
   currentServerId:  string | null; // fp_setting type='SERVER' — which server they're on, only meaningful while `online` is true
   rank:             bigint; // 1-based position among all fp_time rows ordered by total DESC — see leaderboardRankSql()
-  // Plus one `whitelisted_<serverId>` column per SERVERS entry (see
-  // perServerWhitelistColumnsSql) — read via readPerServerWhitelist().
+  // Plus one `whitelisted_<serverId>` / `server_whitelist_enabled_<serverId>` /
+  // `server_maintenance_enabled_<serverId>` column per SERVERS entry (see
+  // perServerWhitelistColumnsSql) — read via readPerServerWhitelist() /
+  // readPerServerWhitelistEnabled() / readPerServerMaintenanceEnabled().
   [key: `whitelisted_${string}`]: number | boolean;
+  [key: `server_whitelist_enabled_${string}`]: number | boolean;
+  [key: `server_maintenance_enabled_${string}`]: number | boolean;
 }
 
 /**

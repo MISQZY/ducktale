@@ -12,6 +12,8 @@ export type GrowthStatus =
 export interface PlayerServerStatus {
   serverId:    string;
   whitelisted: boolean;
+  whitelistEnabled: boolean;
+  maintenanceEnabled: boolean;
   /** True only on the one server they're actually connected to right now — not the same as the account-wide `online` flag. */
   online:      boolean;
   city:        string | null;
