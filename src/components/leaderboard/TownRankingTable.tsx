@@ -55,7 +55,10 @@ export function TownRankingTable({ pageSize = 15, className }: TownRankingTableP
     {
       id: "rank",
       header: t("columns.rank"),
-      meta: { headClassName: "w-14 text-center align-middle", cellClassName: "text-center align-middle", withRightBorder: true, sortKey: "rank", defaultSortDirection: "asc" },
+      size: 60,
+      minSize: 48,
+      enableHiding: false,
+      meta: { headClassName: "text-center align-middle", cellClassName: "text-center align-middle", withRightBorder: true, sortKey: "rank", defaultSortDirection: "asc" },
       cell: ({ row }) => (
         <div className="flex justify-center">
           <RankBadge rank={row.original.rank} size={18} medalScale={1.35} variant="text" />
@@ -65,13 +68,18 @@ export function TownRankingTable({ pageSize = 15, className }: TownRankingTableP
     {
       id: "town",
       header: t("columns.town"),
+      size: 260,
+      minSize: 140,
+      enableHiding: false,
       meta: { headClassName: "align-middle", cellClassName: "align-middle", withRightBorder: true, sortKey: "town", defaultSortDirection: "asc" },
       cell: ({ row }) => <TownNameLabel tag={row.original.tag} name={row.original.name} query={query} />,
     },
     {
       id: "nation",
       header: t("columns.nation"),
-      meta: { headClassName: "w-32 align-middle", cellClassName: "align-middle", withRightBorder: true, sortKey: "nation", defaultSortDirection: "asc" },
+      size: 130,
+      minSize: 90,
+      meta: { headClassName: "align-middle", cellClassName: "align-middle", withRightBorder: true, sortKey: "nation", defaultSortDirection: "asc" },
       cell: ({ row }) => (
         <TownNationBadge nation={row.original.nation} nationTag={row.original.nationTag} independentLabel={t("townIndependent")} />
       ),
@@ -79,7 +87,9 @@ export function TownRankingTable({ pageSize = 15, className }: TownRankingTableP
     {
       id: "size",
       header: t("columns.size"),
-      meta: { headClassName: "w-24 text-center align-middle", cellClassName: "text-center align-middle", sortKey: "size", defaultSortDirection: "desc" },
+      size: 100,
+      minSize: 72,
+      meta: { headClassName: "text-center align-middle", cellClassName: "text-center align-middle", sortKey: "size", defaultSortDirection: "desc" },
       cell: ({ row }) => (
         <span className={cn("text-xs font-mono tabular-nums", DOCS_TABLE_THEME.textSoft)}>
           {row.original.size}
@@ -119,6 +129,7 @@ export function TownRankingTable({ pageSize = 15, className }: TownRankingTableP
       columns={columns}
       data={data?.items ?? []}
       getRowId={(town) => town.name}
+      showRowNumber={false}
       rowClassName={(town) =>
         cn(
           town.rank <= 10 && "bg-amber-500/[0.06] border-l-2 border-l-amber-500/50",

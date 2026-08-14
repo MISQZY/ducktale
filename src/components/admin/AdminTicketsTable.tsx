@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl";
 import type { ColumnDef } from "@tanstack/react-table";
 import { Paperclip } from "lucide-react";
 import { DataTable } from "@/components/ui/data-table";
+import { useAdminTableSort } from "@/hooks/useAdminTableSort";
 import { PlayerAvatar } from "@/components/common/PlayerAvatar";
 import { TicketStatusBadge } from "@/components/tickets/TicketStatusBadge";
 import { Link } from "@/i18n/navigation";
@@ -27,17 +28,24 @@ export interface AdminTicketRow {
 
 interface AdminTicketsTableProps {
   tickets: AdminTicketRow[];
+  sortColumn?: string;
+  sortDirection?: "asc" | "desc";
+  rowOffset?: number;
 }
 
 /** Client island for /admin/tickets — see AdminBadgesTable's doc comment for why the columns live here. siteOnline/mcOnline are pre-computed server-side (isUserOnline reads an in-memory Map that only exists in the Node process). */
-export function AdminTicketsTable({ tickets }: AdminTicketsTableProps) {
+export function AdminTicketsTable({ tickets, sortColumn, sortDirection, rowOffset }: AdminTicketsTableProps) {
   const tt = useTranslations("Tickets");
+  const onSort = useAdminTableSort(sortColumn, sortDirection);
 
   const columns = useMemo<ColumnDef<AdminTicketRow, unknown>[]>(() => [
     {
       id: "ticket",
       header: tt("ticketColumn"),
-      meta: { headClassName: "w-[40%] align-middle", cellClassName: "align-middle", withRightBorder: true },
+      size: 340,
+      minSize: 180,
+      enableHiding: false,
+      meta: { headClassName: "align-middle", cellClassName: "align-middle whitespace-normal", withRightBorder: true, sortKey: "ticket", defaultSortDirection: "asc" },
       cell: ({ row }) => {
         const ticket = row.original;
         return (
@@ -67,7 +75,9 @@ export function AdminTicketsTable({ tickets }: AdminTicketsTableProps) {
     {
       id: "initiator",
       header: tt("initiatorColumn"),
-      meta: { headClassName: "w-[150px] align-middle text-center", cellClassName: "align-middle text-center", withRightBorder: true },
+      size: 150,
+      minSize: 100,
+      meta: { headClassName: "align-middle text-center", cellClassName: "align-middle text-center", withRightBorder: true },
       cell: ({ row }) => (
         <div className="flex justify-center">
           <PlayerAvatar
@@ -84,22 +94,39 @@ export function AdminTicketsTable({ tickets }: AdminTicketsTableProps) {
     {
       id: "status",
       header: tt("statusColumn"),
-      meta: { headClassName: "w-[180px] align-middle text-center", cellClassName: "align-middle text-center", withRightBorder: true },
+      size: 160,
+      minSize: 110,
+      meta: { headClassName: "align-middle text-center", cellClassName: "align-middle text-center", withRightBorder: true, sortKey: "status", defaultSortDirection: "asc" },
       cell: ({ row }) => <TicketStatusBadge status={row.original.status} label={tt(`status.${row.original.status}`)} />,
     },
     {
       id: "updated",
       header: tt("updatedColumn"),
-      meta: { headClassName: "w-[180px] align-middle text-center", cellClassName: "align-middle text-center", withRightBorder: true },
+      size: 150,
+      minSize: 100,
+      meta: { headClassName: "align-middle text-center", cellClassName: "align-middle text-center", withRightBorder: true, sortKey: "updated", defaultSortDirection: "desc" },
       cell: ({ row }) => <span className="text-foreground/50 text-xs">{row.original.updatedAtLabel}</span>,
     },
     {
       id: "created",
       header: tt("createdColumn"),
-      meta: { headClassName: "w-[180px] align-middle text-center", cellClassName: "align-middle text-center" },
+      size: 150,
+      minSize: 100,
+      meta: { headClassName: "align-middle text-center", cellClassName: "align-middle text-center", sortKey: "created", defaultSortDirection: "desc" },
       cell: ({ row }) => <span className="text-foreground/50 text-xs">{row.original.createdAtLabel}</span>,
     },
   ], [tt]);
 
-  return <DataTable columns={columns} data={tickets} getRowId={(t) => t.id} emptyMessage={tt("noTickets")} />;
+  return (
+    <DataTable
+      columns={columns}
+      data={tickets}
+      getRowId={(t) => t.id}
+      emptyMessage={tt("noTickets")}
+      sortColumn={sortColumn}
+      sortDirection={sortDirection}
+      onSort={onSort}
+      rowOffset={rowOffset}
+    />
+  );
 }

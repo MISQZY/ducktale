@@ -8,28 +8,39 @@ import { Link } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
 import { SearchInput } from "@/components/ui/search-input";
 import { ServerPagination } from "@/components/common/ServerPagination";
-import type { TicketStatus } from ".prisma/site-client";
+import type { Prisma, TicketStatus } from ".prisma/site-client";
 
 const PAGE_SIZE = 10;
 const STATUS_FILTERS = ["ALL", "OPEN", "ANSWERED", "CLOSED"] as const;
 type StatusFilter = (typeof STATUS_FILTERS)[number];
+
+// Allowlist, not a raw column passthrough — searchParams are user input.
+const SORTABLE = {
+  ticket: "subject",
+  status: "status",
+  updated: "updatedAt",
+  created: "createdAt",
+} as const satisfies Record<string, keyof Prisma.TicketOrderByWithRelationInput>;
 
 export default async function AdminTicketsPage({
   params,
   searchParams,
 }: {
   params: Promise<{ lang: string }>;
-  searchParams: Promise<{ search?: string; status?: string; page?: string }>;
+  searchParams: Promise<{ search?: string; status?: string; page?: string; sort?: string; order?: string }>;
 }) {
   const { lang } = await params;
   await requireAdmin(lang);
-  const { search: rawSearch, status: rawStatus, page: rawPage } = await searchParams;
+  const { search: rawSearch, status: rawStatus, page: rawPage, sort: rawSort, order: rawOrder } = await searchParams;
 
   const search = rawSearch?.trim() ?? "";
   const status: StatusFilter = STATUS_FILTERS.includes(rawStatus as StatusFilter)
     ? (rawStatus as StatusFilter)
     : "ALL";
   const page = Math.max(1, parseInt(rawPage ?? "1", 10) || 1);
+  const sortDir: "asc" | "desc" = rawOrder === "asc" || rawOrder === "desc" ? rawOrder : "desc";
+  const sortKey = (rawSort && rawSort in SORTABLE ? rawSort : "updated") as keyof typeof SORTABLE;
+  const orderBy: Prisma.TicketOrderByWithRelationInput = { [SORTABLE[sortKey]]: sortDir };
 
   const t = await getTranslations("Admin");
   const tt = await getTranslations("Tickets");
@@ -49,7 +60,7 @@ export default async function AdminTicketsPage({
   const [tickets, total] = await Promise.all([
     siteDb.ticket.findMany({
       where,
-      orderBy: { updatedAt: "desc" },
+      orderBy,
       skip: (page - 1) * PAGE_SIZE,
       take: PAGE_SIZE,
       select: {
@@ -72,7 +83,11 @@ export default async function AdminTicketsPage({
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
   const dateLocale = lang === "ru" ? "ru-RU" : "en-US";
 
-  const baseQuery = { ...(search ? { search } : {}), ...(status !== "ALL" ? { status } : {}) };
+  const baseQuery = {
+    ...(search ? { search } : {}),
+    ...(status !== "ALL" ? { status } : {}),
+    ...(rawSort && rawSort in SORTABLE ? { sort: sortKey, order: sortDir } : {}),
+  };
 
   const { getAllOnlinePlayers } = await import("@/lib/players");
   const onlinePlayers = await getAllOnlinePlayers();
@@ -123,7 +138,7 @@ export default async function AdminTicketsPage({
         </div>
 
         <div className="min-h-[42vh]">
-          <AdminTicketsTable tickets={ticketRows} />
+          <AdminTicketsTable tickets={ticketRows} sortColumn={sortKey} sortDirection={sortDir} rowOffset={(page - 1) * PAGE_SIZE} />
         </div>
 
         <ServerPagination

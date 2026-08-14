@@ -75,12 +75,17 @@ export function usePagedTable<T>({
   cacheTtlMs  = 60_000,
 }: UsePagedTableOptions<T>): UsePagedTableResult<T> {
   const [state, setState] = useState<TableFetchState<T>>({ status: "loading" });
-  const [query, setQueryState] = useState(() => readParam("search") ?? "");
-  const [page,  setPage]  = useState(() => parseInt(readParam("page") ?? "1", 10) || 1);
-  const [sortColumn, setSortColumn] = useState<string | undefined>(() => readParam("sort") ?? undefined);
-  const [sortDirection, setSortDirection] = useState<"asc" | "desc" | undefined>(
-    () => (readParam("order") as "asc" | "desc" | null) ?? undefined,
-  );
+  // Fixed, SSR-safe defaults — NOT read from the URL here. readParam() sees
+  // `typeof window === "undefined"` during the server render (always "no
+  // params") but the real query string once the client hydrates, so a lazy
+  // initializer that reads the URL renders two different trees and React
+  // flags a hydration mismatch (most visibly the sort-column header icon).
+  // The real URL is applied once, client-only, in the mount effect below —
+  // same pattern as RankingsTabs' initial-tab correction.
+  const [query, setQueryState] = useState("");
+  const [page,  setPage]  = useState(1);
+  const [sortColumn, setSortColumn] = useState<string | undefined>(undefined);
+  const [sortDirection, setSortDirection] = useState<"asc" | "desc" | undefined>(undefined);
 
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const cacheRef    = useRef<Map<string, CacheEntry<T>>>(new Map());
@@ -156,10 +161,23 @@ export function usePagedTable<T>({
       });
   }, [fetcher, cacheTtlMs]);
 
-  // Initial fetch, respecting whatever page/search/sort came in via the URL.
-  // Intentionally mount-only — page/query/sort below are only the initial values.
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  useEffect(() => { fetchPage(page, query, sortColumn, sortDirection); }, [fetchPage]);
+  // Client-only: read whatever page/search/sort actually came in via the URL
+  // (unavailable during SSR — see the state initializers above) and correct
+  // state to match before doing the initial fetch. Intentionally mount-only.
+  useEffect(() => {
+    const urlQuery         = readParam("search") ?? "";
+    const urlPage          = parseInt(readParam("page") ?? "1", 10) || 1;
+    const urlSortColumn    = readParam("sort") ?? undefined;
+    const urlSortDirection = (readParam("order") as "asc" | "desc" | null) ?? undefined;
+
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- one-time correction from the URL, unavailable at SSR time (see state initializers above)
+    setQueryState(urlQuery);
+    setPage(urlPage);
+    setSortColumn(urlSortColumn);
+    setSortDirection(urlSortDirection);
+
+    fetchPage(urlPage, urlQuery, urlSortColumn, urlSortDirection);
+  }, [fetchPage]);
 
   // ── Search with debounce ────────────────────────────────────────────────────
 

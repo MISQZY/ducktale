@@ -86,6 +86,9 @@ export function TownyTable({
     {
       id: "town",
       header: "Город",
+      size: 260,
+      minSize: 140,
+      enableHiding: false,
       meta: { withRightBorder: true, sortKey: "town" },
       cell: ({ row }) => {
         const town = row.original;
@@ -123,7 +126,9 @@ export function TownyTable({
     {
       id: "nation",
       header: "Нация",
-      meta: { headClassName: "w-40", withRightBorder: true, sortKey: "nation" },
+      size: 160,
+      minSize: 100,
+      meta: { withRightBorder: true, sortKey: "nation" },
       cell: ({ row }) => (
         <TownNationBadge nation={row.original.nation} nationTag={row.original.nationTag} independentLabel="Независимый" />
       ),
@@ -131,7 +136,9 @@ export function TownyTable({
     {
       id: "size",
       header: "Размер",
-      meta: { headClassName: "w-24", sortKey: "size" },
+      size: 100,
+      minSize: 72,
+      meta: { sortKey: "size" },
       cell: ({ row }) => (
         <span className={cn("text-xs font-mono tabular-nums", DOCS_TABLE_THEME.textSoft)}>
           {row.original.size}

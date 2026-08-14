@@ -17,7 +17,11 @@ import {
 export const DOCS_TABLE_THEME = {
   wrapper:   "not-prose w-full overflow-hidden rounded-xl border border-border bg-card",
   header:    "bg-muted border-border",
-  grid:      "border-border/50",
+  // Column-divider strength — was border-border/50, which washed out badly
+  // next to the row dividers (plain border-b, full theme opacity) and the
+  // new resize-handle hover line. Matches that full strength now instead of
+  // being the one faint line in an otherwise crisp grid.
+  grid:      "border-border",
   text:      "text-foreground",
   textSoft:  "text-muted-foreground",
   textFaint: "text-muted-foreground/70",
@@ -85,9 +89,11 @@ export interface DocsTableHeadProps extends React.ComponentPropsWithoutRef<typeo
   sortable?: boolean;
   sortDirection?: "asc" | "desc" | undefined;
   onSort?: () => void;
+  /** Column-resize drag handle — rendered as a sibling after the sort button, not inside it, so dragging it never also fires onSort. See DataTableHeader in data-table.tsx. */
+  resizeHandle?: React.ReactNode;
 }
 
-export function DocsTableHead({ className, withRightBorder, sortable, sortDirection, onSort, children, ...props }: DocsTableHeadProps) {
+export function DocsTableHead({ className, withRightBorder, sortable, sortDirection, onSort, resizeHandle, children, ...props }: DocsTableHeadProps) {
   const content = sortable ? (
     <button
       type="button"
@@ -97,7 +103,7 @@ export function DocsTableHead({ className, withRightBorder, sortable, sortDirect
         className?.includes("text-center") ? "justify-center" : className?.includes("text-right") ? "justify-end" : "justify-between"
       )}
     >
-      <span>{children}</span>
+      <span className="min-w-0 truncate">{children}</span>
       {sortDirection === "asc" ? (
         <ChevronUp size={14} className="shrink-0" />
       ) : sortDirection === "desc" ? (
@@ -113,7 +119,7 @@ export function DocsTableHead({ className, withRightBorder, sortable, sortDirect
   return (
     <TableHead
       className={cn(
-        "px-4 py-3 text-left text-[11px] font-bold uppercase tracking-widest",
+        "relative px-4 py-3 text-left text-[11px] font-bold uppercase tracking-widest overflow-hidden",
         DOCS_TABLE_THEME.accent,
         withRightBorder
           ? cn("border-r", DOCS_TABLE_THEME.grid)
@@ -123,6 +129,7 @@ export function DocsTableHead({ className, withRightBorder, sortable, sortDirect
       {...props}
     >
       {content}
+      {resizeHandle}
     </TableHead>
   );
 }
@@ -135,7 +142,7 @@ export function DocsTableCell({ className, withRightBorder, ...props }: DocsTabl
   return (
     <TableCell
       className={cn(
-        "align-top px-4 py-3.5",
+        "align-top px-4 py-3.5 overflow-hidden",
         DOCS_TABLE_THEME.text,
         withRightBorder
           ? cn("border-r", DOCS_TABLE_THEME.grid)

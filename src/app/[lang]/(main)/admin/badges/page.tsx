@@ -1,4 +1,5 @@
 import { getTranslations } from "next-intl/server";
+import type { Prisma } from ".prisma/site-client";
 import { requireAdmin } from "@/lib/admin";
 import { siteDb } from "@/lib/site-db";
 import { seedBuiltinBadges } from "@/lib/badges";
@@ -10,18 +11,29 @@ import { ServerPagination } from "@/components/common/ServerPagination";
 
 const PAGE_SIZE = 10;
 
+// "awarded" isn't a plain field (it's a relation count), so it doesn't fit
+// the single-field allowlist the other admin pages use — special-cased below.
+const SORTABLE_KEYS = ["badge", "awarded"] as const;
+type SortKey = (typeof SORTABLE_KEYS)[number];
+
 export default async function AdminBadgesPage({
   params,
   searchParams,
 }: {
   params: Promise<{ lang: string }>;
-  searchParams: Promise<{ page?: string }>;
+  searchParams: Promise<{ page?: string; sort?: string; order?: string }>;
 }) {
   const { lang } = await params;
   await requireAdmin(lang);
-  const { page: rawPage } = await searchParams;
+  const { page: rawPage, sort: rawSort, order: rawOrder } = await searchParams;
 
   const page = Math.max(1, parseInt(rawPage ?? "1", 10) || 1);
+  const sortDir: "asc" | "desc" = rawOrder === "asc" || rawOrder === "desc" ? rawOrder : "asc";
+  const sortKey: SortKey | undefined = SORTABLE_KEYS.includes(rawSort as SortKey) ? (rawSort as SortKey) : undefined;
+  const orderBy: Prisma.BadgeOrderByWithRelationInput =
+    sortKey === "badge" ? { name: sortDir }
+    : sortKey === "awarded" ? { userBadges: { _count: sortDir } }
+    : { createdAt: "asc" };
 
   // Idempotent (createMany + skipDuplicates) — cheap enough to run on every
   // load, guarantees the code-defined catalog always shows up here even if
@@ -29,7 +41,7 @@ export default async function AdminBadgesPage({
   await seedBuiltinBadges();
 
   const badgeRows = await siteDb.badge.findMany({
-    orderBy: { createdAt: "asc" },
+    orderBy,
     skip: (page - 1) * PAGE_SIZE,
     take: PAGE_SIZE,
     select: {
@@ -68,14 +80,14 @@ export default async function AdminBadgesPage({
         </div>
 
         <div className="min-h-[42vh]">
-          <AdminBadgesTable lang={lang} badges={badges} roleOptions={roleOptions} />
+          <AdminBadgesTable lang={lang} badges={badges} roleOptions={roleOptions} sortColumn={sortKey} sortDirection={sortKey ? sortDir : undefined} rowOffset={(page - 1) * PAGE_SIZE} />
         </div>
 
         <ServerPagination
           page={page}
           totalPages={totalPages}
           pathname="/admin/badges"
-          buildQuery={(p) => ({ page: String(p) })}
+          buildQuery={(p) => ({ ...(sortKey ? { sort: sortKey, order: sortDir } : {}), page: String(p) })}
           prevText={t("prevPage")}
           nextText={t("nextPage")}
         />

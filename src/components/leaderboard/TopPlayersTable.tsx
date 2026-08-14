@@ -59,7 +59,10 @@ export function TopPlayersTable({ pageSize = 10, className }: TopPlayersTablePro
     {
       id: "rank",
       header: t("columns.rank"),
-      meta: { headClassName: "w-16 text-center align-middle", cellClassName: "text-center align-middle", withRightBorder: true, sortKey: "rank", defaultSortDirection: "asc" },
+      size: 64,
+      minSize: 48,
+      enableHiding: false,
+      meta: { headClassName: "text-center align-middle", cellClassName: "text-center align-middle", withRightBorder: true, sortKey: "rank", defaultSortDirection: "asc" },
       cell: ({ row }) => (
         <div className="flex justify-center">
           <RankBadge rank={row.original.rank} size={18} medalScale={1.35} variant="text" />
@@ -69,6 +72,9 @@ export function TopPlayersTable({ pageSize = 10, className }: TopPlayersTablePro
     {
       id: "player",
       header: t("columns.player"),
+      size: 280,
+      minSize: 160,
+      enableHiding: false,
       meta: { headClassName: "align-middle", cellClassName: "align-middle", withRightBorder: true, sortKey: "player", defaultSortDirection: "asc" },
       cell: ({ row }) => {
         const player = row.original;
@@ -108,7 +114,9 @@ export function TopPlayersTable({ pageSize = 10, className }: TopPlayersTablePro
     {
       id: "playtime",
       header: t("columns.playtime"),
-      meta: { headClassName: "w-40 text-center align-middle", cellClassName: "text-center align-middle", sortKey: "playtime", defaultSortDirection: "desc" },
+      size: 160,
+      minSize: 110,
+      meta: { headClassName: "text-center align-middle", cellClassName: "text-center align-middle", sortKey: "playtime", defaultSortDirection: "desc" },
       cell: ({ row }) => (
         <span className={cn("text-xs tabular-nums", DOCS_TABLE_THEME.textSoft)}>
           {formatDurationMs(row.original.playtimeMs, tCard)}
@@ -148,6 +156,7 @@ export function TopPlayersTable({ pageSize = 10, className }: TopPlayersTablePro
       columns={columns}
       data={data?.items ?? []}
       getRowId={(player) => player.uuid}
+      showRowNumber={false}
       rowClassName={(player) =>
         cn(
           "h-[76px]",

@@ -1,4 +1,5 @@
 import { getTranslations } from "next-intl/server";
+import type { Prisma } from ".prisma/site-client";
 import { requireAdmin } from "@/lib/admin";
 import { siteDb } from "@/lib/site-db";
 import { seedBuiltinBadges } from "@/lib/badges";
@@ -10,21 +11,34 @@ import { AdminUsersTable } from "@/components/admin/AdminUsersTable";
 import { SearchInput } from "@/components/ui/search-input";
 import { ServerPagination } from "@/components/common/ServerPagination";
 
-const PAGE_SIZE = 10;
+// Smaller than the other admin tables' PAGE_SIZE — each row here is taller
+// (avatar + badges + two presence lines), so 10 rows routinely pushed the
+// pagination footer below the fold, forcing a scroll just to page through.
+const PAGE_SIZE = 8;
+
+// Allowlist, not a raw column passthrough — searchParams are user input, and
+// only these two columns are meaningful to sort a user list by.
+const SORTABLE = {
+  user: "nickname",
+  registration: "createdAt",
+} as const satisfies Record<string, keyof Prisma.UserOrderByWithRelationInput>;
 
 export default async function AdminUsersPage({
   params,
   searchParams,
 }: {
   params: Promise<{ lang: string }>;
-  searchParams: Promise<{ search?: string; page?: string }>;
+  searchParams: Promise<{ search?: string; page?: string; sort?: string; order?: string }>;
 }) {
   const { lang } = await params;
   const admin = await requireAdmin(lang);
-  const { search: rawSearch, page: rawPage } = await searchParams;
+  const { search: rawSearch, page: rawPage, sort: rawSort, order: rawOrder } = await searchParams;
 
   const search = rawSearch?.trim() ?? "";
   const page = Math.max(1, parseInt(rawPage ?? "1", 10) || 1);
+  const sortDir: "asc" | "desc" = rawOrder === "asc" || rawOrder === "desc" ? rawOrder : "asc";
+  const sortKey = (rawSort && rawSort in SORTABLE ? rawSort : "registration") as keyof typeof SORTABLE;
+  const orderBy: Prisma.UserOrderByWithRelationInput = { [SORTABLE[sortKey]]: sortDir };
 
   const t = await getTranslations("Admin");
 
@@ -39,7 +53,7 @@ export default async function AdminUsersPage({
   const [users, total, badges] = await Promise.all([
     siteDb.user.findMany({
       where,
-      orderBy: { createdAt: "asc" },
+      orderBy,
       skip: (page - 1) * PAGE_SIZE,
       take: PAGE_SIZE,
       select: {
@@ -120,14 +134,18 @@ export default async function AdminUsersPage({
         </form>
 
         <div className="min-h-[42vh]">
-          <AdminUsersTable lang={lang} users={userRows} badges={badges} />
+          <AdminUsersTable lang={lang} users={userRows} badges={badges} sortColumn={sortKey} sortDirection={sortDir} rowOffset={(page - 1) * PAGE_SIZE} />
         </div>
 
         <ServerPagination
           page={page}
           totalPages={totalPages}
           pathname="/admin/users"
-          buildQuery={(p) => ({ ...(search ? { search } : {}), page: String(p) })}
+          buildQuery={(p) => ({
+            ...(search ? { search } : {}),
+            ...(rawSort && rawSort in SORTABLE ? { sort: sortKey, order: sortDir } : {}),
+            page: String(p),
+          })}
           prevText={t("prevPage")}
           nextText={t("nextPage")}
         />

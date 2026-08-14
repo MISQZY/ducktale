@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl";
 import type { ColumnDef } from "@tanstack/react-table";
 import { ShieldAlert } from "lucide-react";
 import { DataTable } from "@/components/ui/data-table";
+import { useAdminTableSort } from "@/hooks/useAdminTableSort";
 import { PlayerAvatar } from "@/components/common/PlayerAvatar";
 import { AdminUserActions } from "@/components/admin/AdminUserActions";
 import { UserBadgesCell } from "@/components/admin/UserBadgesCell";
@@ -38,18 +39,25 @@ interface AdminUsersTableProps {
   lang: string;
   users: AdminUserRow[];
   badges: AdminBadgeOption[];
+  sortColumn?: string;
+  sortDirection?: "asc" | "desc";
+  rowOffset?: number;
 }
 
 /** Client island for /admin/users — see AdminBadgesTable's doc comment for why the columns live here. Presence/online booleans are pre-computed server-side (they read an in-memory Map that only exists in the Node process) and passed in as plain data, never recomputed here. */
-export function AdminUsersTable({ lang, users, badges }: AdminUsersTableProps) {
+export function AdminUsersTable({ lang, users, badges, sortColumn, sortDirection, rowOffset }: AdminUsersTableProps) {
   const t = useTranslations("Admin");
   const tc = useTranslations("PlayerCard");
+  const onSort = useAdminTableSort(sortColumn, sortDirection);
 
   const columns = useMemo<ColumnDef<AdminUserRow, unknown>[]>(() => [
     {
       id: "user",
       header: t("userColumn"),
-      meta: { headClassName: "w-[240px] align-middle", cellClassName: "align-middle", withRightBorder: true },
+      size: 240,
+      minSize: 160,
+      enableHiding: false,
+      meta: { headClassName: "align-middle", cellClassName: "align-middle whitespace-normal", withRightBorder: true, sortKey: "user", defaultSortDirection: "asc" },
       cell: ({ row }) => {
         const user = row.original;
         return (
@@ -83,7 +91,15 @@ export function AdminUsersTable({ lang, users, badges }: AdminUsersTableProps) {
     {
       id: "badges",
       header: t("badgesLabel"),
-      meta: { headClassName: "align-middle", cellClassName: "align-middle max-w-0", withRightBorder: true },
+      size: 240,
+      minSize: 120,
+      // No max-w-0/whitespace-normal here: UserBadgesCell already handles a
+      // fixed-width column itself (its own internal overflow-x-auto scroll
+      // row) — max-w-0 was the old table-auto-era trick to force a narrow
+      // column and actively fights the real width now driven by `size`
+      // above (max-width < width clamps the cell to ~0, squeezing/
+      // overlapping the badge chips).
+      meta: { headClassName: "align-middle", cellClassName: "align-middle", withRightBorder: true },
       cell: ({ row }) => (
         <UserBadgesCell lang={lang} userId={row.original.id} badges={badges} currentBadgeIds={row.original.badgeIds} />
       ),
@@ -91,7 +107,9 @@ export function AdminUsersTable({ lang, users, badges }: AdminUsersTableProps) {
     {
       id: "presence",
       header: tc("lastSeenOnSite", { date: "" }).split(":")[0] || "Last seen",
-      meta: { headClassName: "w-[180px] align-middle text-left", cellClassName: "align-middle text-left", withRightBorder: true },
+      size: 180,
+      minSize: 120,
+      meta: { headClassName: "align-middle text-left", cellClassName: "align-middle text-left", withRightBorder: true },
       cell: ({ row }) => {
         const user = row.original;
         return (
@@ -135,13 +153,18 @@ export function AdminUsersTable({ lang, users, badges }: AdminUsersTableProps) {
     {
       id: "registration",
       header: t("registrationColumn"),
-      meta: { headClassName: "w-[120px] align-middle text-center", cellClassName: "align-middle text-center", withRightBorder: true },
+      size: 120,
+      minSize: 90,
+      meta: { headClassName: "align-middle text-center", cellClassName: "align-middle text-center", withRightBorder: true, sortKey: "registration", defaultSortDirection: "asc" },
       cell: ({ row }) => <span className="text-foreground/50 text-xs">{row.original.createdAtLabel}</span>,
     },
     {
       id: "actions",
       header: t("actionsColumn"),
-      meta: { headClassName: "w-[180px] align-middle text-right", cellClassName: "align-middle text-right" },
+      size: 150,
+      minSize: 110,
+      enableHiding: false,
+      meta: { headClassName: "align-middle text-right", cellClassName: "align-middle text-right" },
       cell: ({ row }) => (
         <AdminUserActions
           lang={lang}
@@ -155,5 +178,16 @@ export function AdminUsersTable({ lang, users, badges }: AdminUsersTableProps) {
     },
   ], [lang, badges, t, tc]);
 
-  return <DataTable columns={columns} data={users} getRowId={(u) => u.id} emptyMessage={t("noResults")} />;
+  return (
+    <DataTable
+      columns={columns}
+      data={users}
+      getRowId={(u) => u.id}
+      emptyMessage={t("noResults")}
+      sortColumn={sortColumn}
+      sortDirection={sortDirection}
+      onSort={onSort}
+      rowOffset={rowOffset}
+    />
+  );
 }

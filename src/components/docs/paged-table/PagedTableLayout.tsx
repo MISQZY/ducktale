@@ -8,7 +8,7 @@ import {
   DocsTableCell,
   DOCS_TABLE_THEME,
 } from "@/components/ui/docs-table";
-import { useDataTable, DataTableHeader, DataTableBody } from "@/components/ui/data-table";
+import { useDataTable, DataTableColGroup, DataTableHeader, DataTableBody, DataTableViewOptions } from "@/components/ui/data-table";
 import { TableSearch, TablePagination, TableSkeleton } from "@/components/docs/paged-table";
 
 interface PagedTableLayoutProps<TData> {
@@ -41,6 +41,8 @@ interface PagedTableLayoutProps<TData> {
   sortColumn?: string;
   sortDirection?: "asc" | "desc";
   onSort?: (key: string, defaultDirection?: "asc" | "desc") => void;
+  /** Set false if `columns` already leads with its own rank/position column — see useDataTable. Default true. */
+  showRowNumber?: boolean;
 
   // Pagination props
   page: number;
@@ -74,6 +76,7 @@ export function PagedTableLayout<TData>({
   sortColumn,
   sortDirection,
   onSort,
+  showRowNumber = true,
   page,
   totalPages,
   pageStart,
@@ -82,10 +85,13 @@ export function PagedTableLayout<TData>({
   goTo,
   showPagination = true,
 }: PagedTableLayoutProps<TData>) {
-  const table = useDataTable(columns, data, getRowId);
+  const table = useDataTable(columns, data, getRowId, pageStart, showRowNumber);
 
-  // We need to count the columns from the skeletonWidths to span the empty/error states correctly
-  const colSpan = skeletonWidths.length;
+  // Skeleton cells must match the real column count, including the
+  // automatic row-number column useDataTable prepends unless disabled (see
+  // its doc comment) — callers' skeletonWidths only describe their own columns.
+  const skeletonWidthsWithRowNumber = showRowNumber ? ["w-6", ...skeletonWidths] : skeletonWidths;
+  const colSpan = skeletonWidthsWithRowNumber.length;
 
   return (
     <div className={cn("not-prose flex flex-col gap-3", className)}>
@@ -101,19 +107,24 @@ export function PagedTableLayout<TData>({
           )}
         </div>
 
-        <TableSearch
-          value={query}
-          onChange={onQueryChange}
-          placeholder={searchPlaceholder ?? "Найти"}
-        />
+        <div className="flex flex-wrap items-center gap-2">
+          <TableSearch
+            className="flex-1 min-w-[160px] sm:flex-initial"
+            value={query}
+            onChange={onQueryChange}
+            placeholder={searchPlaceholder ?? "Найти"}
+          />
+          <DataTableViewOptions table={table} />
+        </div>
       </div>
 
       {/* Table */}
-      <DocsTable>
+      <DocsTable className="table-fixed w-full" style={{ minWidth: table.getTotalSize() }}>
+        <DataTableColGroup table={table} />
         <DataTableHeader table={table} sortColumn={sortColumn} sortDirection={sortDirection} onSort={onSort} />
 
         <DocsTableBody className="[&_tr:last-child]:border-0">
-          {isLoading && <TableSkeleton rows={skeletonRows} cellWidths={skeletonWidths} />}
+          {isLoading && <TableSkeleton rows={skeletonRows} cellWidths={skeletonWidthsWithRowNumber} />}
 
           {!!error && (
             <DocsTableRow>

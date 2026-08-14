@@ -4,6 +4,7 @@ import { useMemo } from "react";
 import { useTranslations } from "next-intl";
 import type { ColumnDef } from "@tanstack/react-table";
 import { DataTable } from "@/components/ui/data-table";
+import { useAdminTableSort } from "@/hooks/useAdminTableSort";
 import { BadgeIcon } from "@/components/badges/BadgeIcon";
 import { RoleRowActions } from "@/components/admin/RoleRowActions";
 import { RoleUsersDialog } from "@/components/admin/RoleUsersDialog";
@@ -23,12 +24,15 @@ interface AdminRolesTableProps {
   tracksByGroup: [string, string[]][];
   userCounts: [string, number][];
   groupSuggestions: string[];
+  sortColumn?: string;
+  sortDirection?: "asc" | "desc";
 }
 
 /** Client island for /admin/roles — see AdminBadgesTable's doc comment for why the columns live here, not in the Server Component page. */
-export function AdminRolesTable({ lang, roles, tracksByGroup, userCounts, groupSuggestions }: AdminRolesTableProps) {
+export function AdminRolesTable({ lang, roles, tracksByGroup, userCounts, groupSuggestions, sortColumn, sortDirection }: AdminRolesTableProps) {
   const t = useTranslations("Admin");
   const tr = useTranslations("Admin.roles");
+  const onSort = useAdminTableSort(sortColumn, sortDirection);
 
   const tracksMap = useMemo(() => new Map(tracksByGroup), [tracksByGroup]);
   const countsMap = useMemo(() => new Map(userCounts), [userCounts]);
@@ -37,7 +41,10 @@ export function AdminRolesTable({ lang, roles, tracksByGroup, userCounts, groupS
     {
       id: "name",
       header: tr("nameLabel"),
-      meta: { headClassName: "w-[250px] align-middle", cellClassName: "align-middle", withRightBorder: true },
+      size: 240,
+      minSize: 160,
+      enableHiding: false,
+      meta: { headClassName: "align-middle", cellClassName: "align-middle", withRightBorder: true, sortKey: "name", defaultSortDirection: "asc" },
       cell: ({ row }) => (
         <span className="inline-flex items-center gap-2">
           <BadgeIcon name={row.original.icon} size={16} style={{ color: row.original.color ?? undefined }} />
@@ -48,19 +55,25 @@ export function AdminRolesTable({ lang, roles, tracksByGroup, userCounts, groupS
     {
       id: "group",
       header: tr("groupLabel"),
-      meta: { headClassName: "align-middle", cellClassName: "align-middle font-mono text-xs text-foreground/60", withRightBorder: true },
+      size: 160,
+      minSize: 100,
+      meta: { headClassName: "align-middle", cellClassName: "align-middle font-mono text-xs text-foreground/60", withRightBorder: true, sortKey: "group", defaultSortDirection: "asc" },
       cell: ({ row }) => row.original.group,
     },
     {
       id: "tracks",
       header: tr("tracksLabel"),
-      meta: { headClassName: "align-middle", cellClassName: "align-middle text-xs text-foreground/50", withRightBorder: true },
+      size: 220,
+      minSize: 120,
+      meta: { headClassName: "align-middle", cellClassName: "align-middle text-xs text-foreground/50 whitespace-normal", withRightBorder: true },
       cell: ({ row }) => (tracksMap.get(row.original.group) ?? []).join(", ") || "—",
     },
     {
       id: "users",
       header: "Пользователи",
-      meta: { headClassName: "w-[120px] text-center align-middle", cellClassName: "text-center align-middle", withRightBorder: true },
+      size: 130,
+      minSize: 90,
+      meta: { headClassName: "text-center align-middle", cellClassName: "text-center align-middle", withRightBorder: true },
       cell: ({ row }) => (
         <RoleUsersDialog lang={lang} group={row.original.group} count={countsMap.get(row.original.group) || 0} />
       ),
@@ -68,10 +81,23 @@ export function AdminRolesTable({ lang, roles, tracksByGroup, userCounts, groupS
     {
       id: "actions",
       header: t("actionsColumn"),
-      meta: { headClassName: "w-[120px] align-middle text-right", cellClassName: "align-middle text-right" },
+      size: 100,
+      minSize: 76,
+      enableHiding: false,
+      meta: { headClassName: "align-middle text-right", cellClassName: "align-middle text-right" },
       cell: ({ row }) => <RoleRowActions lang={lang} role={row.original} groupSuggestions={groupSuggestions} />,
     },
   ], [lang, groupSuggestions, t, tr, tracksMap, countsMap]);
 
-  return <DataTable columns={columns} data={roles} getRowId={(r) => r.id} emptyMessage={tr("noResults")} />;
+  return (
+    <DataTable
+      columns={columns}
+      data={roles}
+      getRowId={(r) => r.id}
+      emptyMessage={tr("noResults")}
+      sortColumn={sortColumn}
+      sortDirection={sortDirection}
+      onSort={onSort}
+    />
+  );
 }

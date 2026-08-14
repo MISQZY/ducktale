@@ -52,7 +52,7 @@ export function RankingsTabs() {
   }, []);
 
   return (
-    <Tabs value={type} onValueChange={handleValueChange} className="items-center">
+    <Tabs value={type} onValueChange={handleValueChange} className="items-center gap-5">
       <TabsList>
         <TabsTrigger value="players">
           <Users size={13} />

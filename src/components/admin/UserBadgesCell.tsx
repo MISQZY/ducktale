@@ -83,7 +83,12 @@ export function UserBadgesCell({ lang, userId, badges, currentBadgeIds }: UserBa
   const paginatedBadges = filteredBadges.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
   return (
-    <div className="relative min-w-0 flex items-center gap-2 py-1 overflow-x-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] mask-edges">
+    // Wraps instead of scrolling horizontally: inside a fixed-width table
+    // column, a single-line overflow-x-auto row needs its own visible
+    // scroll affordance to be usable, and without one the chips just looked
+    // cut off/overlapping past the column edge. flex-wrap can't overlap —
+    // the row simply grows taller to fit however many badges there are.
+    <div className="relative min-w-0 flex flex-wrap items-center gap-1.5 py-1">
           {heldBadges.map((b) => (
             <div key={b.id} className="shrink-0">
               <BadgeChip

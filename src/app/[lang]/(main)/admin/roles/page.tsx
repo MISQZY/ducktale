@@ -1,4 +1,5 @@
 import { getTranslations } from "next-intl/server";
+import type { Prisma } from ".prisma/site-client";
 import { requireAdmin } from "@/lib/admin";
 import { siteDb } from "@/lib/site-db";
 import { withDb } from "@/lib/db";
@@ -58,15 +59,28 @@ async function resolveGroupUserCounts(): Promise<Map<string, number>> {
   return map;
 }
 
+// Allowlist, not a raw column passthrough — searchParams are user input.
+const SORTABLE = {
+  name: "name",
+  group: "group",
+} as const satisfies Record<string, keyof Prisma.LuckPermsRoleOrderByWithRelationInput>;
+
 export default async function AdminRolesPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ lang: string }>;
+  searchParams: Promise<{ sort?: string; order?: string }>;
 }) {
   const { lang } = await params;
   await requireAdmin(lang);
+  const { sort: rawSort, order: rawOrder } = await searchParams;
 
-  const roles = await siteDb.luckPermsRole.findMany({ orderBy: { name: "asc" } });
+  const sortDir: "asc" | "desc" = rawOrder === "asc" || rawOrder === "desc" ? rawOrder : "asc";
+  const sortKey = (rawSort && rawSort in SORTABLE ? rawSort : "name") as keyof typeof SORTABLE;
+  const orderBy: Prisma.LuckPermsRoleOrderByWithRelationInput = { [SORTABLE[sortKey]]: sortDir };
+
+  const roles = await siteDb.luckPermsRole.findMany({ orderBy });
   const tracksByGroup = await resolveTracksByGroup().catch(() => new Map<string, string[]>()); // LuckPerms DB unreachable shouldn't break this whole admin page
   const allGroups = await resolveAllGroups().catch(() => [] as string[]);
   const userCounts = await resolveGroupUserCounts().catch(() => new Map<string, number>());
@@ -94,6 +108,8 @@ export default async function AdminRolesPage({
             tracksByGroup={[...tracksByGroup.entries()]}
             userCounts={[...userCounts.entries()]}
             groupSuggestions={groupSuggestions}
+            sortColumn={sortKey}
+            sortDirection={sortDir}
           />
         </div>
       </div>

@@ -100,21 +100,20 @@ export function WhitelistTable({
 
   const columns = useMemo<ColumnDef<WhitelistPlayer, unknown>[]>(() => [
     {
-      id: "id",
-      header: "№",
-      meta: { headClassName: "w-16", cellClassName: cn("font-mono text-xs tabular-nums", DOCS_TABLE_THEME.textFaint), withRightBorder: true, sortKey: "id" },
-      cell: ({ row }) => pageStart + row.index + 1,
-    },
-    {
       id: "name",
       header: "Игрок",
+      size: 220,
+      minSize: 120,
+      enableHiding: false,
       meta: { withRightBorder: true, sortKey: "name" },
       cell: ({ row }) => <HighlightMatch text={row.original.name} query={query} />,
     },
     {
       id: "moderator",
       header: "Добавил",
-      meta: { headClassName: "w-28", withRightBorder: true, sortKey: "moderator" },
+      size: 120,
+      minSize: 80,
+      meta: { withRightBorder: true, sortKey: "moderator" },
       cell: ({ row }) => (
         <span className={cn("text-xs font-medium", DOCS_TABLE_THEME.textSoft)}>
           {row.original.moderator}
@@ -124,7 +123,9 @@ export function WhitelistTable({
     {
       id: "addedAt",
       header: "Добавлен",
-      meta: { headClassName: "w-28", withRightBorder: true, sortKey: "addedAt" },
+      size: 120,
+      minSize: 90,
+      meta: { withRightBorder: true, sortKey: "addedAt" },
       cell: ({ row }) => (
         <span className={cn("text-xs tabular-nums", DOCS_TABLE_THEME.textFaint)}>
           {formatDate(row.original.addedAt)}
@@ -134,10 +135,12 @@ export function WhitelistTable({
     {
       id: "expiresAt",
       header: "Действителен до",
-      meta: { headClassName: "w-32", sortKey: "expiresAt" },
+      size: 140,
+      minSize: 100,
+      meta: { sortKey: "expiresAt" },
       cell: ({ row }) => <ExpiryCell expiresAt={row.original.expiresAt} />,
     },
-  ], [query, pageStart]);
+  ], [query]);
 
   return (
     <PagedTableLayout
