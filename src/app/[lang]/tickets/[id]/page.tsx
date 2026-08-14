@@ -3,10 +3,10 @@ import { getTranslations } from "next-intl/server";
 import { getTicketViewer, canViewTicket } from "@/lib/tickets";
 import { siteDb } from "@/lib/site-db";
 import Navbar from "@/components/Navbar";
-import { GoldDivider } from "@/components/common/GoldDivider";
 import { TicketThread } from "@/components/tickets/TicketThread";
 import { Link } from "@/i18n/navigation";
-import { PlayerChip } from "@/components/common/PlayerChip";
+import { PlayerAvatar } from "@/components/common/PlayerAvatar";
+import { CompactBadgeChip } from "@/components/badges/CompactBadgeChip";
 import { getPlayerCard } from "@/lib/player-card";
 
 export default async function TicketPage({
@@ -83,59 +83,84 @@ export default async function TicketPage({
   return (
     <>
       <Navbar />
-      <main className="relative overflow-hidden min-h-screen px-6 pt-24 pb-16">
-        <div className="relative z-10 max-w-2xl mx-auto">
-          <Link href={backHref} className="text-xs text-foreground/45 hover:text-foreground/70 transition-colors mb-4 inline-block">
+      <main className="relative overflow-hidden h-screen flex flex-col px-6 pt-24 pb-8">
+        <div className="relative z-10 max-w-2xl mx-auto w-full flex-1 flex flex-col min-h-0">
+          <Link href={backHref} className="text-xs text-foreground/45 hover:text-foreground/70 transition-colors mb-4 inline-block shrink-0">
             {t("backToList")}
           </Link>
 
-          <h1 className="text-2xl text-primary/90 leading-tight mb-1" style={{ fontFamily: "var(--font-body)" }}>
-            {ticket.subject}
-          </h1>
-          {viewer.isAdmin && !isOwner && (
-            <div className="mb-6 mt-3">
-              <div className="text-xs text-foreground/45 mb-2">{t("initiatorLabel")}</div>
-              {ticket.user.accountLink?.status === "CONFIRMED" && ticket.user.accountLink.minecraftName && playerCard ? (
-                <div className="inline-block">
-                  <PlayerChip
+          <div className="flex items-center justify-between gap-4 flex-wrap mb-4 shrink-0">
+            <h1 className="text-2xl text-primary/90 leading-tight" style={{ fontFamily: "var(--font-body)" }}>
+              {ticket.subject}
+            </h1>
+            {viewer.isAdmin && !isOwner && (
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-foreground/45">{t("initiatorLabel")}</span>
+                {ticket.user.accountLink?.status === "CONFIRMED" && ticket.user.accountLink.minecraftName && playerCard ? (
+                  <PlayerAvatar
                     name={ticket.user.nickname}
-                    profileUsername={ticket.user.nickname}
                     skinUrl={playerCard.skinUrl}
+                    hasSiteProfile={true}
+                    linked={true}
                     online={playerCard.online}
                     siteOnline={playerCard.siteOnline}
-                    badges={ticket.user.badges.map(b => b.badge)}
+                    appendNode={
+                      ticket.user.badges.length > 0 ? (
+                        <div className="flex items-center gap-1">
+                          {ticket.user.badges.slice(0, 3).map((b) => (
+                            <CompactBadgeChip
+                              key={b.badge.name}
+                              name={b.badge.name}
+                              icon={b.badge.icon}
+                              color={b.badge.color}
+                              description={b.badge.description}
+                              earnCondition={b.badge.earnCondition}
+                              size={15}
+                            />
+                          ))}
+                          {ticket.user.badges.length > 3 && (
+                            <span
+                              className="text-[0.65rem] text-foreground/40 shrink-0"
+                              title={ticket.user.badges.slice(3).map((b) => b.badge.name).join(", ")}
+                            >
+                              +{ticket.user.badges.length - 3}
+                            </span>
+                          )}
+                        </div>
+                      ) : null
+                    }
                   />
-                </div>
-              ) : (
-                <Link
-                  href={`/profile/${encodeURIComponent(ticket.user.nickname)}`}
-                  target="_blank"
-                  className="text-foreground/80 font-medium hover:text-primary hover:underline underline-offset-4 transition-colors text-sm inline-block"
-                >
-                  {ticket.user.nickname}
-                </Link>
-              )}
-            </div>
-          )}
+                ) : (
+                  <Link
+                    href={`/profile/${encodeURIComponent(ticket.user.nickname)}`}
+                    target="_blank"
+                    className="text-foreground/80 font-medium hover:text-primary hover:underline underline-offset-4 transition-colors text-sm"
+                  >
+                    {ticket.user.nickname}
+                  </Link>
+                )}
+              </div>
+            )}
+          </div>
 
-          <GoldDivider className={viewer.isAdmin && !isOwner ? "mb-6" : "mt-4 mb-6"} />
-
-          <TicketThread
-            lang={lang}
-            ticketId={ticket.id}
-            subject={ticket.subject}
-            backHref={backHref}
-            initialStatus={ticket.status}
-            initialMessages={messages.map((m) => ({
-              id: m.id,
-              body: m.body,
-              isAdminReply: m.isAdminReply,
-              createdAt: m.createdAt.toISOString(),
-              authorNickname: m.author.nickname,
-              attachments: m.attachments,
-            }))}
-            isAdmin={viewer.isAdmin}
-          />
+          <div className="flex-1 flex flex-col min-h-0">
+            <TicketThread
+              lang={lang}
+              ticketId={ticket.id}
+              subject={ticket.subject}
+              backHref={backHref}
+              initialStatus={ticket.status}
+              initialMessages={messages.map((m) => ({
+                id: m.id,
+                body: m.body,
+                isAdminReply: m.isAdminReply,
+                createdAt: m.createdAt.toISOString(),
+                authorNickname: m.author.nickname,
+                attachments: m.attachments,
+              }))}
+              isAdmin={viewer.isAdmin}
+            />
+          </div>
         </div>
       </main>
     </>

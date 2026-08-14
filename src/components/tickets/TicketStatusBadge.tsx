@@ -1,4 +1,5 @@
 import { cn } from "@/lib/utils";
+import { Badge } from "@/components/ui/badge";
 import type { TicketStatus } from ".prisma/site-client";
 
 // Fully static per-status class strings (not built from a template) so
@@ -25,15 +26,16 @@ interface TicketStatusBadgeProps {
 
 export function TicketStatusBadge({ status, label, className }: TicketStatusBadgeProps) {
   return (
-    <span
+    <Badge
+      variant="outline"
       className={cn(
-        "inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full border text-[0.65rem] uppercase tracking-widest whitespace-nowrap",
+        "h-auto inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full border text-[0.65rem] uppercase tracking-widest whitespace-nowrap liquid-badge-none",
         STATUS_BADGE[status],
         className
       )}
     >
       <span className={cn("w-1.5 h-1.5 rounded-full shrink-0", STATUS_DOT[status])} />
       {label}
-    </span>
+    </Badge>
   );
 }

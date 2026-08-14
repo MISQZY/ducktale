@@ -58,18 +58,17 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
   const stream = createReadStream(filePath);
 
   const headers = new Headers();
-  headers.set(
-    "Content-Type",
-    attachment.mimeType && SAFE_CONTENT_TYPES.has(attachment.mimeType) ? attachment.mimeType : "application/octet-stream"
-  );
+  const safeType = attachment.mimeType && SAFE_CONTENT_TYPES.has(attachment.mimeType) ? attachment.mimeType : "application/octet-stream";
+  headers.set("Content-Type", safeType);
   headers.set("Content-Length", fileStat.size.toString());
-  // Always "attachment", never "inline" — this is what actually stops a
-  // malicious upload (an .html/.svg-like file smuggled past the extension
-  // allowlist, or a browser that sniffs content instead of trusting
-  // Content-Type) from executing as script in this app's origin when an
-  // admin opens the link. The Content-Type restriction above is
-  // defense-in-depth on top of this, not a substitute for it.
-  headers.set("Content-Disposition", `attachment; filename="${encodeURIComponent(attachment.filename)}"`);
+  // Allow inline rendering for images so they display in <img> tags.
+  // Other file types are forced to "attachment" to prevent script execution
+  // from uploads smuggled past the extension allowlist.
+  const isInlineImage = safeType.startsWith("image/");
+  headers.set(
+    "Content-Disposition",
+    `${isInlineImage ? "inline" : "attachment"}; filename="${encodeURIComponent(attachment.filename)}"`
+  );
   headers.set("X-Content-Type-Options", "nosniff");
 
   return new Response(Readable.toWeb(stream) as ReadableStream, {

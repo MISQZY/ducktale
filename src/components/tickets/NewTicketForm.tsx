@@ -1,17 +1,22 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { useRef, useState, type FormEvent } from "react";
 import { useTranslations } from "next-intl";
 import { useRouter } from "@/i18n/navigation";
+import { Paperclip, X } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { FormInput } from "@/components/common/FormInput";
 import { FormTextarea } from "@/components/common/FormTextarea";
 import { FormButton } from "@/components/common/FormButton";
+import { buttonVariants } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { createTicket } from "@/lib/actions/tickets";
 import { TICKET_SUBJECT_MAX, TICKET_MESSAGE_MAX } from "@/lib/tickets";
 
 export function NewTicketForm({ lang }: { lang: string }) {
   const t = useTranslations("Tickets");
   const router = useRouter();
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [subject, setSubject] = useState("");
   const [message, setMessage] = useState("");
@@ -44,6 +49,10 @@ export function NewTicketForm({ lang }: { lang: string }) {
     }
   }
 
+  function removeFile(index: number) {
+    setFiles((prev) => prev.filter((_, i) => i !== index));
+  }
+
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-4">
       <FormInput
@@ -66,16 +75,53 @@ export function NewTicketForm({ lang }: { lang: string }) {
         required
       />
 
-      <div className="flex flex-col gap-1">
-        <label className="text-sm text-foreground/80 font-medium">{t("attachmentsLabel")}</label>
-        <input 
-          type="file" 
-          multiple 
+      <div className="flex flex-col gap-2">
+        <input
+          ref={fileInputRef}
+          type="file"
+          multiple
           onChange={(e) => {
-            if (e.target.files) setFiles(Array.from(e.target.files));
+            if (e.target.files) {
+              setFiles((prev) => [...prev, ...Array.from(e.target.files!)]);
+              e.target.value = "";
+            }
           }}
-          className="text-sm text-foreground/70 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20"
+          className="hidden"
         />
+        <button
+          type="button"
+          onClick={() => fileInputRef.current?.click()}
+          className={cn(
+            buttonVariants({ variant: "outline", size: "sm" }),
+            "gap-1.5 text-xs bg-card/50 hover:bg-card/80 self-start"
+          )}
+        >
+          <Paperclip size={13} />
+          {t("attachmentsLabel")}
+        </button>
+
+        {files.length > 0 && (
+          <div className="flex flex-wrap gap-1.5">
+            {files.map((f, i) => (
+              <Badge
+                key={`${f.name}-${i}`}
+                variant="secondary"
+                className="h-auto gap-1.5 px-2.5 py-1 rounded-lg bg-primary/10 border-primary/20 text-foreground/70 text-[0.65rem]"
+              >
+                <Paperclip size={10} className="shrink-0 opacity-50" />
+                <span className="truncate max-w-[140px]">{f.name}</span>
+                <button
+                  type="button"
+                  onClick={() => removeFile(i)}
+                  className="ml-0.5 hover:text-destructive transition-colors"
+                  aria-label={`Remove ${f.name}`}
+                >
+                  <X size={10} />
+                </button>
+              </Badge>
+            ))}
+          </div>
+        )}
       </div>
 
       {error && <p className="text-sm text-destructive text-center">{error}</p>}

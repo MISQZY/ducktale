@@ -1,10 +1,14 @@
 import { getTranslations } from "next-intl/server";
+import { Paperclip } from "lucide-react";
 import { requireAdmin } from "@/lib/admin";
 import { siteDb } from "@/lib/site-db";
 import { AdminPageShell } from "@/components/admin/AdminPageShell";
 import { TicketStatusBadge } from "@/components/tickets/TicketStatusBadge";
+import { PlayerAvatar } from "@/components/common/PlayerAvatar";
+import { isUserOnline } from "@/lib/presence";
 import { Link } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
+import { SearchInput } from "@/components/ui/search-input";
 import {
   DocsTable,
   DocsTableHeader,
@@ -14,6 +18,7 @@ import {
   DocsTableCell,
   DOCS_TABLE_THEME,
 } from "@/components/ui/docs-table";
+import { ServerPagination } from "@/components/common/ServerPagination";
 import type { TicketStatus } from ".prisma/site-client";
 
 const PAGE_SIZE = 10;
@@ -64,27 +69,42 @@ export default async function AdminTicketsPage({
         status: true,
         updatedAt: true,
         createdAt: true,
-        user: { select: { nickname: true } },
+        user: { select: { id: true, nickname: true, accountLink: { select: { status: true, minecraftUuid: true, minecraftName: true } } } },
         _count: { select: { messages: true } },
+        messages: { select: { _count: { select: { attachments: true } } } },
       },
     }),
     siteDb.ticket.count({ where }),
   ]);
 
+  const { resolveSkinUrl } = await import("@/lib/skin");
+  const skinUrls: (string | null)[] = [];
+  const chunkSize = 3;
+  for (let i = 0; i < tickets.length; i += chunkSize) {
+    const chunk = tickets.slice(i, i + chunkSize);
+    const chunkSkins = await Promise.all(
+      chunk.map((t) => t.user.accountLink?.minecraftUuid ? resolveSkinUrl(t.user.accountLink.minecraftUuid) : Promise.resolve(null))
+    );
+    skinUrls.push(...chunkSkins);
+  }
+
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
 
   const baseQuery = { ...(search ? { search } : {}), ...(status !== "ALL" ? { status } : {}) };
+
+  const { getAllOnlinePlayers } = await import("@/lib/players");
+  const onlinePlayers = await getAllOnlinePlayers();
+  const onlineMcNames = new Set(onlinePlayers.map(p => p.name.toLowerCase()));
 
   return (
     <AdminPageShell title={t("ticketsTitle")} description={t("ticketsDescription", { count: total })} active="tickets">
       <div className="w-full">
         <form className="mb-4 flex justify-center">
-          <input
-            type="text"
+          <SearchInput
             name="search"
             defaultValue={search}
             placeholder={tt("adminSearchPlaceholder")}
-            className="w-full max-w-sm rounded-xl border border-primary/20 bg-card/50 px-4 py-2 text-sm text-foreground/90 focus:outline-none focus:border-primary/50"
+            wrapperClassName="max-w-sm"
           />
         </form>
 
@@ -124,7 +144,10 @@ export default async function AdminTicketsPage({
                   </DocsTableCell>
                 </DocsTableRow>
               ) : (
-                tickets.map((ticket) => (
+                tickets.map((ticket, i) => {
+                  const mcOnline = ticket.user.accountLink?.minecraftName ? onlineMcNames.has(ticket.user.accountLink.minecraftName.toLowerCase()) : false;
+                  const attachmentCount = ticket.messages.reduce((sum, m) => sum + m._count.attachments, 0);
+                  return (
                   <DocsTableRow key={ticket.id}>
                     <DocsTableCell className="align-middle" withRightBorder>
                       <div className="flex flex-col gap-1">
@@ -134,20 +157,32 @@ export default async function AdminTicketsPage({
                         >
                           {ticket.subject}
                         </Link>
-                        <span className="text-foreground/45 text-xs">
+                        <span className="flex items-center gap-1.5 text-foreground/45 text-xs">
                           {tt("messageCount", { count: ticket._count.messages })}
+                          {attachmentCount > 0 && (
+                            <>
+                              <span aria-hidden="true">•</span>
+                              <span className="flex items-center gap-1">
+                                <Paperclip size={11} className="shrink-0" />
+                                {tt("attachmentCount", { count: attachmentCount })}
+                              </span>
+                            </>
+                          )}
                         </span>
                       </div>
                     </DocsTableCell>
 
                     <DocsTableCell className="align-middle text-center" withRightBorder>
-                      <Link
-                        href={`/profile/${encodeURIComponent(ticket.user.nickname)}`}
-                        target="_blank"
-                        className="text-foreground/80 text-sm font-medium hover:text-primary/90 hover:underline underline-offset-4 transition-colors"
-                      >
-                        {ticket.user.nickname}
-                      </Link>
+                      <div className="flex justify-center">
+                        <PlayerAvatar
+                          name={ticket.user.nickname}
+                          skinUrl={skinUrls[i]}
+                          hasSiteProfile={true}
+                          linked={ticket.user.accountLink?.status === "CONFIRMED"}
+                          siteOnline={isUserOnline(ticket.user.id)}
+                          online={mcOnline}
+                        />
+                      </div>
                     </DocsTableCell>
 
                     <DocsTableCell className="align-middle text-center" withRightBorder>
@@ -166,35 +201,21 @@ export default async function AdminTicketsPage({
                       </span>
                     </DocsTableCell>
                   </DocsTableRow>
-                ))
+                  );
+                })
               )}
             </DocsTableBody>
           </DocsTable>
         </div>
 
-        {totalPages > 1 && (
-          <div className="flex items-center justify-center gap-3 mt-6">
-            <Link
-              href={{ pathname: "/admin/tickets", query: { ...baseQuery, page: String(Math.max(1, page - 1)) } }}
-              className={cn(
-                "px-3 py-1.5 rounded-lg text-xs border border-primary/20 text-foreground/60 hover:text-foreground hover:border-primary/40 transition-colors",
-                page <= 1 && "pointer-events-none opacity-30"
-              )}
-            >
-              {t("prevPage")}
-            </Link>
-            <span className="text-xs text-foreground/50 tabular-nums">{t("pageInfo", { page, totalPages })}</span>
-            <Link
-              href={{ pathname: "/admin/tickets", query: { ...baseQuery, page: String(Math.min(totalPages, page + 1)) } }}
-              className={cn(
-                "px-3 py-1.5 rounded-lg text-xs border border-primary/20 text-foreground/60 hover:text-foreground hover:border-primary/40 transition-colors",
-                page >= totalPages && "pointer-events-none opacity-30"
-              )}
-            >
-              {t("nextPage")}
-            </Link>
-          </div>
-        )}
+        <ServerPagination
+          page={page}
+          totalPages={totalPages}
+          pathname="/admin/tickets"
+          buildQuery={(p) => ({ ...baseQuery, page: String(p) })}
+          prevText={t("prevPage")}
+          nextText={t("nextPage")}
+        />
       </div>
     </AdminPageShell>
   );

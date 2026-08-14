@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
+import { Paperclip } from "lucide-react";
 import { auth } from "@/auth";
 import { siteDb } from "@/lib/site-db";
 import Navbar from "@/components/Navbar";
@@ -7,7 +8,8 @@ import { GoldDivider } from "@/components/common/GoldDivider";
 import { CtaButton } from "@/components/common/CtaButton";
 import { TicketStatusBadge } from "@/components/tickets/TicketStatusBadge";
 import { Link } from "@/i18n/navigation";
-import { cn } from "@/lib/utils";
+
+import { ServerPagination } from "@/components/common/ServerPagination";
 
 const PAGE_SIZE = 10;
 
@@ -33,7 +35,13 @@ export default async function MyTicketsPage({
       orderBy: { updatedAt: "desc" },
       skip: (page - 1) * PAGE_SIZE,
       take: PAGE_SIZE,
-      select: { id: true, subject: true, status: true, updatedAt: true },
+      select: {
+        id: true,
+        subject: true,
+        status: true,
+        updatedAt: true,
+        messages: { select: { _count: { select: { attachments: true } } } },
+      },
     }),
     siteDb.ticket.count({ where: { userId: session.user.id } }),
   ]);
@@ -63,47 +71,43 @@ export default async function MyTicketsPage({
                 {t("noTickets")}
               </p>
             ) : (
-              tickets.map((ticket) => (
-                <Link
-                  key={ticket.id}
-                  href={`/tickets/${ticket.id}`}
-                  className="corner-ornament block rounded-2xl border border-primary/20 bg-card/50 p-5 relative overflow-hidden hover:border-primary/40 transition-colors"
-                >
-                  <div className="flex items-center justify-between gap-3 flex-wrap mb-1">
-                    <span className="text-foreground/90 font-medium">{ticket.subject}</span>
-                    <TicketStatusBadge status={ticket.status} label={t(`status.${ticket.status}`)} />
-                  </div>
-                  <p className="text-foreground/40 text-xs">
-                    {t("updatedAt", { date: ticket.updatedAt.toLocaleString(lang === "ru" ? "ru-RU" : "en-US") })}
-                  </p>
-                </Link>
-              ))
+              tickets.map((ticket) => {
+                const attachmentCount = ticket.messages.reduce((sum, m) => sum + m._count.attachments, 0);
+                return (
+                  <Link
+                    key={ticket.id}
+                    href={`/tickets/${ticket.id}`}
+                    className="corner-ornament block rounded-2xl border border-primary/20 bg-card/50 p-5 relative overflow-hidden hover:border-primary/40 transition-colors"
+                  >
+                    <div className="flex items-center justify-between gap-3 flex-wrap mb-1">
+                      <span className="text-foreground/90 font-medium">{ticket.subject}</span>
+                      <TicketStatusBadge status={ticket.status} label={t(`status.${ticket.status}`)} />
+                    </div>
+                    <div className="flex items-center gap-3 flex-wrap">
+                      <p className="text-foreground/40 text-xs">
+                        {t("updatedAt", { date: ticket.updatedAt.toLocaleString(lang === "ru" ? "ru-RU" : "en-US") })}
+                      </p>
+                      {attachmentCount > 0 && (
+                        <span className="flex items-center gap-1 text-foreground/40 text-xs">
+                          <Paperclip size={11} className="shrink-0" />
+                          {t("attachmentCount", { count: attachmentCount })}
+                        </span>
+                      )}
+                    </div>
+                  </Link>
+                );
+              })
             )}
           </div>
 
-          {totalPages > 1 && (
-            <div className="flex items-center justify-center gap-3 mt-6">
-              <Link
-                href={{ pathname: "/account/tickets", query: { page: String(Math.max(1, page - 1)) } }}
-                className={cn(
-                  "px-3 py-1.5 rounded-lg text-xs border border-primary/20 text-foreground/60 hover:text-foreground hover:border-primary/40 transition-colors",
-                  page <= 1 && "pointer-events-none opacity-30"
-                )}
-              >
-                {t("prevPage")}
-              </Link>
-              <span className="text-xs text-foreground/50 tabular-nums">{t("pageInfo", { page, totalPages })}</span>
-              <Link
-                href={{ pathname: "/account/tickets", query: { page: String(Math.min(totalPages, page + 1)) } }}
-                className={cn(
-                  "px-3 py-1.5 rounded-lg text-xs border border-primary/20 text-foreground/60 hover:text-foreground hover:border-primary/40 transition-colors",
-                  page >= totalPages && "pointer-events-none opacity-30"
-                )}
-              >
-                {t("nextPage")}
-              </Link>
-            </div>
-          )}
+          <ServerPagination
+            page={page}
+            totalPages={totalPages}
+            pathname="/account/tickets"
+            buildQuery={(p) => ({ page: String(p) })}
+            prevText={t("prevPage")}
+            nextText={t("nextPage")}
+          />
         </div>
       </main>
     </>
