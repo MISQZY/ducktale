@@ -3,7 +3,6 @@ import { getTranslations } from "next-intl/server";
 import { auth } from "@/auth";
 import { siteDb } from "@/lib/site-db";
 import { evaluateAutoBadges } from "@/lib/luckperms";
-import Navbar from "@/components/Navbar";
 
 import { CtaButton } from "@/components/common/CtaButton";
 import { ProfileQuickActions } from "@/components/account/ProfileQuickActions";
@@ -71,7 +70,6 @@ export default async function ProfilePage({
 
   return (
     <>
-      <Navbar />
       {/* Plain page background on purpose — no PageBackground here (that's
           the hero-style stonework/blur-orb layer sized for full sections;
           on this shorter page its absolutely-positioned orbs overflowed the

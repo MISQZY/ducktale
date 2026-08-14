@@ -3,7 +3,6 @@ import { getTranslations } from "next-intl/server";
 import { Paperclip } from "lucide-react";
 import { auth } from "@/auth";
 import { siteDb } from "@/lib/site-db";
-import Navbar from "@/components/Navbar";
 import { GoldDivider } from "@/components/common/GoldDivider";
 import { CtaButton } from "@/components/common/CtaButton";
 import { TicketStatusBadge } from "@/components/tickets/TicketStatusBadge";
@@ -50,7 +49,6 @@ export default async function MyTicketsPage({
 
   return (
     <>
-      <Navbar />
       <main className="relative overflow-hidden min-h-screen px-6 pt-24 pb-16">
         <div className="relative z-10 max-w-2xl mx-auto">
           <div className="flex items-center justify-between gap-4 flex-wrap mb-2">

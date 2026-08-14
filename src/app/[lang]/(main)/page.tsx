@@ -1,4 +1,3 @@
-import Navbar from "@/components/Navbar";
 import HeroSection from "@/components/HeroSection";
 import Footer from "@/components/Footer";
 import { createMetadata } from "@/lib/create-metadata";
@@ -15,7 +14,6 @@ export const generateMetadata = createMetadata({ namespace: "Home" });
 export default function HomePage() {
   return (
     <>
-      <Navbar />
 
       <main>
         <HeroSection />

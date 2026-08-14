@@ -4,7 +4,6 @@ import { getTranslations } from "next-intl/server";
 import { siteDb } from "@/lib/site-db";
 import { isUserOnline } from "@/lib/presence";
 import { formatLastSeen } from "@/lib/player-card-format";
-import Navbar from "@/components/Navbar";
 import { ProfilePlayerCard } from "@/components/account/ProfilePlayerCard";
 import { BadgePinSelector } from "@/components/badges/BadgePinSelector";
 import type { Metadata } from "next";
@@ -70,7 +69,6 @@ export default async function PublicProfilePage({
 
   return (
     <>
-      <Navbar />
       <main className="relative overflow-hidden min-h-[calc(100vh-1px)] px-6 pt-20 pb-8">
         <div className="relative z-10 max-w-2xl mx-auto">
           <h1

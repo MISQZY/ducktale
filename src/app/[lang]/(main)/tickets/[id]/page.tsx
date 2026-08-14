@@ -2,7 +2,6 @@ import { notFound, redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { getTicketViewer, canViewTicket } from "@/lib/tickets";
 import { siteDb } from "@/lib/site-db";
-import Navbar from "@/components/Navbar";
 import { TicketThread } from "@/components/tickets/TicketThread";
 import { Link } from "@/i18n/navigation";
 import { PlayerAvatar } from "@/components/common/PlayerAvatar";
@@ -82,7 +81,6 @@ export default async function TicketPage({
 
   return (
     <>
-      <Navbar />
       <main className="relative overflow-hidden h-screen flex flex-col px-6 pt-24 pb-8">
         <div className="relative z-10 max-w-2xl mx-auto w-full flex-1 flex flex-col min-h-0">
           <Link href={backHref} className="text-xs text-foreground/45 hover:text-foreground/70 transition-colors mb-4 inline-block shrink-0">

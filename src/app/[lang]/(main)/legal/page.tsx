@@ -1,5 +1,4 @@
 import { getTranslations } from "next-intl/server";
-import Navbar from "@/components/Navbar";
 import { GoldDivider } from "@/components/common/GoldDivider";
 import { SITE } from "@/config/site";
 
@@ -14,7 +13,6 @@ export default async function LegalPage() {
 
   return (
     <>
-      <Navbar />
       <main className="relative overflow-hidden min-h-screen px-6 pt-24 pb-16">
         <div className="relative z-10 max-w-3xl mx-auto">
           <h1

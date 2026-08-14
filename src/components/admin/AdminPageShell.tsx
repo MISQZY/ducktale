@@ -1,5 +1,4 @@
 import type { ReactNode } from "react";
-import Navbar from "@/components/Navbar";
 import { GoldDivider } from "@/components/common/GoldDivider";
 import { AdminNav } from "@/components/admin/AdminNav";
 
@@ -22,25 +21,22 @@ export function AdminPageShell({ title, description, active, children }: AdminPa
   const t = useTranslations("Admin");
 
   return (
-    <>
-      <Navbar />
-      <main className="relative overflow-hidden min-h-screen px-6 pt-24 pb-16">
-        <div className="relative z-10 max-w-[1600px] mx-auto">
-          <h1
-            className="text-3xl text-primary/90 mb-2 leading-tight text-center"
-            style={{ fontFamily: "var(--font-body)" }}
-          >
-            {t("title")}
-          </h1>
-          <p className="text-foreground/60 mb-6 text-center">{description}</p>
+    <main className="relative overflow-hidden min-h-screen px-6 pt-24 pb-16">
+      <div className="relative z-10 max-w-[1600px] mx-auto">
+        <h1
+          className="text-3xl text-primary/90 mb-2 leading-tight text-center"
+          style={{ fontFamily: "var(--font-body)" }}
+        >
+          {t("title")}
+        </h1>
+        <p className="text-foreground/60 mb-6 text-center">{description}</p>
 
-          <AdminNav active={active} />
+        <AdminNav active={active} />
 
-          <GoldDivider className="mb-8" />
+        <GoldDivider className="mb-8" />
 
-          {children}
-        </div>
-      </main>
-    </>
+        {children}
+      </div>
+    </main>
   );
 }

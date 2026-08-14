@@ -1,6 +1,5 @@
 import { getTranslations } from "next-intl/server";
 import type { Metadata } from "next";
-import Navbar from "@/components/Navbar";
 import { GoldDivider } from "@/components/common/GoldDivider";
 import { RankingsTabs } from "@/components/leaderboard/RankingsTabs";
 
@@ -9,7 +8,6 @@ export default async function LeaderboardPage() {
 
   return (
     <>
-      <Navbar />
       <main className="relative overflow-hidden min-h-screen px-6 pt-24 pb-6">
         <div className="relative z-10 max-w-3xl mx-auto">
           <h1

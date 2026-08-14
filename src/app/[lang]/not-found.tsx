@@ -1,6 +1,6 @@
 import { useLocale, useTranslations } from "next-intl";
-import Navbar from "@/components/Navbar";
 import { SERVERS } from "@/config/servers";
+import Navbar from "@/components/Navbar";
 import { NotFoundView } from "@/components/common/NotFoundView";
 import { createMetadata } from "@/lib/create-metadata";
 
