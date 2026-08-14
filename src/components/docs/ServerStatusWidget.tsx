@@ -15,7 +15,7 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
-import { ChevronDown, Users } from "lucide-react";
+import { ChevronDown, Users, Settings } from "lucide-react";
 import { useServerStatus } from "@/hooks/useServerStatus";
 
 interface ServerStatusWidgetProps {
@@ -66,11 +66,16 @@ export function ServerStatusWidget({ host, serverName, className }: ServerStatus
   const hasPlayers = status.online && (status.players?.online ?? 0) > 0 && playerList.length > 0;
 
   return (
-    <DuckCard className={cn("border-amber-900/20 bg-duck-stone/30 my-4", className)}>
+    <DuckCard className={cn("border-amber-900/20 bg-duck-stone/30 my-4 transition-colors duration-300", status.maintenance && "animate-border-glow", className)}>
       <DuckCardHeader className="py-3 pb-2">
         <div className="flex items-center justify-between">
-          <DuckCardTitle className="text-sm text-foreground/80 font-medium">
+          <DuckCardTitle className="text-sm text-foreground/80 font-medium flex items-center gap-2">
             {serverName ?? host}
+            {status.maintenance && (
+              <span className="text-yellow-500/80" title="Maintenance Mode">
+                <Settings size={14} className="animate-[spin_4s_linear_infinite]" />
+              </span>
+            )}
           </DuckCardTitle>
           <DuckBadge
             variant="outline"

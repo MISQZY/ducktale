@@ -15,8 +15,12 @@ export default async function DocsServerLayout({
   params: Promise<{ lang: string; server: string }>;
 }) {
   const { lang, server } = await params;
-  const config = SERVERS.find((s) => s.id === server);
-  if (!config) notFound();
+  const fullConfig = SERVERS.find((s) => s.id === server);
+  if (!fullConfig) notFound();
+  // Server Components can't hand a Client Component a raw component
+  // reference (ServerConfig.icon), only plain data — ServerSwitcher never
+  // reads .icon anyway, so it's dropped here rather than in the config.
+  const { icon: _icon, ...config } = fullConfig;
 
   const source = getDocsSource(server);
   if (!source) notFound();

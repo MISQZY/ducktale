@@ -4,6 +4,7 @@ import { useServerStatuses } from "@/context/ServerStatusContext";
 
 export interface ServerStatus {
   online: boolean;
+  maintenance?: boolean;
   players?: { online: number; max: number; list?: { name: string }[] };
   version?: string;
 }

@@ -1,11 +1,17 @@
-import { ChevronDown } from "lucide-react";
+"use client";
+
+import { ChevronDown, Settings } from "lucide-react";
 import { Link } from "@/i18n/navigation";
 import { SERVERS, type ServerConfig } from "@/config/servers";
 import ServerStatusBadge from "@/components/ServerStatusBadge";
 import { cn } from "@/lib/utils";
+import { useServerStatus } from "@/hooks/useServerStatus";
 
 interface ServerSwitcherProps {
-  current: ServerConfig;
+  // Passed down from a Server Component — must stay plain data, no .icon
+  // (a component reference), which is why it's Omit here rather than the
+  // full ServerConfig.
+  current: Omit<ServerConfig, "icon">;
 }
 
 /**
@@ -14,6 +20,9 @@ interface ServerSwitcherProps {
  * no positioning/portal logic needed since it just expands the sidebar flow.
  */
 export function ServerSwitcher({ current }: ServerSwitcherProps) {
+  const result = useServerStatus(current.host);
+  const isMaintenance = result.state === "ok" && result.status.maintenance;
+
   return (
     <details className="group/switcher">
       <summary
@@ -22,7 +31,8 @@ export function ServerSwitcher({ current }: ServerSwitcherProps) {
           "marker:content-none [&::-webkit-details-marker]:hidden",
           "hover:brightness-110",
           current.border,
-          current.color
+          current.color,
+          isMaintenance && "animate-border-glow"
         )}
       >
         <div className="absolute -top-px -left-px w-4 h-4 border-t-2 border-l-2 border-primary/60 rounded-tl-xl pointer-events-none" />
@@ -43,6 +53,11 @@ export function ServerSwitcher({ current }: ServerSwitcherProps) {
                 {current.tagline}
               </span>
             </div>
+            {isMaintenance && (
+              <span className="text-yellow-500/80 shrink-0" title="Maintenance Mode">
+                <Settings size={14} className="animate-[spin_4s_linear_infinite]" />
+              </span>
+            )}
             <ChevronDown
               size={16}
               className="shrink-0 text-foreground/50 transition-transform duration-200 group-open/switcher:rotate-180"

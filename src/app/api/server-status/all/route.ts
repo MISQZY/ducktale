@@ -1,11 +1,12 @@
 import { NextResponse } from "next/server";
 import { SERVERS } from "@/config/servers";
-import { getAllOnlinePlayers, groupOnlinePlayersByServer } from "@/lib/players";
+import { getAllOnlinePlayers, groupOnlinePlayersByServer, getMaintenanceStatuses } from "@/lib/players";
 import { getCachedPing } from "@/lib/mcsrvstat";
 import { isRateLimited } from "@/lib/rate-limit";
 
 interface ServerStatus {
   online: boolean;
+  maintenance?: boolean;
   version?: string;
   players: { online: number; max: number; list: { name: string }[] };
 }
@@ -15,12 +16,16 @@ export async function GET(req: Request) {
     return NextResponse.json({ error: "Too many requests" }, { status: 429 });
   }
 
-  const [allPlayers, pings] = await Promise.all([
+  const [allPlayers, pings, maintenanceStatuses] = await Promise.all([
     getAllOnlinePlayers().catch((err) => {
       console.error("[server-status] Failed to load online players:", err);
       return [];
     }),
     Promise.all(SERVERS.map((s) => getCachedPing(s.host))),
+    getMaintenanceStatuses().catch((err) => {
+      console.error("[server-status] Failed to load maintenance statuses:", err);
+      return new Set<string>();
+    })
   ]);
 
   const grouped = groupOnlinePlayersByServer(allPlayers);
@@ -33,6 +38,7 @@ export async function GET(req: Request) {
         s.host,
         {
           online: ping.online,
+          maintenance: maintenanceStatuses.has(s.uuid),
           version: ping.version,
           players: {
             online: roster.length,

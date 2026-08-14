@@ -81,7 +81,7 @@ function ServerStatusCard({ status, t }: { status: PlayerServerStatus; t: Player
     >
       {status.maintenanceEnabled && (
         <div className="absolute top-2 right-2 text-yellow-500/80">
-          <Settings size={14} />
+          <Settings size={14} className="animate-[spin_4s_linear_infinite]" />
         </div>
       )}
       <div className="w-10 h-10 rounded-lg bg-muted border border-border/60 flex items-center justify-center text-lg shrink-0">

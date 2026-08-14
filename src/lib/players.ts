@@ -56,3 +56,18 @@ export function groupOnlinePlayersByServer(
   }
   return grouped;
 }
+
+export async function getMaintenanceStatuses(
+  dbKey: string = "default"
+): Promise<Set<string>> {
+  return withCache(`maintenance-statuses:${dbKey}`, 60_000, async () => {
+    const rows = await withDb(dbKey, (db) =>
+      db.$queryRaw<{ server: string }[]>(Prisma.sql`
+        SELECT server
+        FROM fp_moderation
+        WHERE player = -1 AND type = 'maintenance' AND valid = 1
+      `)
+    );
+    return new Set(rows.map((r) => r.server));
+  });
+}
