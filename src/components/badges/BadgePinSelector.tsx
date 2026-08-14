@@ -19,7 +19,7 @@ interface BadgeItem {
 interface BadgePinSelectorProps {
   /** Required unless readOnly — passed through to the setPinnedBadge Server Action. */
   lang?: string;
-  /** Ordered pinned-first then earliest-awarded — badges[0] is the implicit default pin. */
+  /** Ordered pinned-first then earliest-awarded — badges[0] is the implicit default pin when there's more than one badge. */
   badges: BadgeItem[];
   /** Raw pinned state (the badge with UserBadge.pinned=true, if any) — null means no explicit choice yet. */
   initialPinnedBadgeId: string | null;
@@ -29,18 +29,22 @@ interface BadgePinSelectorProps {
 
 /**
  * Badge grid showing which one badge is pinned to appear next to this
- * user's name on the leaderboard. Exactly one badge always reads as
- * "pinned": an explicit choice if made, otherwise badges[0] — clicking the
- * currently-effective one clears the explicit choice (reverting to that
- * default) rather than leaving nothing pinned. In readOnly mode (public
- * profile) it's just an indicator, no interaction.
+ * user's name on the leaderboard. With two or more badges, exactly one
+ * always reads as "pinned": an explicit choice if made, otherwise badges[0]
+ * — clicking the currently-effective one clears the explicit choice
+ * (reverting to that default) rather than leaving nothing pinned. With a
+ * single badge there's nothing to distinguish it from, so it's never shown
+ * as pinned unless the user explicitly pins it (the leaderboard still picks
+ * it as that user's display badge either way — that's a separate,
+ * pinned-first-then-earliest DB query, unaffected by this indicator). In
+ * readOnly mode (public profile) it's just an indicator, no interaction.
  */
 export function BadgePinSelector({ lang, badges, initialPinnedBadgeId, readOnly = false }: BadgePinSelectorProps) {
   const t = useTranslations("Account.dashboard");
   const [explicitId, setExplicitId] = useState<string | null>(initialPinnedBadgeId);
   const [isPending, startTransition] = useTransition();
 
-  const effectiveId = explicitId ?? badges[0]?.id ?? null;
+  const effectiveId = explicitId ?? (badges.length > 1 ? badges[0]?.id : undefined) ?? null;
 
   function togglePin(badgeId: string) {
     if (readOnly || !lang) return;
@@ -56,12 +60,24 @@ export function BadgePinSelector({ lang, badges, initialPinnedBadgeId, readOnly 
     });
   }
 
+  // Wraps and centers for a handful of badges (the common case); beyond
+  // that, wrapping just turns into several centered rows of ragged length,
+  // which reads worse than one horizontally-scrollable row.
+  const isCompact = badges.length <= 8;
+
   return (
-    <div className="flex flex-wrap justify-center gap-2">
+    <div
+      className={cn(
+        "flex gap-2",
+        isCompact
+          ? "flex-wrap justify-center"
+          : "flex-nowrap overflow-x-auto justify-start pb-1 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
+      )}
+    >
       {badges.map((badge) => {
         const isPinned = effectiveId === badge.id;
         return (
-          <div key={badge.id} className="relative group/pin">
+          <div key={badge.id} className="relative group/pin shrink-0">
             <ProfileBadgeChip
               name={badge.name}
               icon={badge.icon}

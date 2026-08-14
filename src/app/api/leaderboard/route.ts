@@ -111,11 +111,14 @@ async function buildLeaderboardResponse(
             select: {
               nickname: true,
               lastSeenAt: true,
-              // pinned first (there's at most one today), then earliest-awarded —
-              // badges[0] below is always exactly the one badge to display,
-              // pinned-or-default.
+              // Only an explicitly pinned badge shows here — no fallback to
+              // "earliest awarded" when nothing's pinned (see
+              // BadgePinSelector: a lone badge isn't auto-pinned either).
+              // At most one row can match (setPinnedBadge enforces that),
+              // take:1 is just belt-and-suspenders.
               badges: {
-                orderBy: [{ pinned: "desc" }, { awardedAt: "asc" }],
+                where: { pinned: true },
+                take: 1,
                 select: { badge: { select: { name: true, icon: true, color: true, description: true, earnCondition: true } } },
               },
             },
@@ -134,8 +137,7 @@ async function buildLeaderboardResponse(
       const siteOnline = link ? isUserOnline(link.userId) : false;
       const dbLastSeenMs = link?.user.lastSeenAt?.getTime() ?? undefined;
 
-      // Already ordered pinned-first-then-earliest-awarded by the query
-      // above — the first entry is exactly the one badge to display.
+      // Already filtered to pinned:true by the query above.
       const displayBadge = link?.user.badges[0]?.badge;
 
       return {

@@ -122,10 +122,9 @@ function AccountLinkContent({ fallbackLabel }: { fallbackLabel: string }) {
   // (via PlayerAvatar's <Avatar>/<AvatarFallback>) for a not-yet-linked
   // account, instead of a generic icon.
   //
-  // Nicknames run up to 32 chars (schema.prisma.template) — letting this
-  // grow to fit that squeezed the rest of the nav bar and looked broken, so
-  // it's capped and ellipsized instead, with the full name always available
-  // via the native title tooltip.
+  // Full nickname always shown (no truncation) — growName={false} keeps
+  // the chip sized to its own content instead of stretching, so a long
+  // name just makes the chip wider rather than needing to be cut off.
   if (status === "authenticated" && session.user?.name) {
     return (
       <PlayerAvatar
@@ -134,9 +133,10 @@ function AccountLinkContent({ fallbackLabel }: { fallbackLabel: string }) {
         hasSiteProfile={false}
         avatarSize={30}
         avatarClassName="rounded-sm border-none"
-        className="corner-ornament relative overflow-hidden gap-2 rounded-lg border border-primary/25 bg-card/70 py-1.5 pr-4 pl-1.5"
+        growName={false}
+        className="corner-ornament relative overflow-hidden gap-2 rounded-lg border border-primary/25 bg-card/70 py-1.5 px-1.5"
         nameNode={
-          <span title={session.user.name} className="text-sm font-medium text-foreground/90 truncate max-w-32">
+          <span title={session.user.name} className="text-sm font-medium text-foreground/90 whitespace-nowrap">
             {session.user.name}
           </span>
         }

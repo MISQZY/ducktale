@@ -94,15 +94,16 @@ export default function SocialSection() {
                   hasSiteProfile={hasProfile}
                   linked={hasProfile}
                   avatarClassName="rounded-md border-none"
+                  growName={false}
                   className={cn(
-                    "relative overflow-hidden rounded-lg bg-card/70 py-2 pr-6 pl-2 shadow-sm shrink-0 transition-transform duration-300 hover:scale-105",
+                    "relative overflow-hidden rounded-lg bg-card/70 py-2 px-2 shadow-sm shrink-0 transition-transform duration-300 hover:scale-105",
                     hasProfile ? "border-2 border-primary/60 hover:border-primary" : "border border-primary/25"
                   )}
                   nameNode={
                     <span
                       title={p.name}
                       className={cn(
-                        "text-base tracking-wide max-w-40 truncate",
+                        "text-base tracking-wide whitespace-nowrap",
                         hasProfile ? "font-bold text-amber-500 dark:text-amber-400" : "font-semibold text-foreground/90"
                       )}
                       style={{ fontFamily: "var(--font-display)" }}
