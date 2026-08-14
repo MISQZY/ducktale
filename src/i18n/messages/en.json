@@ -78,8 +78,8 @@
     "notFound": "Player not found",
     "notFoundQuery": "Player \"{query}\" not found",
     "noData": "No data",
-    "online": "Online",
-    "siteOnline": "Online",
+    "online": "Online on the server",
+    "siteOnline": "Online on the site",
     "bothOnline": "Online on the server and the site",
     "lastSeenOnSite": "Last seen: {date}",
     "resident": "Resident",
@@ -118,9 +118,7 @@
     "serversTitle": "Servers",
     "whitelistedYes": "Whitelisted",
     "whitelistedNo": "Not whitelisted",
-    "rankTooltip": "Leaderboard rank: #{rank}",
-    "relinkAction": "Link a different account",
-    "unlinkAction": "Unlink account"
+    "rankTooltip": "Leaderboard rank: #{rank}"
   },
   "Nav": {
     "about": "About",
@@ -186,12 +184,22 @@
       "duckburg": {
         "tagline": "Survival",
         "description": "Classic survival with a unique economy, clans, an auction house and hundreds of hours of content.",
-        "features": ["Economy", "Towns", "No wipes", "PvE", "Quests"]
+        "features": [
+          "Economy",
+          "Towns",
+          "No wipes",
+          "PvE",
+          "Quests"
+        ]
       },
       "duckhood": {
         "tagline": "Creative",
         "description": "A boundless space for your ideas. Personal plots, a shared world, building contests.",
-        "features": ["Personal plots", "WorldEdit", "PvE"]
+        "features": [
+          "Personal plots",
+          "WorldEdit",
+          "PvE"
+        ]
       }
     }
   },
@@ -216,27 +224,59 @@
       "aux": "Auxiliary service"
     },
     "nodes": {
-      "client":   { "label": "Player",     "sublabel": "Minecraft client",   "tooltip": "The client connects to the Minecraft server" },
-      "proxy":    { "label": "Velocity",   "sublabel": "Single entry point", "tooltip": "The Velocity proxy is the entry point to the DuckTale network. Routes traffic between all servers." },
-      "auth":     { "label": "Auth",       "sublabel": "Authorization",      "tooltip": "Authorizes players before letting them onto the servers." },
-      "hub":      { "label": "Hub",        "sublabel": "Server lobby",       "tooltip": "The lobby server used to pick a game server." },
-      "duckburg": { "label": "DuckBurg",   "sublabel": "Survival",           "tooltip": "The survival game server" },
-      "duckhood": { "label": "DuckHood",   "sublabel": "Creative",           "tooltip": "The creative game server" },
-      "backup":   { "label": "Backups",    "sublabel": "Daily",              "tooltip": "Daily backups of all game data." },
-      "voice":    { "label": "Voice Chat", "sublabel": "Server voice chat",  "tooltip": "In-game voice chat." }
+      "client": {
+        "label": "Player",
+        "sublabel": "Minecraft client",
+        "tooltip": "The client connects to the Minecraft server"
+      },
+      "proxy": {
+        "label": "Velocity",
+        "sublabel": "Single entry point",
+        "tooltip": "The Velocity proxy is the entry point to the DuckTale network. Routes traffic between all servers."
+      },
+      "auth": {
+        "label": "Auth",
+        "sublabel": "Authorization",
+        "tooltip": "Authorizes players before letting them onto the servers."
+      },
+      "hub": {
+        "label": "Hub",
+        "sublabel": "Server lobby",
+        "tooltip": "The lobby server used to pick a game server."
+      },
+      "duckburg": {
+        "label": "DuckBurg",
+        "sublabel": "Survival",
+        "tooltip": "The survival game server"
+      },
+      "duckhood": {
+        "label": "DuckHood",
+        "sublabel": "Creative",
+        "tooltip": "The creative game server"
+      },
+      "backup": {
+        "label": "Backups",
+        "sublabel": "Daily",
+        "tooltip": "Daily backups of all game data."
+      },
+      "voice": {
+        "label": "Voice Chat",
+        "sublabel": "Server voice chat",
+        "tooltip": "In-game voice chat."
+      }
     },
     "edges": {
-      "clientToProxy":    "Player connects to the network's entry point",
-      "proxyToAuth":      "Velocity forwards to the authorization service",
-      "authToHub":        "Redirects to the HUB after successful authorization",
-      "hubToDuckhood":    "Transfer between HUB and DuckHood",
-      "hubToDuckburg":    "Transfer between HUB and DuckBurg",
+      "clientToProxy": "Player connects to the network's entry point",
+      "proxyToAuth": "Velocity forwards to the authorization service",
+      "authToHub": "Redirects to the HUB after successful authorization",
+      "hubToDuckhood": "Transfer between HUB and DuckHood",
+      "hubToDuckburg": "Transfer between HUB and DuckBurg",
       "duckhoodToDuckburg": "Transfer between DuckHood and DuckBurg",
       "backupToDuckburg": "Automatic backups of DuckBurg",
       "backupToDuckhood": "Automatic backups of DuckHood",
-      "voiceToDuckburg":  "Provides voice chat for the DuckBurg server",
-      "voiceToDuckhood":  "Provides voice chat for the DuckHood server",
-      "voiceToHub":       "Provides voice chat for the HUB server"
+      "voiceToDuckburg": "Provides voice chat for the DuckBurg server",
+      "voiceToDuckhood": "Provides voice chat for the DuckHood server",
+      "voiceToHub": "Provides voice chat for the HUB server"
     }
   },
   "Social": {
@@ -247,9 +287,15 @@
     "playersVisited": "Over {count} players have visited our project",
     "footerNote": "Join us, it's fun here",
     "items": {
-      "discord": { "sublabel": "Main community" },
-      "telegram": { "sublabel": "Stream announcements" },
-      "twitch": { "sublabel": "Streams from the server's creator" }
+      "discord": {
+        "sublabel": "Main community"
+      },
+      "telegram": {
+        "sublabel": "Stream announcements"
+      },
+      "twitch": {
+        "sublabel": "Streams from the server's creator"
+      }
     }
   },
   "Footer": {
@@ -372,12 +418,16 @@
       "linkSectionTitle": "Minecraft account",
       "notLinked": "No account linked",
       "linkCta": "Link account",
+      "linkHint": "Link your Minecraft account to see your stats and badges.",
       "linkedAs": "Linked: {name}",
       "pending": "Awaiting confirmation",
       "relink": "Link a different account",
       "unlink": "Unlink account",
       "playerCardTitle": "Player card",
       "badgesSectionTitle": "Badges",
+      "pinBadge": "Pin badge",
+      "unpinBadge": "Unpin badge",
+      "pinnedBadgeHint": "Pinned badge",
       "adminPanel": "Admin panel",
       "viewProfile": "My public profile",
       "supportSectionTitle": "Support",
@@ -553,7 +603,8 @@
     "newFileTitle": "New file",
     "newFileSlugPlaceholder": "getting-started/new-page.mdx",
     "newFileCreate": "Create",
-    "newFileInvalidSlug": "Invalid path — use lowercase letters, digits, / and -, ending in .mdx"
+    "newFileInvalidSlug": "Invalid path — use lowercase letters, digits, / and -, ending in .mdx",
+    "editorPlaceholder": "Start typing Markdown / MDX..."
   },
   "Tickets": {
     "myTicketsTitle": "My tickets",
@@ -603,7 +654,9 @@
     "send": "Send",
     "sending": "Sending...",
     "adminSearchPlaceholder": "Search by nickname or subject...",
-    "messageCount": "{count, plural, one {# message} other {# messages}}"
+    "messageCount": "{count, plural, one {# message} other {# messages}}",
+    "attachmentCount": "{count, plural, one {# attachment} other {# attachments}}",
+    "imageLoadError": "Failed to load image"
   },
   "Leaderboard": {
     "pageTitle": "Rankings",
@@ -621,12 +674,17 @@
       "size": "Size"
     },
     "empty": "No data yet",
-    "notFound": "Player \u201c{query}\u201d not found",
+    "notFound": "Player “{query}” not found",
     "loadError": "Couldn't load the leaderboard: {message}",
     "townsTitle": "Top by town size",
     "townsSearchPlaceholder": "Search by name…",
     "townsEmpty": "No towns yet",
-    "townsNotFound": "Town \u201c{query}\u201d not found",
+    "townsNotFound": "Town “{query}” not found",
     "townIndependent": "Independent"
+  },
+  "Common": {
+    "confirmTitle": "Confirm action",
+    "confirm": "Confirm",
+    "cancel": "Cancel"
   }
 }

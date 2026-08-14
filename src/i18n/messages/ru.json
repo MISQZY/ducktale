@@ -71,15 +71,15 @@
     }
   },
   "PlayerCard": {
-    "searchPlaceholder": "Поиск по нику или имени…",
+    "searchPlaceholder": "Найти",
     "refreshLabel": "Случайный игрок",
     "whitelistedTitle": "В вайтлисте сервера",
     "loadError": "Не удалось загрузить данные игрока",
     "notFound": "Игрок не найден",
     "notFoundQuery": "Игрок «{query}» не найден",
     "noData": "Нет данных",
-    "online": "Онлайн",
-    "siteOnline": "Онлайн",
+    "online": "Онлайн на сервере",
+    "siteOnline": "Онлайн на сайте",
     "bothOnline": "Онлайн на сервере и на сайте",
     "lastSeenOnSite": "Был онлайн: {date}",
     "resident": "Житель",
@@ -118,9 +118,7 @@
     "serversTitle": "Серверы",
     "whitelistedYes": "В вайтлисте",
     "whitelistedNo": "Не в вайтлисте",
-    "rankTooltip": "Место в топе игроков: #{rank}",
-    "relinkAction": "Привязать другой аккаунт",
-    "unlinkAction": "Отвязать аккаунт"
+    "rankTooltip": "Место в топе игроков: #{rank}"
   },
   "Nav": {
     "about": "О проекте",
@@ -186,12 +184,22 @@
       "duckburg": {
         "tagline": "Выживание",
         "description": "Классическое выживание с уникальной экономикой, кланами, аукционом и сотнями часов контента.",
-        "features": ["Экономика", "Города", "Без вайпов", "PvE", "Квесты"]
+        "features": [
+          "Экономика",
+          "Города",
+          "Без вайпов",
+          "PvE",
+          "Квесты"
+        ]
       },
       "duckhood": {
         "tagline": "Креатив",
         "description": "Безграничное пространство для ваших идей. Личные участки, общий мир, конкурсы строений.",
-        "features": ["Личные участки", "WorldEdit", "PvE"]
+        "features": [
+          "Личные участки",
+          "WorldEdit",
+          "PvE"
+        ]
       }
     }
   },
@@ -216,27 +224,59 @@
       "aux": "Вспомогательный сервис"
     },
     "nodes": {
-      "client":   { "label": "Игрок",      "sublabel": "Minecraft клиент",      "tooltip": "Клиент подключается к серверам Minecraft" },
-      "proxy":    { "label": "Velocity",   "sublabel": "Единая точка входа",    "tooltip": "Proxy-сервер Velocity — точка входа в сеть DuckTale. Маршрутизирует трафик между всеми серверами." },
-      "auth":     { "label": "Auth",       "sublabel": "Авторизация",           "tooltip": "Система авторизации игроков перед допуском на серверы." },
-      "hub":      { "label": "Hub",        "sublabel": "Лобби серверов",        "tooltip": "Сервер-лобби для выбора игрового сервера." },
-      "duckburg": { "label": "DuckBurg",   "sublabel": "Выживание",             "tooltip": "Игровой сервер выживания" },
-      "duckhood": { "label": "DuckHood",   "sublabel": "Креатив",               "tooltip": "Игровой творческий сервер" },
-      "backup":   { "label": "Бэкапы",     "sublabel": "Ежедневно",             "tooltip": "Ежедневные резервные копии всех игровых данных." },
-      "voice":    { "label": "Voice-Chat", "sublabel": "Голосовой чат сервера", "tooltip": "Голосовой внутриигровой чат." }
+      "client": {
+        "label": "Игрок",
+        "sublabel": "Minecraft клиент",
+        "tooltip": "Клиент подключается к серверам Minecraft"
+      },
+      "proxy": {
+        "label": "Velocity",
+        "sublabel": "Единая точка входа",
+        "tooltip": "Proxy-сервер Velocity — точка входа в сеть DuckTale. Маршрутизирует трафик между всеми серверами."
+      },
+      "auth": {
+        "label": "Auth",
+        "sublabel": "Авторизация",
+        "tooltip": "Система авторизации игроков перед допуском на серверы."
+      },
+      "hub": {
+        "label": "Hub",
+        "sublabel": "Лобби серверов",
+        "tooltip": "Сервер-лобби для выбора игрового сервера."
+      },
+      "duckburg": {
+        "label": "DuckBurg",
+        "sublabel": "Выживание",
+        "tooltip": "Игровой сервер выживания"
+      },
+      "duckhood": {
+        "label": "DuckHood",
+        "sublabel": "Креатив",
+        "tooltip": "Игровой творческий сервер"
+      },
+      "backup": {
+        "label": "Бэкапы",
+        "sublabel": "Ежедневно",
+        "tooltip": "Ежедневные резервные копии всех игровых данных."
+      },
+      "voice": {
+        "label": "Voice-Chat",
+        "sublabel": "Голосовой чат сервера",
+        "tooltip": "Голосовой внутриигровой чат."
+      }
     },
     "edges": {
-      "clientToProxy":    "Подключение игрока к точке входа сети",
-      "proxyToAuth":      "Velocity направляет на сервис авторизации",
-      "authToHub":        "При успешной авторизации перенаправляет на HUB",
-      "hubToDuckhood":    "Перенаправление между HUB и DuckHood",
-      "hubToDuckburg":    "Перенаправление между HUB и DuckBurg",
+      "clientToProxy": "Подключение игрока к точке входа сети",
+      "proxyToAuth": "Velocity направляет на сервис авторизации",
+      "authToHub": "При успешной авторизации перенаправляет на HUB",
+      "hubToDuckhood": "Перенаправление между HUB и DuckHood",
+      "hubToDuckburg": "Перенаправление между HUB и DuckBurg",
       "duckhoodToDuckburg": "Перенаправление между DuckHood и DuckBurg",
       "backupToDuckburg": "Автоматическое резервное копирование DuckBurg",
       "backupToDuckhood": "Автоматическое резервное копирование DuckHood",
-      "voiceToDuckburg":  "Предоставление голосового чата для сервера DuckBurg",
-      "voiceToDuckhood":  "Предоставление голосового чата для сервера DuckHood",
-      "voiceToHub":       "Предоставление голосового чата для сервера HUB"
+      "voiceToDuckburg": "Предоставление голосового чата для сервера DuckBurg",
+      "voiceToDuckhood": "Предоставление голосового чата для сервера DuckHood",
+      "voiceToHub": "Предоставление голосового чата для сервера HUB"
     }
   },
   "Social": {
@@ -247,9 +287,15 @@
     "playersVisited": "На нашем проекте побывало более {count} игроков",
     "footerNote": "Присоединяйся, с нами весело",
     "items": {
-      "discord": { "sublabel": "Основное сообщество" },
-      "telegram": { "sublabel": "Анонсы стримов на сервере" },
-      "twitch": { "sublabel": "Стримы от создателя сервера" }
+      "discord": {
+        "sublabel": "Основное сообщество"
+      },
+      "telegram": {
+        "sublabel": "Анонсы стримов на сервере"
+      },
+      "twitch": {
+        "sublabel": "Стримы от создателя сервера"
+      }
     }
   },
   "Footer": {
@@ -371,12 +417,16 @@
       "linkSectionTitle": "Minecraft-аккаунт",
       "notLinked": "Аккаунт не привязан",
       "linkCta": "Привязать аккаунт",
+      "linkHint": "Привяжите Minecraft-аккаунт, чтобы видеть свою статистику и бейджи.",
       "linkedAs": "Привязан: {name}",
       "pending": "Ожидает подтверждения",
       "relink": "Привязать другой аккаунт",
       "unlink": "Отвязать аккаунт",
       "playerCardTitle": "Карточка игрока",
       "badgesSectionTitle": "Бейджи",
+      "pinBadge": "Закрепить бейдж",
+      "unpinBadge": "Открепить бейдж",
+      "pinnedBadgeHint": "Закреплённый бейдж",
       "adminPanel": "Админ-панель",
       "viewProfile": "Моя публичная страница",
       "supportSectionTitle": "Поддержка",
@@ -434,7 +484,7 @@
     "confirmGrantAdmin": "Выдать {nickname} права администратора? У него появится доступ к этой панели.",
     "confirmRevokeAdmin": "Забрать права администратора у {nickname}?",
     "actionFailed": "Действие не выполнено. Попробуйте позже.",
-    "searchPlaceholder": "Поиск по никнейму...",
+    "searchPlaceholder": "Найти",
     "noResults": "Ничего не найдено.",
     "pageInfo": "Стр. {page} из {totalPages}",
     "prevPage": "← Назад",
@@ -456,7 +506,7 @@
     "registrationColumn": "Регистрация",
     "noSearchResults": "Ничего не найдено",
     "noBadgesHeld": "Нет значков",
-    "badgeSearchPlaceholder": "Поиск...",
+    "badgeSearchPlaceholder": "Найти",
     "badges": {
       "description": "{count, plural, one {# бейдж} few {# бейджа} many {# бейджей} other {# бейджей}}",
       "noResults": "Бейджей пока нет.",
@@ -474,7 +524,7 @@
       "autoConditionEmpty": "Сначала настройте роли в разделе «Роли».",
       "autoConditionHint": "Бейдж выдаётся автоматически всем, у кого привязан аккаунт хотя бы с одной из отмеченных ролей LuckPerms. Проверяется при заходе игрока в свой профиль.",
       "iconLabel": "Иконка",
-      "iconSearchPlaceholder": "Поиск иконок...",
+      "iconSearchPlaceholder": "Найти",
       "iconSearchEmpty": "По запросу ничего не найдено.",
       "colorLabel": "Цвет",
       "create": "Создать",
@@ -499,7 +549,7 @@
       "nameLabel": "Название",
       "tracksLabel": "Треки",
       "iconLabel": "Иконка",
-      "iconSearchPlaceholder": "Поиск иконок...",
+      "iconSearchPlaceholder": "Найти",
       "iconSearchEmpty": "По запросу ничего не найдено.",
       "colorLabel": "Цвет",
       "create": "Создать",
@@ -552,7 +602,8 @@
     "newFileTitle": "Новый файл",
     "newFileSlugPlaceholder": "getting-started/new-page.mdx",
     "newFileCreate": "Создать",
-    "newFileInvalidSlug": "Неверный путь — используйте латиницу, цифры, / и -, с расширением .mdx"
+    "newFileInvalidSlug": "Неверный путь — используйте латиницу, цифры, / и -, с расширением .mdx",
+    "editorPlaceholder": "Начните вводить Markdown / MDX..."
   },
   "Tickets": {
     "myTicketsTitle": "Мои тикеты",
@@ -601,8 +652,10 @@
     "replyPlaceholder": "Ваш ответ...",
     "send": "Отправить",
     "sending": "Отправка...",
-    "adminSearchPlaceholder": "Поиск по нику или теме...",
-    "messageCount": "{count, plural, one {# сообщение} few {# сообщения} many {# сообщений} other {# сообщений}}"
+    "adminSearchPlaceholder": "Найти",
+    "messageCount": "{count, plural, one {# сообщение} few {# сообщения} many {# сообщений} other {# сообщений}}",
+    "attachmentCount": "{count, plural, one {# вложение} few {# вложения} many {# вложений} other {# вложений}}",
+    "imageLoadError": "Не удалось загрузить изображение"
   },
   "Leaderboard": {
     "pageTitle": "Рейтинги",
@@ -610,7 +663,7 @@
     "tabPlayers": "Игроки",
     "tabTowns": "Города",
     "title": "Топ по игровому времени",
-    "searchPlaceholder": "Поиск по нику…",
+    "searchPlaceholder": "Найти",
     "columns": {
       "rank": "№",
       "player": "Игрок",
@@ -623,9 +676,14 @@
     "notFound": "Игрок «{query}» не найден",
     "loadError": "Не удалось загрузить рейтинг: {message}",
     "townsTitle": "Топ по размеру города",
-    "townsSearchPlaceholder": "Поиск по названию…",
+    "townsSearchPlaceholder": "Найти",
     "townsEmpty": "Городов пока нет",
     "townsNotFound": "Город «{query}» не найден",
     "townIndependent": "Независимый"
+  },
+  "Common": {
+    "confirmTitle": "Подтвердите действие",
+    "confirm": "Подтвердить",
+    "cancel": "Отмена"
   }
 }
