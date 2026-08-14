@@ -7,6 +7,7 @@ import { resetUserPassword, unlinkUser, deleteUser, setUserAdmin } from "@/lib/a
 import { buttonVariants } from "@/components/ui/button";
 import CopyToClipboard from "@/components/ui/CopyToClipboard";
 import { cn } from "@/lib/utils";
+import { useConfirm } from "@/components/common/ConfirmDialogProvider";
 
 interface AdminUserActionsProps {
   lang: string;
@@ -19,12 +20,13 @@ interface AdminUserActionsProps {
 
 export function AdminUserActions({ lang, userId, nickname, isSelf, hasLink, isAdmin }: AdminUserActionsProps) {
   const t = useTranslations("Admin");
+  const confirm = useConfirm();
   const [isPending, startTransition] = useTransition();
   const [resetLink, setResetLink] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  function handleResetPassword() {
-    if (!window.confirm(t("confirmReset", { nickname }))) return;
+  async function handleResetPassword() {
+    if (!(await confirm({ description: t("confirmReset", { nickname }) }))) return;
     setError(null);
     startTransition(async () => {
       try {
@@ -36,8 +38,8 @@ export function AdminUserActions({ lang, userId, nickname, isSelf, hasLink, isAd
     });
   }
 
-  function handleUnlink() {
-    if (!window.confirm(t("confirmUnlink", { nickname }))) return;
+  async function handleUnlink() {
+    if (!(await confirm({ description: t("confirmUnlink", { nickname }) }))) return;
     setError(null);
     startTransition(async () => {
       try {
@@ -48,8 +50,8 @@ export function AdminUserActions({ lang, userId, nickname, isSelf, hasLink, isAd
     });
   }
 
-  function handleDelete() {
-    if (!window.confirm(t("confirmDelete", { nickname }))) return;
+  async function handleDelete() {
+    if (!(await confirm({ description: t("confirmDelete", { nickname }), variant: "destructive" }))) return;
     setError(null);
     startTransition(async () => {
       try {
@@ -60,11 +62,11 @@ export function AdminUserActions({ lang, userId, nickname, isSelf, hasLink, isAd
     });
   }
 
-  function handleToggleAdmin() {
+  async function handleToggleAdmin() {
     const confirmText = isAdmin
       ? t("confirmRevokeAdmin", { nickname })
       : t("confirmGrantAdmin", { nickname });
-    if (!window.confirm(confirmText)) return;
+    if (!(await confirm({ description: confirmText, variant: isAdmin ? "destructive" : "default" }))) return;
     setError(null);
     startTransition(async () => {
       try {

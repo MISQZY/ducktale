@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl";
 import { Trash2 } from "lucide-react";
 import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { useConfirm } from "@/components/common/ConfirmDialogProvider";
 
 interface AdminRowActionsProps {
   itemName: string;
@@ -20,11 +21,12 @@ export function AdminRowActions({
   translationsNamespace = "Admin.badges"
 }: AdminRowActionsProps) {
   const t = useTranslations(translationsNamespace);
+  const confirm = useConfirm();
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
 
-  function handleDelete() {
-    if (!window.confirm(t("confirmDelete", { name: itemName }))) return;
+  async function handleDelete() {
+    if (!(await confirm({ description: t("confirmDelete", { name: itemName }), variant: "destructive" }))) return;
     setError(null);
     startTransition(async () => {
       try {
