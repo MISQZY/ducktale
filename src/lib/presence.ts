@@ -1,5 +1,5 @@
 import { siteDb } from "@/lib/site-db";
-import { withCache } from "@/lib/query-cache";
+import { withCache, invalidateByPrefix } from "@/lib/query-cache";
 
 /**
  * Site-presence tracking ("is this account currently browsing the site",
@@ -152,4 +152,20 @@ export async function resolveSitePresenceBatch(uuids: string[]): Promise<Map<str
 export async function resolveSitePresence(uuid: string): Promise<SitePresence> {
   const map = await resolveSitePresenceBatch([uuid]);
   return map.get(uuid) ?? NOT_LINKED;
+}
+
+/**
+ * Drops every cached minecraftUuid -> {userId, lastSeenAt} lookup —
+ * call this whenever an AccountLink is severed (unlink, admin unlink, user
+ * delete). Unlinking is supposed to be a full break between the site
+ * account and the Minecraft profile; without this, resolveSitePresenceBatch
+ * keeps answering from the pre-unlink snapshot for up to ACCOUNT_LINK_TTL_MS
+ * (60s) — long enough to look, to whoever's testing it, like the site never
+ * actually severed the link. Not scoped to one uuid: the cache key is the
+ * whole *sorted set* of uuids a caller asked about, so there's no way to
+ * evict just one entry — clearing everything is cheap (next read just
+ * rebuilds it) and correctness here matters more than the minor rebuild cost.
+ */
+export function invalidatePresenceLinkCache(): void {
+  invalidateByPrefix("presence:links:");
 }

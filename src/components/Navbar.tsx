@@ -10,6 +10,7 @@ import { useTranslations } from "next-intl";
 import Logo from "./ui/Logo";
 import { Button } from "@/components/ui/button";
 import { PlayerAvatar } from "@/components/common/PlayerAvatar";
+import { getCachedAvatar, setCachedAvatar } from "@/lib/avatar-cache";
 import { cn } from "@/lib/utils";
 import {
   Sheet,
@@ -69,20 +70,44 @@ function DuckIcon({ visible }: { visible: boolean }) {
  */
 function AccountLinkContent({ fallbackLabel }: { fallbackLabel: string }) {
   const { data: session, status } = useSession();
-  const [skinUrl, setSkinUrl] = useState<string | null>(null);
+  // Lazy initializer reads the module-level cache synchronously, so a
+  // navigation that remounts this (Navbar isn't part of the persistent
+  // [lang] layout — every page renders its own <Navbar/>) paints the real
+  // head immediately instead of flashing back to the fallback icon while a
+  // fresh fetch resolves. See src/lib/avatar-cache.ts.
+  const [skinUrl, setSkinUrl] = useState<string | null>(() => {
+    const uid = session?.user?.id;
+    return uid ? getCachedAvatar(uid) ?? null : null;
+  });
 
-  // Navbar isn't part of the persistent [lang] layout (every page renders
-  // its own <Navbar/>), so this re-fetches on each navigation — the route's
-  // own cache headers plus resolveSkinUrl's server-side cache keep that cheap.
   useEffect(() => {
-    if (status !== "authenticated") return;
+    const uid = session?.user?.id;
+    if (status !== "authenticated" || !uid) return;
+
+    const cachedUrl = getCachedAvatar(uid);
+    if (cachedUrl !== undefined) {
+      // Usually a no-op (the useState initializer above already read the
+      // same cache synchronously) — this only does anything on the rare
+      // render where `uid` wasn't known yet at mount and only became
+      // available once the session resolved, restoring state from that
+      // external cache the same way docs/PlayerCard.tsx and
+      // RankingsTabs.tsx already do for their own mount-time restores.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setSkinUrl(cachedUrl);
+      return;
+    }
+
     let cancelled = false;
     fetch("/api/account/avatar")
       .then((r) => (r.ok ? r.json() : null))
-      .then((data) => { if (!cancelled) setSkinUrl(data?.skinUrl ?? null); })
+      .then((data) => {
+        const url = data?.skinUrl ?? null;
+        setCachedAvatar(uid, url);
+        if (!cancelled) setSkinUrl(url);
+      })
       .catch(() => {});
     return () => { cancelled = true; };
-  }, [status]);
+  }, [status, session?.user?.id]);
 
   // Same corner-ornament + square-cornered frame used by every other card
   // in the app (account dashboard, admin lists, ...) — a rounded-full pill

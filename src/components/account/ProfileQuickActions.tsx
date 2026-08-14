@@ -6,6 +6,7 @@ import { UserRound, ShieldCheck, LogOut, Link2, Unlink2 } from "lucide-react";
 import { buttonVariants } from "@/components/ui/button";
 import { Link, useRouter } from "@/i18n/navigation";
 import { unlinkAccount } from "@/lib/actions/account-link";
+import { invalidateAvatarCache } from "@/lib/avatar-cache";
 import { cn } from "@/lib/utils";
 
 interface ProfileQuickActionsProps {
@@ -51,6 +52,7 @@ export function ProfileQuickActions({
     setUnlinkPending(true);
     try {
       await unlinkAccount(lang);
+      invalidateAvatarCache();
       router.refresh();
     } finally {
       setUnlinkPending(false);

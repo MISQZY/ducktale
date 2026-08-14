@@ -3,6 +3,8 @@
 import { revalidatePath } from "next/cache";
 import { auth } from "@/auth";
 import { siteDb } from "@/lib/site-db";
+import { invalidatePresenceLinkCache } from "@/lib/presence";
+import { invalidateByPrefix } from "@/lib/query-cache";
 
 /**
  * A real Server Action (not an inline form action) so it's callable both
@@ -15,6 +17,12 @@ export async function unlinkAccount(lang: string) {
   if (!session?.user?.id) return;
 
   await siteDb.accountLink.deleteMany({ where: { userId: session.user.id } });
+
+  // Unlinking is a full break between the site account and the Minecraft
+  // profile — without this, cached presence/leaderboard reads keep showing
+  // the pre-unlink link (and its "online" status) for up to a minute.
+  invalidatePresenceLinkCache();
+  invalidateByPrefix("leaderboard:");
 
   revalidatePath(`/${lang}/profile`);
   revalidatePath(`/${lang}/account/link`);

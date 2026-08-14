@@ -7,6 +7,7 @@ import { StatusBadge } from "@/components/common/StatusBadge";
 import CopyToClipboard from "@/components/ui/CopyToClipboard";
 import { useRouter } from "@/i18n/navigation";
 import { unlinkAccount } from "@/lib/actions/account-link";
+import { invalidateAvatarCache } from "@/lib/avatar-cache";
 
 type LinkStatusValue = "PENDING" | "CONFIRMED" | "EXPIRED";
 
@@ -31,6 +32,10 @@ export function LinkAccountFlow({ lang, initialLink }: LinkAccountFlowProps) {
 
   useEffect(() => {
     if (link?.status === "CONFIRMED") {
+      // A fresh link — the nav avatar's client-side cache (see
+      // src/lib/avatar-cache.ts) might still hold null/a stale skin from
+      // before this account was linked at all.
+      invalidateAvatarCache();
       router.push("/profile");
     }
   }, [link?.status, router]);

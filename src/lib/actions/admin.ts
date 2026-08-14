@@ -4,6 +4,8 @@ import { revalidatePath } from "next/cache";
 import { siteDb } from "@/lib/site-db";
 import { requireAdminId } from "@/lib/admin";
 import { createPasswordResetToken } from "@/lib/password-reset";
+import { invalidatePresenceLinkCache } from "@/lib/presence";
+import { invalidateByPrefix } from "@/lib/query-cache";
 import { SITE } from "@/config/site";
 
 export async function resetUserPassword(lang: string, userId: string): Promise<string> {
@@ -20,6 +22,12 @@ export async function unlinkUser(lang: string, userId: string) {
 
   await siteDb.accountLink.deleteMany({ where: { userId } });
 
+  // See invalidatePresenceLinkCache's doc comment — unlinking must be a full
+  // break, not something that keeps showing as linked/online from cache for
+  // up to a minute.
+  invalidatePresenceLinkCache();
+  invalidateByPrefix("leaderboard:");
+
   revalidatePath(`/${lang}/admin`);
 }
 
@@ -29,6 +37,9 @@ export async function deleteUser(lang: string, userId: string) {
 
   // AccountLink has onDelete: Cascade on its User relation.
   await siteDb.user.delete({ where: { id: userId } });
+
+  invalidatePresenceLinkCache();
+  invalidateByPrefix("leaderboard:");
 
   revalidatePath(`/${lang}/admin`);
 }
