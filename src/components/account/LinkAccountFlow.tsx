@@ -104,7 +104,7 @@ export function LinkAccountFlow({ lang, initialLink }: LinkAccountFlowProps) {
           <CopyToClipboard value={`/link ${link.code}`} />
         </div>
         <p className="text-foreground/30 text-xs mb-5">{t("codeExpires")}</p>
-        <StatusBadge label={t("waiting")} pulse />
+        <StatusBadge label={t("waiting")} pulse className="w-full whitespace-normal text-center leading-snug" />
       </div>
     );
   }

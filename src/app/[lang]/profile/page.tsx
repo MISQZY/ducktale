@@ -9,7 +9,9 @@ import { CtaButton } from "@/components/common/CtaButton";
 import { ProfileQuickActions } from "@/components/account/ProfileQuickActions";
 import { ProfilePlayerCard } from "@/components/account/ProfilePlayerCard";
 import { ProfileSectionCard } from "@/components/account/ProfileSectionCard";
-import { ProfileBadgeChip } from "@/components/badges/ProfileBadgeChip";
+import { BadgePinSelector } from "@/components/badges/BadgePinSelector";
+import { Callout } from "@/components/docs/Callout";
+import { Link2 } from "lucide-react";
 
 /** The signed-in user's own profile — /profile with no username. A username segment (/profile/[username]) is the public view of any user instead, see that route. */
 export default async function ProfilePage({
@@ -44,7 +46,13 @@ export default async function ProfilePage({
     where: { id: session.user.id },
     select: {
       createdAt: true,
-      badges: { select: { badge: { select: { id: true, name: true, icon: true, color: true, description: true, earnCondition: true } } } },
+      // pinned first (there's at most one today), then earliest-awarded —
+      // badges[0] is BadgePinSelector's implicit default when nothing's
+      // explicitly pinned.
+      badges: {
+        orderBy: [{ pinned: "desc" }, { awardedAt: "asc" }],
+        select: { pinned: true, badge: { select: { id: true, name: true, icon: true, color: true, description: true, earnCondition: true } } },
+      },
     },
   });
 
@@ -53,18 +61,11 @@ export default async function ProfilePage({
       <h2 className="text-xs uppercase tracking-widest text-foreground/50 mb-2 text-center">
         {t("badgesSectionTitle")}
       </h2>
-      <div className="flex flex-wrap justify-center gap-2">
-        {user.badges.map(({ badge }) => (
-          <ProfileBadgeChip
-            key={badge.id}
-            name={badge.name}
-            icon={badge.icon}
-            color={badge.color}
-            description={badge.description}
-            earnCondition={badge.earnCondition}
-          />
-        ))}
-      </div>
+      <BadgePinSelector
+        lang={lang}
+        badges={user.badges.map(({ badge }) => badge)}
+        initialPinnedBadgeId={user.badges.find((b) => b.pinned)?.badge.id ?? null}
+      />
     </div>
   ) : undefined;
 
@@ -95,9 +96,10 @@ export default async function ProfilePage({
               viewProfileLabel={t("viewProfile")}
               adminPanelLabel={t("adminPanel")}
               signOutLabel={t("signOut")}
-              unlinkedHref={link?.status !== "CONFIRMED" ? "/account/link" : undefined}
-              unlinkedLabel={t("linkCta")}
-              isPending={link?.status === "PENDING"}
+              isLinked={link?.status === "CONFIRMED"}
+              linkHref="/account/link"
+              linkLabel={t("linkCta")}
+              unlinkLabel={t("unlink")}
             />
           </div>
 
@@ -105,6 +107,15 @@ export default async function ProfilePage({
             <p className="text-center text-xs text-foreground/35 mb-4">
               {tp("memberSince", { date: user.createdAt.toLocaleDateString(lang === "ru" ? "ru-RU" : "en-US") })}
             </p>
+          )}
+
+          {link?.status !== "CONFIRMED" && (
+            <Callout variant="warning" className="mb-4">
+              <span className="inline-flex items-center gap-1.5">
+                {t("linkHint")}
+                <Link2 size={14} className="inline shrink-0" />
+              </span>
+            </Callout>
           )}
 
           {link?.status === "CONFIRMED" && link.minecraftName ? (
@@ -115,7 +126,6 @@ export default async function ProfilePage({
               <ProfilePlayerCard
                 minecraftName={link.minecraftName}
                 locale={lang}
-                manage={{ lang }}
                 badgesNode={badgesContent}
               />
             </div>

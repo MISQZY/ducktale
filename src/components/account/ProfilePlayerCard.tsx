@@ -10,7 +10,6 @@ import { formatDurationMs, formatLastSeen } from "@/lib/player-card-format";
 import { RESIDENT_ROLE_COLOR } from "@/lib/towny";
 import { NETWORK_SERVERS } from "@/config/servers";
 import { RankBadge } from "@/components/leaderboard/RankBadge";
-import { ManageActions } from "@/components/account/ManageActions";
 import { getPlayerCard } from "@/lib/player-card";
 import { cn } from "@/lib/utils";
 import type { GrowthStatus, PlayerServerStatus } from "@/types/player-card";
@@ -22,7 +21,7 @@ type PlayerCardT = Awaited<ReturnType<typeof getTranslations>>;
 
 function GeneralStat({ icon: Icon, label, children }: { icon: React.ElementType; label: string; children: React.ReactNode }) {
   return (
-    <div className="liquid-card flex flex-col items-center gap-0.5 rounded-lg bg-muted/60 border border-border/40 px-3 py-2 text-center">
+    <div suppressHydrationWarning className="liquid-card flex flex-col items-center gap-0.5 rounded-lg bg-muted/60 border border-border/40 px-3 py-2 text-center">
       <Icon size={15} className="text-primary/60" />
       <span className="text-foreground/40 text-[11px] uppercase tracking-wide">{label}</span>
       <span className="text-foreground/90 text-sm font-medium">{children}</span>
@@ -78,6 +77,7 @@ function ServerStatusCard({ status, t }: { status: PlayerServerStatus; t: Player
         config.color, config.border,
         status.online && "animate-border-glow-green"
       )}
+      suppressHydrationWarning
     >
       <div className="w-10 h-10 rounded-lg bg-muted border border-border/60 flex items-center justify-center text-lg shrink-0">
         {config.emoji}
@@ -140,10 +140,9 @@ function SkeletonCard() {
   );
 }
 
-function ErrorCard({ t, manage }: { t: PlayerCardT; manage?: { lang: string } }) {
+function ErrorCard({ t }: { t: PlayerCardT }) {
   return (
     <DuckCard className="border-red-900/30 bg-duck-stone/40">
-      {manage && <ManageActions lang={manage.lang} unlinkLabel={t("unlinkAction")} />}
       <DuckCardContent className="flex items-center gap-3 py-6 justify-center text-center">
         <AlertCircle size={18} className="text-red-600/70 dark:text-red-400/70 shrink-0" />
         <p className="text-sm text-red-600/70 dark:text-red-400/70">{t("loadError")}</p>
@@ -160,10 +159,6 @@ interface ProfilePlayerCardProps {
   /** Locale for date/duration formatting — passed explicitly since this is a
    * Server Component (no useLocale() hook to read it from). */
   locale: string;
-  /** Only passed from the signed-in user's own dashboard — renders the
-   * relink/unlink icon buttons in the card's top-right corner. Omitted
-   * entirely on public profile views of other users. */
-  manage?: { lang: string };
   /** Pre-formatted "member since" text — only the public profile page
    * passes this, rendered right under the nickname line. Pre-formatted
    * (rather than a raw Date) since the locale/wording belongs to that
@@ -182,7 +177,7 @@ interface ProfilePlayerCardProps {
  * fetch (getPlayerCard, shared with /api/player-card so this needs no HTTP
  * round trip of its own) streams in behind SkeletonCard instead of blocking
  * the rest of the page, and instead of a client-side fetch-after-mount.
- * Only ManageActions (relink/unlink) still needs to be a Client Component.
+ * Relink/unlink controls live in ProfileQuickActions (top of /profile), not here.
  */
 export function ProfilePlayerCard(props: ProfilePlayerCardProps) {
   return (
@@ -192,16 +187,15 @@ export function ProfilePlayerCard(props: ProfilePlayerCardProps) {
   );
 }
 
-async function ProfilePlayerCardContent({ minecraftName, className, locale, manage, registeredLabel, badgesNode }: ProfilePlayerCardProps) {
+async function ProfilePlayerCardContent({ minecraftName, className, locale, registeredLabel, badgesNode }: ProfilePlayerCardProps) {
   const t = await getTranslations("PlayerCard");
   const player = await getPlayerCard(minecraftName);
 
-  if (!player) return <ErrorCard t={t} manage={manage} />;
+  if (!player) return <ErrorCard t={t} />;
 
   return (
     <div className={cn("flex flex-col gap-3", className)}>
       <DuckCard className="border-primary/20 bg-duck-stone/40">
-        {manage && <ManageActions lang={manage.lang} unlinkLabel={t("unlinkAction")} />}
         <DuckCardContent className="pt-4 flex flex-col items-center text-center gap-2">
           <SkinFace skinUrl={player.skinUrl} size={96} />
 

@@ -6,7 +6,7 @@ import { isUserOnline } from "@/lib/presence";
 import { formatLastSeen } from "@/lib/player-card-format";
 import Navbar from "@/components/Navbar";
 import { ProfilePlayerCard } from "@/components/account/ProfilePlayerCard";
-import { ProfileBadgeChip } from "@/components/badges/ProfileBadgeChip";
+import { BadgePinSelector } from "@/components/badges/BadgePinSelector";
 import type { Metadata } from "next";
 
 interface Params {
@@ -24,7 +24,13 @@ const findUser = cache(async (username: string) => {
       createdAt: true,
       lastSeenAt: true,
       accountLink: { select: { status: true, minecraftName: true } },
-      badges: { select: { badge: { select: { id: true, name: true, icon: true, color: true, description: true, earnCondition: true } } } },
+      // pinned first (there's at most one today), then earliest-awarded —
+      // matches /api/leaderboard's ordering so the badge shown here as
+      // "pinned" is exactly the one shown on the leaderboard.
+      badges: {
+        orderBy: [{ pinned: "desc" }, { awardedAt: "asc" }],
+        select: { pinned: true, badge: { select: { id: true, name: true, icon: true, color: true, description: true, earnCondition: true } } },
+      },
     },
   });
 });
@@ -54,18 +60,11 @@ export default async function PublicProfilePage({
       <h2 className="text-xs uppercase tracking-widest text-foreground/50 mb-2 text-center">
         {td("badgesSectionTitle")}
       </h2>
-      <div className="flex flex-wrap justify-center gap-2">
-        {user.badges.map(({ badge }) => (
-          <ProfileBadgeChip
-            key={badge.id}
-            name={badge.name}
-            icon={badge.icon}
-            color={badge.color}
-            description={badge.description}
-            earnCondition={badge.earnCondition}
-          />
-        ))}
-      </div>
+      <BadgePinSelector
+        readOnly
+        badges={user.badges.map(({ badge }) => badge)}
+        initialPinnedBadgeId={user.badges.find((b) => b.pinned)?.badge.id ?? null}
+      />
     </div>
   ) : undefined;
 

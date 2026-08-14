@@ -1,9 +1,11 @@
 "use client";
 
+import { useState } from "react";
 import { signOut } from "next-auth/react";
-import { UserRound, ShieldCheck, LogOut, Link2 } from "lucide-react";
+import { UserRound, ShieldCheck, LogOut, Link2, Unlink2 } from "lucide-react";
 import { buttonVariants } from "@/components/ui/button";
-import { Link } from "@/i18n/navigation";
+import { Link, useRouter } from "@/i18n/navigation";
+import { unlinkAccount } from "@/lib/actions/account-link";
 import { cn } from "@/lib/utils";
 
 interface ProfileQuickActionsProps {
@@ -13,9 +15,12 @@ interface ProfileQuickActionsProps {
   viewProfileLabel: string;
   adminPanelLabel: string;
   signOutLabel: string;
-  unlinkedHref?: string;
-  unlinkedLabel?: string;
-  isPending?: boolean;
+  /** Whether the Minecraft account link is CONFIRMED — switches this row's link/unlink button between the two states below. */
+  isLinked: boolean;
+  /** Where the "not linked" button sends the user — /account/link. */
+  linkHref: string;
+  linkLabel: string;
+  unlinkLabel: string;
 }
 
 const iconButtonClasses = cn(buttonVariants({ variant: "outline", size: "icon" }), "bg-card/60");
@@ -34,10 +39,24 @@ export function ProfileQuickActions({
   viewProfileLabel,
   adminPanelLabel,
   signOutLabel,
-  unlinkedHref,
-  unlinkedLabel,
-  isPending,
+  isLinked,
+  linkHref,
+  linkLabel,
+  unlinkLabel,
 }: ProfileQuickActionsProps) {
+  const router = useRouter();
+  const [unlinkPending, setUnlinkPending] = useState(false);
+
+  async function handleUnlink() {
+    setUnlinkPending(true);
+    try {
+      await unlinkAccount(lang);
+      router.refresh();
+    } finally {
+      setUnlinkPending(false);
+    }
+  }
+
   return (
     <div className="flex items-center justify-center gap-2">
       <Link href={publicProfileHref} className={iconButtonClasses} aria-label={viewProfileLabel} title={viewProfileLabel}>
@@ -48,12 +67,27 @@ export function ProfileQuickActions({
           <ShieldCheck size={16} />
         </Link>
       )}
-      {unlinkedHref && (
-        <Link 
-          href={unlinkedHref} 
-          className={cn(iconButtonClasses, "hover:text-primary hover:border-primary/40", isPending && "animate-pulse border-primary/50 text-primary")} 
-          aria-label={unlinkedLabel} 
-          title={unlinkedLabel}
+      {isLinked ? (
+        <button
+          type="button"
+          onClick={handleUnlink}
+          disabled={unlinkPending}
+          className={cn(
+            iconButtonClasses,
+            "border-emerald-500/50 text-emerald-600 dark:text-emerald-400",
+            "hover:text-destructive hover:border-destructive/40 dark:hover:text-destructive dark:hover:border-destructive/40"
+          )}
+          aria-label={unlinkLabel}
+          title={unlinkLabel}
+        >
+          <Unlink2 size={16} />
+        </button>
+      ) : (
+        <Link
+          href={linkHref}
+          className={cn(iconButtonClasses, "animate-pulse border-destructive/50 text-destructive")}
+          aria-label={linkLabel}
+          title={linkLabel}
         >
           <Link2 size={16} />
         </Link>
