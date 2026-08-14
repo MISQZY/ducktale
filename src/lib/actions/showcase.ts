@@ -52,12 +52,19 @@ export const getShowcasePlayers = unstable_cache(
 
       if (needed > 0) {
         const candidates = normalRows.slice(0, needed * 2);
-        const candidateSkins = await Promise.all(candidates.map(r => resolveSkinUrl(r.uuid)));
+        
+        const candidateSkins: (string | null)[] = [];
+        for (let i = 0; i < candidates.length; i += 5) {
+          const chunk = candidates.slice(i, i + 5);
+          const chunkSkins = await Promise.all(chunk.map(r => resolveSkinUrl(r.uuid)));
+          candidateSkins.push(...chunkSkins);
+        }
         
         for (let i = 0; i < candidates.length; i++) {
-          candidates[i]._skinUrl = candidateSkins[i];
-          if (candidateSkins[i]) candidatesWithSkin.push(candidates[i]);
-          else candidatesWithoutSkin.push(candidates[i]);
+          const c = candidates[i] as { uuid: string; name: string; _skinUrl?: string | null };
+          c._skinUrl = candidateSkins[i];
+          if (candidateSkins[i]) candidatesWithSkin.push(c);
+          else candidatesWithoutSkin.push(c);
         }
         
         const takeSkin = candidatesWithSkin.slice(0, needed);
@@ -70,9 +77,15 @@ export const getShowcasePlayers = unstable_cache(
         }
       }
 
-      const finalSkins = await Promise.all(finalRows.map(r => 
-        r._skinUrl !== undefined ? r._skinUrl : resolveSkinUrl(r.uuid)
-      ));
+      const finalSkins: (string | null)[] = [];
+      for (let i = 0; i < finalRows.length; i += 5) {
+        const chunk = finalRows.slice(i, i + 5);
+        const chunkSkins = await Promise.all(chunk.map(r => {
+          const rc = r as { uuid: string; name: string; _skinUrl?: string | null };
+          return rc._skinUrl !== undefined ? rc._skinUrl : resolveSkinUrl(rc.uuid);
+        }));
+        finalSkins.push(...chunkSkins);
+      }
 
       const shuffled = finalRows.map((r, i) => ({
         name: r.name,

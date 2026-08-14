@@ -24,6 +24,16 @@ export async function resolveSkinUrl(uuid: string): Promise<string | null> {
 }
 
 async function resolveSkinUrlUncached(uuid: string): Promise<string | null> {
+  // Get the player's name from the main DB, since cracked players might
+  // have their skin cached in sr_player_skins under their name rather than
+  // their offline UUID.
+  const nameRows = await withDb("default", async (db) => {
+    return await db.$queryRaw(Prisma.sql`
+      SELECT name FROM fp_player WHERE uuid = ${uuid} LIMIT 1
+    `) as { name: string }[];
+  });
+  const name = nameRows.length > 0 ? nameRows[0].name : null;
+
   return withDb("duckburg_skinrestorer", async (db) => {
     const [config] = await db.$queryRaw(Prisma.sql`
       SELECT skin_identifier, skin_type, skin_variant FROM sr_players WHERE uuid = ${uuid} LIMIT 1
@@ -46,10 +56,22 @@ async function resolveSkinUrlUncached(uuid: string): Promise<string | null> {
       [valueRow] = await db.$queryRaw(Prisma.sql`
         SELECT value FROM sr_player_skins WHERE uuid = ${config.skin_identifier} LIMIT 1
       `) as { value: string }[];
-    } else {
-      [valueRow] = await db.$queryRaw(Prisma.sql`
-        SELECT value FROM sr_player_skins WHERE uuid = ${uuid} LIMIT 1
-      `) as { value: string }[];
+    }
+    
+    // Fallback: If no explicit override or if the override query found nothing
+    if (!valueRow) {
+      if (name) {
+        [valueRow] = await db.$queryRaw(Prisma.sql`
+          SELECT value FROM sr_player_skins 
+          WHERE uuid = ${uuid} OR last_known_name = ${name} 
+          ORDER BY timestamp DESC 
+          LIMIT 1
+        `) as { value: string }[];
+      } else {
+        [valueRow] = await db.$queryRaw(Prisma.sql`
+          SELECT value FROM sr_player_skins WHERE uuid = ${uuid} LIMIT 1
+        `) as { value: string }[];
+      }
     }
 
     if (!valueRow) return null;

@@ -5,9 +5,10 @@ import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { cn } from "@/lib/utils";
 import { SOCIALS } from "@/config/site";
+import { EXTERNAL_APIS } from "@/config/external-apis";
 import { SOCIAL_ICON_MAP } from "@/components/ui/social-icons";
 import SectionHeader from "@/components/SectionHeader";
-import { SkinFace } from "@/components/common/SkinFace";
+import { PlayerAvatar } from "@/components/common/PlayerAvatar";
 import { getShowcasePlayers } from "@/lib/actions/showcase";
 
 /** Corner ornament positioned at one of the four card corners. */
@@ -84,40 +85,32 @@ export default function SocialSection() {
           <div className="flex w-max animate-marquee items-center gap-4 py-2 hover:[animation-play-state:paused]">
             {MARQUEE_PLAYERS.map((p, i) => {
               const hasProfile = Boolean(p.profileUsername);
-              
-              if (hasProfile) {
-                return (
-                  <Link
-                    key={`${p.name}-${i}`}
-                    href={`/profile/${p.profileUsername}`}
-                    className="relative overflow-hidden inline-flex items-center gap-3 rounded-lg border-2 border-primary/60 bg-card/70 py-2 pr-6 pl-2 shadow-sm shrink-0 transition-transform duration-300 hover:scale-105 hover:border-primary"
-                  >
-                    <SkinFace skinUrl={p.skinUrl || `https://minotar.net/skin/${p.name}`} size={40} className="rounded-md border-none" />
+              return (
+                <PlayerAvatar
+                  key={`${p.name}-${i}`}
+                  name={p.profileUsername ?? p.name}
+                  skinUrl={p.skinUrl || EXTERNAL_APIS.legacy_skin.skinUrl(p.name)}
+                  avatarSize={40}
+                  hasSiteProfile={hasProfile}
+                  linked={hasProfile}
+                  avatarClassName="rounded-md border-none"
+                  className={cn(
+                    "relative overflow-hidden rounded-lg bg-card/70 py-2 pr-6 pl-2 shadow-sm shrink-0 transition-transform duration-300 hover:scale-105",
+                    hasProfile ? "border-2 border-primary/60 hover:border-primary" : "border border-primary/25"
+                  )}
+                  nameNode={
                     <span
                       title={p.name}
-                      className="font-bold text-amber-500 dark:text-amber-400 text-base tracking-wide max-w-40 truncate"
+                      className={cn(
+                        "text-base tracking-wide max-w-40 truncate",
+                        hasProfile ? "font-bold text-amber-500 dark:text-amber-400" : "font-semibold text-foreground/90"
+                      )}
                       style={{ fontFamily: "var(--font-display)" }}
                     >
                       {p.name}
                     </span>
-                  </Link>
-                );
-              }
-
-              return (
-                <div
-                  key={`${p.name}-${i}`}
-                  className="relative overflow-hidden inline-flex items-center gap-3 rounded-lg border border-primary/25 bg-card/70 py-2 pr-6 pl-2 shadow-sm shrink-0 transition-transform duration-300 hover:scale-105"
-                >
-                  <SkinFace skinUrl={p.skinUrl || `https://minotar.net/skin/${p.name}`} size={40} className="rounded-md border-none" />
-                  <span
-                    title={p.name}
-                    className="font-semibold text-foreground/90 text-base tracking-wide max-w-40 truncate"
-                    style={{ fontFamily: "var(--font-display)" }}
-                  >
-                    {p.name}
-                  </span>
-                </div>
+                  }
+                />
               );
             })}
           </div>

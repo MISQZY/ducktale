@@ -466,7 +466,9 @@ body {
   background-color: #3b82f6;
 }
 .dot-online-duo {
-  background: linear-gradient(135deg, #3b82f6 0%, #10b981 100%);
+  background-color: #10b981;
+  border-width: 2px !important;
+  border-color: #3b82f6 !important;
 }
 
 @keyframes fadeUp {

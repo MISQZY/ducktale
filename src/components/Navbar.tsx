@@ -9,7 +9,7 @@ import { useSession } from "next-auth/react";
 import { useTranslations } from "next-intl";
 import Logo from "./ui/Logo";
 import { Button } from "@/components/ui/button";
-import { SkinFace } from "@/components/common/SkinFace";
+import { PlayerAvatar } from "@/components/common/PlayerAvatar";
 import { cn } from "@/lib/utils";
 import {
   Sheet,
@@ -86,9 +86,16 @@ function AccountLinkContent({ fallbackLabel }: { fallbackLabel: string }) {
 
   // Same corner-ornament + square-cornered frame used by every other card
   // in the app (account dashboard, admin lists, ...) — a rounded-full pill
-  // around a square-cornered SkinFace was two competing border shapes
-  // fighting for the same few pixels. The icon goes borderless since the
+  // around a square-cornered avatar was two competing border shapes
+  // fighting for the same few pixels. The avatar goes borderless since the
   // outer frame is now the one visual border, not two nested ones.
+  //
+  // hasSiteProfile/linked are false: PlayerAvatar's own Link would nest
+  // inside the <Link href="/profile"> this already renders inside (see
+  // below), which isn't valid — this just needs the avatar+name rendering,
+  // not a second link. That also gets the standard letter-initial fallback
+  // (via PlayerAvatar's <Avatar>/<AvatarFallback>) for a not-yet-linked
+  // account, instead of a generic icon.
   //
   // Nicknames run up to 32 chars (schema.prisma.template) — letting this
   // grow to fit that squeezed the rest of the nav bar and looked broken, so
@@ -96,13 +103,19 @@ function AccountLinkContent({ fallbackLabel }: { fallbackLabel: string }) {
   // via the native title tooltip.
   if (status === "authenticated" && session.user?.name) {
     return (
-      <span
-        className="corner-ornament relative overflow-hidden inline-flex items-center gap-2 rounded-lg border border-primary/25 bg-card/70 py-1.5 pr-4 pl-1.5"
-        title={session.user.name}
-      >
-        <SkinFace skinUrl={skinUrl} size={30} className="rounded-sm border-none shrink-0" />
-        <span className="text-sm font-medium text-foreground/90 truncate max-w-32">{session.user.name}</span>
-      </span>
+      <PlayerAvatar
+        name={session.user.name}
+        skinUrl={skinUrl}
+        hasSiteProfile={false}
+        avatarSize={30}
+        avatarClassName="rounded-sm border-none"
+        className="corner-ornament relative overflow-hidden gap-2 rounded-lg border border-primary/25 bg-card/70 py-1.5 pr-4 pl-1.5"
+        nameNode={
+          <span title={session.user.name} className="text-sm font-medium text-foreground/90 truncate max-w-32">
+            {session.user.name}
+          </span>
+        }
+      />
     );
   }
 
