@@ -7,7 +7,7 @@ import { SERVERS, NETWORK_SERVERS } from "@/config/servers";
 import { FALLBACK_NICKNAME, PLAYER_NICKNAME_JOIN } from "@/lib/players";
 import { resolvePlayerTrackRoles } from "@/lib/luckperms";
 import { resolveSitePresence } from "@/lib/presence";
-import type { Gender, GrowthStatus, PlayerCard, PlayerServerStatus } from "@/types/player-card";
+import type { Gender, GrowthStatus, PlayerCard, PlayerColor, PlayerServerStatus } from "@/types/player-card";
 import type { ResidentRole } from "@/types/towny";
 
 // The single top-level `whitelisted` field only ever draws from DuckBurg —
@@ -139,6 +139,7 @@ interface IdentityRow {
   whitelisted:      number | boolean; // raw MySQL boolean from EXISTS(...) — 0/1, not a JS boolean
   currentServerId:  string | null; // fp_setting type='SERVER' — which server they're on, only meaningful while `online` is true
   rank:             bigint; // 1-based position among all fp_time rows ordered by total DESC — see leaderboardRankSql()
+  fcolorRaw:        string | null; // fp_fcolor.name, a MiniMessage color/gradient tag — see fcolorSql() / parseFColor()
   // Plus one `whitelisted_<serverId>` / `server_whitelist_enabled_<serverId>` /
   // `server_maintenance_enabled_<serverId>` column per SERVERS entry (see
   // perServerWhitelistColumnsSql) — read via readPerServerWhitelist() /
@@ -172,6 +173,42 @@ function whitelistExists() {
   `;
 }
 
+/**
+ * A player's custom nickname color (FlectonePulse's chat-color plugin) — a
+ * scalar subquery, not a JOIN, because there's at most one matching
+ * fp_player_fcolor row per player (unique on (number, player, type)) so it
+ * can't multiply rows the way a JOIN risks; the subquery itself is a single
+ * indexed point lookup via idx_fp_player_fcolor_player_type_number,
+ * effectively free next to the rest of this query. `type='OUT'` and
+ * `number=15` are fixed — every row in the live data uses exactly that pair
+ * (verified directly against the DB), there's no other type/number to
+ * choose between today.
+ */
+function fcolorSql() {
+  return Prisma.sql`
+    (
+      SELECT fc.name FROM fp_player_fcolor pfc
+      JOIN fp_fcolor fc ON fc.id = pfc.fcolor
+      WHERE pfc.player = p.id AND pfc.type = 'OUT' AND pfc.number = 15
+      LIMIT 1
+    ) AS fcolorRaw
+  `;
+}
+
+// fp_fcolor.name stores a MiniMessage tag, one of three shapes seen in the
+// live data: a bare hex ("#EB3434"), a solid tag ("<color:#EB3434>"), or a
+// gradient tag with 2+ stops ("<gradient:#F5F9FF:#E6F0FF>"). Pulling every
+// hex code out with one regex and branching on the count sidesteps needing
+// to parse the MiniMessage tag syntax itself.
+const HEX_COLOR_RE = /#[0-9a-fA-F]{6}/g;
+
+function parseFColor(raw: string | null): PlayerColor | null {
+  if (!raw) return null;
+  const stops = raw.match(HEX_COLOR_RE);
+  if (!stops || stops.length === 0) return null;
+  return stops.length > 1 ? { type: "gradient", stops } : { type: "solid", color: stops[0] };
+}
+
 /** Resolves the target player (by search, or a random player) from every player in the default DB — not just whitelisted ones. */
 async function resolveIdentity(search: string): Promise<IdentityRow | null> {
   if (search) {
@@ -188,6 +225,7 @@ async function resolveIdentityUncached(search: string): Promise<IdentityRow | nu
                  p.online AS online, t.last AS lastSeenMs, srv.value AS currentServerId,
                  ${whitelistExists()} AS whitelisted,
                  ${leaderboardRankSql()},
+                 ${fcolorSql()},
                  ${perServerWhitelistColumnsSql()}
           ${PLAYER_NICKNAME_JOIN}
           LEFT JOIN fp_time t ON t.player = p.id
@@ -201,6 +239,7 @@ async function resolveIdentityUncached(search: string): Promise<IdentityRow | nu
                  p.online AS online, t.last AS lastSeenMs, srv.value AS currentServerId,
                  ${whitelistExists()} AS whitelisted,
                  ${leaderboardRankSql()},
+                 ${fcolorSql()},
                  ${perServerWhitelistColumnsSql()}
           ${PLAYER_NICKNAME_JOIN}
           LEFT JOIN fp_time t ON t.player = p.id
@@ -339,6 +378,7 @@ export async function getPlayerCard(search: string): Promise<PlayerCard | null> 
     whitelisted: Boolean(identity.whitelisted),
     servers: buildServerStatuses(identity, { city, nation, role }),
     roles,
+    nameColor: parseFColor(identity.fcolorRaw),
     siteOnline: sitePresence.online,
     siteLastSeenMs: sitePresence.lastSeenMs,
   };

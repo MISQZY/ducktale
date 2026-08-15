@@ -3,6 +3,11 @@ import type { PlayerTrackRole } from "@/lib/luckperms";
 
 export type Gender = "male" | "female" | null;
 
+/** A player's custom nickname color (FlectonePulse chat-color plugin), parsed from its raw MiniMessage tag — see parseFColor() in src/lib/player-card.ts. */
+export type PlayerColor =
+  | { type: "solid"; color: string }
+  | { type: "gradient"; stops: string[] };
+
 export type GrowthStatus =
   | { state: "unknown" }                        // not tracked by the growth system
   | { state: "growing"; secondsRemaining: number; percent: number; heightMeters: number | null }
@@ -39,6 +44,7 @@ export interface PlayerCard {
   roles:        PlayerTrackRole[]; // LuckPerms roles, one per admin-configured track — see resolvePlayerTrackRoles
   siteOnline:   boolean;        // currently browsing the site — see src/lib/presence.ts. Always false when there's no linked/confirmed site account.
   siteLastSeenMs: number | null; // last known site activity, null if never linked or never seen
+  nameColor:    PlayerColor | null; // custom chat-color plugin gradient/solid color, null if the player never set one
 }
 
 export interface PlayerCardResponse {
