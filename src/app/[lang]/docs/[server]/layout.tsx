@@ -31,10 +31,10 @@ export default async function DocsServerLayout({
   return (
     <DocsLayout
       tree={tree}
-      nav={{ title: <Logo /> }}
+      nav={{ title: <Logo key="logo" /> }}
       githubUrl={REPO.url}
       sidebar={{
-        banner: <ServerSwitcher current={config} />,
+        banner: <ServerSwitcher key="server-switcher" current={config} />,
       }}
     >
       {children}
