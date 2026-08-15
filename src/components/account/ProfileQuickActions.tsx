@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { signOut } from "next-auth/react";
-import { UserRound, ShieldCheck, LogOut, Link2, Unlink2 } from "lucide-react";
+import { UserRound, ShieldCheck, LogOut, Link as LinkIcon, Unlink } from "lucide-react";
 import { buttonVariants } from "@/components/ui/button";
 import { Link, useRouter } from "@/i18n/navigation";
 import { unlinkAccount } from "@/lib/actions/account-link";
@@ -82,7 +82,7 @@ export function ProfileQuickActions({
           aria-label={unlinkLabel}
           title={unlinkLabel}
         >
-          <Unlink2 size={16} />
+          <Unlink size={16} />
         </button>
       ) : (
         <Link
@@ -91,7 +91,7 @@ export function ProfileQuickActions({
           aria-label={linkLabel}
           title={linkLabel}
         >
-          <Link2 size={16} />
+          <LinkIcon size={16} />
         </Link>
       )}
       <button

@@ -10,7 +10,7 @@ import { ProfilePlayerCard } from "@/components/account/ProfilePlayerCard";
 import { ProfileSectionCard } from "@/components/account/ProfileSectionCard";
 import { BadgePinSelector } from "@/components/badges/BadgePinSelector";
 import { Callout } from "@/components/docs/Callout";
-import { Link2 } from "lucide-react";
+import { Link as LinkIcon } from "lucide-react";
 
 /** The signed-in user's own profile — /profile with no username. A username segment (/profile/[username]) is the public view of any user instead, see that route. */
 export default async function ProfilePage({
@@ -111,7 +111,7 @@ export default async function ProfilePage({
             <Callout variant="warning" className="mb-4">
               <span className="inline-flex items-center gap-1.5">
                 {t("linkHint")}
-                <Link2 size={14} className="inline shrink-0" />
+                <LinkIcon size={14} className="inline shrink-0" />
               </span>
             </Callout>
           )}
