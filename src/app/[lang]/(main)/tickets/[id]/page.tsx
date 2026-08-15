@@ -81,7 +81,12 @@ export default async function TicketPage({
 
   return (
     <>
-      <main className="relative overflow-hidden h-screen flex flex-col px-6 pt-24 pb-8">
+      {/* h-dvh, not h-screen: 100vh on mobile Chrome/Safari measures the
+          viewport as if the address bar were hidden, so a flex-col layout
+          pinned to that height gets its bottom edge (the reply box here)
+          pushed behind the browser's own UI chrome whenever it's visible.
+          dvh tracks the actual visible height instead. */}
+      <main className="relative overflow-hidden h-dvh flex flex-col px-6 pt-24 pb-8">
         <div className="relative z-10 max-w-2xl mx-auto w-full flex-1 flex flex-col min-h-0">
           <Link href={backHref} className="text-xs text-foreground/45 hover:text-foreground/70 transition-colors mb-4 inline-block shrink-0">
             {t("backToList")}

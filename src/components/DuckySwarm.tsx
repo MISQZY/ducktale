@@ -18,6 +18,7 @@ interface SwarmDuck {
 export default function DuckySwarm() {
   const [active, setActive] = useState(false);
   const [duckCount, setDuckCount] = useState(0);
+  const [isMobile, setIsMobile] = useState(false);
   const ducksRef = useRef<SwarmDuck[]>([]);
   const divRefs = useRef<(HTMLDivElement | null)[]>([]);
   const rafRef = useRef(0);
@@ -60,8 +61,13 @@ export default function DuckySwarm() {
       const sX = window.scrollX;
       const sY = window.scrollY;
       
-      // Reduce duck count heavily on mobile devices for performance
-      const count = W < 768 ? 15 : 50;
+      // Reduce duck count heavily on mobile devices for performance — mobile
+      // GPUs handle this animation much worse than desktop (see the
+      // drop-shadow note below), so it needs a bigger cut than just "fewer
+      // ducks" alone would give.
+      const mobile = W < 768;
+      const count = mobile ? 8 : 50;
+      setIsMobile(mobile);
       setDuckCount(count);
       
       const newDucks: SwarmDuck[] = [];
@@ -201,7 +207,13 @@ export default function DuckySwarm() {
             backgroundImage: "url(/sprites/ducky-walk.png)",
             backgroundSize: "400% 100%",
             imageRendering: "pixelated",
-            filter: "drop-shadow(0 4px 6px rgba(0,0,0,0.3))",
+            // drop-shadow is by far the most expensive part of this per
+            // animated element — it forces the browser to re-rasterize a
+            // blurred layer every frame, which desktop GPUs shrug off but
+            // mobile ones visibly can't keep up with across several ducks
+            // at once. Skipped on mobile rather than tuned down, since even
+            // a smaller blur still repaints every frame.
+            ...(isMobile ? {} : { filter: "drop-shadow(0 4px 6px rgba(0,0,0,0.3))" }),
             willChange: "transform, background-position",
           }}
         />

@@ -65,12 +65,19 @@ export function GraphCanvas({
       const dw = Math.abs(width - lastWidth);
       const dh = Math.abs(height - lastHeight);
       
-      // Center on initial render OR when there is a significant size change (e.g. fullscreen toggle)
-      // This prevents tiny resizes (like a scrollbar appearing) from resetting the user's pan/zoom state.
+      // Fit (not just center) on initial render OR when there is a significant
+      // size change (e.g. fullscreen toggle). This prevents tiny resizes (like
+      // a scrollbar appearing) from resetting the user's pan/zoom state.
+      // zoomToFit, not centerContent: the diagram's node layout (config/
+      // diagram.ts) spans ~700px of absolute coordinates, fixed regardless of
+      // viewport — centerContent only re-centers that fixed-size content, so
+      // on a narrow (mobile) frame most of it landed off-screen with no way
+      // to tell the rest was even there. zoomToFit scales it down to actually
+      // fit the available space instead.
       if ((lastWidth === 0 && lastHeight === 0) || dw > 50 || dh > 50) {
         if (!g.disposed) {
           requestAnimationFrame(() => {
-            if (!g.disposed) g.centerContent();
+            if (!g.disposed) g.zoomToFit({ padding: 24, minScale: 0.2, maxScale: 1 });
           });
         }
       }
@@ -108,7 +115,7 @@ export function GraphCanvas({
 
   const zoomIn = () => graph?.zoom(0.2, { maxScale: 1.5 });
   const zoomOut = () => graph?.zoom(-0.2, { minScale: 0.2 });
-  const zoomFit = () => graph?.centerContent();
+  const zoomFit = () => graph?.zoomToFit({ padding: 24, minScale: 0.2, maxScale: 1 });
 
   return (
     <EmbedPage 
@@ -155,7 +162,10 @@ export function GraphCanvas({
       <div
         ref={containerRef}
         className="absolute inset-0 cursor-grab active:cursor-grabbing [&.is-dragging-node]:!cursor-grabbing [&.is-dragging-node_*]:!cursor-grabbing"
-        style={{ backgroundImage: `url("${GRID_BG_URL}")`, backgroundSize: `${GRID_CELL}px ${GRID_CELL}px` }}
+        // touchAction: none — without it, a touch-drag meant to pan the
+        // graph (the same gesture as a mouse drag) is ambiguous to the
+        // browser, which defaults to scrolling the page with it instead.
+        style={{ backgroundImage: `url("${GRID_BG_URL}")`, backgroundSize: `${GRID_CELL}px ${GRID_CELL}px`, touchAction: "none" }}
       />
       
       {children}
