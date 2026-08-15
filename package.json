@@ -1,6 +1,6 @@
 {
   "name": "ducktale",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "private": true,
   "scripts": {
     "postinstall": "fumadocs-mdx && prisma generate --schema=src/prisma/schema.prisma && npm run site-db:render && prisma generate --schema=src/prisma/site/schema.prisma",
