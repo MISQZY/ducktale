@@ -1,36 +1,23 @@
 "use client";
 
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useMemo } from "react";
 import { useTranslations } from "next-intl";
 import type { ColumnDef } from "@tanstack/react-table";
 import { cn } from "@/lib/utils";
-import { Landmark, ChevronDown, Users } from "lucide-react";
-import {
-  DocsTableRow,
-  DocsTableCell,
-  DOCS_TABLE_THEME,
-} from "@/components/ui/docs-table";
-import { DuckBadge } from "@/components/ui/duck/badge";
+import { Landmark } from "lucide-react";
+import { DOCS_TABLE_THEME } from "@/components/ui/docs-table";
 import {
   PagedTableLayout,
 } from "@/components/docs/paged-table";
 import { usePagedTable } from "@/hooks/usePagedTable";
 import { httpErrorKey } from "@/lib/http-error-message";
-import { RESIDENT_ROLE_COLOR } from "@/lib/towny";
-import { TownNameLabel, TownNationBadge } from "@/components/towny/TownCells";
-import type { Resident, ResidentRole, Town, TownyResponse } from "@/types/towny";
+import { TownNameCell, TownNationBadge } from "@/components/towny/TownCells";
+import type { Town, TownyResponse } from "@/types/towny";
 
 // ─── Re-export types so consumers import from one place ────────────────────────
 export type { Town, TownyResponse };
 
 const SKELETON_WIDTHS = ["w-40", "w-24", "w-16"];
-
-// Badge chrome (border/bg) layered on top of the role's shared text color —
-// see RESIDENT_ROLE_COLOR in @/lib/towny, also used by the player card.
-const RESIDENT_BADGE_STYLE: Record<Exclude<ResidentRole, null>, string> = {
-  mayor:  cn("border-gold-500/40 bg-gold-500/10", RESIDENT_ROLE_COLOR.mayor),
-  deputy: cn("border-slate-400/40 bg-slate-400/10", RESIDENT_ROLE_COLOR.deputy),
-};
 
 // ─── Props ────────────────────────────────────────────────────────────────────
 
@@ -48,16 +35,6 @@ export function TownyTable({
   className,
 }: TownyTableProps) {
   const tCommon = useTranslations("Common");
-  const [expanded, setExpanded] = useState<Set<string>>(() => new Set());
-
-  const toggle = useCallback((name: string) => {
-    setExpanded((prev) => {
-      const next = new Set(prev);
-      if (next.has(name)) next.delete(name);
-      else next.add(name);
-      return next;
-    });
-  }, []);
 
   // Build a stable fetcher that maps the API response to the generic PagedResponse<T> shape.
   const fetcher = useCallback(async (page: number, query: string, sort?: string, order?: string) => {
@@ -94,42 +71,13 @@ export function TownyTable({
     {
       id: "town",
       header: "Город",
-      size: 260,
-      minSize: 140,
+      size: 280,
+      minSize: 160,
       enableHiding: false,
       meta: { withRightBorder: true, sortKey: "town" },
-      cell: ({ row }) => {
-        const town = row.original;
-        const isOpen = expanded.has(town.name);
-        const hasResidents = town.residents.length > 0;
-        return (
-          <button
-            type="button"
-            onClick={() => hasResidents && toggle(town.name)}
-            disabled={!hasResidents}
-            className={cn(
-              "flex items-center gap-1.5 text-left",
-              hasResidents ? "cursor-pointer group/town" : "cursor-default",
-            )}
-            aria-expanded={isOpen}
-          >
-            {hasResidents ? (
-              <ChevronDown
-                size={13}
-                className={cn(
-                  "shrink-0 transition-transform duration-200",
-                  DOCS_TABLE_THEME.iconFaint,
-                  "group-hover/town:text-foreground",
-                  isOpen && "rotate-180"
-                )}
-              />
-            ) : (
-              <span className="w-3.25 shrink-0" />
-            )}
-            <TownNameLabel tag={town.tag} name={town.name} query={query} />
-          </button>
-        );
-      },
+      cell: ({ row }) => (
+        <TownNameCell tag={row.original.tag} name={row.original.name} query={query} residents={row.original.residents} />
+      ),
     },
     {
       id: "nation",
@@ -144,8 +92,8 @@ export function TownyTable({
     {
       id: "size",
       header: "Размер",
-      size: 100,
-      minSize: 72,
+      size: 110,
+      minSize: 80,
       meta: { sortKey: "size" },
       cell: ({ row }) => (
         <span className={cn("text-xs font-mono tabular-nums", DOCS_TABLE_THEME.textSoft)}>
@@ -153,7 +101,7 @@ export function TownyTable({
         </span>
       ),
     },
-  ], [query, expanded, toggle]);
+  ], [query]);
 
   return (
     <PagedTableLayout
@@ -185,35 +133,7 @@ export function TownyTable({
       columns={columns}
       data={data?.items ?? []}
       getRowId={(town) => town.name}
-      rowClassName={() => cn(isRefreshing && "opacity-40 transition-opacity")}
-      renderExtraRow={(town) => {
-        const isOpen = expanded.has(town.name);
-        const hasResidents = town.residents.length > 0;
-        if (!isOpen || !hasResidents) return null;
-        return (
-          <DocsTableRow key={`${town.name}-residents`} className={DOCS_TABLE_THEME.rowHover}>
-            <DocsTableCell colSpan={3} className="bg-muted/40 py-2.5">
-              <div className="flex items-center gap-1.5 flex-wrap">
-                <Users size={12} className={cn("shrink-0", DOCS_TABLE_THEME.iconFaint)} />
-                {town.residents.map((resident: Resident) => (
-                  <DuckBadge
-                    key={resident.display}
-                    variant="outline"
-                    className={cn(
-                      "text-xs",
-                      resident.role
-                        ? RESIDENT_BADGE_STYLE[resident.role]
-                        : "bg-card text-foreground/70 border-border"
-                    )}
-                  >
-                    {resident.display}
-                  </DuckBadge>
-                ))}
-              </div>
-            </DocsTableCell>
-          </DocsTableRow>
-        );
-      }}
+      rowClassName={() => cn("h-[76px]", isRefreshing && "opacity-40 transition-opacity")}
       sortColumn={sortColumn}
       sortDirection={sortDirection}
       onSort={setSort}

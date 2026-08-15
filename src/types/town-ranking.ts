@@ -1,6 +1,6 @@
-import type { TownBase } from "@/types/towny";
+import type { Town } from "@/types/towny";
 
-export interface RankedTown extends TownBase {
+export interface RankedTown extends Town {
   /** 1-based position on the *full* ranking — unaffected by an active search filter. */
   rank: number;
 }

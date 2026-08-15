@@ -14,6 +14,21 @@ export const PLAYER_NICKNAME_JOIN = Prisma.sql`
   LEFT JOIN fp_setting s ON s.player = p.id AND s.type = 'NICKNAME'
 `;
 
+/** Looks up FlectonePulse nicknames for a batch of usernames in one query — shared by every route that resolves a town's resident list (docs towns table, town ranking). */
+export async function resolveNicknames(usernames: string[]): Promise<Map<string, string | null>> {
+  if (usernames.length === 0) return new Map();
+
+  const rows = await withDb(async (db) => {
+    return await db.$queryRaw(Prisma.sql`
+      SELECT p.name, s.value AS nickname
+      ${PLAYER_NICKNAME_JOIN}
+      WHERE p.name IN (${Prisma.join(usernames)})
+    `) as { name: string; nickname: string | null }[];
+  });
+
+  return new Map(rows.map((r) => [r.name, r.nickname]));
+}
+
 export interface OnlinePlayer {
   name: string;
   serverId: string;

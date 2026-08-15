@@ -1,11 +1,12 @@
 import { NextResponse } from "next/server";
 import { withDb } from "@/lib/db";
 import { withCache } from "@/lib/query-cache";
-import { resolveResidentRole, townBaseQuery } from "@/lib/towny";
+import { assembleResidents, townBaseQuery, type ResidentRow } from "@/lib/towny";
 import { Prisma } from "@prisma/client";
-import { FALLBACK_NICKNAME, PLAYER_NICKNAME_JOIN } from "@/lib/players";
+import { FALLBACK_NICKNAME, resolveNicknames } from "@/lib/players";
+import { resolveSkinUrls } from "@/lib/skin";
 import { isRateLimited } from "@/lib/rate-limit";
-import type { Resident, ResidentRole, Town, TownyResponse } from "@/types/towny";
+import type { Town, TownyResponse } from "@/types/towny";
 
 export type { Town, TownyResponse };
 
@@ -19,30 +20,6 @@ interface TownRow {
   size:      bigint;
   total:     bigint;
 }
-
-interface ResidentRow {
-  name:  string;
-  uuid:  string;
-  town:  string;
-  ranks: string | null;
-}
-
-/** Looks up FlectonePulse nicknames for a batch of usernames in one query. */
-async function resolveNicknames(usernames: string[]): Promise<Map<string, string | null>> {
-  if (usernames.length === 0) return new Map();
-
-  const rows = await withDb(async (db) => {
-    return await db.$queryRaw(Prisma.sql`
-      SELECT p.name, s.value AS nickname
-      ${PLAYER_NICKNAME_JOIN}
-      WHERE p.name IN (${Prisma.join(usernames)})
-    `) as { name: string; nickname: string | null }[];
-  });
-
-  return new Map(rows.map((r) => [r.name, r.nickname]));
-}
-
-const ROLE_ORDER: Record<Exclude<ResidentRole, null>, number> = { mayor: 0, deputy: 1 };
 
 // The full town+resident+nickname assembly below is 3 sequential DB
 // round-trips across 2 databases — cache the whole response per (page,
@@ -92,7 +69,11 @@ async function buildTownsResponse(page: number, pageSize: number, search: string
 
   const total = townRows.length > 0 ? Number(townRows[0].total) : 0;
 
-  const nicknames = await resolveNicknames(residentRows.map((r) => r.name));
+  const [nicknames, skinUrlList] = await Promise.all([
+    resolveNicknames(residentRows.map((r) => r.name)),
+    resolveSkinUrls(residentRows.map((r) => r.uuid)),
+  ]);
+  const skinUrls = new Map(residentRows.map((r, i) => [r.uuid, skinUrlList[i]]));
 
   const residentsByTown = new Map<string, ResidentRow[]>();
   for (const r of residentRows) {
@@ -102,28 +83,14 @@ async function buildTownsResponse(page: number, pageSize: number, search: string
   }
 
   const result: TownyResponse = {
-    towns: townRows.map((t): Town => {
-      const residents: Resident[] = (residentsByTown.get(t.uuid) ?? [])
-        .map((r) => ({ row: r, role: resolveResidentRole(r.uuid, t.mayorUuid, r.ranks) }))
-        .sort((a, b) => {
-          const rank = (role: ResidentRole) => role === null ? 2 : ROLE_ORDER[role];
-          const byRole = rank(a.role) - rank(b.role);
-          return byRole !== 0 ? byRole : a.row.name.localeCompare(b.row.name);
-        })
-        .map(({ row, role }) => ({
-          display: `${nicknames.get(row.name) ?? FALLBACK_NICKNAME} (${row.name})`,
-          role,
-        }));
-
-      return {
-        name:      t.name,
-        tag:       t.tag,
-        nation:    t.nation,
-        nationTag: t.nationTag,
-        size:      Number(t.size),
-        residents,
-      };
-    }),
+    towns: townRows.map((t): Town => ({
+      name:      t.name,
+      tag:       t.tag,
+      nation:    t.nation,
+      nationTag: t.nationTag,
+      size:      Number(t.size),
+      residents: assembleResidents(residentsByTown.get(t.uuid) ?? [], t.mayorUuid, nicknames, FALLBACK_NICKNAME, skinUrls),
+    })),
     total, page, pageSize,
     totalPages: Math.max(1, Math.ceil(total / pageSize)),
   };

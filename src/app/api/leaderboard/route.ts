@@ -2,10 +2,10 @@ import { NextResponse } from "next/server";
 import { withDb } from "@/lib/db";
 import { siteDb } from "@/lib/site-db";
 import { withCache } from "@/lib/query-cache";
-import { townBaseQuery } from "@/lib/towny";
+import { assembleResidents, townBaseQuery, type ResidentRow } from "@/lib/towny";
 import { Prisma } from "@prisma/client";
 import { isRateLimited } from "@/lib/rate-limit";
-import { PLAYER_NICKNAME_JOIN } from "@/lib/players";
+import { FALLBACK_NICKNAME, PLAYER_NICKNAME_JOIN, resolveNicknames } from "@/lib/players";
 import { resolveSkinUrls } from "@/lib/skin";
 import { isUserOnline } from "@/lib/presence";
 import type { LeaderboardPlayer, LeaderboardResponse } from "@/types/leaderboard";
@@ -164,6 +164,8 @@ async function buildLeaderboardResponse(
 interface RawTownRow {
   name:      string;
   tag:       string | null;
+  uuid:      string;
+  mayorUuid: string | null;
   nation:    string | null;
   nationTag: string | null;
   size:      bigint;
@@ -179,13 +181,18 @@ interface RawTownRow {
  * applied as an outer WHERE — a search still has to show each town's real
  * position in the full ranking, not its position among the search matches
  * (which is what a WHERE-before-RANK() would give).
+ *
+ * Residents are resolved the same way /api/towns does it — a second,
+ * uuid-indexed query against only this page's towns (never the full
+ * ranking), plus a nickname lookup — so the expandable resident dropdown
+ * costs the same two extra round-trips regardless of how many towns exist.
  */
 async function buildTownRankingResponse(
   page: number, pageSize: number, search: string, sort: string, order: string
 ): Promise<TownRankingResponse> {
   const offset = (page - 1) * pageSize;
 
-  const rows: RawTownRow[] = await withDb("duckburg_towns", async (db) => {
+  const { rows, residentRows } = await withDb("duckburg_towns", async (db) => {
       // outer2.name tiebreaker on every branch (town names are unique) —
       // without it, ties (equal size, equal rank, or several towns sharing
       // no nation) sort in whatever order MySQL feels like per-query,
@@ -207,13 +214,13 @@ async function buildTownRankingResponse(
           break;
       }
 
-      return await db.$queryRaw(Prisma.sql`
-        SELECT outer2.name, outer2.tag, outer2.nation, outer2.nationTag, outer2.size, outer2.\`rank\`,
+      const rows = await db.$queryRaw(Prisma.sql`
+        SELECT outer2.name, outer2.tag, outer2.uuid, outer2.mayorUuid, outer2.nation, outer2.nationTag, outer2.size, outer2.\`rank\`,
                COUNT(*) OVER() AS total
         FROM (
           SELECT inner1.*, RANK() OVER (ORDER BY inner1.size DESC) AS \`rank\`
           FROM (
-            ${townBaseQuery()}
+            ${townBaseQuery(Prisma.sql`, t.uuid AS uuid, t.mayor AS mayorUuid`)}
           ) inner1
         ) outer2
         ${search ? Prisma.sql`WHERE outer2.name LIKE ${"%" + search + "%"}` : Prisma.empty}
@@ -221,9 +228,31 @@ async function buildTownRankingResponse(
         LIMIT  ${pageSize}
         OFFSET ${offset}
       `) as RawTownRow[];
+
+      const townUuids = rows.map((r) => r.uuid);
+      const residentRows = townUuids.length === 0 ? [] : await db.$queryRaw(Prisma.sql`
+        SELECT r.name AS name, r.uuid AS uuid, r.town AS town, r.\`town-ranks\` AS ranks
+        FROM TOWNY_RESIDENTS r
+        WHERE r.town IN (${Prisma.join(townUuids)})
+      `) as ResidentRow[];
+
+      return { rows, residentRows };
   });
 
   const total = rows.length > 0 ? Number(rows[0].total) : 0;
+
+  const [nicknames, residentSkinUrlList] = await Promise.all([
+    resolveNicknames(residentRows.map((r) => r.name)),
+    resolveSkinUrls(residentRows.map((r) => r.uuid)),
+  ]);
+  const residentSkinUrls = new Map(residentRows.map((r, i) => [r.uuid, residentSkinUrlList[i]]));
+
+  const residentsByTown = new Map<string, ResidentRow[]>();
+  for (const r of residentRows) {
+    const list = residentsByTown.get(r.town) ?? [];
+    list.push(r);
+    residentsByTown.set(r.town, list);
+  }
 
   return {
     towns: rows.map((r) => ({
@@ -233,6 +262,7 @@ async function buildTownRankingResponse(
       nationTag: r.nationTag,
       size:      Number(r.size),
       rank:      Number(r.rank),
+      residents: assembleResidents(residentsByTown.get(r.uuid) ?? [], r.mayorUuid, nicknames, FALLBACK_NICKNAME, residentSkinUrls),
     })),
     total,
     page,

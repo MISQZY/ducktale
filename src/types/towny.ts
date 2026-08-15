@@ -1,8 +1,10 @@
 export type ResidentRole = "mayor" | "deputy" | null;
 
 export interface Resident {
-  display: string;     // "nickname (username)"
-  role:    ResidentRole;
+  nickname: string;            // FlectonePulse nickname, or the fallback when unset
+  username: string;            // Minecraft username
+  skinUrl:  string | null;
+  role:     ResidentRole;
 }
 
 /** Fields shared by every town view in the app (docs table, ranking) — see townBaseQuery() in @/lib/towny. */

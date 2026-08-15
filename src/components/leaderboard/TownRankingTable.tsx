@@ -11,7 +11,7 @@ import {
 } from "@/components/docs/paged-table";
 import { usePagedTable } from "@/hooks/usePagedTable";
 import { httpErrorKey } from "@/lib/http-error-message";
-import { TownNameLabel, TownNationBadge } from "@/components/towny/TownCells";
+import { TownNameCell, TownNationBadge } from "@/components/towny/TownCells";
 import { RankBadge } from "./RankBadge";
 import type { RankedTown, TownRankingResponse } from "@/types/town-ranking";
 
@@ -24,7 +24,7 @@ export interface TownRankingTableProps {
   className?: string;
 }
 
-export function TownRankingTable({ pageSize = 15, className }: TownRankingTableProps) {
+export function TownRankingTable({ pageSize = 10, className }: TownRankingTableProps) {
   const t = useTranslations("Leaderboard");
   const tCommon = useTranslations("Common");
 
@@ -62,7 +62,7 @@ export function TownRankingTable({ pageSize = 15, className }: TownRankingTableP
     {
       id: "rank",
       header: t("columns.rank"),
-      size: 60,
+      size: 64,
       minSize: 48,
       enableHiding: false,
       meta: { headClassName: "text-center align-middle", cellClassName: "text-center align-middle", withRightBorder: true, sortKey: "rank", defaultSortDirection: "asc" },
@@ -75,17 +75,19 @@ export function TownRankingTable({ pageSize = 15, className }: TownRankingTableP
     {
       id: "town",
       header: t("columns.town"),
-      size: 260,
-      minSize: 140,
+      size: 280,
+      minSize: 160,
       enableHiding: false,
       meta: { headClassName: "align-middle", cellClassName: "align-middle", withRightBorder: true, sortKey: "town", defaultSortDirection: "asc" },
-      cell: ({ row }) => <TownNameLabel tag={row.original.tag} name={row.original.name} query={query} />,
+      cell: ({ row }) => (
+        <TownNameCell tag={row.original.tag} name={row.original.name} query={query} residents={row.original.residents} />
+      ),
     },
     {
       id: "nation",
       header: t("columns.nation"),
-      size: 130,
-      minSize: 90,
+      size: 160,
+      minSize: 100,
       meta: { headClassName: "align-middle", cellClassName: "align-middle", withRightBorder: true, sortKey: "nation", defaultSortDirection: "asc" },
       cell: ({ row }) => (
         <TownNationBadge nation={row.original.nation} nationTag={row.original.nationTag} independentLabel={t("townIndependent")} />
@@ -94,8 +96,8 @@ export function TownRankingTable({ pageSize = 15, className }: TownRankingTableP
     {
       id: "size",
       header: t("columns.size"),
-      size: 100,
-      minSize: 72,
+      size: 110,
+      minSize: 80,
       meta: { headClassName: "text-center align-middle", cellClassName: "text-center align-middle", sortKey: "size", defaultSortDirection: "desc" },
       cell: ({ row }) => (
         <span className={cn("text-xs font-mono tabular-nums", DOCS_TABLE_THEME.textSoft)}>
@@ -139,7 +141,8 @@ export function TownRankingTable({ pageSize = 15, className }: TownRankingTableP
       showRowNumber={false}
       rowClassName={(town) =>
         cn(
-          town.rank <= 10 && "bg-amber-500/[0.06] border-l-2 border-l-amber-500/50",
+          "h-[76px]",
+          town.rank <= 10 && "bg-amber-500/[0.06] !border-l-2 border-l-amber-500/50",
           isRefreshing && "opacity-40 transition-opacity"
         )
       }
