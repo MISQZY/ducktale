@@ -1,0 +1,32 @@
+import { NextResponse } from "next/server";
+import { siteDb } from "@/lib/site-db";
+import { isRateLimited } from "@/lib/rate-limit";
+import { getThreadViewer } from "@/lib/threads";
+import { resolveThreadMessages } from "@/lib/thread-data";
+
+/** Polled by ThreadView every few seconds while the tab is visible, to give the reply thread a live-chat feel without standing up a websocket. */
+export async function GET(req: Request, { params }: { params: Promise<{ id: string }> }) {
+  const viewer = await getThreadViewer();
+  if (!viewer) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  if (isRateLimited(req, "thread-poll", 30, 60_000)) {
+    return NextResponse.json({ error: "Too many requests" }, { status: 429 });
+  }
+
+  const { id } = await params;
+  const thread = await siteDb.thread.findUnique({
+    where: { id },
+    select: { id: true, closed: true },
+  });
+
+  if (!thread) {
+    return NextResponse.json({ error: "Not found" }, { status: 404 });
+  }
+
+  const messages = await resolveThreadMessages(id);
+
+  return NextResponse.json({
+    closed: thread.closed,
+    messages: messages.map((m) => ({ ...m, createdAt: m.createdAt.toISOString() })),
+  });
+}

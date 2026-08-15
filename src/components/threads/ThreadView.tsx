@@ -1,0 +1,269 @@
+"use client";
+
+import { useCallback, useEffect, useRef, useState, useTransition, type FormEvent, type KeyboardEvent } from "react";
+import { useTranslations } from "next-intl";
+import { Trash2, Lock, LockOpen } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { useRouter } from "@/i18n/navigation";
+import { sendThreadMessage, deleteThread, setThreadClosed } from "@/lib/actions/threads";
+import { THREAD_MESSAGE_MAX } from "@/lib/threads";
+import { FormButton } from "@/components/common/FormButton";
+import { FormTextarea } from "@/components/common/FormTextarea";
+import { buttonVariants } from "@/components/ui/button";
+import { useConfirm } from "@/components/common/ConfirmDialogProvider";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Marker, MarkerIcon, MarkerContent } from "@/components/ui/marker";
+import { Bubble, BubbleContent, BubbleGroup } from "@/components/ui/bubble";
+import { PlayerAvatar } from "@/components/common/PlayerAvatar";
+
+type ThreadMessageType = "MESSAGE" | "CLOSED" | "REOPENED";
+
+interface ThreadMessageData {
+  id: string;
+  type: ThreadMessageType;
+  body: string;
+  createdAt: string;
+  authorId: string;
+  authorNickname: string;
+  authorSkinUrl: string | null;
+}
+
+interface ThreadViewProps {
+  lang: string;
+  threadId: string;
+  title: string;
+  initialClosed: boolean;
+  initialMessages: ThreadMessageData[];
+  /** The signed-in viewer's own user id — own messages align right, everyone else's align left (an open forum has more than 2 possible participants, unlike a ticket's fixed staff/owner split). */
+  viewerId: string;
+  /** Author (or any admin) can close/reopen; only an admin can delete outright. */
+  isAuthor: boolean;
+  isAdmin: boolean;
+  /** Where to send the viewer after deleting the thread, since it no longer exists to render. */
+  backHref: string;
+}
+
+const POLL_INTERVAL_MS = 8000;
+
+/** Close/reopen event row — rendered as a Marker instead of a chat bubble, interleaved in the same chronological list. */
+function ThreadEventMarker({ event, t, lang }: { event: ThreadMessageData; t: ReturnType<typeof useTranslations>; lang: string }) {
+  const Icon = event.type === "CLOSED" ? Lock : LockOpen;
+  const label = t(event.type === "CLOSED" ? "threadClosedEvent" : "threadReopenedEvent", { nickname: event.authorNickname });
+  return (
+    <Marker variant="separator" className="my-1">
+      <MarkerIcon>
+        <Icon size={12} />
+      </MarkerIcon>
+      <MarkerContent>
+        {label} · {new Date(event.createdAt).toLocaleString(lang === "ru" ? "ru-RU" : "en-US")}
+      </MarkerContent>
+    </Marker>
+  );
+}
+
+export function ThreadView({
+  lang, threadId, title, initialClosed, initialMessages, viewerId, isAuthor, isAdmin, backHref,
+}: ThreadViewProps) {
+  const t = useTranslations("Threads");
+  const confirm = useConfirm();
+  const router = useRouter();
+  const [closed, setClosed] = useState(initialClosed);
+  const [messages, setMessages] = useState(initialMessages);
+  const [body, setBody] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [isPending, startTransition] = useTransition();
+  const bottomRef = useRef<HTMLDivElement>(null);
+
+  const canModerate = isAuthor || isAdmin;
+
+  const poll = useCallback(async () => {
+    try {
+      const res = await fetch(`/api/threads/${threadId}`);
+      if (!res.ok) return;
+      const data = await res.json();
+      setMessages(data.messages);
+      setClosed(data.closed);
+    } catch {
+      // Silent — a missed poll just tries again next interval.
+    }
+  }, [threadId]);
+
+  useEffect(() => {
+    function tick() {
+      if (document.visibilityState === "visible") poll();
+    }
+    const interval = setInterval(tick, POLL_INTERVAL_MS);
+    document.addEventListener("visibilitychange", tick);
+    return () => {
+      clearInterval(interval);
+      document.removeEventListener("visibilitychange", tick);
+    };
+  }, [poll]);
+
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({ block: "nearest" });
+  }, [messages.length]);
+
+  function submitMessage() {
+    const trimmed = body.trim();
+    if (!trimmed) return;
+    setError(null);
+    startTransition(async () => {
+      try {
+        const formData = new FormData();
+        formData.append("lang", lang);
+        formData.append("threadId", threadId);
+        formData.append("body", trimmed);
+
+        await sendThreadMessage(formData);
+        setBody("");
+        await poll();
+      } catch (err) {
+        setError((err instanceof Error && err.message) || t("errors.generic"));
+      }
+    });
+  }
+
+  function handleSend(e: FormEvent) {
+    e.preventDefault();
+    submitMessage();
+  }
+
+  function handleComposerKeyDown(e: KeyboardEvent<HTMLTextAreaElement>) {
+    // Enter sends, Shift+Enter inserts a newline — Ctrl/Cmd+Enter and IME
+    // composition (e.g. typing Cyrillic/CJK through an input method) are
+    // left alone so an in-progress composition's confirm keystroke doesn't
+    // accidentally submit.
+    if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) {
+      e.preventDefault();
+      submitMessage();
+    }
+  }
+
+  function handleToggleClosed() {
+    const next = !closed;
+    startTransition(async () => {
+      try {
+        await setThreadClosed(lang, threadId, next);
+        setClosed(next);
+        await poll();
+      } catch {
+        setError(t("errors.generic"));
+      }
+    });
+  }
+
+  async function handleDelete() {
+    if (!(await confirm({ description: t("confirmDeleteThread", { title }), variant: "destructive" }))) return;
+    startTransition(async () => {
+      try {
+        await deleteThread(lang, threadId);
+        router.push(backHref);
+      } catch {
+        setError(t("errors.generic"));
+      }
+    });
+  }
+
+  return (
+    <div className="flex flex-col h-full min-h-0">
+      {/* Messages area — fills remaining height */}
+      <ScrollArea className="flex-1 min-h-0 rounded-2xl border border-primary/15 bg-card/30">
+        <div className="flex flex-col gap-3 p-4">
+          {messages.length === 0 ? (
+            <p className="text-center text-foreground/40 text-sm py-6">{t("noMessages")}</p>
+          ) : (
+            messages.map((m) => {
+              if (m.type !== "MESSAGE") {
+                return <ThreadEventMarker key={m.id} event={m} t={t} lang={lang} />;
+              }
+              const alignRight = m.authorId === viewerId;
+              return (
+                <BubbleGroup key={m.id} className={alignRight ? "items-end" : "items-start"}>
+                  <PlayerAvatar
+                    name={m.authorNickname}
+                    skinUrl={m.authorSkinUrl}
+                    hasSiteProfile
+                    growName={false}
+                    avatarSize={18}
+                    avatarClassName="rounded-sm border-none"
+                    className="px-1 gap-1.5"
+                    nameNode={
+                      <span className="text-[0.65rem] text-foreground/50 hover:text-foreground/80 transition-colors">
+                        {m.authorNickname}
+                      </span>
+                    }
+                  />
+                  <Bubble align={alignRight ? "end" : "start"} variant={alignRight ? "default" : "secondary"}>
+                    <BubbleContent className="whitespace-pre-wrap break-words">
+                      {m.body}
+                    </BubbleContent>
+                  </Bubble>
+                  <span className={cn("text-[0.6rem] text-foreground/30 px-1", alignRight && "self-end")}>
+                    {new Date(m.createdAt).toLocaleString(lang === "ru" ? "ru-RU" : "en-US")}
+                  </span>
+                </BubbleGroup>
+              );
+            })
+          )}
+          <div ref={bottomRef} />
+        </div>
+      </ScrollArea>
+
+      {/* Reply form — disabled while the thread is closed, but still visible (nothing else changes) */}
+      <form onSubmit={handleSend} className="flex flex-col gap-2 mt-4 shrink-0">
+        {closed && <p className="text-xs text-foreground/40">{t("closedHint")}</p>}
+        <FormTextarea
+          value={body}
+          onChange={(e) => setBody(e.target.value)}
+          onKeyDown={handleComposerKeyDown}
+          maxLength={THREAD_MESSAGE_MAX}
+          rows={3}
+          placeholder={t("replyPlaceholder")}
+          disabled={closed}
+        />
+
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2">
+            {canModerate && (
+              <button
+                type="button"
+                disabled={isPending}
+                onClick={handleToggleClosed}
+                aria-label={closed ? t("reopenThread") : t("closeThread")}
+                title={closed ? t("reopenThread") : t("closeThread")}
+                className={cn(
+                  buttonVariants({ variant: "outline", size: "icon-sm" }),
+                  "bg-card/50 hover:bg-card/80"
+                )}
+              >
+                {closed ? <LockOpen size={14} /> : <Lock size={14} />}
+              </button>
+            )}
+            {isAdmin && (
+              <button
+                type="button"
+                disabled={isPending}
+                onClick={handleDelete}
+                aria-label={t("deleteThread")}
+                title={t("deleteThread")}
+                className={cn(
+                  buttonVariants({ variant: "outline", size: "icon-sm" }),
+                  "bg-card/70 hover:text-destructive hover:border-destructive/40"
+                )}
+              >
+                <Trash2 size={14} />
+              </button>
+            )}
+          </div>
+
+          <FormButton type="submit" disabled={closed || isPending || !body.trim()} className="px-6 py-2 text-xs">
+            {isPending ? t("sending") : t("send")}
+          </FormButton>
+        </div>
+
+        {error && <p className="text-xs text-destructive">{error}</p>}
+      </form>
+    </div>
+  );
+}

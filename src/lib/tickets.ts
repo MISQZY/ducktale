@@ -1,4 +1,4 @@
-import { auth } from "@/auth";
+import { getSiteViewer, type SiteViewer } from "@/lib/site-viewer";
 
 export const TICKET_SUBJECT_MAX = 120;
 export const TICKET_MESSAGE_MAX = 4000;
@@ -11,24 +11,10 @@ export const MAX_ATTACHMENT_MB = Math.min(Math.max(Number(process.env.MAX_TICKET
 export const MAX_ATTACHMENT_BYTES = MAX_ATTACHMENT_MB * 1024 * 1024;
 export const MAX_FILES_PER_MESSAGE = 5;
 
-export interface TicketViewer {
-  id: string;
-  isAdmin: boolean;
-}
+export type TicketViewer = SiteViewer;
 
-/**
- * session.user.isAdmin is populated by the session() callback in auth.ts
- * from a live DB read on every session read (not cached on the JWT itself)
- * — same freshness guarantee requireAdminId() relies on in src/lib/admin.ts,
- * so reading it here doesn't reintroduce the staleness a plain JWT claim
- * would have (e.g. a revoked admin keeping ticket access until token refresh).
- */
-export async function getTicketViewer(): Promise<TicketViewer | null> {
-  const session = await auth();
-  if (!session?.user?.id) return null;
-
-  return { id: session.user.id, isAdmin: session.user.isAdmin };
-}
+/** Ticket-specific alias — see getSiteViewer() in @/lib/site-viewer for what this actually does. */
+export const getTicketViewer = getSiteViewer;
 
 export function canViewTicket(viewer: TicketViewer, ticket: { userId: string }): boolean {
   return viewer.isAdmin || viewer.id === ticket.userId;

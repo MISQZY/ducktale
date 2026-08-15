@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { siteDb } from "@/lib/site-db";
 import { isRateLimited } from "@/lib/rate-limit";
 import { getTicketViewer, canViewTicket } from "@/lib/tickets";
+import { resolveTicketMessages } from "@/lib/ticket-data";
 
 /** Polled by TicketThread every few seconds while the tab is visible, to give the reply thread a live-chat feel without standing up a websocket. */
 export async function GET(req: Request, { params }: { params: Promise<{ id: string }> }) {
@@ -28,35 +29,10 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
 
-  const messages = await siteDb.ticketMessage.findMany({
-    where: { ticketId: id },
-    orderBy: { createdAt: "asc" },
-    select: {
-      id: true,
-      body: true,
-      isAdminReply: true,
-      createdAt: true,
-      author: { select: { nickname: true } },
-      attachments: {
-        select: {
-          id: true,
-          filename: true,
-          size: true,
-          mimeType: true,
-        }
-      }
-    },
-  });
+  const messages = await resolveTicketMessages(id);
 
   return NextResponse.json({
     status: ticket.status,
-    messages: messages.map((m) => ({
-      id: m.id,
-      body: m.body,
-      isAdminReply: m.isAdminReply,
-      createdAt: m.createdAt.toISOString(),
-      authorNickname: m.author.nickname,
-      attachments: m.attachments,
-    })),
+    messages: messages.map((m) => ({ ...m, createdAt: m.createdAt.toISOString() })),
   });
 }

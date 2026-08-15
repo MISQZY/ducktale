@@ -2,10 +2,9 @@
 
 import { saveAttachment, deleteAttachmentFile } from "@/lib/attachments";
 
-import { headers } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { siteDb } from "@/lib/site-db";
-import { isRateLimited } from "@/lib/rate-limit";
+import { isRateLimitedByHeaders } from "@/lib/rate-limit";
 import {
   getTicketViewer,
   canViewTicket,
@@ -15,17 +14,6 @@ import {
   MAX_ATTACHMENT_MB,
   MAX_FILES_PER_MESSAGE,
 } from "@/lib/tickets";
-
-/**
- * isRateLimited() only reads req.headers.get(...), so the incoming-request
- * Headers from next/headers() (the only thing Server Actions get — there's
- * no raw Request object here, unlike a Route Handler) satisfies it through
- * this narrow shim without pulling in a second rate-limit implementation.
- */
-async function rateLimitedByHeaders(routeKey: string, limit: number, windowMs: number): Promise<boolean> {
-  const hdrs = await headers();
-  return isRateLimited({ headers: hdrs } as unknown as Request, routeKey, limit, windowMs);
-}
 
 export interface CreateTicketResult {
   id: string;
@@ -54,7 +42,7 @@ export async function createTicket(formData: FormData): Promise<CreateTicketResu
     }
   }
 
-  if (await rateLimitedByHeaders("ticket-create", 5, 60 * 60_000)) {
+  if (await isRateLimitedByHeaders("ticket-create", 5, 60 * 60_000)) {
     throw new Error("Too many tickets created, try again later");
   }
 
@@ -119,7 +107,7 @@ export async function sendTicketMessage(formData: FormData): Promise<void> {
     }
   }
 
-  if (await rateLimitedByHeaders("ticket-message", 20, 5 * 60_000)) {
+  if (await isRateLimitedByHeaders("ticket-message", 20, 5 * 60_000)) {
     throw new Error("Too many messages, slow down");
   }
 

@@ -44,3 +44,24 @@ export function isRateLimited(
   w.count++;
   return w.count > limit;
 }
+
+/**
+ * isRateLimited() only reads req.headers.get(...), so the incoming-request
+ * Headers from next/headers() (the only thing Server Actions get — there's
+ * no raw Request object there, unlike a Route Handler) satisfies it through
+ * this narrow shim without pulling in a second rate-limit implementation.
+ * Shared by every "use server" action file that needs rate limiting
+ * (tickets, threads, ...) instead of each redeclaring this shim locally.
+ *
+ * next/headers is imported dynamically, inside the function, rather than at
+ * module scope — this file is reachable from client components too (e.g.
+ * ThreadView.tsx → threads.ts → site-viewer.ts → auth.ts → here), and a
+ * top-level `import { headers } from "next/headers"` gets flagged as using
+ * a Server-Component-only API outside one, even though isRateLimited()
+ * itself (the export those client chains actually need) never touches it.
+ */
+export async function isRateLimitedByHeaders(routeKey: string, limit: number, windowMs: number): Promise<boolean> {
+  const { headers } = await import("next/headers");
+  const hdrs = await headers();
+  return isRateLimited({ headers: hdrs } as unknown as Request, routeKey, limit, windowMs);
+}

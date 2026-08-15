@@ -7,6 +7,7 @@ import { Link } from "@/i18n/navigation";
 import { PlayerAvatar } from "@/components/common/PlayerAvatar";
 import { CompactBadgeChip } from "@/components/badges/CompactBadgeChip";
 import { getPlayerCard } from "@/lib/player-card";
+import { resolveTicketMessages } from "@/lib/ticket-data";
 
 export default async function TicketPage({
   params,
@@ -56,25 +57,7 @@ export default async function TicketPage({
     playerCard = await getPlayerCard(ticket.user.accountLink.minecraftName);
   }
 
-  const messages = await siteDb.ticketMessage.findMany({
-    where: { ticketId: id },
-    orderBy: { createdAt: "asc" },
-    select: {
-      id: true,
-      body: true,
-      isAdminReply: true,
-      createdAt: true,
-      author: { select: { nickname: true } },
-      attachments: {
-        select: {
-          id: true,
-          filename: true,
-          size: true,
-          mimeType: true,
-        }
-      }
-    },
-  });
+  const messages = await resolveTicketMessages(id);
 
   const t = await getTranslations("Tickets");
   const backHref = viewer.isAdmin && !isOwner ? `/admin/tickets` : `/account/tickets`;
@@ -153,14 +136,7 @@ export default async function TicketPage({
               subject={ticket.subject}
               backHref={backHref}
               initialStatus={ticket.status}
-              initialMessages={messages.map((m) => ({
-                id: m.id,
-                body: m.body,
-                isAdminReply: m.isAdminReply,
-                createdAt: m.createdAt.toISOString(),
-                authorNickname: m.author.nickname,
-                attachments: m.attachments,
-              }))}
+              initialMessages={messages.map((m) => ({ ...m, createdAt: m.createdAt.toISOString() }))}
               isAdmin={viewer.isAdmin}
             />
           </div>

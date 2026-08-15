@@ -1,8 +1,8 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState, useTransition, type FormEvent } from "react";
+import { useCallback, useEffect, useRef, useState, useTransition, type FormEvent, type KeyboardEvent } from "react";
 import { useTranslations } from "next-intl";
-import { Trash2, Paperclip, FileText, Download, X, Image as ImageIcon, ImageOff } from "lucide-react";
+import { Trash2, Lock, LockOpen, Paperclip, FileText, Download, X, Image as ImageIcon, ImageOff } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useRouter } from "@/i18n/navigation";
 import { sendTicketMessage, setTicketStatus, deleteTicket } from "@/lib/actions/tickets";
@@ -13,6 +13,8 @@ import { buttonVariants } from "@/components/ui/button";
 import { useConfirm } from "@/components/common/ConfirmDialogProvider";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Bubble, BubbleContent, BubbleGroup } from "@/components/ui/bubble";
+import { PlayerAvatar } from "@/components/common/PlayerAvatar";
 import { TicketStatusBadge } from "./TicketStatusBadge";
 import type { TicketStatus } from ".prisma/site-client";
 
@@ -29,6 +31,7 @@ interface TicketMessageData {
   isAdminReply: boolean;
   createdAt: string;
   authorNickname: string;
+  authorSkinUrl: string | null;
   attachments?: AttachmentData[];
 }
 
@@ -214,8 +217,7 @@ export function TicketThread({ lang, ticketId, subject, initialStatus, initialMe
     bottomRef.current?.scrollIntoView({ block: "nearest" });
   }, [messages.length]);
 
-  function handleSend(e: FormEvent) {
-    e.preventDefault();
+  function submitMessage() {
     const trimmed = body.trim();
     if (!trimmed && files.length === 0) return;
     setError(null);
@@ -235,6 +237,22 @@ export function TicketThread({ lang, ticketId, subject, initialStatus, initialMe
         setError((err instanceof Error && err.message) || t("errors.generic"));
       }
     });
+  }
+
+  function handleSend(e: FormEvent) {
+    e.preventDefault();
+    submitMessage();
+  }
+
+  function handleComposerKeyDown(e: KeyboardEvent<HTMLTextAreaElement>) {
+    // Enter sends, Shift+Enter inserts a newline — Ctrl/Cmd+Enter and IME
+    // composition (e.g. typing Cyrillic/CJK through an input method) are
+    // left alone so an in-progress composition's confirm keystroke doesn't
+    // accidentally submit.
+    if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) {
+      e.preventDefault();
+      submitMessage();
+    }
   }
 
   function handleStatusChange(next: "OPEN" | "CLOSED") {
@@ -269,31 +287,6 @@ export function TicketThread({ lang, ticketId, subject, initialStatus, initialMe
       {/* Header bar */}
       <div className="flex items-center justify-between gap-3 flex-wrap mb-4 shrink-0">
         <TicketStatusBadge status={status} label={t(`status.${status}`)} />
-        {isAdmin && (
-          <div className="flex items-center gap-2">
-            <FormButton
-              variant="outline"
-              className="px-3 py-1 text-[0.65rem]"
-              disabled={isPending}
-              onClick={() => handleStatusChange(status === "CLOSED" ? "OPEN" : "CLOSED")}
-            >
-              {status === "CLOSED" ? t("reopenTicket") : t("closeTicket")}
-            </FormButton>
-            <button
-              type="button"
-              disabled={isPending}
-              onClick={handleDelete}
-              aria-label={t("deleteTicket")}
-              title={t("deleteTicket")}
-              className={cn(
-                buttonVariants({ variant: "outline", size: "icon-sm" }),
-                "bg-card/70 hover:text-destructive hover:border-destructive/40"
-              )}
-            >
-              <Trash2 size={14} />
-            </button>
-          </div>
-        )}
       </div>
 
       {/* Messages area — fills remaining height */}
@@ -306,32 +299,45 @@ export function TicketThread({ lang, ticketId, subject, initialStatus, initialMe
               // Two-sided thread: "staff" (any admin reply) on one side, the
               // ticket owner on the other.
               const alignRight = isAdmin ? m.isAdminReply : !m.isAdminReply;
+              // A non-admin viewer sees which staff member replied only as
+              // "Administrator" (t("adminName")) — no name, no head, no
+              // profile link, unlike every other message — so that case
+              // skips PlayerAvatar entirely rather than just hiding it
+              // visually.
+              const anonymized = m.isAdminReply && !isAdmin;
               return (
-                <div
-                  key={m.id}
-                  className={cn("flex flex-col max-w-[80%]", alignRight ? "self-end items-end" : "self-start items-start")}
-                >
-                  <span className="text-[0.65rem] text-foreground/40 mb-1 px-1">
-                    {m.isAdminReply && !isAdmin ? t("adminName") : m.authorNickname}
-                    {m.isAdminReply && isAdmin && ` · ${t("staffLabel")}`}
-                  </span>
-                  <div
-                    className={cn(
-                      "rounded-2xl px-4 py-2.5 text-sm whitespace-pre-wrap break-words border",
-                      m.isAdminReply
-                        ? "bg-primary/10 border-primary/25 text-foreground/90"
-                        : "bg-card/70 border-primary/10 text-foreground/80"
-                    )}
-                  >
-                    {m.body}
-                  </div>
+                <BubbleGroup key={m.id} className={alignRight ? "items-end" : "items-start"}>
+                  {anonymized ? (
+                    <span className="text-[0.65rem] text-foreground/40 px-1">{t("adminName")}</span>
+                  ) : (
+                    <PlayerAvatar
+                      name={m.authorNickname}
+                      skinUrl={m.authorSkinUrl}
+                      hasSiteProfile
+                      growName={false}
+                      avatarSize={18}
+                      avatarClassName="rounded-sm border-none"
+                      className="px-1 gap-1.5"
+                      nameNode={
+                        <span className="text-[0.65rem] text-foreground/50 hover:text-foreground/80 transition-colors">
+                          {m.authorNickname}
+                          {m.isAdminReply && isAdmin && ` · ${t("staffLabel")}`}
+                        </span>
+                      }
+                    />
+                  )}
+                  <Bubble align={alignRight ? "end" : "start"} variant={alignRight ? "default" : "secondary"}>
+                    <BubbleContent className="whitespace-pre-wrap break-words">
+                      {m.body}
+                    </BubbleContent>
+                  </Bubble>
                   {m.attachments && m.attachments.length > 0 && (
                     <MessageAttachments attachments={m.attachments} />
                   )}
-                  <span className="text-[0.6rem] text-foreground/30 mt-1 px-1">
+                  <span className={cn("text-[0.6rem] text-foreground/30 px-1", alignRight && "self-end")}>
                     {new Date(m.createdAt).toLocaleString(lang === "ru" ? "ru-RU" : "en-US")}
                   </span>
-                </div>
+                </BubbleGroup>
               );
             })
           )}
@@ -345,6 +351,7 @@ export function TicketThread({ lang, ticketId, subject, initialStatus, initialMe
         <FormTextarea
           value={body}
           onChange={(e) => setBody(e.target.value)}
+          onKeyDown={handleComposerKeyDown}
           maxLength={TICKET_MESSAGE_MAX}
           rows={3}
           placeholder={t("replyPlaceholder")}
@@ -361,6 +368,36 @@ export function TicketThread({ lang, ticketId, subject, initialStatus, initialMe
 
         <div className="flex items-center justify-between gap-2">
           <div className="flex items-center gap-2">
+            {isAdmin && (
+              <button
+                type="button"
+                disabled={isPending}
+                onClick={() => handleStatusChange(status === "CLOSED" ? "OPEN" : "CLOSED")}
+                aria-label={status === "CLOSED" ? t("reopenTicket") : t("closeTicket")}
+                title={status === "CLOSED" ? t("reopenTicket") : t("closeTicket")}
+                className={cn(
+                  buttonVariants({ variant: "outline", size: "icon-sm" }),
+                  "bg-card/50 hover:bg-card/80"
+                )}
+              >
+                {status === "CLOSED" ? <LockOpen size={14} /> : <Lock size={14} />}
+              </button>
+            )}
+            {isAdmin && (
+              <button
+                type="button"
+                disabled={isPending}
+                onClick={handleDelete}
+                aria-label={t("deleteTicket")}
+                title={t("deleteTicket")}
+                className={cn(
+                  buttonVariants({ variant: "outline", size: "icon-sm" }),
+                  "bg-card/70 hover:text-destructive hover:border-destructive/40"
+                )}
+              >
+                <Trash2 size={14} />
+              </button>
+            )}
             <input
               ref={fileInputRef}
               type="file"

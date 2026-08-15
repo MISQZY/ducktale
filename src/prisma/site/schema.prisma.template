@@ -45,6 +45,8 @@ model User {
   accountLink         AccountLink?
   tickets             Ticket[]
   ticketMessages      TicketMessage[]
+  threads             Thread[]
+  threadMessages      ThreadMessage[]
   passwordResetTokens PasswordResetToken[]
   badges              UserBadge[]
 
@@ -306,4 +308,55 @@ model TicketAttachment {
 
   @@index([ticketMessageId])
   @@map("{{PREFIX}}ticket_attachment")
+}
+
+/// An open discussion thread, started by any site user and replied to by
+/// any site user — no owner-only visibility gate (see getSiteViewer() in
+/// src/lib/site-viewer.ts, shared with Ticket): every authenticated user can
+/// see and reply to every thread. Unlike Ticket's 3-state status, `closed`
+/// is a plain boolean — the author or any admin can toggle it (setThreadClosed
+/// in src/lib/actions/threads.ts); a closed thread stays visible and keeps
+/// its full history, it just rejects new ThreadMessages. `description` is an
+/// optional one-line summary shown in the header alongside the title,
+/// separate from the actual discussion body which starts with the first
+/// ThreadMessage.
+model Thread {
+  id          String          @id @default(uuid())
+  authorId    String
+  author      User            @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  title       String          @db.VarChar(120)
+  description String?         @db.VarChar(300)
+  closed      Boolean         @default(false)
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+  messages    ThreadMessage[]
+
+  @@index([authorId])
+  @@index([updatedAt])
+  @@map("{{PREFIX}}thread")
+}
+
+enum ThreadMessageType {
+  MESSAGE
+  CLOSED
+  REOPENED
+}
+
+/// A row is either a real chat message (type MESSAGE, the default) or a
+/// close/reopen event marker (type CLOSED/REOPENED, body unused/empty) —
+/// one table keeps the event log interleaved in natural chronological order
+/// with the conversation via the same `createdAt` sort, instead of a second
+/// table that would need merge-sorting against this one to render.
+model ThreadMessage {
+  id        String            @id @default(uuid())
+  threadId  String
+  thread    Thread            @relation(fields: [threadId], references: [id], onDelete: Cascade)
+  authorId  String
+  author    User              @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  type      ThreadMessageType @default(MESSAGE)
+  body      String            @db.Text
+  createdAt DateTime          @default(now())
+
+  @@index([threadId])
+  @@map("{{PREFIX}}thread_message")
 }
