@@ -13,6 +13,8 @@ interface PlayerAvatarProps {
   online?: boolean;
   siteOnline?: boolean;
   className?: string;
+  /** Forwarded to the outer chip — e.g. a color-mix'd gradient background-image (see Navbar's AccountLinkContent / ProfilePlayerCard for the same technique). */
+  style?: React.CSSProperties;
   avatarClassName?: string;
   avatarSize?: number;
   appendNode?: React.ReactNode;
@@ -39,6 +41,7 @@ export function PlayerAvatar({
   online = false,
   siteOnline = false,
   className,
+  style,
   avatarClassName,
   avatarSize = 28,
   appendNode,
@@ -117,6 +120,7 @@ export function PlayerAvatar({
         href={linkHref}
         target="_blank"
         className={cn("flex items-center gap-3 hover:opacity-80 transition-opacity group transform-gpu", widthClass, className)}
+        style={style}
       >
         {innerContent}
       </Link>
@@ -124,7 +128,7 @@ export function PlayerAvatar({
   }
 
   return (
-    <div className={cn("flex items-center gap-3", widthClass, className)}>
+    <div className={cn("flex items-center gap-3", widthClass, className)} style={style}>
       {innerContent}
     </div>
   );

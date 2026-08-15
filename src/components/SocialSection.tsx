@@ -9,7 +9,10 @@ import { EXTERNAL_APIS } from "@/config/external-apis";
 import { SOCIAL_ICON_MAP } from "@/components/ui/social-icons";
 import SectionHeader from "@/components/SectionHeader";
 import { PlayerAvatar } from "@/components/common/PlayerAvatar";
+import { Skeleton } from "@/components/ui/skeleton";
 import { getShowcasePlayers } from "@/lib/actions/showcase";
+import { nameColorStyle } from "@/lib/name-color";
+import type { PlayerColor } from "@/types/player-card";
 
 /** Corner ornament positioned at one of the four card corners. */
 function CornerOrnament({
@@ -35,23 +38,19 @@ function CornerOrnament({
 
 const CORNERS = ["tl", "tr", "bl", "br"] as const;
 
-const SHOWCASE_PLAYERS = [
-  { name: "6ojieh", skinUrl: null, profileUsername: null },
-  { name: "MISQZY", skinUrl: null, profileUsername: null },
-  { name: "Flectone", skinUrl: null, profileUsername: null },
-  { name: "_Oleg_", skinUrl: null, profileUsername: null },
-  { name: "Notch", skinUrl: null, profileUsername: null },
-  { name: "Jeb_", skinUrl: null, profileUsername: null },
-  { name: "Dinnerbone", skinUrl: null, profileUsername: null },
-  { name: "Steve", skinUrl: null, profileUsername: null },
-  { name: "Alex", skinUrl: null, profileUsername: null },
-  { name: "DuckTale", skinUrl: null, profileUsername: null },
-];
+const SKELETON_COUNT = 10;
+
+interface ShowcasePlayer {
+  name: string;
+  skinUrl: string | null;
+  profileUsername?: string | null;
+  nameColor?: PlayerColor | null;
+}
 
 export default function SocialSection() {
   const t = useTranslations("Social");
-  
-  const [players, setPlayers] = useState<{name: string, skinUrl: string | null, profileUsername?: string | null}[]>(SHOWCASE_PLAYERS);
+
+  const [players, setPlayers] = useState<ShowcasePlayer[] | null>(null);
   const [totalPlayers, setTotalPlayers] = useState<number | null>(null);
 
   useEffect(() => {
@@ -69,7 +68,7 @@ export default function SocialSection() {
     return () => { active = false; };
   }, []);
 
-  const MARQUEE_PLAYERS = [...players, ...players];
+  const MARQUEE_PLAYERS = players ? [...players, ...players] : [];
 
   return (
     <section id="community" className="py-16 px-6 relative">
@@ -82,39 +81,48 @@ export default function SocialSection() {
 
         {/* Player Marquee */}
         <div className="relative flex w-full overflow-hidden mt-6 mb-8 [mask-image:linear-gradient(to_right,transparent,black_10%,black_90%,transparent)]">
-          <div className="flex w-max animate-marquee items-center gap-4 py-2 hover:[animation-play-state:paused]">
-            {MARQUEE_PLAYERS.map((p, i) => {
-              const hasProfile = Boolean(p.profileUsername);
-              return (
-                <PlayerAvatar
-                  key={`${p.name}-${i}`}
-                  name={p.profileUsername ?? p.name}
-                  skinUrl={p.skinUrl || EXTERNAL_APIS.legacy_skin.skinUrl(p.name)}
-                  avatarSize={40}
-                  hasSiteProfile={hasProfile}
-                  linked={hasProfile}
-                  avatarClassName="rounded-md border-none"
-                  growName={false}
-                  className={cn(
-                    "relative overflow-hidden rounded-lg bg-card/70 py-2 px-2 shadow-sm shrink-0 transition-transform duration-300 hover:scale-105",
-                    hasProfile ? "border-2 border-primary/60 hover:border-primary" : "border border-primary/25"
-                  )}
-                  nameNode={
-                    <span
-                      title={p.name}
-                      className={cn(
-                        "text-base tracking-wide whitespace-nowrap",
-                        hasProfile ? "font-bold text-amber-500 dark:text-amber-400" : "font-semibold text-foreground/90"
-                      )}
-                      style={{ fontFamily: "var(--font-display)" }}
-                    >
-                      {p.name}
-                    </span>
-                  }
-                />
-              );
-            })}
-          </div>
+          {players === null ? (
+            <div className="flex w-full items-center gap-4 py-2">
+              {Array.from({ length: SKELETON_COUNT }).map((_, i) => (
+                <Skeleton key={i} className="h-[60px] w-40 rounded-lg shrink-0" />
+              ))}
+            </div>
+          ) : (
+            <div className="flex w-max animate-marquee items-center gap-4 py-2 hover:[animation-play-state:paused]">
+              {MARQUEE_PLAYERS.map((p, i) => {
+                const hasProfile = Boolean(p.profileUsername);
+                return (
+                  <PlayerAvatar
+                    key={`${p.name}-${i}`}
+                    name={p.profileUsername ?? p.name}
+                    skinUrl={p.skinUrl || EXTERNAL_APIS.legacy_skin.skinUrl(p.name)}
+                    avatarSize={40}
+                    hasSiteProfile={hasProfile}
+                    linked={hasProfile}
+                    avatarClassName="rounded-md border-none"
+                    growName={false}
+                    className={cn(
+                      "relative overflow-hidden rounded-lg bg-card/70 py-2 px-2 shadow-sm shrink-0 transition-transform duration-300 hover:scale-105",
+                      hasProfile ? "border-2 border-primary/60 hover:border-primary" : "border border-primary/25"
+                    )}
+                    style={nameColorStyle(p.nameColor)}
+                    nameNode={
+                      <span
+                        title={p.name}
+                        className={cn(
+                          "text-base tracking-wide whitespace-nowrap",
+                          hasProfile ? "font-bold text-amber-500 dark:text-amber-400" : "font-semibold text-foreground/90"
+                        )}
+                        style={{ fontFamily: "var(--font-display)" }}
+                      >
+                        {p.name}
+                      </span>
+                    }
+                  />
+                );
+              })}
+            </div>
+          )}
         </div>
 
         {/* Visitor Stats */}

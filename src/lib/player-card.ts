@@ -112,6 +112,7 @@ function buildServerStatuses(
 // and cheap to look up.
 const GROWTH_TTL_MS = 5 * 60_000;
 const TOWNY_TTL_MS  = 3 * 60_000;
+const NAME_COLOR_TTL_MS = 5 * 60_000;
 /** Minecraft's default player model height, in blocks (~meters) — FlectoneGrowth's scale is a multiplier of this. */
 const FULL_HEIGHT_METERS = 1.88;
 export const IDENTITY_SEARCH_TTL_MS = 60_000;
@@ -338,6 +339,55 @@ async function resolveTownyDataUncached(uuid: string): Promise<{ city: string | 
     nation: row?.nation ?? null,
     role:   row?.city ? resolveResidentRole(uuid, row.mayorUuid, row.ranks) : null,
   };
+}
+
+/**
+ * Standalone by-UUID lookup of just the chat-color, for callers that
+ * already have a uuid (not a name/search string) and don't need the rest
+ * of the player card — the nav bar's own account chip, resolved from the
+ * signed-in user's linked minecraftUuid rather than a search. Same single
+ * indexed point lookup as fcolorSql(), just keyed by uuid instead of a
+ * fp_player.id already in scope from the identity query.
+ */
+export async function resolveNameColor(uuid: string): Promise<PlayerColor | null> {
+  return withCache(`fcolor:${uuid}`, NAME_COLOR_TTL_MS, () => resolveNameColorUncached(uuid));
+}
+
+async function resolveNameColorUncached(uuid: string): Promise<PlayerColor | null> {
+  const [row] = await withDb(async (db) => {
+    return await db.$queryRaw(Prisma.sql`
+      SELECT fc.name AS colorName
+      FROM fp_player p
+      JOIN fp_player_fcolor pfc ON pfc.player = p.id AND pfc.type = 'OUT' AND pfc.number = 15
+      JOIN fp_fcolor fc ON fc.id = pfc.fcolor
+      WHERE p.uuid = ${uuid}
+      LIMIT 1
+    `) as { colorName: string }[];
+  });
+
+  return parseFColor(row?.colorName ?? null);
+}
+
+/**
+ * Batch form of resolveNameColor — chunked (default 5 at a time, same as
+ * resolveSkinUrls in src/lib/skin.ts) rather than one big Promise.all, so a
+ * page resolving colors for many players at once (the homepage showcase
+ * marquee) can't itself open dozens of simultaneous connections against a
+ * DB already shared with the live game servers.
+ */
+export async function resolveNameColors(
+  uuids: (string | null | undefined)[],
+  chunkSize = 5
+): Promise<(PlayerColor | null)[]> {
+  const results: (PlayerColor | null)[] = [];
+  for (let i = 0; i < uuids.length; i += chunkSize) {
+    const chunk = uuids.slice(i, i + chunkSize);
+    const chunkResults = await Promise.all(
+      chunk.map((uuid) => (uuid ? resolveNameColor(uuid) : Promise.resolve(null)))
+    );
+    results.push(...chunkResults);
+  }
+  return results;
 }
 
 /**

@@ -4,6 +4,7 @@ import { unstable_cache } from "next/cache";
 import { withDb } from "@/lib/db";
 import { Prisma } from "@prisma/client";
 import { resolveSkinUrls } from "@/lib/skin";
+import { resolveNameColors } from "@/lib/player-card";
 
 import { siteDb } from "@/lib/site-db";
 
@@ -71,13 +72,20 @@ export const getShowcasePlayers = unstable_cache(
 
       // resolveSkinUrl caches per uuid, so re-resolving here for rows
       // already resolved above (the candidates that made it into
-      // finalRows) is a cache hit, not a second query.
-      const finalSkins = await resolveSkinUrls(finalRows.map(r => r.uuid));
+      // finalRows) is a cache hit, not a second query. Colors are only
+      // resolved here, for the final ~50 selected rows — not the larger
+      // candidate pool above, which would look up colors for players who
+      // never make it into the showcase at all.
+      const [finalSkins, finalColors] = await Promise.all([
+        resolveSkinUrls(finalRows.map(r => r.uuid)),
+        resolveNameColors(finalRows.map(r => r.uuid)),
+      ]);
 
       const shuffled = finalRows.map((r, i) => ({
         name: r.name,
         skinUrl: finalSkins[i] ?? null,
-        profileUsername: linkByUuid.get(r.uuid) ?? null
+        profileUsername: linkByUuid.get(r.uuid) ?? null,
+        nameColor: finalColors[i] ?? null,
       })).sort(() => 0.5 - Math.random());
 
       return {

@@ -11,6 +11,7 @@ import { RESIDENT_ROLE_COLOR } from "@/lib/towny";
 import { NETWORK_SERVERS } from "@/config/servers";
 import { RankBadge } from "@/components/leaderboard/RankBadge";
 import { getPlayerCard } from "@/lib/player-card";
+import { nameColorStyle } from "@/lib/name-color";
 import { cn } from "@/lib/utils";
 import type { GrowthStatus, PlayerServerStatus } from "@/types/player-card";
 import type { ResidentRole } from "@/types/towny";
@@ -204,24 +205,7 @@ async function ProfilePlayerCardContent({ minecraftName, className, locale, regi
     <div className={cn("flex flex-col gap-3", className)}>
       <DuckCard
         className="border-primary/20 bg-duck-stone/40"
-        // The player's chat-color as a background-image layered over the
-        // card's own bg-duck-stone/40 background-color, not a separate
-        // opaque div — a flat rectangle on top fought the liquid-card glass
-        // effect (backdrop-blur showing through a translucent background)
-        // instead of blending into it. Each stop goes through color-mix so
-        // the gradient itself is translucent — the same technique
-        // .liquid-card.bg-card already uses for its own tint — letting the
-        // blurred backdrop and bg-duck-stone/40 both still show through.
-        // Degenerate 2-stop gradient (same color twice) for the solid case
-        // keeps this to one code path instead of branching between
-        // background-color and background-image.
-        style={player.nameColor ? {
-          backgroundImage: `linear-gradient(135deg, ${
-            (player.nameColor.type === "gradient" ? player.nameColor.stops : [player.nameColor.color, player.nameColor.color])
-              .map((hex) => `color-mix(in srgb, ${hex} 18%, transparent)`)
-              .join(", ")
-          })`,
-        } : undefined}
+        style={nameColorStyle(player.nameColor)}
       >
         <DuckCardContent className="pt-4 flex flex-col items-center text-center gap-2">
           <SkinFace skinUrl={player.skinUrl} size={96} />

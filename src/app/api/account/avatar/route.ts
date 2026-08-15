@@ -2,9 +2,10 @@ import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { siteDb } from "@/lib/site-db";
 import { resolveSkinUrl } from "@/lib/skin";
+import { resolveNameColor } from "@/lib/player-card";
 import { isRateLimited } from "@/lib/rate-limit";
 
-/** The signed-in user's own skin head, for the nav bar — null if their account isn't linked (or isn't confirmed) yet. */
+/** The signed-in user's own skin head + chat-color, for the nav bar — null if their account isn't linked (or isn't confirmed) yet. */
 export async function GET(req: Request) {
   const session = await auth();
   if (!session?.user?.id) {
@@ -21,12 +22,15 @@ export async function GET(req: Request) {
   });
 
   if (link?.status !== "CONFIRMED" || !link.minecraftUuid) {
-    return NextResponse.json({ skinUrl: null });
+    return NextResponse.json({ skinUrl: null, nameColor: null });
   }
 
-  const skinUrl = await resolveSkinUrl(link.minecraftUuid);
+  const [skinUrl, nameColor] = await Promise.all([
+    resolveSkinUrl(link.minecraftUuid),
+    resolveNameColor(link.minecraftUuid),
+  ]);
   return NextResponse.json(
-    { skinUrl },
+    { skinUrl, nameColor },
     { headers: { "Cache-Control": "private, max-age=60" } }
   );
 }

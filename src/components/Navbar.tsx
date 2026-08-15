@@ -10,7 +10,8 @@ import { useTranslations } from "next-intl";
 import Logo from "./ui/Logo";
 import { Button } from "@/components/ui/button";
 import { PlayerAvatar } from "@/components/common/PlayerAvatar";
-import { getCachedAvatar, setCachedAvatar } from "@/lib/avatar-cache";
+import { getCachedAvatar, setCachedAvatar, type AvatarCacheEntry } from "@/lib/avatar-cache";
+import { nameColorStyle } from "@/lib/name-color";
 import { cn } from "@/lib/utils";
 import {
   Sheet,
@@ -71,21 +72,21 @@ function DuckIcon({ visible }: { visible: boolean }) {
 function AccountLinkContent({ fallbackLabel }: { fallbackLabel: string }) {
   const { data: session, status } = useSession();
   // Lazy initializer reads the module-level cache synchronously, so a
-  // navigation that remounts this (Navbar isn't part of the persistent
-  // [lang] layout — every page renders its own <Navbar/>) paints the real
-  // head immediately instead of flashing back to the fallback icon while a
-  // fresh fetch resolves. See src/lib/avatar-cache.ts.
-  const [skinUrl, setSkinUrl] = useState<string | null>(() => {
+  // remount (hard reload, or navigating in from outside the (main) route
+  // group's persistent layout) paints the real head/color immediately
+  // instead of flashing back to the fallback icon while a fresh fetch
+  // resolves. See src/lib/avatar-cache.ts.
+  const [avatar, setAvatar] = useState<AvatarCacheEntry>(() => {
     const uid = session?.user?.id;
-    return uid ? getCachedAvatar(uid) ?? null : null;
+    return (uid && getCachedAvatar(uid)) || { skinUrl: null, nameColor: null };
   });
 
   useEffect(() => {
     const uid = session?.user?.id;
     if (status !== "authenticated" || !uid) return;
 
-    const cachedUrl = getCachedAvatar(uid);
-    if (cachedUrl !== undefined) {
+    const cachedEntry = getCachedAvatar(uid);
+    if (cachedEntry !== undefined) {
       // Usually a no-op (the useState initializer above already read the
       // same cache synchronously) — this only does anything on the rare
       // render where `uid` wasn't known yet at mount and only became
@@ -93,7 +94,7 @@ function AccountLinkContent({ fallbackLabel }: { fallbackLabel: string }) {
       // external cache the same way docs/PlayerCard.tsx and
       // RankingsTabs.tsx already do for their own mount-time restores.
       // eslint-disable-next-line react-hooks/set-state-in-effect
-      setSkinUrl(cachedUrl);
+      setAvatar(cachedEntry);
       return;
     }
 
@@ -101,13 +102,15 @@ function AccountLinkContent({ fallbackLabel }: { fallbackLabel: string }) {
     fetch("/api/account/avatar")
       .then((r) => (r.ok ? r.json() : null))
       .then((data) => {
-        const url = data?.skinUrl ?? null;
-        setCachedAvatar(uid, url);
-        if (!cancelled) setSkinUrl(url);
+        const entry: AvatarCacheEntry = { skinUrl: data?.skinUrl ?? null, nameColor: data?.nameColor ?? null };
+        setCachedAvatar(uid, entry.skinUrl, entry.nameColor);
+        if (!cancelled) setAvatar(entry);
       })
       .catch(() => {});
     return () => { cancelled = true; };
   }, [status, session?.user?.id]);
+
+  const colorStyle = nameColorStyle(avatar.nameColor);
 
   // Same corner-ornament + square-cornered frame used by every other card
   // in the app (account dashboard, admin lists, ...) — a rounded-full pill
@@ -129,12 +132,13 @@ function AccountLinkContent({ fallbackLabel }: { fallbackLabel: string }) {
     return (
       <PlayerAvatar
         name={session.user.name}
-        skinUrl={skinUrl}
+        skinUrl={avatar.skinUrl}
         hasSiteProfile={false}
         avatarSize={30}
         avatarClassName="rounded-sm border-none"
         growName={false}
         className="corner-ornament relative overflow-hidden gap-2 rounded-lg border border-primary/25 bg-card/70 py-1.5 px-1.5"
+        style={colorStyle}
         nameNode={
           <span title={session.user.name} className="text-sm font-medium text-foreground/90 whitespace-nowrap">
             {session.user.name}
