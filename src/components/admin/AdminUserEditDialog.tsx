@@ -1,0 +1,225 @@
+"use client";
+
+import { useState } from "react";
+import { useTranslations } from "next-intl";
+import { KeyRound, Unlink, Shield, ShieldOff } from "lucide-react";
+import {
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
+} from "@/components/ui/dialog";
+import { FormInput } from "@/components/common/FormInput";
+import { FormButton } from "@/components/common/FormButton";
+import { buttonVariants } from "@/components/ui/button";
+import CopyToClipboard from "@/components/ui/CopyToClipboard";
+import { cn } from "@/lib/utils";
+import { useConfirm } from "@/components/common/ConfirmDialogProvider";
+import { renameUser, resetUserPassword, unlinkUser, setUserAdmin } from "@/lib/actions/admin";
+import type { AdminUserRow } from "./AdminUsersTable";
+
+interface AdminUserEditDialogProps {
+  lang: string;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  user: AdminUserRow | null;
+}
+
+const iconButtonClasses = cn(
+  buttonVariants({ variant: "outline", size: "icon-sm" }),
+  "bg-card/70 hover:text-primary hover:border-primary/40"
+);
+
+/**
+ * A single shared instance, owned by AdminUsersTable (not one per row — see
+ * that component's `editingUser` state) rather than each row mounting its
+ * own <Dialog>. Every action here calls a Server Action that
+ * revalidatePath()s /admin, which patches AdminUsersTable's `users` prop —
+ * a per-row-embedded dialog sat inside that revalidation-vulnerable subtree
+ * (a TanStack cell renderer several layers deep) and lost its open state
+ * to it right after a successful action; AdminUsersTable itself, a single
+ * stable component at a fixed tree position, isn't at risk of that the
+ * same way a plain prop update doesn't reset a component's own local state.
+ */
+export function AdminUserEditDialog({ lang, open, onOpenChange, user }: AdminUserEditDialogProps) {
+  const t = useTranslations("Admin");
+  const confirm = useConfirm();
+
+  // Initial state reads straight from `user` rather than syncing via an
+  // effect: the parent (AdminUsersTable) keys this component by
+  // editingUser?.id, so switching to a *different* user remounts it fresh
+  // automatically — the case this state actually needs to reset for. A
+  // revalidation-driven prop update for the *same* user (see this
+  // component's doc comment) doesn't change the key, so it correctly
+  // leaves an in-progress edit/resetLink/etc. alone instead of wiping it.
+  const [nicknameValue, setNicknameValue] = useState(user?.nickname ?? "");
+  const [nicknameSaving, setNicknameSaving] = useState(false);
+  const [nicknameError, setNicknameError] = useState<string | null>(null);
+
+  const [resetPending, setResetPending] = useState(false);
+  const [resetLink, setResetLink] = useState<string | null>(null);
+
+  const [linked, setLinked] = useState(user?.isLinked ?? false);
+  const [unlinkPending, setUnlinkPending] = useState(false);
+
+  const [adminNow, setAdminNow] = useState(user?.isAdmin ?? false);
+  const [adminPending, setAdminPending] = useState(false);
+
+  const [actionError, setActionError] = useState<string | null>(null);
+
+  async function handleSaveNickname() {
+    if (!user) return;
+    setNicknameError(null);
+    setNicknameSaving(true);
+    try {
+      await renameUser(lang, user.id, nicknameValue);
+    } catch (err) {
+      setNicknameError((err instanceof Error && err.message) || t("actionFailed"));
+    } finally {
+      setNicknameSaving(false);
+    }
+  }
+
+  async function handleResetPassword() {
+    if (!user) return;
+    if (!(await confirm({ description: t("confirmReset", { nickname: user.nickname }) }))) return;
+    setActionError(null);
+    setResetPending(true);
+    try {
+      setResetLink(await resetUserPassword(lang, user.id));
+    } catch {
+      setActionError(t("actionFailed"));
+    } finally {
+      setResetPending(false);
+    }
+  }
+
+  async function handleUnlink() {
+    if (!user) return;
+    if (!(await confirm({ description: t("confirmUnlink", { nickname: user.nickname }) }))) return;
+    setActionError(null);
+    setUnlinkPending(true);
+    try {
+      await unlinkUser(lang, user.id);
+      setLinked(false);
+    } catch {
+      setActionError(t("actionFailed"));
+    } finally {
+      setUnlinkPending(false);
+    }
+  }
+
+  async function handleToggleAdmin() {
+    if (!user) return;
+    const confirmText = adminNow
+      ? t("confirmRevokeAdmin", { nickname: user.nickname })
+      : t("confirmGrantAdmin", { nickname: user.nickname });
+    if (!(await confirm({ description: confirmText, variant: adminNow ? "destructive" : "default" }))) return;
+    setActionError(null);
+    setAdminPending(true);
+    try {
+      await setUserAdmin(lang, user.id, !adminNow);
+      setAdminNow(!adminNow);
+    } catch {
+      setActionError(t("actionFailed"));
+    } finally {
+      setAdminPending(false);
+    }
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle
+            className="text-2xl text-primary/90 text-center leading-tight mb-2"
+            style={{ fontFamily: "var(--font-body)" }}
+          >
+            {t("editUserTitle", { nickname: user?.nickname ?? "" })}
+          </DialogTitle>
+        </DialogHeader>
+
+        <div className="flex flex-col gap-5 min-w-0">
+          <div className="flex flex-col gap-2">
+            <FormInput
+              id="admin-user-nickname"
+              label={t("nicknameLabel")}
+              value={nicknameValue}
+              onChange={(e) => setNicknameValue(e.target.value)}
+              maxLength={32}
+            />
+            {nicknameError && <p className="text-xs text-destructive">{nicknameError}</p>}
+          </div>
+
+          <div className="h-px bg-border" />
+
+          <div className="flex flex-col gap-2 min-w-0">
+            <div className="flex items-center gap-1.5">
+              <button
+                type="button"
+                aria-label={t("resetPassword")}
+                title={t("resetPassword")}
+                disabled={resetPending}
+                onClick={handleResetPassword}
+                className={iconButtonClasses}
+              >
+                <KeyRound size={14} />
+              </button>
+
+              {user && !user.isSelf && (
+                <button
+                  type="button"
+                  aria-label={adminNow ? t("revokeAdmin") : t("grantAdmin")}
+                  title={adminNow ? t("revokeAdmin") : t("grantAdmin")}
+                  disabled={adminPending}
+                  onClick={handleToggleAdmin}
+                  className={iconButtonClasses}
+                >
+                  {adminNow ? <ShieldOff size={14} /> : <Shield size={14} />}
+                </button>
+              )}
+
+              {linked && (
+                <button
+                  type="button"
+                  aria-label={t("unlink")}
+                  title={t("unlink")}
+                  disabled={unlinkPending}
+                  onClick={handleUnlink}
+                  className={cn(iconButtonClasses, "hover:text-destructive hover:border-destructive/40")}
+                >
+                  <Unlink size={14} />
+                </button>
+              )}
+            </div>
+
+            {resetLink && (
+              <div className="text-xs text-foreground/60 min-w-0">
+                <p className="mb-1">{t("newPasswordHint")}</p>
+                <CopyToClipboard value={resetLink} className="min-w-0">
+                  <div
+                    className="flex items-center gap-2 rounded-lg bg-muted border border-primary/20 px-3 py-2 cursor-pointer max-w-full min-w-0 overflow-x-auto custom-scrollbar"
+                    title={resetLink}
+                  >
+                    <span className="font-mono text-sm text-foreground tracking-wide whitespace-nowrap">
+                      {resetLink}
+                    </span>
+                  </div>
+                </CopyToClipboard>
+              </div>
+            )}
+
+            {actionError && <p className="text-xs text-destructive">{actionError}</p>}
+          </div>
+        </div>
+
+        <DialogFooter>
+          <FormButton
+            disabled={nicknameSaving || !user || nicknameValue.trim() === user.nickname}
+            onClick={handleSaveNickname}
+            className="w-full sm:w-auto"
+          >
+            {nicknameSaving ? t("saving") : t("save")}
+          </FormButton>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}

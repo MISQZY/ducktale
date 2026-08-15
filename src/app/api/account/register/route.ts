@@ -3,8 +3,8 @@ import bcrypt from "bcryptjs";
 import { Prisma } from ".prisma/site-client";
 import { siteDb } from "@/lib/site-db";
 import { isRateLimited } from "@/lib/rate-limit";
+import { NICKNAME_PATTERN, NICKNAME_FORMAT_ERROR, NICKNAME_TAKEN_ERROR } from "@/lib/nickname";
 
-const NICKNAME_PATTERN = /^[a-zA-Z0-9_-]{3,32}$/;
 const MIN_PASSWORD_LENGTH = 8;
 const BCRYPT_COST = 10;
 
@@ -19,7 +19,7 @@ export async function POST(req: Request) {
 
   if (!NICKNAME_PATTERN.test(nickname)) {
     return NextResponse.json(
-      { error: "Nickname must be 3-32 characters: letters, digits, _ or -" },
+      { error: NICKNAME_FORMAT_ERROR },
       { status: 400 }
     );
   }
@@ -42,7 +42,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ user }, { status: 201 });
   } catch (error) {
     if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
-      return NextResponse.json({ error: "Nickname is already taken" }, { status: 409 });
+      return NextResponse.json({ error: NICKNAME_TAKEN_ERROR }, { status: 409 });
     }
     console.error("[account/register] DB error:", error);
     return NextResponse.json({ error: "Registration failed" }, { status: 500 });

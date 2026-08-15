@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
 import type { ColumnDef } from "@tanstack/react-table";
 import { ShieldAlert } from "lucide-react";
@@ -8,6 +8,7 @@ import { DataTable } from "@/components/ui/data-table";
 import { useAdminTableSort } from "@/hooks/useAdminTableSort";
 import { PlayerAvatar } from "@/components/common/PlayerAvatar";
 import { AdminUserActions } from "@/components/admin/AdminUserActions";
+import { AdminUserEditDialog } from "@/components/admin/AdminUserEditDialog";
 import { UserBadgesCell } from "@/components/admin/UserBadgesCell";
 import { formatLastSeen } from "@/lib/player-card-format";
 
@@ -49,6 +50,9 @@ export function AdminUsersTable({ lang, users, badges, sortColumn, sortDirection
   const t = useTranslations("Admin");
   const tc = useTranslations("PlayerCard");
   const onSort = useAdminTableSort(sortColumn, sortDirection);
+  // Owned here (not by each row) — see AdminUserEditDialog's doc comment
+  // for why a per-row dialog instance lost its open state to revalidation.
+  const [editingUser, setEditingUser] = useState<AdminUserRow | null>(null);
 
   const columns = useMemo<ColumnDef<AdminUserRow, unknown>[]>(() => [
     {
@@ -161,8 +165,8 @@ export function AdminUsersTable({ lang, users, badges, sortColumn, sortDirection
     {
       id: "actions",
       header: t("actionsColumn"),
-      size: 150,
-      minSize: 110,
+      size: 100,
+      minSize: 80,
       enableHiding: false,
       meta: { headClassName: "align-middle text-right", cellClassName: "align-middle text-right" },
       cell: ({ row }) => (
@@ -171,23 +175,31 @@ export function AdminUsersTable({ lang, users, badges, sortColumn, sortDirection
           userId={row.original.id}
           nickname={row.original.nickname}
           isSelf={row.original.isSelf}
-          hasLink={row.original.isLinked}
-          isAdmin={row.original.isAdmin}
+          onEdit={() => setEditingUser(row.original)}
         />
       ),
     },
   ], [lang, badges, t, tc]);
 
   return (
-    <DataTable
-      columns={columns}
-      data={users}
-      getRowId={(u) => u.id}
-      emptyMessage={t("noResults")}
-      sortColumn={sortColumn}
-      sortDirection={sortDirection}
-      onSort={onSort}
-      rowOffset={rowOffset}
-    />
+    <>
+      <DataTable
+        columns={columns}
+        data={users}
+        getRowId={(u) => u.id}
+        emptyMessage={t("noResults")}
+        sortColumn={sortColumn}
+        sortDirection={sortDirection}
+        onSort={onSort}
+        rowOffset={rowOffset}
+      />
+      <AdminUserEditDialog
+        key={editingUser?.id ?? "none"}
+        lang={lang}
+        open={editingUser !== null}
+        onOpenChange={(next) => { if (!next) setEditingUser(null); }}
+        user={editingUser}
+      />
+    </>
   );
 }
