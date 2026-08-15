@@ -13,6 +13,7 @@ import CopyToClipboard from "@/components/ui/CopyToClipboard";
 import { cn } from "@/lib/utils";
 import { useConfirm } from "@/components/common/ConfirmDialogProvider";
 import { renameUser, resetUserPassword, unlinkUser, setUserAdmin } from "@/lib/actions/admin";
+import { NICKNAME_MAX_LENGTH } from "@/lib/nickname";
 import type { AdminUserRow } from "./AdminUsersTable";
 
 interface AdminUserEditDialogProps {
@@ -52,16 +53,23 @@ export function AdminUserEditDialog({ lang, open, onOpenChange, user }: AdminUse
   const [nicknameValue, setNicknameValue] = useState(user?.nickname ?? "");
   const [nicknameSaving, setNicknameSaving] = useState(false);
   const [nicknameError, setNicknameError] = useState<string | null>(null);
+  // The confirmed-on-server nickname — separate from `user.nickname` (a
+  // prop that stays stale until the next revalidation actually lands) and
+  // from `nicknameValue` (the live, possibly-unsaved input). The title and
+  // the Save button's "anything to save?" check both read this, so a
+  // successful rename updates them immediately instead of still showing
+  // the old name / a still-enabled Save button until props catch up.
+  const [savedNickname, setSavedNickname] = useState(user?.nickname ?? "");
 
-  const [resetPending, setResetPending] = useState(false);
   const [resetLink, setResetLink] = useState<string | null>(null);
-
   const [linked, setLinked] = useState(user?.isLinked ?? false);
-  const [unlinkPending, setUnlinkPending] = useState(false);
-
   const [adminNow, setAdminNow] = useState(user?.isAdmin ?? false);
-  const [adminPending, setAdminPending] = useState(false);
 
+  // Shared by reset/unlink/admin-toggle — these are mutually exclusive
+  // actions on the same user, not independent operations, so one running
+  // disables the others too (matches the pre-dialog inline buttons, which
+  // shared a single isPending from one useTransition).
+  const [actionPending, setActionPending] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
 
   async function handleSaveNickname() {
@@ -69,7 +77,9 @@ export function AdminUserEditDialog({ lang, open, onOpenChange, user }: AdminUse
     setNicknameError(null);
     setNicknameSaving(true);
     try {
-      await renameUser(lang, user.id, nicknameValue);
+      const saved = await renameUser(lang, user.id, nicknameValue);
+      setSavedNickname(saved);
+      setNicknameValue(saved);
     } catch (err) {
       setNicknameError((err instanceof Error && err.message) || t("actionFailed"));
     } finally {
@@ -79,48 +89,48 @@ export function AdminUserEditDialog({ lang, open, onOpenChange, user }: AdminUse
 
   async function handleResetPassword() {
     if (!user) return;
-    if (!(await confirm({ description: t("confirmReset", { nickname: user.nickname }) }))) return;
+    if (!(await confirm({ description: t("confirmReset", { nickname: savedNickname }) }))) return;
     setActionError(null);
-    setResetPending(true);
+    setActionPending(true);
     try {
       setResetLink(await resetUserPassword(lang, user.id));
     } catch {
       setActionError(t("actionFailed"));
     } finally {
-      setResetPending(false);
+      setActionPending(false);
     }
   }
 
   async function handleUnlink() {
     if (!user) return;
-    if (!(await confirm({ description: t("confirmUnlink", { nickname: user.nickname }) }))) return;
+    if (!(await confirm({ description: t("confirmUnlink", { nickname: savedNickname }) }))) return;
     setActionError(null);
-    setUnlinkPending(true);
+    setActionPending(true);
     try {
       await unlinkUser(lang, user.id);
       setLinked(false);
     } catch {
       setActionError(t("actionFailed"));
     } finally {
-      setUnlinkPending(false);
+      setActionPending(false);
     }
   }
 
   async function handleToggleAdmin() {
     if (!user) return;
     const confirmText = adminNow
-      ? t("confirmRevokeAdmin", { nickname: user.nickname })
-      : t("confirmGrantAdmin", { nickname: user.nickname });
+      ? t("confirmRevokeAdmin", { nickname: savedNickname })
+      : t("confirmGrantAdmin", { nickname: savedNickname });
     if (!(await confirm({ description: confirmText, variant: adminNow ? "destructive" : "default" }))) return;
     setActionError(null);
-    setAdminPending(true);
+    setActionPending(true);
     try {
       await setUserAdmin(lang, user.id, !adminNow);
       setAdminNow(!adminNow);
     } catch {
       setActionError(t("actionFailed"));
     } finally {
-      setAdminPending(false);
+      setActionPending(false);
     }
   }
 
@@ -132,7 +142,7 @@ export function AdminUserEditDialog({ lang, open, onOpenChange, user }: AdminUse
             className="text-2xl text-primary/90 text-center leading-tight mb-2"
             style={{ fontFamily: "var(--font-body)" }}
           >
-            {t("editUserTitle", { nickname: user?.nickname ?? "" })}
+            {t("editUserTitle", { nickname: savedNickname })}
           </DialogTitle>
         </DialogHeader>
 
@@ -143,7 +153,7 @@ export function AdminUserEditDialog({ lang, open, onOpenChange, user }: AdminUse
               label={t("nicknameLabel")}
               value={nicknameValue}
               onChange={(e) => setNicknameValue(e.target.value)}
-              maxLength={32}
+              maxLength={NICKNAME_MAX_LENGTH}
             />
             {nicknameError && <p className="text-xs text-destructive">{nicknameError}</p>}
           </div>
@@ -156,7 +166,7 @@ export function AdminUserEditDialog({ lang, open, onOpenChange, user }: AdminUse
                 type="button"
                 aria-label={t("resetPassword")}
                 title={t("resetPassword")}
-                disabled={resetPending}
+                disabled={actionPending}
                 onClick={handleResetPassword}
                 className={iconButtonClasses}
               >
@@ -168,7 +178,7 @@ export function AdminUserEditDialog({ lang, open, onOpenChange, user }: AdminUse
                   type="button"
                   aria-label={adminNow ? t("revokeAdmin") : t("grantAdmin")}
                   title={adminNow ? t("revokeAdmin") : t("grantAdmin")}
-                  disabled={adminPending}
+                  disabled={actionPending}
                   onClick={handleToggleAdmin}
                   className={iconButtonClasses}
                 >
@@ -181,7 +191,7 @@ export function AdminUserEditDialog({ lang, open, onOpenChange, user }: AdminUse
                   type="button"
                   aria-label={t("unlink")}
                   title={t("unlink")}
-                  disabled={unlinkPending}
+                  disabled={actionPending}
                   onClick={handleUnlink}
                   className={cn(iconButtonClasses, "hover:text-destructive hover:border-destructive/40")}
                 >
@@ -212,7 +222,7 @@ export function AdminUserEditDialog({ lang, open, onOpenChange, user }: AdminUse
 
         <DialogFooter>
           <FormButton
-            disabled={nicknameSaving || !user || nicknameValue.trim() === user.nickname}
+            disabled={nicknameSaving || !user || nicknameValue.trim() === savedNickname}
             onClick={handleSaveNickname}
             className="w-full sm:w-auto"
           >

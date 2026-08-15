@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState, useTransition, type FormEvent, type KeyboardEvent } from "react";
+import { useCallback, useEffect, useRef, useState, useTransition, type FormEvent } from "react";
 import { useTranslations } from "next-intl";
 import { Trash2, Lock, LockOpen, Paperclip, FileText, Download, X, Image as ImageIcon, ImageOff } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -15,6 +15,7 @@ import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Bubble, BubbleContent, BubbleGroup } from "@/components/ui/bubble";
 import { PlayerAvatar } from "@/components/common/PlayerAvatar";
+import { handleComposerKeyDown } from "@/lib/compose-keydown";
 import { TicketStatusBadge } from "./TicketStatusBadge";
 import type { TicketStatus } from ".prisma/site-client";
 
@@ -244,16 +245,6 @@ export function TicketThread({ lang, ticketId, subject, initialStatus, initialMe
     submitMessage();
   }
 
-  function handleComposerKeyDown(e: KeyboardEvent<HTMLTextAreaElement>) {
-    // Enter sends, Shift+Enter inserts a newline — Ctrl/Cmd+Enter and IME
-    // composition (e.g. typing Cyrillic/CJK through an input method) are
-    // left alone so an in-progress composition's confirm keystroke doesn't
-    // accidentally submit.
-    if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) {
-      e.preventDefault();
-      submitMessage();
-    }
-  }
 
   function handleStatusChange(next: "OPEN" | "CLOSED") {
     startTransition(async () => {
@@ -351,7 +342,7 @@ export function TicketThread({ lang, ticketId, subject, initialStatus, initialMe
         <FormTextarea
           value={body}
           onChange={(e) => setBody(e.target.value)}
-          onKeyDown={handleComposerKeyDown}
+          onKeyDown={(e) => handleComposerKeyDown(e, submitMessage)}
           maxLength={TICKET_MESSAGE_MAX}
           rows={3}
           placeholder={t("replyPlaceholder")}

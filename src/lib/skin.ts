@@ -111,3 +111,19 @@ export async function resolveSkinUrls(
   }
   return results;
 }
+
+/**
+ * Same as resolveSkinUrls, but for callers that need to look a resolved
+ * skin back up per-uuid afterwards (e.g. zipping it onto each of several
+ * messages that share an author) rather than by array position. Dedupes to
+ * one resolveSkinUrl per unique uuid regardless of how many times it
+ * repeats in the input — shared by thread-data.ts/ticket-data.ts instead of
+ * each re-deriving the same dedup-then-zip-into-a-Map steps.
+ */
+export async function resolveSkinUrlMap(
+  uuids: (string | null | undefined)[]
+): Promise<Map<string, string | null>> {
+  const unique = Array.from(new Set(uuids.filter((u): u is string => !!u)));
+  const skinUrls = await resolveSkinUrls(unique);
+  return new Map(unique.map((u, i) => [u, skinUrls[i]]));
+}

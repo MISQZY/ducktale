@@ -54,17 +54,6 @@ export async function sendThreadMessage(formData: FormData): Promise<void> {
   const threadId = formData.get("threadId") as string;
   const body = formData.get("body") as string;
 
-  const thread = await siteDb.thread.findUnique({
-    where: { id: threadId },
-    select: { id: true, closed: true },
-  });
-  // Every authenticated user can reply to every thread (see getThreadViewer's
-  // doc comment) — the only gate here is "does the thread still exist" and
-  // "isn't closed" (closing is the one thing that blocks new messages;
-  // reopening it back is the only way to lift that, via setThreadClosed).
-  if (!thread) throw new Error("Thread not found");
-  if (thread.closed) throw new Error("Thread is closed");
-
   const cleanBody = (body || "").trim().slice(0, THREAD_MESSAGE_MAX);
   if (!cleanBody) throw new Error("Message is required");
 
@@ -72,18 +61,33 @@ export async function sendThreadMessage(formData: FormData): Promise<void> {
     throw new Error("Too many messages, slow down");
   }
 
-  await siteDb.$transaction([
-    siteDb.threadMessage.create({
-      data: { threadId, authorId: viewer.id, body: cleanBody },
-    }),
-    // Bumps updatedAt (@updatedAt only fires on a write that touches the
-    // row) so the tree's date grouping reflects the thread's latest
-    // activity, not just its creation time.
-    siteDb.thread.update({
-      where: { id: threadId },
+  // Every authenticated user can reply to every thread (see getThreadViewer's
+  // doc comment) — the only gate here is "does the thread still exist" and
+  // "isn't closed" (closing is the one thing that blocks new messages;
+  // reopening it back is the only way to lift that, via setThreadClosed).
+  //
+  // The existence/closed check and the message insert run in one
+  // interactive transaction, and the check is an updateMany (not a plain
+  // findUnique) specifically so it takes the same row lock setThreadClosed's
+  // own update does — without that, a close() landing in the gap between a
+  // separate read-check and this insert could let a message through right
+  // after the thread was closed. updateMany's `data` reuses the updatedAt
+  // bump this write already needed (so the tree's date grouping reflects
+  // the thread's latest activity), rather than being a no-op check.
+  await siteDb.$transaction(async (tx) => {
+    const { count } = await tx.thread.updateMany({
+      where: { id: threadId, closed: false },
       data: { updatedAt: new Date() },
-    }),
-  ]);
+    });
+    if (count === 0) {
+      const exists = await tx.thread.findUnique({ where: { id: threadId }, select: { id: true } });
+      throw new Error(exists ? "Thread is closed" : "Thread not found");
+    }
+
+    await tx.threadMessage.create({
+      data: { threadId, authorId: viewer.id, body: cleanBody },
+    });
+  });
 
   revalidatePath(`/${lang}/threads/${threadId}`);
   revalidatePath(`/${lang}/threads`, "layout");
@@ -124,6 +128,9 @@ export async function setThreadClosed(lang: string, threadId: string, closed: bo
 export async function deleteThread(lang: string, threadId: string): Promise<void> {
   const viewer = await getThreadViewer();
   if (!viewer?.isAdmin) throw new Error("Not authorized");
+
+  const thread = await siteDb.thread.findUnique({ where: { id: threadId }, select: { id: true } });
+  if (!thread) throw new Error("Thread not found");
 
   // ThreadMessage rows cascade via the schema's onDelete: Cascade.
   await siteDb.thread.delete({ where: { id: threadId } });

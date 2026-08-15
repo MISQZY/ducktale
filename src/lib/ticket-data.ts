@@ -1,5 +1,5 @@
 import { siteDb } from "@/lib/site-db";
-import { resolveSkinUrls } from "@/lib/skin";
+import { resolveSkinUrlMap } from "@/lib/skin";
 
 export interface TicketAttachmentDTO {
   id: string;
@@ -21,13 +21,20 @@ export interface TicketMessageDTO {
 /**
  * Shared by the ticket detail page's initial load and the /api/tickets/[id]
  * poll route — same shape both need, resolved once here instead of twice.
- * Mirrors resolveThreadMessages in @/lib/thread-data (same per-unique-author
- * skin batching via the existing chunked/cached resolveSkinUrls) — the two
- * aren't merged into one helper since Ticket has attachments and Thread
+ * Mirrors resolveThreadMessages in @/lib/thread-data (both build on the same
+ * resolveSkinUrlMap in @/lib/skin for per-unique-author skin batching) — the
+ * two aren't merged into one helper since Ticket has attachments and Thread
  * doesn't, and the two message shapes would otherwise need an artificial
  * union just to share a function neither side fully needs.
+ *
+ * viewerIsAdmin controls the same anonymization TicketThread.tsx applies
+ * visually (a non-admin viewer sees an admin reply's author as a generic
+ * "Administrator", never the specific admin) — authorSkinUrl is nulled here
+ * for that case too, server-side, so it never reaches a non-admin viewer's
+ * client state at all. Leaving it in the payload just because the UI
+ * happens not to render it would still let it be read from devtools/network.
  */
-export async function resolveTicketMessages(ticketId: string): Promise<TicketMessageDTO[]> {
+export async function resolveTicketMessages(ticketId: string, viewerIsAdmin: boolean): Promise<TicketMessageDTO[]> {
   const messages = await siteDb.ticketMessage.findMany({
     where: { ticketId },
     orderBy: { createdAt: "asc" },
@@ -48,13 +55,9 @@ export async function resolveTicketMessages(ticketId: string): Promise<TicketMes
     },
   });
 
-  const uuids = Array.from(new Set(
-    messages
-      .map((m) => (m.author.accountLink?.status === "CONFIRMED" ? m.author.accountLink.minecraftUuid : null))
-      .filter((u): u is string => !!u)
-  ));
-  const skinUrls = await resolveSkinUrls(uuids);
-  const skinByUuid = new Map(uuids.map((u, i) => [u, skinUrls[i]]));
+  const skinByUuid = await resolveSkinUrlMap(
+    messages.map((m) => (m.author.accountLink?.status === "CONFIRMED" ? m.author.accountLink.minecraftUuid : null))
+  );
 
   return messages.map((m) => ({
     id: m.id,
@@ -63,9 +66,11 @@ export async function resolveTicketMessages(ticketId: string): Promise<TicketMes
     createdAt: m.createdAt,
     authorNickname: m.author.nickname,
     authorSkinUrl:
-      m.author.accountLink?.status === "CONFIRMED" && m.author.accountLink.minecraftUuid
-        ? skinByUuid.get(m.author.accountLink.minecraftUuid) ?? null
-        : null,
+      m.isAdminReply && !viewerIsAdmin
+        ? null
+        : m.author.accountLink?.status === "CONFIRMED" && m.author.accountLink.minecraftUuid
+          ? skinByUuid.get(m.author.accountLink.minecraftUuid) ?? null
+          : null,
     attachments: m.attachments,
   }));
 }

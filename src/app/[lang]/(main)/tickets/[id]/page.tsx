@@ -57,7 +57,7 @@ export default async function TicketPage({
     playerCard = await getPlayerCard(ticket.user.accountLink.minecraftName);
   }
 
-  const messages = await resolveTicketMessages(id);
+  const messages = await resolveTicketMessages(id, viewer.isAdmin);
 
   const t = await getTranslations("Tickets");
   const backHref = viewer.isAdmin && !isOwner ? `/admin/tickets` : `/account/tickets`;

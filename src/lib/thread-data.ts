@@ -1,5 +1,5 @@
 import { siteDb } from "@/lib/site-db";
-import { resolveSkinUrls } from "@/lib/skin";
+import { resolveSkinUrlMap } from "@/lib/skin";
 
 export interface ThreadMessageDTO {
   id: string;
@@ -18,7 +18,7 @@ export interface ThreadMessageDTO {
  * skin lookup below.
  *
  * Author skins are resolved once per unique confirmed-linked uuid (not once
- * per message) via the existing chunked/cached resolveSkinUrls, the same
+ * per message) via resolveSkinUrlMap (@/lib/skin), the same chunked/cached
  * convention used everywhere else a player's head needs to render (navbar,
  * leaderboard, homepage marquee, ...).
  */
@@ -41,13 +41,9 @@ export async function resolveThreadMessages(threadId: string): Promise<ThreadMes
     },
   });
 
-  const uuids = Array.from(new Set(
-    messages
-      .map((m) => (m.author.accountLink?.status === "CONFIRMED" ? m.author.accountLink.minecraftUuid : null))
-      .filter((u): u is string => !!u)
-  ));
-  const skinUrls = await resolveSkinUrls(uuids);
-  const skinByUuid = new Map(uuids.map((u, i) => [u, skinUrls[i]]));
+  const skinByUuid = await resolveSkinUrlMap(
+    messages.map((m) => (m.author.accountLink?.status === "CONFIRMED" ? m.author.accountLink.minecraftUuid : null))
+  );
 
   return messages.map((m) => ({
     id: m.id,

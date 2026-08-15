@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState, useTransition, type FormEvent, type KeyboardEvent } from "react";
+import { useCallback, useEffect, useRef, useState, useTransition, type FormEvent } from "react";
 import { useTranslations } from "next-intl";
 import { Trash2, Lock, LockOpen } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -15,6 +15,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Marker, MarkerIcon, MarkerContent } from "@/components/ui/marker";
 import { Bubble, BubbleContent, BubbleGroup } from "@/components/ui/bubble";
 import { PlayerAvatar } from "@/components/common/PlayerAvatar";
+import { handleComposerKeyDown } from "@/lib/compose-keydown";
 
 type ThreadMessageType = "MESSAGE" | "CLOSED" | "REOPENED";
 
@@ -81,7 +82,19 @@ export function ThreadView({
       const res = await fetch(`/api/threads/${threadId}`);
       if (!res.ok) return;
       const data = await res.json();
-      setMessages(data.messages);
+      // Bails out (same array reference back to setState) when nothing
+      // actually changed since the last poll, instead of unconditionally
+      // replacing the array — messages only ever get appended here, never
+      // edited/removed, so "same length, same last id" reliably means
+      // "nothing new," and skips re-rendering (and re-resolving every
+      // author's skin) every 8s cycle for no reason.
+      setMessages((prev) => {
+        const next = data.messages;
+        const last = prev[prev.length - 1];
+        const nextLast = next[next.length - 1];
+        if (prev.length === next.length && last?.id === nextLast?.id) return prev;
+        return next;
+      });
       setClosed(data.closed);
     } catch {
       // Silent — a missed poll just tries again next interval.
@@ -89,6 +102,11 @@ export function ThreadView({
   }, [threadId]);
 
   useEffect(() => {
+    // A closed thread can't receive new messages (see sendThreadMessage),
+    // so there's nothing left for polling to ever pick up — closing this
+    // effect's own interval here also means poll() itself stops being
+    // called at all, not just its result being discarded.
+    if (closed) return;
     function tick() {
       if (document.visibilityState === "visible") poll();
     }
@@ -98,7 +116,7 @@ export function ThreadView({
       clearInterval(interval);
       document.removeEventListener("visibilitychange", tick);
     };
-  }, [poll]);
+  }, [poll, closed]);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ block: "nearest" });
@@ -127,17 +145,6 @@ export function ThreadView({
   function handleSend(e: FormEvent) {
     e.preventDefault();
     submitMessage();
-  }
-
-  function handleComposerKeyDown(e: KeyboardEvent<HTMLTextAreaElement>) {
-    // Enter sends, Shift+Enter inserts a newline — Ctrl/Cmd+Enter and IME
-    // composition (e.g. typing Cyrillic/CJK through an input method) are
-    // left alone so an in-progress composition's confirm keystroke doesn't
-    // accidentally submit.
-    if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) {
-      e.preventDefault();
-      submitMessage();
-    }
   }
 
   function handleToggleClosed() {
@@ -216,7 +223,7 @@ export function ThreadView({
         <FormTextarea
           value={body}
           onChange={(e) => setBody(e.target.value)}
-          onKeyDown={handleComposerKeyDown}
+          onKeyDown={(e) => handleComposerKeyDown(e, submitMessage)}
           maxLength={THREAD_MESSAGE_MAX}
           rows={3}
           placeholder={t("replyPlaceholder")}

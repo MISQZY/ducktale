@@ -29,7 +29,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
 
-  const messages = await resolveTicketMessages(id);
+  const messages = await resolveTicketMessages(id, viewer.isAdmin);
 
   return NextResponse.json({
     status: ticket.status,
