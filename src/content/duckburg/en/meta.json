@@ -2,7 +2,6 @@
   "title": "DuckBurg",
   "pages": [
     "index",
-    "map",
     "player-card",
     "getting-started",
     "events",
