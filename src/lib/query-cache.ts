@@ -14,8 +14,15 @@ interface CacheEntry<T> {
 
 // Cap so unique cache keys (e.g. one-off player search terms) can't grow
 // this map forever — a plain Map, so insertion order doubles as recency
-// order and the oldest (first) key is always the eviction candidate.
-const MAX_ENTRIES = 500;
+// order and the oldest (first) key is always the eviction candidate. Shared
+// by every withCache() caller in the app (skins, leaderboard pages, guest/
+// effective-role resolution, online-players, ...) — 500 was low enough that
+// under real traffic, short-lived high-churn keys (e.g. one per leaderboard
+// page/sort/search combo) evicted long-TTL entries like 10-minute skin
+// lookups well before their TTL, forcing them back to a DB round trip.
+// Entries are small (strings/short arrays), so a much higher cap costs
+// little memory for a lot fewer forced re-fetches.
+const MAX_ENTRIES = 5000;
 
 const store = new Map<string, CacheEntry<unknown>>();
 
