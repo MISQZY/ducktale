@@ -101,11 +101,16 @@ export function EmbedPage({
 
   return (
     <>
-      {fullscreen && (
+      {/* Reserves the inline embed's height so the page doesn't jump when
+          fullscreen pulls the dialog out of flow (fixed position) — only
+          needed when there's a non-fullscreen inline version to reserve
+          space for. modalMode has none (see the `null` return above), so
+          skip it there or it just adds empty space around the card. */}
+      {fullscreen && !modalMode && (
         <div style={{ height: height }} className="w-full my-4" aria-hidden="true" />
       )}
 
-      {/* When not fullscreen, we render it as a normal div. When fullscreen, we render it as a dialog. 
+      {/* When not fullscreen, we render it as a normal div. When fullscreen, we render it as a dialog.
           Wait, React doesn't allow changing tag names without unmounting.
           But we can just render the dialog always, and when not fullscreen, style it to behave like a normal div! */}
       <dialog
