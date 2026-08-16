@@ -24,7 +24,14 @@ import { useRouter } from "@/i18n/navigation";
 export function SessionRefresher() {
   const { data: session } = useSession();
   const router = useRouter();
-  const prevKeyRef = useRef<string | null>(null);
+  // `undefined` means "hasn't run yet" — distinct from `null`, which is a
+  // legitimate key for an anonymous session. Using `null` for both (as this
+  // previously did) silently swallowed the anonymous-to-logged-in
+  // transition: prevKeyRef.current started at null, an anonymous session's
+  // key is also null, so the very first login's key change (null -> real
+  // session) was indistinguishable from "still the first run" and never
+  // triggered a refresh — the exact case this component exists for.
+  const prevKeyRef = useRef<string | null | undefined>(undefined);
 
   useEffect(() => {
     const key = session
@@ -33,7 +40,7 @@ export function SessionRefresher() {
 
     // Skips the very first run (nothing to compare against yet) — only a
     // real change on a *subsequent* session read should trigger a refresh.
-    if (prevKeyRef.current !== null && key !== prevKeyRef.current) {
+    if (prevKeyRef.current !== undefined && key !== prevKeyRef.current) {
       router.refresh();
     }
     prevKeyRef.current = key;
