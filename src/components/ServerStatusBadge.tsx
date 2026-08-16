@@ -8,6 +8,8 @@ import {
   DuckHoverCardTrigger,
   DuckHoverCardContent,
 } from "@/components/ui/duck/hover-card";
+import { SkinFace } from "@/components/common/SkinFace";
+import { EXTERNAL_APIS } from "@/config/external-apis";
 
 export default function ServerStatusBadge({ host }: { host: string }) {
   const t = useTranslations("Servers.status");
@@ -56,10 +58,19 @@ export default function ServerStatusBadge({ host }: { host: string }) {
                 {t("players", { count: `${status.players.online}/${status.players.max}` })}
               </span>
             </DuckHoverCardTrigger>
-            <DuckHoverCardContent align="start" className="w-auto min-w-32 p-2 space-y-1">
-              {status.players.list.map((p) => (
-                <div key={p.name} className="text-xs text-foreground/80">{p.name}</div>
-              ))}
+            <DuckHoverCardContent align="start" className="w-auto min-w-32 p-2">
+              <div className="max-h-[240px] overflow-y-auto custom-scrollbar space-y-1.5 pr-1">
+                {status.players.list.map((p) => (
+                  <div key={p.name} className="flex items-center gap-2 text-xs text-foreground/80">
+                    <SkinFace
+                      skinUrl={EXTERNAL_APIS.legacy_skin.skinUrl(p.name)}
+                      size={16}
+                      className="rounded-sm"
+                    />
+                    {p.name}
+                  </div>
+                ))}
+              </div>
             </DuckHoverCardContent>
           </DuckHoverCard>
         ) : (
