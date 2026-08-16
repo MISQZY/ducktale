@@ -2,16 +2,17 @@
 
 import { revalidatePath } from "next/cache";
 import { siteDb } from "@/lib/site-db";
-import { requireAdminId } from "@/lib/admin";
+import { requireResourceRoleId } from "@/lib/admin";
 import { generateUniqueBadgeKey } from "@/lib/badges";
 import { isBadgeIconName } from "@/config/badges";
+import type { LocalizedName } from "@/lib/i18n-name";
 
 const NAME_MAX = 64;
 const TEXT_MAX = 255;
 const HEX_COLOR_PATTERN = /^#[0-9a-fA-F]{6}$/;
 
 interface BadgeFields {
-  name: string;
+  name: LocalizedName;
   description: string | null;
   earnCondition: string | null;
   icon: string;
@@ -19,8 +20,10 @@ interface BadgeFields {
 }
 
 function readBadgeFields(formData: FormData): BadgeFields {
-  const name = (formData.get("name") as string | null)?.trim().slice(0, NAME_MAX) ?? "";
-  if (!name) throw new Error("Name is required");
+  const ru = (formData.get("nameRu") as string | null)?.trim().slice(0, NAME_MAX) ?? "";
+  if (!ru) throw new Error("Russian name is required");
+  const en = (formData.get("nameEn") as string | null)?.trim().slice(0, NAME_MAX) ?? "";
+  if (!en) throw new Error("English name is required");
 
   const icon = (formData.get("icon") as string | null)?.trim() ?? "";
   if (!isBadgeIconName(icon)) throw new Error("Invalid icon");
@@ -31,7 +34,7 @@ function readBadgeFields(formData: FormData): BadgeFields {
   const description = (formData.get("description") as string | null)?.trim().slice(0, TEXT_MAX) || null;
   const earnCondition = (formData.get("earnCondition") as string | null)?.trim().slice(0, TEXT_MAX) || null;
 
-  return { name, description, earnCondition, icon, color: rawColor || null };
+  return { name: { ru, en }, description, earnCondition, icon, color: rawColor || null };
 }
 
 /** A badge can auto-grant from any number of roles (held ANY of them qualifies) — <select multiple name="autoRoleIds"> submits one entry per selection. */
@@ -41,11 +44,14 @@ function readAutoRoleIds(formData: FormData): string[] {
 }
 
 export async function createBadge(lang: string, formData: FormData): Promise<void> {
-  await requireAdminId();
+  await requireResourceRoleId("badges-edit");
 
   const fields = readBadgeFields(formData);
   const autoRoleIds = readAutoRoleIds(formData);
-  const key = await generateUniqueBadgeKey(fields.name);
+  // Slugged from the Russian name — admin-facing key generation, same
+  // locale convention the rest of this admin UI defaults to (form fields
+  // default to the RU tab first, see LocalizedNameInput).
+  const key = await generateUniqueBadgeKey(fields.name.ru);
 
   await siteDb.badge.create({
     data: {
@@ -59,7 +65,7 @@ export async function createBadge(lang: string, formData: FormData): Promise<voi
 }
 
 export async function updateBadge(lang: string, badgeId: string, formData: FormData): Promise<void> {
-  await requireAdminId();
+  await requireResourceRoleId("badges-edit");
 
   const fields = readBadgeFields(formData);
   const autoRoleIds = readAutoRoleIds(formData);
@@ -83,7 +89,7 @@ export async function updateBadge(lang: string, badgeId: string, formData: FormD
 }
 
 export async function deleteBadge(lang: string, badgeId: string): Promise<void> {
-  await requireAdminId();
+  await requireResourceRoleId("badges-delete");
 
   // UserBadge/BadgeAutoRole rows for this badge are onDelete: Cascade, so
   // this just removes it from whoever had it (and any auto-grant links)
@@ -95,7 +101,7 @@ export async function deleteBadge(lang: string, badgeId: string): Promise<void> 
 }
 
 export async function awardBadge(lang: string, userId: string, badgeId: string): Promise<void> {
-  await requireAdminId();
+  await requireResourceRoleId("badges-edit");
 
   // upsert (not create) — re-awarding a badge the user already has is a
   // harmless no-op rather than a unique-constraint error.
@@ -109,7 +115,7 @@ export async function awardBadge(lang: string, userId: string, badgeId: string):
 }
 
 export async function revokeBadge(lang: string, userId: string, badgeId: string): Promise<void> {
-  await requireAdminId();
+  await requireResourceRoleId("badges-edit");
 
   // pinned lives on this same row, so deleting it un-pins automatically —
   // nothing extra to clean up.
@@ -120,7 +126,7 @@ export async function revokeBadge(lang: string, userId: string, badgeId: string)
 }
 
 export async function getBadgeUsers(badgeId: string) {
-  await requireAdminId();
+  await requireResourceRoleId("badges-view");
   const rows = await siteDb.userBadge.findMany({
     where: { badgeId },
     select: {

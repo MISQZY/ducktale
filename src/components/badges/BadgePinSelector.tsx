@@ -6,10 +6,11 @@ import { Pin } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { setPinnedBadge } from "@/lib/actions/account-badges";
 import { ProfileBadgeChip } from "./ProfileBadgeChip";
+import { localizedName, type LocalizedName } from "@/lib/i18n-name";
 
 interface BadgeItem {
   id: string;
-  name: string;
+  name: LocalizedName;
   icon: string;
   color: string | null;
   description: string | null;
@@ -17,8 +18,8 @@ interface BadgeItem {
 }
 
 interface BadgePinSelectorProps {
-  /** Required unless readOnly — passed through to the setPinnedBadge Server Action. */
-  lang?: string;
+  /** Also drives badge name resolution now (both modes), not just the setPinnedBadge Server Action call (readOnly mode skips that call but still needs this to display names). */
+  lang: string;
   /** Ordered pinned-first then earliest-awarded — badges[0] is the implicit default pin when there's more than one badge. */
   badges: BadgeItem[];
   /** Raw pinned state (the badge with UserBadge.pinned=true, if any) — null means no explicit choice yet. */
@@ -47,7 +48,7 @@ export function BadgePinSelector({ lang, badges, initialPinnedBadgeId, readOnly 
   const effectiveId = explicitId ?? (badges.length > 1 ? badges[0]?.id : undefined) ?? null;
 
   function togglePin(badgeId: string) {
-    if (readOnly || !lang) return;
+    if (readOnly) return;
     const next = effectiveId === badgeId ? null : badgeId;
     const previous = explicitId;
     setExplicitId(next);
@@ -79,7 +80,7 @@ export function BadgePinSelector({ lang, badges, initialPinnedBadgeId, readOnly 
         return (
           <div key={badge.id} className="relative group/pin shrink-0">
             <ProfileBadgeChip
-              name={badge.name}
+              name={localizedName(badge.name, lang)}
               icon={badge.icon}
               color={badge.color}
               description={badge.description}

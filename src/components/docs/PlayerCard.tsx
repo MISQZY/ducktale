@@ -12,6 +12,7 @@ import { RESIDENT_ROLE_COLOR } from "@/lib/towny";
 import { SkinFace } from "@/components/common/SkinFace";
 import { RoleBadgeChip } from "@/components/badges/RoleBadgeChip";
 import { formatDurationMs, formatLastSeen } from "@/lib/player-card-format";
+import { localizedName } from "@/lib/i18n-name";
 import type {
   GrowthStatus, PlayerCard as PlayerCardData, PlayerCardResponse,
   PlayerSearchResponse, PlayerSuggestion,
@@ -89,6 +90,7 @@ const CARD_BODY_HEIGHT = 168; // px — base size for the head image
 
 function PlayerCardView({ player }: { player: PlayerCardData }) {
   const t = useTranslations("PlayerCard");
+  const locale = useLocale();
   return (
     <DuckCard className="border-primary/20 bg-duck-stone/40 min-h-70">
       <DuckCardContent className="pt-4 flex-1 flex flex-col">
@@ -105,7 +107,7 @@ function PlayerCardView({ player }: { player: PlayerCardData }) {
             </span>
           )}
           {player.roles.map((role) => (
-            <RoleBadgeChip key={role.trackKey} name={role.name} icon={role.icon} color={role.color} size={15} />
+            <RoleBadgeChip key={role.trackKey} name={localizedName(role.name, locale)} icon={role.icon} color={role.color} size={15} />
           ))}
         </div>
 

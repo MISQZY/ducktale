@@ -2,7 +2,7 @@
 
 import { useState, type ReactNode } from "react";
 import { useTranslations } from "next-intl";
-import { FormInput } from "@/components/common/FormInput";
+import { LocalizedNameInput } from "@/components/common/LocalizedNameInput";
 import { FormTextarea } from "@/components/common/FormTextarea";
 import { AdminFormDialog } from "./AdminFormDialog";
 import { IconPickerField } from "./IconPickerField";
@@ -14,10 +14,11 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { ChevronDown, HelpCircle } from "lucide-react";
 import { formInputClasses, formInputStyle } from "@/components/common/form-styles";
+import { localizedName, type LocalizedName } from "@/lib/i18n-name";
 
 interface BadgeFormValues {
   id: string;
-  name: string;
+  name: LocalizedName;
   description: string | null;
   earnCondition: string | null;
   icon: string;
@@ -29,7 +30,7 @@ interface BadgeFormValues {
 export interface RoleOption {
   id: string;
   group: string;
-  name: string;
+  name: LocalizedName;
 }
 
 interface BadgeFormDialogProps {
@@ -49,6 +50,8 @@ export function BadgeFormDialog({ lang, badge, roleOptions, trigger }: BadgeForm
   const [open, setOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [name, setName] = useState<LocalizedName>(badge?.name ?? { ru: "", en: "" });
+  const [activeLocale, setActiveLocale] = useState<"ru" | "en">("ru");
   const [icon, setIcon] = useState<string>(badge?.icon ?? DEFAULT_ICON);
   const [color, setColor] = useState<string>(badge?.color ?? DEFAULT_COLOR);
   const [iconQuery, setIconQuery] = useState("");
@@ -56,7 +59,7 @@ export function BadgeFormDialog({ lang, badge, roleOptions, trigger }: BadgeForm
   const [rolesOpen, setRolesOpen] = useState(false);
   const [selectedRoleIds, setSelectedRoleIds] = useState<string[]>(badge?.autoRoleIds ?? []);
 
-  const visibleRoles = roleOptions.filter((r) => r.name.toLowerCase().includes(roleQuery.toLowerCase()) || r.group.toLowerCase().includes(roleQuery.toLowerCase()));
+  const visibleRoles = roleOptions.filter((r) => localizedName(r.name, lang).toLowerCase().includes(roleQuery.toLowerCase()) || r.group.toLowerCase().includes(roleQuery.toLowerCase()));
 
   async function handleSubmit(formData: FormData) {
     setError(null);
@@ -82,6 +85,8 @@ export function BadgeFormDialog({ lang, badge, roleOptions, trigger }: BadgeForm
         setOpen(next);
         if (next) {
           setError(null);
+          setName(badge?.name ?? { ru: "", en: "" });
+          setActiveLocale("ru");
           setIcon(badge?.icon ?? DEFAULT_ICON);
           setColor(badge?.color ?? DEFAULT_COLOR);
           setIconQuery("");
@@ -98,12 +103,15 @@ export function BadgeFormDialog({ lang, badge, roleOptions, trigger }: BadgeForm
       onSubmit={handleSubmit}
       className="sm:max-w-lg"
     >
-      <FormInput
+      <LocalizedNameInput
         id="name"
-        name="name"
         label={t("nameLabel")}
-        defaultValue={badge?.name}
-        required
+        ruName="nameRu"
+        enName="nameEn"
+        value={name}
+        onChange={setName}
+        active={activeLocale}
+        onActiveChange={setActiveLocale}
         maxLength={64}
       />
       <FormTextarea
@@ -185,7 +193,7 @@ export function BadgeFormDialog({ lang, badge, roleOptions, trigger }: BadgeForm
                         }}
                       />
                       <span className="truncate">
-                        {role.name} <span className="text-foreground/40 font-mono text-xs ml-1">({role.group})</span>
+                        {localizedName(role.name, lang)} <span className="text-foreground/40 font-mono text-xs ml-1">({role.group})</span>
                       </span>
                     </label>
                   ))}

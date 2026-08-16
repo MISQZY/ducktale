@@ -1,5 +1,7 @@
+import type { LocalizedName } from "@/lib/i18n-name";
+
 export interface LeaderboardPlayerBadge {
-  name: string;
+  name: LocalizedName;
   icon: string;
   color: string | null;
   description: string | null;

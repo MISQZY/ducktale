@@ -10,6 +10,7 @@ import { resolveSkinUrls } from "@/lib/skin";
 import { isUserOnline } from "@/lib/presence";
 import type { LeaderboardPlayer, LeaderboardResponse } from "@/types/leaderboard";
 import type { RankedTown, TownRankingResponse } from "@/types/town-ranking";
+import type { LocalizedName } from "@/lib/i18n-name";
 
 export type { LeaderboardPlayer, LeaderboardResponse, RankedTown, TownRankingResponse };
 
@@ -148,7 +149,7 @@ async function buildLeaderboardResponse(
         online:     Boolean(r.online),
         rank:       Number(r.rank),
         profileUsername: link?.user.nickname ?? null,
-        badges: displayBadge ? [displayBadge] : [],
+        badges: displayBadge ? [{ ...displayBadge, name: displayBadge.name as unknown as LocalizedName }] : [],
         skinUrl: skinByUuid.get(r.uuid) ?? null,
         siteOnline,
         siteLastSeenMs: dbLastSeenMs ?? null,

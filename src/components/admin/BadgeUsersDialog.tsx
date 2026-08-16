@@ -19,6 +19,8 @@ interface BadgeUsersDialogProps {
   badgeId: string;
   badgeName: string;
   count: number;
+  /** badges-edit (or isAdmin) — a badges-view-only holder can see who has this badge but not revoke it. */
+  canEdit: boolean;
 }
 
 interface BadgeUser {
@@ -29,8 +31,9 @@ interface BadgeUser {
   awardedAt: Date;
 }
 
-export function BadgeUsersDialog({ lang, badgeId, badgeName, count }: BadgeUsersDialogProps) {
+export function BadgeUsersDialog({ lang, badgeId, badgeName, count, canEdit }: BadgeUsersDialogProps) {
   const t = useTranslations("Admin.badges");
+  const ta = useTranslations("Admin");
   const confirm = useConfirm();
   const [open, setOpen] = useState(false);
   const [users, setUsers] = useState<BadgeUser[] | null>(null);
@@ -52,7 +55,7 @@ export function BadgeUsersDialog({ lang, badgeId, badgeName, count }: BadgeUsers
   }
 
   async function handleRevoke(userId: string) {
-    if (!(await confirm({ description: "Убрать бейдж у этого пользователя?", variant: "destructive" }))) return;
+    if (!(await confirm({ description: t("confirmRevokeBadge"), variant: "destructive" }))) return;
     startRevokeTransition(async () => {
       try {
         await revokeBadge(lang, userId, badgeId);
@@ -63,8 +66,8 @@ export function BadgeUsersDialog({ lang, badgeId, badgeName, count }: BadgeUsers
     });
   }
 
-  const filteredUsers = users?.filter(u => 
-    (u.name || "Аноним").toLowerCase().includes(searchQuery.toLowerCase())
+  const filteredUsers = users?.filter(u =>
+    (u.name || ta("anonymousPlayer")).toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   return (
@@ -80,12 +83,12 @@ export function BadgeUsersDialog({ lang, badgeId, badgeName, count }: BadgeUsers
       </PopoverTrigger>
       <PopoverContent className="w-[320px] p-3 rounded-xl liquid-card border-primary/20 flex flex-col gap-3" align="center">
         <SearchInput
-          placeholder="Найти"
+          placeholder={ta("searchPlaceholder")}
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           className="h-8 text-xs"
         />
-        
+
         <div className="max-h-[300px] overflow-y-auto custom-scrollbar pr-1 mt-1 space-y-1.5">
           {isLoading && !users ? (
             <div className="space-y-2">
@@ -94,7 +97,7 @@ export function BadgeUsersDialog({ lang, badgeId, badgeName, count }: BadgeUsers
               <Skeleton className="h-10 w-full rounded-lg" />
             </div>
           ) : filteredUsers && filteredUsers.length === 0 ? (
-            <p className="text-center text-xs text-foreground/50 py-6">Ничего не найдено.</p>
+            <p className="text-center text-xs text-foreground/50 py-6">{ta("noSearchResults")}</p>
           ) : (
             filteredUsers?.map((user) => (
               <div
@@ -113,15 +116,17 @@ export function BadgeUsersDialog({ lang, badgeId, badgeName, count }: BadgeUsers
                   <span className="text-[9px] text-foreground/50 whitespace-nowrap">
                     {new Date(user.awardedAt).toLocaleDateString()}
                   </span>
-                  <button
-                    type="button"
-                    onClick={() => handleRevoke(user.userId)}
-                    disabled={isRevoking}
-                    className="p-1.5 text-destructive/60 hover:text-destructive hover:bg-destructive/10 rounded-md transition-colors disabled:opacity-50 shrink-0"
-                    title="Забрать бейдж"
-                  >
-                    <Trash2 size={14} />
-                  </button>
+                  {canEdit && (
+                    <button
+                      type="button"
+                      onClick={() => handleRevoke(user.userId)}
+                      disabled={isRevoking}
+                      className="p-1.5 text-destructive/60 hover:text-destructive hover:bg-destructive/10 rounded-md transition-colors disabled:opacity-50 shrink-0"
+                      title={t("revokeBadge", { name: badgeName })}
+                    >
+                      <Trash2 size={14} />
+                    </button>
+                  )}
                 </div>
               </div>
             ))

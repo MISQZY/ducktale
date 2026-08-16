@@ -7,12 +7,13 @@ import { buttonVariants } from "@/components/ui/button";
 import { deleteBadge } from "@/lib/actions/admin-badges";
 import { cn } from "@/lib/utils";
 import { AdminRowActions } from "./AdminRowActions";
+import { localizedName, type LocalizedName } from "@/lib/i18n-name";
 
 interface BadgeRowActionsProps {
   lang: string;
   badge: {
     id: string;
-    name: string;
+    name: LocalizedName;
     description: string | null;
     earnCondition: string | null;
     icon: string;
@@ -20,10 +21,16 @@ interface BadgeRowActionsProps {
     autoRoleIds: string[];
   };
   roleOptions: RoleOption[];
+  /** badges-edit (or isAdmin) — gates the edit dialog. Independent of canDelete (see RESOURCE_ROLE_ACTIONS's doc comment). */
+  canEdit: boolean;
+  /** badges-delete (or isAdmin) — gates the delete button specifically. */
+  canDelete: boolean;
 }
 
-export function BadgeRowActions({ lang, badge, roleOptions }: BadgeRowActionsProps) {
+export function BadgeRowActions({ lang, badge, roleOptions, canEdit, canDelete }: BadgeRowActionsProps) {
   const t = useTranslations("Admin.badges");
+
+  if (!canEdit && !canDelete) return null;
 
   const editButton = (
     <button
@@ -41,16 +48,19 @@ export function BadgeRowActions({ lang, badge, roleOptions }: BadgeRowActionsPro
 
   return (
     <AdminRowActions
-      itemName={badge.name}
+      itemName={localizedName(badge.name, lang)}
       onDelete={() => deleteBadge(lang, badge.id)}
       translationsNamespace="Admin.badges"
+      canDelete={canDelete}
       editDialog={
-        <BadgeFormDialog
-          lang={lang}
-          badge={badge}
-          roleOptions={roleOptions}
-          trigger={editButton}
-        />
+        canEdit ? (
+          <BadgeFormDialog
+            lang={lang}
+            badge={badge}
+            roleOptions={roleOptions}
+            trigger={editButton}
+          />
+        ) : null
       }
     />
   );

@@ -13,6 +13,7 @@ import { RankBadge } from "@/components/leaderboard/RankBadge";
 import { getPlayerCard } from "@/lib/player-card";
 import { nameColorStyle } from "@/lib/name-color";
 import { cn } from "@/lib/utils";
+import { localizedName } from "@/lib/i18n-name";
 import type { GrowthStatus, PlayerServerStatus } from "@/types/player-card";
 import type { ResidentRole } from "@/types/towny";
 
@@ -222,7 +223,7 @@ async function ProfilePlayerCardContent({ minecraftName, className, locale, regi
           {player.roles.length > 0 && (
             <div className="flex items-center gap-2">
               {player.roles.map((role) => (
-                <RoleBadgeChip key={role.trackKey} name={role.name} icon={role.icon} color={role.color} size={18} />
+                <RoleBadgeChip key={role.trackKey} name={localizedName(role.name, locale)} icon={role.icon} color={role.color} size={18} />
               ))}
             </div>
           )}

@@ -18,10 +18,11 @@ import {
 } from "@/components/ui/pagination";
 import { SearchInput } from "@/components/ui/search-input";
 import { useConfirm } from "@/components/common/ConfirmDialogProvider";
+import { localizedName, type LocalizedName } from "@/lib/i18n-name";
 
 interface BadgeOption {
   id: string;
-  name: string;
+  name: LocalizedName;
   icon: string;
   color: string | null;
 }
@@ -31,9 +32,11 @@ interface UserBadgesCellProps {
   userId: string;
   badges: BadgeOption[];
   currentBadgeIds: string[];
+  /** badges-edit (or isAdmin) — without it, held badges still show but award/revoke controls don't. */
+  canEdit: boolean;
 }
 
-export function UserBadgesCell({ lang, userId, badges, currentBadgeIds }: UserBadgesCellProps) {
+export function UserBadgesCell({ lang, userId, badges, currentBadgeIds, canEdit }: UserBadgesCellProps) {
   const t = useTranslations("Admin");
   const confirm = useConfirm();
   const [isPending, startTransition] = useTransition();
@@ -76,7 +79,7 @@ export function UserBadgesCell({ lang, userId, badges, currentBadgeIds }: UserBa
   const PAGE_SIZE = 10;
 
   const filteredBadges = availableBadges.filter((b) =>
-    b.name.toLowerCase().includes(searchQuery.toLowerCase())
+    localizedName(b.name, lang).toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   const totalPages = Math.max(1, Math.ceil(filteredBadges.length / PAGE_SIZE));
@@ -92,16 +95,16 @@ export function UserBadgesCell({ lang, userId, badges, currentBadgeIds }: UserBa
           {heldBadges.map((b) => (
             <div key={b.id} className="shrink-0">
               <BadgeChip
-                name={b.name}
+                name={localizedName(b.name, lang)}
                 icon={b.icon}
                 color={b.color}
-                onRemove={() => handleRevokeBadge(b.id)}
+                onRemove={canEdit ? () => handleRevokeBadge(b.id) : undefined}
                 disabled={isPending}
               />
             </div>
           ))}
 
-          {availableBadges.length > 0 && (
+          {canEdit && availableBadges.length > 0 && (
             <Popover open={pickerOpen} onOpenChange={(open) => {
               setPickerOpen(open);
               if (!open) {
@@ -142,7 +145,7 @@ export function UserBadgesCell({ lang, userId, badges, currentBadgeIds }: UserBa
                         disabled={isPending}
                         className="flex items-center justify-between gap-3 rounded-lg border border-primary/10 bg-card/40 hover:bg-primary/10 hover:border-primary/30 p-2 transition-all text-left"
                       >
-                        <BadgeChip name={b.name} icon={b.icon} color={b.color} />
+                        <BadgeChip name={localizedName(b.name, lang)} icon={b.icon} color={b.color} />
                       </button>
                     ))
                   )}

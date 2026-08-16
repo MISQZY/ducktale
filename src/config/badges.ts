@@ -1,4 +1,5 @@
 import dynamicIconImports from "lucide-react/dynamicIconImports";
+import type { LocalizedName } from "@/lib/i18n-name";
 
 export type IconName = string;
 export type BadgeIconName = IconName;
@@ -30,7 +31,7 @@ export const DEFAULT_BADGE_ICONS: IconName[] = [
 
 export interface BadgeDefinition {
   key: string;
-  name: string;
+  name: LocalizedName;
   description?: string;
   earnCondition?: string;
   icon: IconName;
@@ -47,7 +48,7 @@ export interface BadgeDefinition {
 export const BADGE_DEFINITIONS: BadgeDefinition[] = [
   {
     key: "founder",
-    name: "Основатель",
+    name: { ru: "Основатель", en: "Founder" },
     description: "Один из первых игроков сети DuckTale.",
     earnCondition: "Выдаётся вручную администрацией первым игрокам сервера.",
     icon: "crown",
@@ -55,7 +56,7 @@ export const BADGE_DEFINITIONS: BadgeDefinition[] = [
   },
   {
     key: "supporter",
-    name: "Меценат",
+    name: { ru: "Меценат", en: "Supporter" },
     description: "Поддержал развитие сервера.",
     earnCondition: "Выдаётся вручную администрацией.",
     icon: "heart",

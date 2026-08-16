@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useMemo } from "react";
-import { useTranslations } from "next-intl";
+import { useTranslations, useLocale } from "next-intl";
 import type { ColumnDef } from "@tanstack/react-table";
 import { cn } from "@/lib/utils";
 import { Users } from "lucide-react";
@@ -17,6 +17,7 @@ import { RankBadge } from "./RankBadge";
 import { PlayerAvatar } from "@/components/common/PlayerAvatar";
 import { CompactBadgeChip } from "@/components/badges/CompactBadgeChip";
 import type { LeaderboardPlayer, LeaderboardResponse } from "@/types/leaderboard";
+import { localizedName } from "@/lib/i18n-name";
 
 export type { LeaderboardPlayer, LeaderboardResponse };
 
@@ -31,6 +32,7 @@ export function TopPlayersTable({ pageSize = 10, className }: TopPlayersTablePro
   const t = useTranslations("Leaderboard");
   const tCard = useTranslations("PlayerCard");
   const tCommon = useTranslations("Common");
+  const locale = useLocale();
 
   const fetcher = useCallback(async (page: number, query: string, sort?: string, order?: string) => {
     const params = new URLSearchParams({
@@ -105,8 +107,8 @@ export function TopPlayersTable({ pageSize = 10, className }: TopPlayersTablePro
                 <div className="flex items-center gap-1">
                   {player.badges.slice(0, 1).map((badge) => (
                     <CompactBadgeChip
-                      key={badge.name}
-                      name={badge.name}
+                      key={player.uuid}
+                      name={localizedName(badge.name, locale)}
                       icon={badge.icon}
                       color={badge.color}
                       description={badge.description}

@@ -9,10 +9,11 @@ import { BadgeChip } from "@/components/badges/BadgeChip";
 import { BadgeRowActions } from "@/components/admin/BadgeRowActions";
 import { BadgeUsersDialog } from "@/components/admin/BadgeUsersDialog";
 import type { RoleOption } from "@/components/admin/BadgeFormDialog";
+import { localizedName, type LocalizedName } from "@/lib/i18n-name";
 
 export interface AdminBadgeRow {
   id: string;
-  name: string;
+  name: LocalizedName;
   description: string | null;
   earnCondition: string | null;
   icon: string;
@@ -25,6 +26,10 @@ interface AdminBadgesTableProps {
   lang: string;
   badges: AdminBadgeRow[];
   roleOptions: RoleOption[];
+  /** badges-edit (or isAdmin) — a badges-view-only holder can reach this page but shouldn't see edit/revoke controls. */
+  canEdit: boolean;
+  /** badges-delete (or isAdmin) — independent of canEdit (see RESOURCE_ROLE_ACTIONS's doc comment), gates only the delete button. */
+  canDelete: boolean;
   sortColumn?: string;
   sortDirection?: "asc" | "desc";
   rowOffset?: number;
@@ -39,7 +44,7 @@ interface AdminBadgesTableProps {
  * AdminUserActions/UserBadgesCell already use for this page's other
  * interactive pieces.
  */
-export function AdminBadgesTable({ lang, badges, roleOptions, sortColumn, sortDirection, rowOffset }: AdminBadgesTableProps) {
+export function AdminBadgesTable({ lang, badges, roleOptions, canEdit, canDelete, sortColumn, sortDirection, rowOffset }: AdminBadgesTableProps) {
   const t = useTranslations("Admin");
   const tb = useTranslations("Admin.badges");
   const onSort = useAdminTableSort(sortColumn, sortDirection);
@@ -52,7 +57,7 @@ export function AdminBadgesTable({ lang, badges, roleOptions, sortColumn, sortDi
       minSize: 160,
       enableHiding: false,
       meta: { headClassName: "align-middle", cellClassName: "align-middle", withRightBorder: true, sortKey: "badge", defaultSortDirection: "asc" },
-      cell: ({ row }) => <BadgeChip name={row.original.name} icon={row.original.icon} color={row.original.color} />,
+      cell: ({ row }) => <BadgeChip name={localizedName(row.original.name, lang)} icon={row.original.icon} color={row.original.color} />,
     },
     {
       id: "description",
@@ -78,7 +83,7 @@ export function AdminBadgesTable({ lang, badges, roleOptions, sortColumn, sortDi
       minSize: 90,
       meta: { headClassName: "text-center align-middle", cellClassName: "text-center align-middle", withRightBorder: true, sortKey: "awarded", defaultSortDirection: "desc" },
       cell: ({ row }) => (
-        <BadgeUsersDialog lang={lang} badgeId={row.original.id} badgeName={row.original.name} count={row.original._count.userBadges} />
+        <BadgeUsersDialog lang={lang} badgeId={row.original.id} badgeName={localizedName(row.original.name, lang)} count={row.original._count.userBadges} canEdit={canEdit} />
       ),
     },
     {
@@ -88,9 +93,9 @@ export function AdminBadgesTable({ lang, badges, roleOptions, sortColumn, sortDi
       minSize: 76,
       enableHiding: false,
       meta: { headClassName: "align-middle text-right", cellClassName: "align-middle text-right" },
-      cell: ({ row }) => <BadgeRowActions lang={lang} badge={row.original} roleOptions={roleOptions} />,
+      cell: ({ row }) => <BadgeRowActions lang={lang} badge={row.original} roleOptions={roleOptions} canEdit={canEdit} canDelete={canDelete} />,
     },
-  ], [lang, roleOptions, t, tb]);
+  ], [lang, roleOptions, canEdit, canDelete, t, tb]);
 
   return (
     <DataTable
