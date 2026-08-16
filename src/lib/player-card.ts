@@ -122,7 +122,13 @@ export const IDENTITY_SEARCH_TTL_MS = 60_000;
 // random UUID almost never hits the growth/skin/towny caches either), short
 // enough that it still rotates to a new random player every few seconds
 // instead of showing the same "random" pick to everyone for a whole minute.
-const IDENTITY_RANDOM_TTL_MS = 5_000;
+export const IDENTITY_RANDOM_TTL_MS = 5_000;
+// Shared literal key for the random-identity cache entry above — exported so
+// /api/player-card can both check it (to exempt an already-cached random
+// request from the rate limit, same as a real search) and bust it on an
+// explicit refresh-button click, which must always yield a genuinely new
+// pick rather than replaying whatever this TTL window last served.
+export const RANDOM_IDENTITY_CACHE_KEY = "identity:__random__";
 
 // Matches the /api/player-card/search suggestions endpoint's minimum — also
 // keeps single/double-character queries (cheap to spam, each landing its own
@@ -215,7 +221,7 @@ async function resolveIdentity(search: string): Promise<IdentityRow | null> {
   if (search) {
     return withCache(`identity:${search.toLowerCase()}`, IDENTITY_SEARCH_TTL_MS, () => resolveIdentityUncached(search));
   }
-  return withCache("identity:__random__", IDENTITY_RANDOM_TTL_MS, () => resolveIdentityUncached(search));
+  return withCache(RANDOM_IDENTITY_CACHE_KEY, IDENTITY_RANDOM_TTL_MS, () => resolveIdentityUncached(search));
 }
 
 async function resolveIdentityUncached(search: string): Promise<IdentityRow | null> {

@@ -240,6 +240,11 @@ export function PlayerCard({ className }: PlayerCardProps) {
   // when query is already "" (setting state to an unchanged value wouldn't
   // otherwise trigger the [query] effect below).
   const [refreshNonce, setRefreshNonce] = useState(0);
+  // Read (and cleared) by the fetch effect on its very next run — tells it
+  // this run was triggered by the refresh button, not a search/restore, so
+  // it should ask the API to force a new random pick instead of possibly
+  // replaying whichever random player the last few seconds already served.
+  const explicitRefreshRef = useRef(false);
   const [data, setData] = useState<PlayerCardResponse | null>(null);
   const [status, setStatus] = useState<"loading" | "success" | "error">("loading");
   const [suggestions, setSuggestions] = useState<PlayerSuggestion[]>([]);
@@ -311,6 +316,7 @@ export function PlayerCard({ className }: PlayerCardProps) {
     setQuery("");
     setSuggestions([]);
     setShowDropdown(false);
+    explicitRefreshRef.current = true;
     setRefreshNonce((n) => n + 1);
   };
 
@@ -343,7 +349,9 @@ export function PlayerCard({ className }: PlayerCardProps) {
     let cancelled = false;
     setStatus("loading");
 
-    const params = query ? `?search=${encodeURIComponent(query)}` : "";
+    const forceRandom = !query && explicitRefreshRef.current;
+    explicitRefreshRef.current = false;
+    const params = query ? `?search=${encodeURIComponent(query)}` : forceRandom ? "?refresh=1" : "";
     fetch(`/api/player-card${params}`)
       .then((r) => {
         if (!r.ok) throw new Error(`HTTP ${r.status}`);
