@@ -10,7 +10,7 @@ import { useTranslations } from "next-intl";
 import Logo from "./ui/Logo";
 import { Button } from "@/components/ui/button";
 import { PlayerAvatar } from "@/components/common/PlayerAvatar";
-import { getCachedAvatar, setCachedAvatar, type AvatarCacheEntry } from "@/lib/avatar-cache";
+import { getCachedAvatar, getCachedAvatarFromStorage, setCachedAvatar, type AvatarCacheEntry } from "@/lib/avatar-cache";
 import { nameColorStyle } from "@/lib/name-color";
 import { cn } from "@/lib/utils";
 import {
@@ -71,11 +71,15 @@ function DuckIcon({ visible }: { visible: boolean }) {
  */
 function AccountLinkContent({ fallbackLabel }: { fallbackLabel: string }) {
   const { data: session, status } = useSession();
-  // Lazy initializer reads the module-level cache synchronously, so a
-  // remount (hard reload, or navigating in from outside the (main) route
-  // group's persistent layout) paints the real head/color immediately
-  // instead of flashing back to the fallback icon while a fresh fetch
-  // resolves. See src/lib/avatar-cache.ts.
+  // Lazy initializer reads the in-memory cache synchronously — this only
+  // ever has anything on a client-side remount (navigating in from outside
+  // the (main) route group's persistent layout) within the same page load;
+  // a hard reload re-evaluates the whole bundle, so this is always a miss
+  // right after one. That's on purpose: it must render identically to SSR
+  // (also always a miss) or React would flag a hydration mismatch — the
+  // localStorage-backed cache that *does* survive a hard reload is only
+  // ever consulted from the effect below, never from render. See
+  // src/lib/avatar-cache.ts's module doc comment for why.
   const [avatar, setAvatar] = useState<AvatarCacheEntry>(() => {
     const uid = session?.user?.id;
     return (uid && getCachedAvatar(uid)) || { skinUrl: null, nameColor: null };
@@ -85,14 +89,12 @@ function AccountLinkContent({ fallbackLabel }: { fallbackLabel: string }) {
     const uid = session?.user?.id;
     if (status !== "authenticated" || !uid) return;
 
-    const cachedEntry = getCachedAvatar(uid);
+    // getCachedAvatar first (usually a no-op — the initializer above
+    // already read it, this only helps the rare render where `uid` wasn't
+    // known yet at mount), then the localStorage-backed one, which is what
+    // actually saves the network round trip after a hard reload.
+    const cachedEntry = getCachedAvatar(uid) ?? getCachedAvatarFromStorage(uid);
     if (cachedEntry !== undefined) {
-      // Usually a no-op (the useState initializer above already read the
-      // same cache synchronously) — this only does anything on the rare
-      // render where `uid` wasn't known yet at mount and only became
-      // available once the session resolved, restoring state from that
-      // external cache the same way docs/PlayerCard.tsx and
-      // RankingsTabs.tsx already do for their own mount-time restores.
       // eslint-disable-next-line react-hooks/set-state-in-effect
       setAvatar(cachedEntry);
       return;
