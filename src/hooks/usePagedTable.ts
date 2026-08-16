@@ -28,6 +28,17 @@ export interface UsePagedTableOptions<T> {
   debounceMs?: number;
   /** TTL in ms for each cached entry. Default: 60_000 (1 min). */
   cacheTtlMs?: number;
+  /**
+   * Server-fetched default-page result (page 1, no search/sort/order) to
+   * paint immediately instead of a loading skeleton — the fetcher's own
+   * server-side counterpart already did this exact query, so redoing it
+   * client-side on mount would just be a second, purely visual-latency
+   * round trip for the page every visitor sees first. Only short-circuits
+   * the mount fetch when the actual URL matches those defaults (see the
+   * mount effect below) — a deep link with ?page=/?search=/?sort= still
+   * fetches fresh, same as before this option existed.
+   */
+  initialData?: PagedResponse<T>;
 }
 
 export interface UsePagedTableResult<T> {
@@ -73,8 +84,11 @@ export function usePagedTable<T>({
   fetcher,
   debounceMs  = 300,
   cacheTtlMs  = 60_000,
+  initialData,
 }: UsePagedTableOptions<T>): UsePagedTableResult<T> {
-  const [state, setState] = useState<TableFetchState<T>>({ status: "loading" });
+  const [state, setState] = useState<TableFetchState<T>>(
+    initialData ? { status: "ok", data: initialData } : { status: "loading" }
+  );
   // Fixed, SSR-safe defaults — NOT read from the URL here. readParam() sees
   // `typeof window === "undefined"` during the server render (always "no
   // params") but the real query string once the client hydrates, so a lazy
@@ -176,7 +190,18 @@ export function usePagedTable<T>({
     setSortColumn(urlSortColumn);
     setSortDirection(urlSortDirection);
 
+    const matchesInitialData =
+      initialData && urlPage === 1 && urlQuery === "" && !urlSortColumn && !urlSortDirection;
+    if (matchesInitialData) {
+      // Seed the same cache entry fetchPage would have written, so an
+      // immediate goTo(1)/refresh reads it back instead of re-fetching.
+      const key = `:1::`;
+      cacheRef.current.set(key, { data: initialData, expiresAt: Date.now() + cacheTtlMs });
+      return;
+    }
+
     fetchPage(urlPage, urlQuery, urlSortColumn, urlSortDirection);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- initialData/cacheTtlMs are stable per mount (server-provided prop / options), not meant to re-run this mount-only effect
   }, [fetchPage]);
 
   // ── Search with debounce ────────────────────────────────────────────────────

@@ -6,8 +6,14 @@ import { Users, Castle } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { TopPlayersTable } from "./TopPlayersTable";
 import { TownRankingTable } from "./TownRankingTable";
+import type { LeaderboardResponse } from "@/types/leaderboard";
 
 type RankingType = "players" | "towns";
+
+export interface RankingsTabsProps {
+  /** Server-prefetched page 1 of the players tab — see TopPlayersTable's initialData doc comment. */
+  initialPlayersData?: LeaderboardResponse;
+}
 
 /**
  * The two ranking categories — each tab owns its own paginated/searchable
@@ -30,7 +36,7 @@ type RankingType = "players" | "towns";
  * mismatch, not just a cosmetic one — the `?type=towns` case is corrected
  * a tick later in the effect below instead.
  */
-export function RankingsTabs() {
+export function RankingsTabs({ initialPlayersData }: RankingsTabsProps) {
   const t = useTranslations("Leaderboard");
   const [type, setType] = useState<RankingType>("players");
 
@@ -65,7 +71,7 @@ export function RankingsTabs() {
       </TabsList>
 
       <TabsContent value="players" className="w-full">
-        <TopPlayersTable />
+        <TopPlayersTable initialData={initialPlayersData} />
       </TabsContent>
       <TabsContent value="towns" className="w-full">
         <TownRankingTable />

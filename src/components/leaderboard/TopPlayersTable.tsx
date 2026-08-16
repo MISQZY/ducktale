@@ -26,9 +26,15 @@ const SKELETON_WIDTHS = ["w-8", "w-32", "w-20"];
 export interface TopPlayersTableProps {
   pageSize?:  number;
   className?: string;
+  /**
+   * Server-prefetched page 1 (no search/sort) — same shape /api/leaderboard
+   * returns, converted to PagedResponse's `items` shape the same way the
+   * fetcher below does. See usePagedTable's initialData doc comment.
+   */
+  initialData?: LeaderboardResponse;
 }
 
-export function TopPlayersTable({ pageSize = 10, className }: TopPlayersTableProps) {
+export function TopPlayersTable({ pageSize = 10, className, initialData }: TopPlayersTableProps) {
   const t = useTranslations("Leaderboard");
   const tCard = useTranslations("PlayerCard");
   const tCommon = useTranslations("Common");
@@ -63,7 +69,10 @@ export function TopPlayersTable({ pageSize = 10, className }: TopPlayersTablePro
     isLoading, isRefreshing,
     pageStart, totalPages,
     pageNumbers, setQuery, setSort, goTo,
-  } = usePagedTable<LeaderboardPlayer>({ fetcher });
+  } = usePagedTable<LeaderboardPlayer>({
+    fetcher,
+    initialData: initialData ? { ...initialData, items: initialData.players } : undefined,
+  });
 
   const total = data?.total ?? null;
 

@@ -3,6 +3,12 @@ import type { Metadata } from "next";
 import { GoldDivider } from "@/components/common/GoldDivider";
 import { RankingsTabs } from "@/components/leaderboard/RankingsTabs";
 import { requirePublicResourceRole } from "@/lib/public-access";
+import { getLeaderboardPlayersPage } from "@/lib/leaderboard-data";
+
+// Matches TopPlayersTable's own default pageSize prop — has to agree so the
+// cache key this prefetch writes is the one the client's own first fetch
+// (if the URL doesn't ask for something else) reads back instead of missing.
+const PLAYERS_TAB_PAGE_SIZE = 10;
 
 export default async function LeaderboardPage({
   params,
@@ -12,6 +18,11 @@ export default async function LeaderboardPage({
   const { lang } = await params;
   await requirePublicResourceRole(lang, "leaderboard-view");
   const t = await getTranslations("Leaderboard");
+
+  // RankingsTabs always mounts the "players" tab first (see its own doc
+  // comment) — prefetching here means the very first paint already has
+  // rows instead of a loading skeleton followed by a client-side fetch.
+  const initialPlayersData = await getLeaderboardPlayersPage(1, PLAYERS_TAB_PAGE_SIZE, "", "", "");
 
   return (
     <>
@@ -27,7 +38,7 @@ export default async function LeaderboardPage({
 
           <GoldDivider className="mb-8" />
 
-          <RankingsTabs />
+          <RankingsTabs initialPlayersData={initialPlayersData} />
         </div>
       </main>
     </>
