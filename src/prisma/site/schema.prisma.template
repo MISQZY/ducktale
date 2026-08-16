@@ -44,9 +44,8 @@ model User {
   lastSeenAt          DateTime?
   accountLink         AccountLink?
   tickets             Ticket[]
-  ticketMessages      TicketMessage[]
   threads             Thread[]
-  threadMessages      ThreadMessage[]
+  messages            Message[]
   passwordResetTokens PasswordResetToken[]
   badges              UserBadge[]
   roles               UserRole[]
@@ -457,49 +456,22 @@ enum TicketStatus {
 /// turn it is to respond rather than a resolution stage — sendTicketMessage()
 /// flips it to ANSWERED on an admin reply and back to OPEN on a user reply
 /// (which also reopens a CLOSED ticket), while CLOSED only ever comes from
-/// an explicit admin action.
+/// an explicit admin action (recorded as a Message.type CLOSED/REOPENED
+/// event row, same as Thread — see setTicketStatus in
+/// src/lib/actions/tickets.ts).
 model Ticket {
-  id        String          @id @default(uuid())
+  id        String    @id @default(uuid())
   userId    String
-  user      User            @relation(fields: [userId], references: [id], onDelete: Cascade)
-  subject   String          @db.VarChar(120)
-  status    TicketStatus    @default(OPEN)
-  createdAt DateTime        @default(now())
-  updatedAt DateTime        @updatedAt
-  messages  TicketMessage[]
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  subject   String    @db.VarChar(120)
+  status    TicketStatus @default(OPEN)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  messages  Message[]
 
   @@index([userId])
   @@index([status, updatedAt])
   @@map("{{PREFIX}}ticket")
-}
-
-model TicketMessage {
-  id           String   @id @default(uuid())
-  ticketId     String
-  ticket       Ticket   @relation(fields: [ticketId], references: [id], onDelete: Cascade)
-  authorId     String
-  author       User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
-  isAdminReply Boolean            @default(false)
-  body         String             @db.Text
-  createdAt    DateTime           @default(now())
-  attachments  TicketAttachment[]
-
-  @@index([ticketId])
-  @@map("{{PREFIX}}ticket_message")
-}
-
-model TicketAttachment {
-  id              String        @id @default(uuid())
-  ticketMessageId String
-  ticketMessage   TicketMessage @relation(fields: [ticketMessageId], references: [id], onDelete: Cascade)
-  filename        String        @db.VarChar(255)
-  size            Int
-  mimeType        String        @db.VarChar(100)
-  path            String        @db.VarChar(512)
-  createdAt       DateTime      @default(now())
-
-  @@index([ticketMessageId])
-  @@map("{{PREFIX}}ticket_attachment")
 }
 
 /// An open discussion thread, started by any site user and replied to by
@@ -508,47 +480,75 @@ model TicketAttachment {
 /// see and reply to every thread. Unlike Ticket's 3-state status, `closed`
 /// is a plain boolean — the author or any admin can toggle it (setThreadClosed
 /// in src/lib/actions/threads.ts); a closed thread stays visible and keeps
-/// its full history, it just rejects new ThreadMessages. `description` is an
+/// its full history, it just rejects new Messages. `description` is an
 /// optional one-line summary shown in the header alongside the title,
 /// separate from the actual discussion body which starts with the first
-/// ThreadMessage.
+/// Message.
 model Thread {
-  id          String          @id @default(uuid())
+  id          String    @id @default(uuid())
   authorId    String
-  author      User            @relation(fields: [authorId], references: [id], onDelete: Cascade)
-  title       String          @db.VarChar(120)
-  description String?         @db.VarChar(300)
-  closed      Boolean         @default(false)
-  createdAt   DateTime        @default(now())
-  updatedAt   DateTime        @updatedAt
-  messages    ThreadMessage[]
+  author      User      @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  title       String    @db.VarChar(120)
+  description String?   @db.VarChar(300)
+  closed      Boolean   @default(false)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  messages    Message[]
 
   @@index([authorId])
   @@index([updatedAt])
   @@map("{{PREFIX}}thread")
 }
 
-enum ThreadMessageType {
+enum MessageType {
   MESSAGE
   CLOSED
   REOPENED
 }
 
-/// A row is either a real chat message (type MESSAGE, the default) or a
-/// close/reopen event marker (type CLOSED/REOPENED, body unused/empty) —
-/// one table keeps the event log interleaved in natural chronological order
-/// with the conversation via the same `createdAt` sort, instead of a second
-/// table that would need merge-sorting against this one to render.
-model ThreadMessage {
-  id        String            @id @default(uuid())
-  threadId  String
-  thread    Thread            @relation(fields: [threadId], references: [id], onDelete: Cascade)
-  authorId  String
-  author    User              @relation(fields: [authorId], references: [id], onDelete: Cascade)
-  type      ThreadMessageType @default(MESSAGE)
-  body      String            @db.Text
-  createdAt DateTime          @default(now())
+/// Shared conversation-message table for both Ticket and Thread — a row
+/// belongs to exactly one parent (ticketId XOR threadId, enforced at the
+/// application layer: every write site sets exactly one of the two, and
+/// there's no portable cross-DB partial/XOR CHECK constraint worth adding
+/// here for it). `type` covers both a real chat message (MESSAGE, the
+/// default) and an inline close/reopen event marker (CLOSED/REOPENED, body
+/// unused/empty) for either conversation kind — one table keeps the event
+/// log interleaved in natural chronological order with the conversation via
+/// the same `createdAt` sort, instead of a second table that would need
+/// merge-sorting against this one to render (see setThreadClosed/
+/// setTicketStatus in src/lib/actions/threads.ts and .../tickets.ts).
+/// `isAdminReply` is ticket-only — drives TicketThread's staff/anonymization
+/// display — and stays false/unused on thread rows, which have no
+/// staff-vs-owner split (see isTicketStaff() in src/lib/tickets.ts).
+model Message {
+  id           String   @id @default(uuid())
+  ticketId     String?
+  ticket       Ticket?  @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  threadId     String?
+  thread       Thread?  @relation(fields: [threadId], references: [id], onDelete: Cascade)
+  authorId     String
+  author       User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  type         MessageType @default(MESSAGE)
+  isAdminReply Boolean  @default(false)
+  body         String   @db.Text
+  createdAt    DateTime @default(now())
+  attachments  MessageAttachment[]
 
+  @@index([ticketId])
   @@index([threadId])
-  @@map("{{PREFIX}}thread_message")
+  @@map("{{PREFIX}}message")
+}
+
+model MessageAttachment {
+  id        String   @id @default(uuid())
+  messageId String
+  message   Message  @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  filename  String   @db.VarChar(255)
+  size      Int
+  mimeType  String   @db.VarChar(100)
+  path      String   @db.VarChar(512)
+  createdAt DateTime @default(now())
+
+  @@index([messageId])
+  @@map("{{PREFIX}}message_attachment")
 }

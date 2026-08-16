@@ -87,7 +87,7 @@ export async function sendThreadMessage(formData: FormData): Promise<void> {
       throw new Error(exists ? "Thread is closed" : "Thread not found");
     }
 
-    await tx.threadMessage.create({
+    await tx.message.create({
       data: { threadId, authorId: viewer.id, body: cleanBody },
     });
   });
@@ -99,9 +99,10 @@ export async function sendThreadMessage(formData: FormData): Promise<void> {
 /**
  * Toggles Thread.closed — the author or any admin can call this (unlike
  * deleteThread, which is admin-only). Records the toggle as a
- * CLOSED/REOPENED ThreadMessage row in the same transaction, so it lands in
+ * CLOSED/REOPENED Message row in the same transaction, so it lands in
  * the timeline at its correct chronological position alongside real
- * messages (see the ThreadMessage.type doc comment in the schema).
+ * messages (see the Message.type doc comment in the schema — the same
+ * pattern setTicketStatus in src/lib/actions/tickets.ts uses).
  */
 export async function setThreadClosed(lang: string, threadId: string, closed: boolean): Promise<void> {
   const viewer = await getThreadViewer();
@@ -119,7 +120,7 @@ export async function setThreadClosed(lang: string, threadId: string, closed: bo
       where: { id: threadId },
       data: { closed },
     }),
-    siteDb.threadMessage.create({
+    siteDb.message.create({
       data: { threadId, authorId: viewer.id, type: closed ? "CLOSED" : "REOPENED", body: "" },
     }),
   ]);
@@ -135,7 +136,7 @@ export async function deleteThread(lang: string, threadId: string): Promise<void
   const thread = await siteDb.thread.findUnique({ where: { id: threadId }, select: { id: true } });
   if (!thread) throw new Error("Thread not found");
 
-  // ThreadMessage rows cascade via the schema's onDelete: Cascade.
+  // Message rows cascade via the schema's onDelete: Cascade.
   await siteDb.thread.delete({ where: { id: threadId } });
 
   revalidatePath(`/${lang}/threads`, "layout");

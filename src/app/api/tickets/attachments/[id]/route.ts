@@ -27,10 +27,10 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
 
   const { id } = await params;
 
-  const attachment = await siteDb.ticketAttachment.findUnique({
+  const attachment = await siteDb.messageAttachment.findUnique({
     where: { id },
     include: {
-      ticketMessage: {
+      message: {
         include: {
           ticket: {
             select: { userId: true, id: true }
@@ -40,11 +40,15 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
     }
   });
 
-  if (!attachment) {
+  // The .ticket null check also covers a MessageAttachment that somehow
+  // pointed at a thread message instead — attachments are only ever created
+  // on ticket messages (see saveAttachment's callers), but the relation is
+  // optional at the schema level since Message is shared with Thread.
+  if (!attachment || !attachment.message.ticket) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
 
-  if (!canViewTicket(viewer, attachment.ticketMessage.ticket)) {
+  if (!canViewTicket(viewer, attachment.message.ticket)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 

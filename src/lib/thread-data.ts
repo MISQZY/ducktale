@@ -23,7 +23,7 @@ export interface ThreadMessageDTO {
  * leaderboard, homepage marquee, ...).
  */
 export async function resolveThreadMessages(threadId: string): Promise<ThreadMessageDTO[]> {
-  const messages = await siteDb.threadMessage.findMany({
+  const messages = await siteDb.message.findMany({
     where: { threadId },
     orderBy: { createdAt: "asc" },
     select: {
