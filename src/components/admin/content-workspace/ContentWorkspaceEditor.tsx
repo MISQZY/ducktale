@@ -29,9 +29,11 @@ const NEW_META_TEMPLATE = "{\n  \"pages\": []\n}\n";
 interface ContentWorkspaceEditorProps {
   lang: string;
   trees: ServerContentTree[];
+  /** content-delete (or isAdmin) — gates the delete button specifically, independent of content-edit (already required just to reach this workspace). */
+  canDelete: boolean;
 }
 
-export function ContentWorkspaceEditor({ lang, trees }: ContentWorkspaceEditorProps) {
+export function ContentWorkspaceEditor({ lang, trees, canDelete }: ContentWorkspaceEditorProps) {
   const t = useTranslations("AdminContent");
   const confirm = useConfirm();
 
@@ -203,7 +205,7 @@ export function ContentWorkspaceEditor({ lang, trees }: ContentWorkspaceEditorPr
                   {isSaving ? t("saving") : t("save")}
                 </FormButton>
 
-                {fileExists && (
+                {fileExists && canDelete && (
                   <FormButton variant="destructive" disabled={isDeleting} onClick={handleDelete}>
                     {isDeleting ? t("deleting") : t("delete")}
                   </FormButton>

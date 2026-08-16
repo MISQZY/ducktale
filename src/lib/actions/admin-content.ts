@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { requireAdminId } from "@/lib/admin";
+import { requireResourceRoleId } from "@/lib/admin";
 import { readContentFileIfExists } from "@/lib/admin-content";
 import { buildRelPath, isKnownServer, isSafeSlug, isValidLocale } from "@/lib/content-tree";
 import { compileMdxPreview, type MdxPreviewResult } from "@/lib/mdx-preview";
@@ -11,7 +11,7 @@ import {
 } from "@/lib/github-content";
 
 export async function previewContent(source: string): Promise<MdxPreviewResult> {
-  await requireAdminId();
+  await requireResourceRoleId("content-edit");
   return compileMdxPreview(source);
 }
 
@@ -29,7 +29,7 @@ export interface LoadContentInput {
 }
 
 export async function loadContentFile(input: LoadContentInput): Promise<{ content: string | null }> {
-  await requireAdminId();
+  await requireResourceRoleId("content-edit");
   validateTarget(input.server, input.locale, input.slug);
 
   const relPath = buildRelPath(input.server, input.locale, input.slug);
@@ -86,7 +86,7 @@ export interface SaveContentResult {
 }
 
 export async function saveContentFile(input: SaveContentInput): Promise<SaveContentResult> {
-  await requireAdminId();
+  await requireResourceRoleId("content-edit");
   validateTarget(input.server, input.locale, input.slug);
   const relPath = buildRelPath(input.server, input.locale, input.slug);
 
@@ -113,7 +113,7 @@ export interface DeleteContentResult {
 }
 
 export async function deleteContentFile(input: DeleteContentInput): Promise<DeleteContentResult> {
-  await requireAdminId();
+  await requireResourceRoleId("content-delete");
   validateTarget(input.server, input.locale, input.slug);
   const relPath = buildRelPath(input.server, input.locale, input.slug);
 
@@ -146,7 +146,7 @@ export interface RevertContentInput {
  * removes it from the branch instead.
  */
 export async function revertContentFile(input: RevertContentInput): Promise<void> {
-  await requireAdminId();
+  await requireResourceRoleId("content-edit");
   validateTarget(input.server, input.locale, input.slug);
   assertSessionBranch(input.branch);
   const relPath = buildRelPath(input.server, input.locale, input.slug);
@@ -192,7 +192,7 @@ export interface CreateContentPullRequestResult {
 export async function createContentPullRequest(
   input: CreateContentPullRequestInput
 ): Promise<CreateContentPullRequestResult> {
-  await requireAdminId();
+  await requireResourceRoleId("content-edit");
   if (!input.branch) throw new Error("No changes to open a PR for yet");
   assertSessionBranch(input.branch);
 
