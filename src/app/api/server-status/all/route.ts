@@ -6,10 +6,12 @@ import { isRateLimited } from "@/lib/rate-limit";
 import { hasPublicResourceRole } from "@/lib/public-access";
 
 interface ServerStatus {
-  online: boolean;
+  // Both omitted (not just falsy) when the caller lacks server-status-view —
+  // version is public info independent of that role, see the branch below.
+  online?: boolean;
   maintenance?: boolean;
   version?: string;
-  players: { online: number; max: number; list: { name: string }[] };
+  players?: { online: number; max: number; list: { name: string }[] };
 }
 
 export async function GET(req: Request) {
@@ -17,18 +19,24 @@ export async function GET(req: Request) {
     return NextResponse.json({ error: "Too many requests" }, { status: 429 });
   }
 
-  // Not cached (unlike the 200 below) — a denial shouldn't stick around in a
-  // shared cache for other visitors, especially once access is restored.
+  const pings = await Promise.all(SERVERS.map((s) => getCachedPing(s.host)));
+
+  // server-status-view gates online/offline + who's-playing visibility, not
+  // the version string — that stays visible to everyone regardless of role.
   if (!(await hasPublicResourceRole("server-status-view"))) {
-    return NextResponse.json({ error: "Not authorized" }, { status: 403 });
+    const versionOnly: Record<string, ServerStatus> = Object.fromEntries(
+      SERVERS.map((s, i) => [s.host, { version: pings[i].version }] as const)
+    );
+    return NextResponse.json(versionOnly, {
+      headers: { "Cache-Control": "public, s-maxage=60, stale-while-revalidate=30" },
+    });
   }
 
-  const [allPlayers, pings, maintenanceStatuses] = await Promise.all([
+  const [allPlayers, maintenanceStatuses] = await Promise.all([
     getAllOnlinePlayers().catch((err) => {
       console.error("[server-status] Failed to load online players:", err);
       return [];
     }),
-    Promise.all(SERVERS.map((s) => getCachedPing(s.host))),
     getMaintenanceStatuses().catch((err) => {
       console.error("[server-status] Failed to load maintenance statuses:", err);
       return new Set<string>();

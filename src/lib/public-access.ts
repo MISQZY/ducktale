@@ -49,7 +49,7 @@ export async function requirePublicResourceRole(lang: string, role: ResourceRole
   if (!hasResourceRole(guestRoles, role)) redirect(`/${lang}/account/login`);
 }
 
-/** Same resolution as requirePublicResourceRole, but returns a boolean instead of redirecting — for API routes (src/app/api/server-status/*), which respond with a JSON error, not a page redirect. */
+/** Same resolution as requirePublicResourceRole, but returns a boolean instead of redirecting — for API routes (src/app/api/server-status/*), which respond with a JSON error (or, for server-status, a version-only response — see that route) rather than a page redirect. */
 export async function hasPublicResourceRole(role: ResourceRole): Promise<boolean> {
   const session = await auth();
   if (session?.user?.id) {

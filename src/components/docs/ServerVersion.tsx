@@ -33,8 +33,11 @@ export function ServerVersion({ server, fallback = "…" }: ServerVersionProps) 
 
 function ServerVersionValue({ host, fallback }: { host: string; fallback: string }) {
   const result = useServerStatus(host);
+  // online === false means confirmed offline (hide, per this component's
+  // contract above); undefined means the viewer lacks server-status-view,
+  // not that the server is down — version is public regardless of that role.
   const version =
-    result.state === "ok" && result.status.online ? result.status.version : undefined;
+    result.state === "ok" && result.status.online !== false ? result.status.version : undefined;
 
   return <strong>{version ?? fallback}</strong>;
 }

@@ -64,6 +64,9 @@ export function ServerStatusWidget({ host, serverName, className }: ServerStatus
   const { status } = result;
   const playerList = status.players?.list ?? [];
   const hasPlayers = status.online && (status.players?.online ?? 0) > 0 && playerList.length > 0;
+  // undefined (not false) means the viewer lacks server-status-view — the
+  // role gates online/who's-playing visibility, version stays visible below.
+  const isUnknown = status.online === undefined;
 
   return (
     <DuckCard className={cn("border-amber-900/20 bg-duck-stone/30 my-4 transition-colors duration-300", status.maintenance && "animate-border-glow", className)}>
@@ -81,24 +84,30 @@ export function ServerStatusWidget({ host, serverName, className }: ServerStatus
             variant="outline"
             className={cn(
               "gap-1.5 text-xs",
-              status.online
-                ? "border-green-700/40 bg-green-950/30 text-green-700 dark:text-green-300"
-                : "border-red-700/40 bg-red-950/30 text-red-700 dark:text-red-300"
+              isUnknown
+                ? "border-foreground/20 bg-muted text-foreground/50"
+                : status.online
+                  ? "border-green-700/40 bg-green-950/30 text-green-700 dark:text-green-300"
+                  : "border-red-700/40 bg-red-950/30 text-red-700 dark:text-red-300"
             )}
           >
             <span
               className={cn(
                 "inline-block w-1.5 h-1.5 rounded-full",
-                status.online ? "bg-green-400 animate-pulse" : "bg-red-400"
+                isUnknown ? "bg-foreground/30" : status.online ? "bg-green-400 animate-pulse" : "bg-red-400"
               )}
             />
-            {status.online ? t("online") : t("offline")}
+            {isUnknown ? t("unknown") : status.online ? t("online") : t("offline")}
           </DuckBadge>
         </div>
       </DuckCardHeader>
 
       <DuckCardContent className="pt-0 space-y-2">
-        {status.online ? (
+        {isUnknown ? (
+          status.version && (
+            <span className="text-xs font-mono text-foreground/50">{status.version}</span>
+          )
+        ) : status.online ? (
           <>
             <div className="flex items-center gap-4 text-xs text-foreground/50">
               {status.players && (

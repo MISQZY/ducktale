@@ -37,18 +37,23 @@ export default function ServerStatusBadge({ host }: { host: string }) {
 
   const { status } = result;
 
+  // status.online is undefined (not false) when the viewer lacks
+  // server-status-view — that role gates online/who's-playing visibility,
+  // so only the version line below renders for them.
   return (
     <div className="flex flex-col items-start gap-0.5 text-xs">
-      <div className={cn(
-        "flex items-center gap-1.5",
-        status.online ? "text-emerald-400" : "text-destructive"
-      )}>
-        <span className={cn(
-          "w-1.5 h-1.5 rounded-full",
-          status.online ? "bg-emerald-400 animate-pulse" : "bg-destructive"
-        )} />
-        {status.online ? t("online") : t("offline")}
-      </div>
+      {status.online !== undefined && (
+        <div className={cn(
+          "flex items-center gap-1.5",
+          status.online ? "text-emerald-400" : "text-destructive"
+        )}>
+          <span className={cn(
+            "w-1.5 h-1.5 rounded-full",
+            status.online ? "bg-emerald-400 animate-pulse" : "bg-destructive"
+          )} />
+          {status.online ? t("online") : t("offline")}
+        </div>
+      )}
 
       {status.online && status.players && (
         status.players.list && status.players.list.length > 0 ? (

@@ -9,9 +9,11 @@ const ALLOWED_HOSTS = new Set([NETWORK_HOST, ...SERVERS.map((s) => s.host)]);
 const SERVER_UUID_BY_HOST = new Map(SERVERS.map((s) => [s.host, s.uuid]));
 
 interface ServerStatus {
-  online: boolean;
+  // Both omitted (not just falsy) when the caller lacks server-status-view —
+  // version is public info independent of that role, see the branch below.
+  online?: boolean;
   version?: string;
-  players: { online: number; max: number; list: { name: string }[] };
+  players?: { online: number; max: number; list: { name: string }[] };
 }
 
 export async function GET(
@@ -22,25 +24,27 @@ export async function GET(
     return NextResponse.json({ error: "Too many requests" }, { status: 429 });
   }
 
-  // Not cached (unlike the 200 below) — a denial shouldn't stick around in a
-  // shared cache for other visitors, especially once access is restored.
-  if (!(await hasPublicResourceRole("server-status-view"))) {
-    return NextResponse.json({ error: "Not authorized" }, { status: 403 });
-  }
-
   const { host } = await params;
 
   if (!ALLOWED_HOSTS.has(host)) {
     return NextResponse.json({ error: "Unknown host" }, { status: 400 });
   }
 
-  const [allPlayers, ping] = await Promise.all([
-    getAllOnlinePlayers().catch((err) => {
-      console.error(`[server-status] Failed to load online players for "${host}":`, err);
-      return [];
-    }),
-    getCachedPing(host),
-  ]);
+  const ping = await getCachedPing(host);
+
+  // server-status-view gates online/offline + who's-playing visibility, not
+  // the version string — that stays visible to everyone regardless of role.
+  if (!(await hasPublicResourceRole("server-status-view"))) {
+    return NextResponse.json(
+      { version: ping.version } satisfies ServerStatus,
+      { headers: { "Cache-Control": "public, s-maxage=60, stale-while-revalidate=30" } }
+    );
+  }
+
+  const allPlayers = await getAllOnlinePlayers().catch((err) => {
+    console.error(`[server-status] Failed to load online players for "${host}":`, err);
+    return [];
+  });
 
   const roster =
     host === NETWORK_HOST

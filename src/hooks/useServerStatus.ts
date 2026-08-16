@@ -3,7 +3,9 @@
 import { useServerStatuses } from "@/context/ServerStatusContext";
 
 export interface ServerStatus {
-  online: boolean;
+  // Undefined (not just false) when the viewer lacks server-status-view —
+  // that role gates online/who's-playing visibility, version stays public.
+  online?: boolean;
   maintenance?: boolean;
   players?: { online: number; max: number; list?: { name: string }[] };
   version?: string;

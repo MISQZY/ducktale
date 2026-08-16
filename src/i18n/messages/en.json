@@ -179,6 +179,7 @@
       "unavailableHint": "Couldn't fetch the server status. Try refreshing the page.",
       "online": "Online",
       "offline": "Offline",
+      "unknown": "Status hidden",
       "offlineHint": "The server is temporarily unavailable. Please try again later.",
       "players": "{count} players",
       "playerList": "Player list"
