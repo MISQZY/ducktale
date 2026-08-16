@@ -49,8 +49,197 @@ model User {
   threadMessages      ThreadMessage[]
   passwordResetTokens PasswordResetToken[]
   badges              UserBadge[]
+  roles               UserRole[]
 
   @@map("{{PREFIX}}user")
+}
+
+/// A named, admin-composed bundle of resource-roles (see
+/// src/config/resource-roles.ts for the fixed catalog those come from) —
+/// the actual unit assigned to a user (/admin/roles,
+/// src/lib/actions/admin-roles.ts). A user's effective resource-roles are
+/// the union across every Role they hold (auth.ts's session() callback
+/// flattens this into session.user.roles). There is no direct
+/// user-to-resource-role assignment — a Role, even one granting a single
+/// resource-role, is always the unit in between.
+model Role {
+  id            String             @id @default(uuid())
+  // { ru: string, en: string } — validated at the app layer (both keys
+  // required, LocalizedName in src/lib/i18n-name.ts), not a DB enum/typed
+  // columns, so a third locale (if routing.ts's locales list ever grows)
+  // doesn't need a schema migration. No uniqueness constraint — nothing
+  // else in this app looks a Role up by name (always by id/key), same as
+  // Badge.name is free text and only Badge.key is unique.
+  name          Json
+  // Set only for the built-in roles seeded by seedBuiltinRoles()
+  // (src/lib/roles.ts, catalog in src/config/roles.ts) — "guest",
+  // "super-admin", "user" today. Matched on this stable key rather than a
+  // name so renaming one in the admin panel doesn't create a duplicate on
+  // the next seed run, same reasoning as Badge.key. deleteRole() (src/lib/
+  // actions/admin-roles.ts) refuses to delete any row with a non-null key —
+  // the role's name/resourceRoles otherwise stay fully admin-editable
+  // (unless isLocked too, see below), only deletion is blocked.
+  key           String?            @unique @db.VarChar(64)
+  // Stronger than the key-based delete guard above — a locked built-in Role
+  // (BUILTIN_ROLE_DEFINITIONS, none seeded as such today — "guest", "user",
+  // and "super-admin" are all fully admin-editable) would have updateRole
+  // (src/lib/actions/admin-roles.ts) only apply the `name` field, silently
+  // ignoring any resourceRoles/includedRoleIds also submitted — renaming is
+  // allowed (no protective purpose in blocking it), but the grant set would
+  // be fixed by design. Every isLocked row would also have a non-null key
+  // (locked implies built-in), but not every built-in row needs to be
+  // locked.
+  isLocked      Boolean            @default(false)
+  createdAt     DateTime           @default(now())
+  resourceRoles RoleResourceRole[]
+  users         UserRole[]
+  // Self-relation: which other Roles this Role includes, inheriting their
+  // effective resource-roles recursively (resolveEffectiveResourceRoles(),
+  // src/lib/roles.ts). Two named relations because Prisma needs one to
+  // distinguish "the roles I include" from "the roles that include me" on
+  // the same model.
+  includes      RoleInclusion[]    @relation("RoleIncludes")
+  includedBy    RoleInclusion[]    @relation("RoleIncludedBy")
+  // Reusable resource-role bundles this Role pulls in — see RowLevelRole's
+  // doc comment for how this differs from `includes` above (RoleInclusion).
+  rowLevelRoles RoleRowLevelRole[]
+
+  @@map("{{PREFIX}}role")
+}
+
+/// Join row: Role `role` includes Role `includedRole`, inheriting all of
+/// its effective resource-roles (transitively — an included Role can itself
+/// include others). createRole/updateRole (src/lib/actions/admin-roles.ts)
+/// reject any write that would make `role` reachable from `includedRole`'s
+/// own transitive closure, so this can never form a cycle — resolution
+/// (resolveEffectiveResourceRoles) still keeps a visited-set as a second
+/// line of defense, not because a cycle is expected to exist.
+model RoleInclusion {
+  id             String @id @default(uuid())
+  roleId         String
+  role           Role   @relation("RoleIncludes", fields: [roleId], references: [id], onDelete: Cascade)
+  includedRoleId String
+  includedRole   Role   @relation("RoleIncludedBy", fields: [includedRoleId], references: [id], onDelete: Cascade)
+
+  @@unique([roleId, includedRoleId])
+  @@index([roleId])
+  @@index([includedRoleId])
+  @@map("{{PREFIX}}role_inclusion")
+}
+
+/// Admin-editable display-name override for one *resource* (not a full
+/// resource-role — "tickets", not "tickets-edit") from RESOURCE_ROLE_ACTIONS
+/// (src/config/resource-roles.ts). Keyed one level up from the resource-role
+/// itself so renaming "Tickets" once covers both tickets-view and
+/// tickets-edit consistently — the action half ("View"/"Edit") stays plain
+/// i18n (Admin.resourceRoles.actionLabels), generic verbs shared across
+/// every resource, nothing resource-specific to override there. Optional; a
+/// resource with no row here falls back to the code-defined default in
+/// Admin.resourceRoles.resourceLabels (en.json/ru.json). `resource` is
+/// validated against RESOURCE_ROLE_ACTIONS's keys at the app layer, not a
+/// DB enum, same pattern as everywhere else in this permission system.
+/// `name` — { ru: string, en: string }, see Role.name's doc comment for why
+/// this is JSON rather than typed nameRu/nameEn columns.
+model ResourceRoleLabel {
+  id       String @id @default(uuid())
+  resource String @unique @db.VarChar(32)
+  name     Json
+
+  @@map("{{PREFIX}}resource_role_label")
+}
+
+/// Join row: one resource-role (e.g. "tickets-edit") granted by a Role.
+/// `resourceRole` is validated against RESOURCE_ROLES at the app layer, not
+/// a DB enum, same as Badge.icon against BADGE_ICON_NAMES — MySQL enums are
+/// painful to extend via migration, and the catalog already lives in code.
+model RoleResourceRole {
+  id           String @id @default(uuid())
+  roleId       String
+  role         Role   @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  resourceRole String @db.VarChar(32)
+
+  @@unique([roleId, resourceRole])
+  @@index([roleId])
+  @@map("{{PREFIX}}role_resource_role")
+}
+
+/// A named, admin-composed bundle of resource-roles (RowLevelRoleResourceRole)
+/// that a Role pulls in as a unit (RoleRowLevelRole) instead of an admin
+/// re-picking the same handful of resource-roles in every Role that needs
+/// them — e.g. bundling `threads-edit` + `threads-view` once as "Управление
+/// тредами" and reusing it across several Roles. Never assigned to a user
+/// directly (no UserRole-equivalent here) — strictly an ingredient for Role,
+/// the same relationship RESOURCE_ROLES themselves have to Role. The name
+/// ("row-level role" / "роль уровня строк") refers to bundling one *row* of
+/// the admin's resource × view/edit/delete grid (ResourceRoleAccessGrid),
+/// not database row-level security — this grants no per-record scoping,
+/// only resource-role bundling one layer up from RoleResourceRole. Flat by
+/// design: unlike Role's `includes` (RoleInclusion), a RowLevelRole cannot
+/// include another RowLevelRole — nesting can be added later if a real need
+/// for it shows up, kept out for now to avoid the same cycle-detection
+/// machinery RoleInclusion needed (wouldCreateCycle, src/lib/roles.ts) for a
+/// layer that's meant to stay a simple, flat building block.
+model RowLevelRole {
+  id            String                     @id @default(uuid())
+  // { ru: string, en: string } — same LocalizedName convention as
+  // Role.name/Badge.name (see Role.name's doc comment for why this is Json,
+  // not typed nameRu/nameEn columns).
+  name          Json
+  createdAt     DateTime                   @default(now())
+  resourceRoles RowLevelRoleResourceRole[]
+  roles         RoleRowLevelRole[]
+
+  @@map("{{PREFIX}}row_level_role")
+}
+
+/// Join row: one resource-role (e.g. "tickets-edit") granted by a
+/// RowLevelRole — same shape as RoleResourceRole, one layer up.
+model RowLevelRoleResourceRole {
+  id             String       @id @default(uuid())
+  rowLevelRoleId String
+  rowLevelRole   RowLevelRole @relation(fields: [rowLevelRoleId], references: [id], onDelete: Cascade)
+  resourceRole   String       @db.VarChar(32)
+
+  @@unique([rowLevelRoleId, resourceRole])
+  @@index([rowLevelRoleId])
+  @@map("{{PREFIX}}row_level_role_resource_role")
+}
+
+/// Join row: which RowLevelRoles a Role pulls in. Every resource-role a
+/// RowLevelRole grants is inherited by any Role holding it — same "union of
+/// everything reachable" reasoning resolveEffectiveResourceRoles() already
+/// applies to RoleInclusion, just one layer shallower since RowLevelRole
+/// itself can't nest further (see its doc comment).
+model RoleRowLevelRole {
+  id             String       @id @default(uuid())
+  roleId         String
+  role           Role         @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  rowLevelRoleId String
+  rowLevelRole   RowLevelRole @relation(fields: [rowLevelRoleId], references: [id], onDelete: Cascade)
+
+  @@unique([roleId, rowLevelRoleId])
+  @@index([roleId])
+  @@index([rowLevelRoleId])
+  @@map("{{PREFIX}}role_row_level_role")
+}
+
+/// Join row: which Roles a user holds. Many-to-many — a user can hold
+/// several Roles at once, effective permissions are the union of all of
+/// them. User.isAdmin remains a superadmin bypass that satisfies every
+/// resource-role check unconditionally, so this table only matters for
+/// non-superadmin users.
+model UserRole {
+  id         String   @id @default(uuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  roleId     String
+  role       Role     @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  assignedAt DateTime @default(now())
+
+  @@unique([userId, roleId])
+  @@index([userId])
+  @@index([roleId])
+  @@map("{{PREFIX}}user_role")
 }
 
 /// A profile award, shown next to a user's name. Rows can come from either
@@ -65,7 +254,9 @@ model User {
 model Badge {
   id            String   @id @default(uuid())
   key           String   @unique @db.VarChar(64)
-  name          String   @db.VarChar(64)
+  // { ru: string, en: string } — LocalizedName (src/lib/i18n-name.ts), same
+  // pattern as Role.name/ResourceRoleLabel.name.
+  name          Json
   description   String?  @db.VarChar(255)
   // How to earn it (e.g. "Awarded to the first 50 registered players") —
   // deliberately separate from `description` (what the badge represents)
@@ -128,7 +319,8 @@ model UserBadge {
 model LuckPermsRole {
   id        String   @id @default(uuid())
   group     String   @unique @db.VarChar(64)
-  name      String   @db.VarChar(64)
+  // { ru: string, en: string } — LocalizedName (src/lib/i18n-name.ts).
+  name      Json
   icon      String   @db.VarChar(64)
   color     String?  @db.VarChar(16)
   createdAt DateTime @default(now())
@@ -139,7 +331,7 @@ model LuckPermsRole {
 
 /// Join row for the N:N between Badge and LuckPermsRole (a badge's
 /// "auto-grant if the player holds any of these roles" set). Deleting the
-/// role definition (/admin/roles) or the badge itself cascades here — an
+/// role definition (/admin/ranks) or the badge itself cascades here — an
 /// orphaned link isn't meaningful in either direction, unlike
 /// UserBadge/User where the award record has its own standalone value.
 model BadgeAutoRole {

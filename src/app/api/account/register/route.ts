@@ -33,10 +33,25 @@ export async function POST(req: Request) {
   const passwordHash = await bcrypt.hash(password, BCRYPT_COST);
 
   try {
+    // The built-in "user" Role (src/config/roles.ts, seeded by
+    // seedBuiltinRoles()) is the sole auto-granted Role for every new
+    // registration — matched by its stable key, same as getGuestResourceRoles()
+    // does for "guest". Read before the create so a brand-new user's very
+    // first session already reflects it, rather than a separate post-create
+    // step that could fail independently and leave the user without it. If
+    // the row hasn't been seeded yet (nobody's visited /admin/roles), the
+    // user is simply created without it — seedBuiltinRoles() doesn't
+    // backfill existing users either way.
+    const userRole = await siteDb.role.findUnique({ where: { key: "user" }, select: { id: true } });
+
     // Relies on the site DB's case-insensitive collation (utf8mb4_unicode_ci)
     // to reject "Duck" as a duplicate of an existing "duck" at the DB level.
     const user = await siteDb.user.create({
-      data: { nickname, passwordHash },
+      data: {
+        nickname,
+        passwordHash,
+        roles: userRole ? { create: { roleId: userRole.id } } : undefined,
+      },
       select: { id: true, nickname: true },
     });
     return NextResponse.json({ user }, { status: 201 });

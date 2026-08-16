@@ -3,6 +3,7 @@ import { auth } from "@/auth";
 export interface SiteViewer {
   id: string;
   isAdmin: boolean;
+  roles: string[];
 }
 
 /**
@@ -20,5 +21,5 @@ export async function getSiteViewer(): Promise<SiteViewer | null> {
   const session = await auth();
   if (!session?.user?.id) return null;
 
-  return { id: session.user.id, isAdmin: session.user.isAdmin };
+  return { id: session.user.id, isAdmin: session.user.isAdmin, roles: session.user.roles };
 }

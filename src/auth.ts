@@ -4,6 +4,7 @@ import Credentials from "next-auth/providers/credentials";
 import bcrypt from "bcryptjs";
 import { siteDb } from "@/lib/site-db";
 import { isRateLimited } from "@/lib/rate-limit";
+import { resolveEffectiveResourceRoles } from "@/lib/roles";
 
 // Never matches a real password — used to give a lookup for a nonexistent
 // nickname the same bcrypt.compare cost as a real one, so response timing
@@ -68,10 +69,21 @@ const { handlers, auth: uncachedAuth, signIn, signOut } = NextAuth({
       // expires on its own.
       const user = await siteDb.user.findUnique({
         where: { id: token.id },
-        select: { id: true, isAdmin: true },
+        select: { id: true, isAdmin: true, roles: { select: { roleId: true } } },
       });
       session.user.id = user ? token.id : "";
       session.user.isAdmin = user?.isAdmin ?? false;
+      // Resource-roles aren't held directly — a user holds Roles
+      // (admin-composed bundles, /admin/roles), and their effective
+      // resource-roles are the union across all of them *and* everything
+      // those Roles transitively include (resolveEffectiveResourceRoles,
+      // src/lib/roles.ts) — flattened into the same flat session.user.roles
+      // shape every requireResourceRole(Id)/hasResourceRole check already
+      // expects, so nothing downstream of the session needs to know Roles
+      // (or their nesting) exist at all.
+      session.user.roles = user?.isAdmin
+        ? []
+        : [...await resolveEffectiveResourceRoles(user?.roles.map((ur) => ur.roleId) ?? [])];
       return session;
     },
   },

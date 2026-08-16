@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { Prisma } from ".prisma/site-client";
 import { siteDb } from "@/lib/site-db";
-import { requireAdminId } from "@/lib/admin";
+import { requireAdminId, requireResourceRoleId } from "@/lib/admin";
 import { createPasswordResetToken } from "@/lib/password-reset";
 import { invalidatePresenceLinkCache } from "@/lib/presence";
 import { invalidateByPrefix } from "@/lib/query-cache";
@@ -11,7 +11,7 @@ import { SITE } from "@/config/site";
 import { NICKNAME_PATTERN, NICKNAME_FORMAT_ERROR, NICKNAME_TAKEN_ERROR } from "@/lib/nickname";
 
 export async function resetUserPassword(lang: string, userId: string): Promise<string> {
-  await requireAdminId();
+  await requireResourceRoleId("users-edit");
 
   const token = await createPasswordResetToken(userId);
 
@@ -20,7 +20,7 @@ export async function resetUserPassword(lang: string, userId: string): Promise<s
 }
 
 export async function unlinkUser(lang: string, userId: string) {
-  await requireAdminId();
+  await requireResourceRoleId("users-edit");
 
   await siteDb.accountLink.deleteMany({ where: { userId } });
 
@@ -34,7 +34,7 @@ export async function unlinkUser(lang: string, userId: string) {
 }
 
 export async function deleteUser(lang: string, userId: string) {
-  const adminId = await requireAdminId();
+  const adminId = await requireResourceRoleId("users-delete");
   if (adminId === userId) throw new Error("Cannot delete your own account from the admin panel");
 
   // AccountLink has onDelete: Cascade on its User relation.
@@ -46,6 +46,10 @@ export async function deleteUser(lang: string, userId: string) {
   revalidatePath(`/${lang}/admin`);
 }
 
+// Deliberately NOT requireResourceRoleId("users-edit") — granting/revoking
+// the isAdmin superadmin flag is superadmin-only, not delegable via a
+// resource-role. A users-edit holder toggling this could mint themselves
+// (or anyone) a superadmin, bypassing every other resource-role check.
 export async function setUserAdmin(lang: string, userId: string, isAdmin: boolean) {
   const adminId = await requireAdminId();
   if (adminId === userId) throw new Error("Cannot change your own admin status from the admin panel");
@@ -56,7 +60,7 @@ export async function setUserAdmin(lang: string, userId: string, isAdmin: boolea
 }
 
 export async function renameUser(lang: string, userId: string, nickname: string): Promise<string> {
-  await requireAdminId();
+  await requireResourceRoleId("users-edit");
 
   const cleanNickname = nickname.trim();
   if (!NICKNAME_PATTERN.test(cleanNickname)) throw new Error(NICKNAME_FORMAT_ERROR);
