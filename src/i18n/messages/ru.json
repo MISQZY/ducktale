@@ -128,6 +128,7 @@
     "community": "Сообщество",
     "leaderboard": "Рейтинги",
     "threads": "Треды",
+    "maps": "Карты",
     "profile": "Профиль",
     "login": "Войти",
     "home": "DuckTale — на главную",
@@ -469,6 +470,7 @@
     "description": "Всего пользователей: {count}",
     "navUsers": "Пользователи",
     "navContent": "Контент",
+    "navMaps": "Карты",
     "navPermissions": "Права",
     "adminBadge": "Админ",
     "createdAt": "Регистрация: {date}",
@@ -586,11 +588,13 @@
         "resource-roles": "[Админ] Ресурсные-роли",
         "role": "[Админ] Роли",
         "row-level-roles": "[Админ] Роли уровня строк",
+        "maps": "[Админ] Карты",
         "threads": "Треды",
         "docs": "Документация",
         "leaderboard": "Рейтинг",
         "profiles": "Публичные профили",
-        "server-status": "Статус сервера"
+        "server-status": "Статус сервера",
+        "maps-page": "Карты"
       },
       "actionLabels": {
         "view": "Просмотр",
@@ -664,12 +668,44 @@
       "errors": {
         "generic": "Что-то пошло не так. Попробуйте позже."
       }
+    },
+    "maps": {
+      "title": "Карты",
+      "description": "Именованные карты по каждому серверу — показываются на весь экран в публичном разделе «Карты».",
+      "serverColumn": "Сервер",
+      "nameColumn": "Название",
+      "urlColumn": "Ссылка",
+      "serverLabel": "Сервер",
+      "nameLabel": "Название",
+      "urlLabel": "Ссылка на карту",
+      "urlPlaceholder": "https://...",
+      "addMap": "Добавить карту",
+      "createTitle": "Создать карту",
+      "editTitle": "Редактировать карту",
+      "create": "Создать",
+      "save": "Сохранить",
+      "saving": "Сохранение...",
+      "saveFailed": "Не удалось сохранить. Попробуйте позже.",
+      "edit": "Редактировать",
+      "delete": "Удалить",
+      "confirmDelete": "Удалить карту «{name}» безвозвратно?",
+      "noResults": "Карты пока не настроены.",
+      "errors": {
+        "generic": "Что-то пошло не так. Попробуйте позже."
+      }
     }
   },
   "Profile": {
     "pageTitle": "Профиль игрока {name}",
     "memberSince": "На сайте с {date}",
     "notLinked": "Аккаунт Minecraft не привязан."
+  },
+  "Maps": {
+    "noMap": "Для сервера {server} карты пока не настроены.",
+    "noMapsInTree": "карт пока нет",
+    "loadError": "Не удалось загрузить карту. Возможно, она недоступна или ссылка сломана.",
+    "loadErrorStatus": "Не удалось загрузить карту (ошибка {status}).",
+    "retry": "Повторить"
   },
   "AdminContent": {
     "title": "Редактор контента",

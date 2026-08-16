@@ -128,6 +128,7 @@
     "community": "Community",
     "leaderboard": "Rankings",
     "threads": "Threads",
+    "maps": "Maps",
     "profile": "Profile",
     "login": "Sign in",
     "home": "DuckTale — home",
@@ -470,6 +471,7 @@
     "description": "Total users: {count}",
     "navUsers": "Users",
     "navContent": "Content",
+    "navMaps": "Maps",
     "navPermissions": "Permissions",
     "adminBadge": "Admin",
     "createdAt": "Registered: {date}",
@@ -587,11 +589,13 @@
         "resource-roles": "[Admin] Resource-roles",
         "role": "[Admin] Roles",
         "row-level-roles": "[Admin] Row-level roles",
+        "maps": "[Admin] Maps",
         "threads": "Threads",
         "docs": "Docs",
         "leaderboard": "Leaderboard",
         "profiles": "Public profiles",
-        "server-status": "Server status"
+        "server-status": "Server status",
+        "maps-page": "Maps"
       },
       "actionLabels": {
         "view": "View",
@@ -665,12 +669,44 @@
       "errors": {
         "generic": "Something went wrong. Please try again."
       }
+    },
+    "maps": {
+      "title": "Maps",
+      "description": "Named maps per server — shown full-page on the public Maps section.",
+      "serverColumn": "Server",
+      "nameColumn": "Name",
+      "urlColumn": "Link",
+      "serverLabel": "Server",
+      "nameLabel": "Name",
+      "urlLabel": "Map link",
+      "urlPlaceholder": "https://...",
+      "addMap": "Add map",
+      "createTitle": "Create map",
+      "editTitle": "Edit map",
+      "create": "Create",
+      "save": "Save",
+      "saving": "Saving...",
+      "saveFailed": "Couldn't save. Please try again.",
+      "edit": "Edit",
+      "delete": "Delete",
+      "confirmDelete": "Permanently delete the map \"{name}\"?",
+      "noResults": "No maps configured yet.",
+      "errors": {
+        "generic": "Something went wrong. Please try again."
+      }
     }
   },
   "Profile": {
     "pageTitle": "Player profile {name}",
     "memberSince": "Member since {date}",
     "notLinked": "No Minecraft account linked."
+  },
+  "Maps": {
+    "noMap": "No maps configured yet for {server}.",
+    "noMapsInTree": "no maps yet",
+    "loadError": "The map failed to load. It may be offline, or its link may be broken.",
+    "loadErrorStatus": "The map failed to load (error {status}).",
+    "retry": "Retry"
   },
   "AdminContent": {
     "title": "Content editor",
