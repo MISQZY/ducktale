@@ -20,9 +20,9 @@ export interface BuiltinRoleDefinition {
  * - "guest" is what an unauthenticated visitor's request resolves to
  *   (getGuestResourceRoles(), src/lib/public-access.ts) — seeded with
  *   exactly the resource-roles that correspond to what's public on this
- *   site today (docs, leaderboard, public profiles, server-status), so nothing
- *   about current anonymous access changes until an admin deliberately
- *   revokes one from this Role via /admin/roles.
+ *   site today (docs, leaderboard, public profiles, server-status, the
+ *   /maps section), so nothing about current anonymous access changes until
+ *   an admin deliberately revokes one from this Role via /admin/roles.
  * - "user" is hardcoded as the sole auto-assigned Role for every new
  *   registration (POST /api/account/register looks it up by this exact key,
  *   not via a generic "isDefault" flag any Role could carry — there's only
@@ -45,7 +45,7 @@ export const BUILTIN_ROLE_DEFINITIONS: BuiltinRoleDefinition[] = [
   {
     key: "guest",
     name: { ru: "Гостевая", en: "Guest" },
-    resourceRoles: ["docs-view", "leaderboard-view", "profiles-view", "server-status-view"],
+    resourceRoles: ["docs-view", "leaderboard-view", "profiles-view", "server-status-view", "maps-page-view"],
   },
   {
     key: "user",

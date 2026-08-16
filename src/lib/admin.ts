@@ -79,9 +79,9 @@ export async function getAdminNavAccess(): Promise<Record<Resource, boolean>> {
 // Resources with a real /admin nav tab (AdminNav.tsx's own `tabs` list,
 // admin/page.tsx's ADMIN_TAB_PATHS) — narrower than every key
 // getAdminNavAccess() returns, since a few resources (docs/leaderboard/
-// profiles/server-status/threads) gate public or non-admin-panel surfaces
-// instead and have no nav tab to open.
-const ADMIN_PAGE_RESOURCES: Resource[] = ["users", "content", "tickets", "badges", "ranks", "role", "row-level-roles", "resource-roles"];
+// profiles/server-status/maps-page/threads) gate public or non-admin-panel
+// surfaces instead and have no nav tab to open.
+const ADMIN_PAGE_RESOURCES: Resource[] = ["users", "content", "tickets", "badges", "ranks", "role", "row-level-roles", "resource-roles", "maps"];
 
 /**
  * True if the viewer holds an actual `-view` resource-role (or isAdmin) on

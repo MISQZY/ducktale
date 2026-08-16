@@ -34,8 +34,9 @@
  * operation in code have the action at all: `users` (deleteUser), `tickets`
  * (deleteTicket), `badges` (deleteBadge), `content` (deleteContentFile),
  * `ranks` (deleteRank), `role` (deleteRole), `threads` (deleteThread),
- * `row-level-roles` (deleteRowLevelRole) — `resource-roles`, `docs`,
- * `leaderboard`, `profiles`, `server-status` have nothing to delete.
+ * `row-level-roles` (deleteRowLevelRole), `maps` (deleteServerMap) —
+ * `resource-roles`, `docs`, `leaderboard`, `profiles`, `server-status`,
+ * `maps-page` have nothing to delete.
  *
  * `row-level-roles` (RowLevelRole, /admin/row-level-roles) is a resource
  * like any other here — its own resource-role gates that admin page — but
@@ -62,16 +63,26 @@
  * keep the two kinds visually distinct in the /admin/roles Role-builder
  * picker and the /admin/resource-roles reference list.
  *
- * `docs`/`leaderboard`/`profiles`/`server-status` are the public,
- * no-admin-page side of the same idea, one step further: view-only gates on
- * site sections that don't require login at all today. Unauthenticated
- * visitors resolve these through the built-in "guest" Role instead of being
- * rejected outright (src/lib/public-access.ts's requirePublicResourceRole/
- * requirePublicResourceRoleApi — deliberately separate from
- * requireResourceRole(Id) in src/lib/admin.ts, which every existing
- * authenticated-only surface keeps using unchanged). Guest is seeded with
- * all four (src/config/roles.ts) so nothing about current public access
- * changes unless an admin later revokes one.
+ * `docs`/`leaderboard`/`profiles`/`server-status`/`maps-page` are the
+ * public, no-admin-page side of the same idea, one step further: view-only
+ * gates on site sections that don't require login at all today.
+ * Unauthenticated visitors resolve these through the built-in "guest" Role
+ * instead of being rejected outright (src/lib/public-access.ts's
+ * requirePublicResourceRole/requirePublicResourceRoleApi — deliberately
+ * separate from requireResourceRole(Id) in src/lib/admin.ts, which every
+ * existing authenticated-only surface keeps using unchanged). Guest is
+ * seeded with all five (src/config/roles.ts) so nothing about current
+ * public access changes unless an admin later revokes one.
+ *
+ * `maps`/`maps-page` are the same `content`/`docs` split, for the same
+ * reason: `maps` (view/edit/delete) gates /admin/maps, where a server's
+ * named maps actually get created/edited/removed
+ * (src/lib/actions/admin-maps.ts); `maps-page` (view only, guest-inclusive)
+ * gates the public /maps section that displays them. Two different resource
+ * keys rather than one combined one — same as `content`/`docs` — since an
+ * admin-only "can manage map records" grant and a public "can browse the
+ * map section at all" grant are genuinely different levers an admin should
+ * be able to hand out independently, not one permission wearing two hats.
  */
 export const RESOURCE_ROLE_ACTIONS = {
   users: ["view", "edit", "delete"],
@@ -87,6 +98,8 @@ export const RESOURCE_ROLE_ACTIONS = {
   leaderboard: ["view"],
   profiles: ["view"],
   "server-status": ["view"],
+  maps: ["view", "edit", "delete"],
+  "maps-page": ["view"],
 } as const;
 
 export type Resource = keyof typeof RESOURCE_ROLE_ACTIONS;

@@ -552,3 +552,28 @@ model MessageAttachment {
   @@index([messageId])
   @@map("{{PREFIX}}message_attachment")
 }
+
+/// A named map for a server (e.g. "Overworld"/"Верхний мир", "Nether") —
+/// a server can hold zero or more, admin-managed via /admin/maps
+/// (src/lib/actions/admin-maps.ts). `serverId` matches SERVERS[].id
+/// (src/config/servers.ts) — a fixed code-defined catalog, not itself a DB
+/// row, same as Role.key matches BUILTIN_ROLE_DEFINITIONS, so there's no FK
+/// here, just an index. `url` is the iframe src the public
+/// /maps/[server]/[id] page embeds full-page, no fixed height (unlike
+/// PageEmbed's docs usage) since the map is meant to fill the whole
+/// right-hand pane there. No rows for a given serverId means that server
+/// has no maps configured yet; the page shows an empty state instead of a
+/// tree/iframe.
+model ServerMap {
+  id        String   @id @default(uuid())
+  serverId  String   @db.VarChar(64)
+  // { ru: string, en: string } — validated at the app layer (LocalizedName,
+  // src/lib/i18n-name.ts), same convention as Badge.name/Role.name.
+  name      Json
+  url       String   @db.VarChar(1024)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([serverId])
+  @@map("{{PREFIX}}server_map")
+}
