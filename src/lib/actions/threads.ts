@@ -5,6 +5,9 @@ import { siteDb } from "@/lib/site-db";
 import { isRateLimitedByHeaders } from "@/lib/rate-limit";
 import {
   getThreadViewer,
+  hasThreadAccess,
+  isThreadModerator,
+  isThreadDeleter,
   THREAD_TITLE_MAX,
   THREAD_DESCRIPTION_MAX,
   THREAD_MESSAGE_MAX,
@@ -16,7 +19,7 @@ export interface CreateThreadResult {
 
 export async function createThread(formData: FormData): Promise<CreateThreadResult> {
   const viewer = await getThreadViewer();
-  if (!viewer) throw new Error("Not authenticated");
+  if (!viewer || !hasThreadAccess(viewer)) throw new Error("Not authorized");
 
   const lang = formData.get("lang") as string;
   const title = formData.get("title") as string;
@@ -48,7 +51,7 @@ export async function createThread(formData: FormData): Promise<CreateThreadResu
 
 export async function sendThreadMessage(formData: FormData): Promise<void> {
   const viewer = await getThreadViewer();
-  if (!viewer) throw new Error("Not authenticated");
+  if (!viewer || !hasThreadAccess(viewer)) throw new Error("Not authorized");
 
   const lang = formData.get("lang") as string;
   const threadId = formData.get("threadId") as string;
@@ -102,14 +105,14 @@ export async function sendThreadMessage(formData: FormData): Promise<void> {
  */
 export async function setThreadClosed(lang: string, threadId: string, closed: boolean): Promise<void> {
   const viewer = await getThreadViewer();
-  if (!viewer) throw new Error("Not authenticated");
+  if (!viewer || !hasThreadAccess(viewer)) throw new Error("Not authorized");
 
   const thread = await siteDb.thread.findUnique({
     where: { id: threadId },
     select: { id: true, authorId: true },
   });
   if (!thread) throw new Error("Thread not found");
-  if (viewer.id !== thread.authorId && !viewer.isAdmin) throw new Error("Not authorized");
+  if (viewer.id !== thread.authorId && !isThreadModerator(viewer)) throw new Error("Not authorized");
 
   await siteDb.$transaction([
     siteDb.thread.update({
@@ -127,7 +130,7 @@ export async function setThreadClosed(lang: string, threadId: string, closed: bo
 
 export async function deleteThread(lang: string, threadId: string): Promise<void> {
   const viewer = await getThreadViewer();
-  if (!viewer?.isAdmin) throw new Error("Not authorized");
+  if (!viewer || !isThreadDeleter(viewer)) throw new Error("Not authorized");
 
   const thread = await siteDb.thread.findUnique({ where: { id: threadId }, select: { id: true } });
   if (!thread) throw new Error("Thread not found");

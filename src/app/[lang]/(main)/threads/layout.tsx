@@ -1,5 +1,4 @@
-import { redirect } from "next/navigation";
-import { getThreadViewer } from "@/lib/threads";
+import { requireResourceRole } from "@/lib/admin";
 import { siteDb } from "@/lib/site-db";
 import { ThreadTree } from "@/components/threads/ThreadTree";
 import {
@@ -18,11 +17,11 @@ export default async function ThreadsLayout({
   const { lang } = await params;
 
   // Gated once here rather than in every page under this layout — every
-  // /threads route needs a signed-in viewer (see getThreadViewer's doc
-  // comment: unlike tickets, there's no per-thread ownership check, just
-  // "is anyone logged in").
-  const viewer = await getThreadViewer();
-  if (!viewer) redirect(`/${lang}/account/login`);
+  // /threads route needs threads-view (or isAdmin): no session redirects to
+  // login, a session lacking the role redirects home (requireResourceRole,
+  // src/lib/admin.ts) — unlike tickets, there's no per-thread ownership
+  // check, this is the one gate for the whole feature.
+  await requireResourceRole(lang, "threads-view");
 
   const threads = await siteDb.thread.findMany({
     orderBy: { updatedAt: "desc" },
