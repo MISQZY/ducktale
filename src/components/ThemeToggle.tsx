@@ -3,21 +3,17 @@
 import { useTheme } from "next-themes";
 import { Moon, Sun } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
 
+// No mounted-gate/placeholder needed here despite resolvedTheme being
+// client-only: the icon choice itself is pure CSS (the dark: variants
+// below), driven by the `dark` class next-themes sets on <html> before
+// hydration — not by resolvedTheme, which this component only reads inside
+// the click handler, where being client-only is fine. Gating the whole
+// button behind a mount effect (the previous version of this component)
+// just blanked the icon for a beat on every page load for no benefit.
 export function ThemeToggle({ className }: { className?: string }) {
   const { resolvedTheme, setTheme } = useTheme();
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setMounted(true);
-  }, []);
-
-  if (!mounted) {
-    return <div className={cn("w-9 h-9", className)} />;
-  }
 
   return (
     <Button
