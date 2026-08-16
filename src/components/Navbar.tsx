@@ -161,9 +161,11 @@ interface NavbarProps {
   canViewLeaderboard?: boolean;
   /** Same idea for /threads — that route only requires a session (no resource-role of its own, see getThreadViewer's doc comment), so this is just "is anyone logged in". */
   canViewThreads?: boolean;
+  /** Same idea as canViewLeaderboard — resolved through the guest Role for an anonymous visitor (hasPublicResourceRole("maps-view")), not just session.user.roles. */
+  canViewMaps?: boolean;
 }
 
-export default function Navbar({ canViewLeaderboard = true, canViewThreads = true }: NavbarProps) {
+export default function Navbar({ canViewLeaderboard = true, canViewThreads = true, canViewMaps = true }: NavbarProps) {
   const t = useTranslations("Nav");
   const pathname = usePathname();
   const [menuOpen, setMenuOpen] = useState(false);
@@ -172,6 +174,7 @@ export default function Navbar({ canViewLeaderboard = true, canViewThreads = tru
   const visibleLinks = NAV_LINKS.filter((link) => {
     if (link.key === "leaderboard") return canViewLeaderboard;
     if (link.key === "threads") return canViewThreads;
+    if (link.key === "maps") return canViewMaps;
     return true;
   });
 
