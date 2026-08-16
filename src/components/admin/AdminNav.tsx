@@ -69,6 +69,7 @@ export function AdminNav({ active, navAccess }: AdminNavProps) {
 
   const contentItems: NavItem[] = ([
     { resource: "content", href: "/admin/content", label: t("navContent") },
+    { resource: "maps", href: "/admin/maps", label: t("navMaps") },
   ] as NavItem[]).filter((item) => navAccess[item.resource]);
 
   const permissionsActive = permissionsItems.some((item) => item.resource === active);

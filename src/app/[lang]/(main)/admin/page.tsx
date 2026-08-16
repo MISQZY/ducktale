@@ -13,6 +13,7 @@ const ADMIN_TAB_PATHS: [Resource, string][] = [
   ["row-level-roles", "row-level-roles"],
   ["resource-roles", "resource-roles"],
   ["content", "content"],
+  ["maps", "maps"],
 ];
 
 /** /admin has no content of its own — redirects to the first tab the viewer can actually open (a resource-role holder might not have users-view), falling back to the home page if they hold none. */
