@@ -23,7 +23,14 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
 
-  const messages = await resolveThreadMessages(id);
+  // ?since=<ISO timestamp> — see resolveTicketMessages'/[id]/route.ts's
+  // matching comment (src/app/api/tickets/[id]/route.ts). Invalid/missing
+  // falls back to the full history.
+  const sinceParam = new URL(req.url).searchParams.get("since");
+  const since = sinceParam ? new Date(sinceParam) : undefined;
+  const afterCreatedAt = since && !Number.isNaN(since.getTime()) ? since : undefined;
+
+  const messages = await resolveThreadMessages(id, afterCreatedAt);
 
   return NextResponse.json({
     closed: thread.closed,

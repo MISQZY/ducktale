@@ -9,6 +9,46 @@ export function invalidateEffectiveResourceRolesCache(): void {
   invalidateByPrefix(EFFECTIVE_ROLES_CACHE_PREFIX);
 }
 
+export const SESSION_USER_CACHE_PREFIX = "session-user:";
+const SESSION_USER_CACHE_TTL_MS = 30_000;
+
+export interface SessionUserRow {
+  id: string;
+  isAdmin: boolean;
+  roles: { roleId: string }[];
+}
+
+/**
+ * The session() callback's (src/auth.ts) actual main DB cost — that
+ * callback runs on every single authenticated request (deduped only
+ * *within* one request via React's cache(), never across requests), and
+ * this lookup used to be a real, unconditional query every time, by design:
+ * sessions here are stateless JWTs with no server-side revocation store, so
+ * re-querying was what made a deleted account or a revoked isAdmin flag
+ * take effect on the user's very next request instead of silently staying
+ * valid for up to the JWT's own maxAge (30 days by default).
+ *
+ * A short TTL cache is the same trade-off already made for
+ * resolveEffectiveResourceRoles below: bounded staleness (up to
+ * SESSION_USER_CACHE_TTL_MS) instead of either "query on literally every
+ * request" or "never re-check at all". Invalidated explicitly wherever it'd
+ * otherwise matter — deleteUser/setUserAdmin (src/lib/actions/admin.ts) and
+ * assignUserToRole/removeUserFromRole/setUserRoles (admin-roles.ts) — so
+ * those still take effect immediately rather than waiting out the TTL.
+ */
+export async function getSessionUser(userId: string): Promise<SessionUserRow | null> {
+  return withCache(SESSION_USER_CACHE_PREFIX + userId, SESSION_USER_CACHE_TTL_MS, () =>
+    siteDb.user.findUnique({
+      where: { id: userId },
+      select: { id: true, isAdmin: true, roles: { select: { roleId: true } } },
+    })
+  );
+}
+
+export function invalidateSessionUserCache(userId: string): void {
+  invalidateByPrefix(SESSION_USER_CACHE_PREFIX + userId);
+}
+
 // Once this process has confirmed every built-in Role exists, it stays true
 // for the rest of the process's life (reset naturally on the next deploy's
 // restart, same persistent-Node-process assumption query-cache.ts documents)
@@ -67,11 +107,10 @@ export async function seedBuiltinRoles(): Promise<void> {
  * single-digit-role graphs this app has, not worth a recursive SQL CTE.
  *
  * Cached (query-cache.ts, same TTL pattern as the guest cache in
- * public-access.ts) keyed by the sorted role-id set — this is the session()
- * callback's (src/auth.ts) main DB cost, and unlike the guest path it ran
- * uncached on every authenticated navigation. Busted alongside the guest
- * cache from admin-roles.ts/admin-row-level-roles.ts whenever a Role or
- * RowLevelRole write could have changed the result.
+ * public-access.ts and getSessionUser above) keyed by the sorted role-id
+ * set. Busted alongside the guest cache from admin-roles.ts/
+ * admin-row-level-roles.ts whenever a Role or RowLevelRole write could have
+ * changed the result.
  */
 export async function resolveEffectiveResourceRoles(roleIds: string[]): Promise<Set<string>> {
   const cacheKey = EFFECTIVE_ROLES_CACHE_PREFIX + [...roleIds].sort().join(",");

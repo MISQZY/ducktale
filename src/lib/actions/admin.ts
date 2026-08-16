@@ -7,6 +7,7 @@ import { requireAdminId, requireResourceRoleId } from "@/lib/admin";
 import { createPasswordResetToken } from "@/lib/password-reset";
 import { invalidatePresenceLinkCache } from "@/lib/presence";
 import { invalidateByPrefix } from "@/lib/query-cache";
+import { invalidateSessionUserCache } from "@/lib/roles";
 import { SITE } from "@/config/site";
 import { NICKNAME_PATTERN, NICKNAME_FORMAT_ERROR, NICKNAME_TAKEN_ERROR } from "@/lib/nickname";
 
@@ -42,6 +43,7 @@ export async function deleteUser(lang: string, userId: string) {
 
   invalidatePresenceLinkCache();
   invalidateByPrefix("leaderboard:");
+  invalidateSessionUserCache(userId);
 
   revalidatePath(`/${lang}/admin`);
 }
@@ -55,6 +57,8 @@ export async function setUserAdmin(lang: string, userId: string, isAdmin: boolea
   if (adminId === userId) throw new Error("Cannot change your own admin status from the admin panel");
 
   await siteDb.user.update({ where: { id: userId }, data: { isAdmin } });
+
+  invalidateSessionUserCache(userId);
 
   revalidatePath(`/${lang}/admin`);
 }

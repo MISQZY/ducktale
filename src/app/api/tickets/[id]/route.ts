@@ -29,7 +29,15 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
 
-  const messages = await resolveTicketMessages(id, isTicketStaff(viewer));
+  // ?since=<ISO timestamp> — the client's own latest-known message time, so
+  // a poll only fetches what's new (see resolveTicketMessages' doc comment).
+  // Invalid/missing falls back to the full history, same as before this
+  // param existed.
+  const sinceParam = new URL(req.url).searchParams.get("since");
+  const since = sinceParam ? new Date(sinceParam) : undefined;
+  const afterCreatedAt = since && !Number.isNaN(since.getTime()) ? since : undefined;
+
+  const messages = await resolveTicketMessages(id, isTicketStaff(viewer), afterCreatedAt);
 
   return NextResponse.json({
     status: ticket.status,

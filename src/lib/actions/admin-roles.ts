@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { siteDb } from "@/lib/site-db";
 import { requireResourceRoleId } from "@/lib/admin";
 import { isResourceRole } from "@/config/resource-roles";
-import { wouldCreateCycle, invalidateEffectiveResourceRolesCache } from "@/lib/roles";
+import { wouldCreateCycle, invalidateEffectiveResourceRolesCache, invalidateSessionUserCache } from "@/lib/roles";
 import { invalidateGuestResourceRolesCache } from "@/lib/public-access";
 import type { LocalizedName } from "@/lib/i18n-name";
 
@@ -211,6 +211,7 @@ export async function assignUserToRole(lang: string, userId: string, roleId: str
     update: {},
   });
 
+  invalidateSessionUserCache(userId);
   revalidatePath(`/${lang}/admin/roles`);
 }
 
@@ -219,6 +220,7 @@ export async function removeUserFromRole(lang: string, userId: string, roleId: s
 
   await siteDb.userRole.deleteMany({ where: { userId, roleId } });
 
+  invalidateSessionUserCache(userId);
   revalidatePath(`/${lang}/admin/roles`);
 }
 
@@ -252,6 +254,7 @@ export async function setUserRoles(lang: string, userId: string, roleIds: string
       : []),
   ]);
 
+  invalidateSessionUserCache(userId);
   revalidatePath(`/${lang}/admin/roles`);
   revalidatePath(`/${lang}/admin/users`);
   return finalRoleIds;

@@ -4,7 +4,7 @@ import Credentials from "next-auth/providers/credentials";
 import bcrypt from "bcryptjs";
 import { siteDb } from "@/lib/site-db";
 import { isRateLimited } from "@/lib/rate-limit";
-import { resolveEffectiveResourceRoles } from "@/lib/roles";
+import { resolveEffectiveResourceRoles, getSessionUser } from "@/lib/roles";
 
 // Never matches a real password — used to give a lookup for a nonexistent
 // nickname the same bcrypt.compare cost as a real one, so response timing
@@ -62,15 +62,13 @@ const { handlers, auth: uncachedAuth, signIn, signOut } = NextAuth({
       // Sessions are stateless JWTs — deleting a user (admin action) doesn't
       // revoke any session already issued to them, since there's no
       // server-side session store to remove it from. Re-checking on every
-      // session read instead: once the account is gone, this stops setting
-      // `id`, so every `if (!session?.user?.id) redirect(...)` check
-      // elsewhere in the app treats them as logged out on their very next
-      // request, rather than the old JWT quietly staying "valid" until it
-      // expires on its own.
-      const user = await siteDb.user.findUnique({
-        where: { id: token.id },
-        select: { id: true, isAdmin: true, roles: { select: { roleId: true } } },
-      });
+      // session read instead (via a short-TTL cache, not a real query every
+      // time — see getSessionUser's doc comment): once the account is gone,
+      // this stops setting `id`, so every `if (!session?.user?.id)
+      // redirect(...)` check elsewhere in the app treats them as logged out
+      // within that cache's TTL, rather than the old JWT quietly staying
+      // "valid" until it expires on its own.
+      const user = await getSessionUser(token.id);
       session.user.id = user ? token.id : "";
       session.user.isAdmin = user?.isAdmin ?? false;
       // Resource-roles aren't held directly — a user holds Roles

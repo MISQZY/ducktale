@@ -1,4 +1,5 @@
 import { siteDb } from "@/lib/site-db";
+import { withCache, invalidateByPrefix } from "@/lib/query-cache";
 import type { LocalizedName } from "@/lib/i18n-name";
 
 /**
@@ -29,41 +30,72 @@ export interface NotificationRow<T extends NotificationType = NotificationType> 
   createdAt: Date;
 }
 
+export interface NotificationsSnapshot {
+  items: NotificationRow[];
+  unreadCount: number;
+}
+
+const RECENT_LIMIT = 20;
+const SNAPSHOT_CACHE_PREFIX = "notifications:";
+const SNAPSHOT_CACHE_TTL_MS = 15_000;
+
+function snapshotCacheKey(userId: string): string {
+  return SNAPSHOT_CACHE_PREFIX + userId;
+}
+
+/** Called after every write below so the *next* poll (even one within the TTL window) reflects it immediately — without this, NotificationsContext's optimistic local update (mark read, mark all read, delete read) could get silently reverted by a still-cached, pre-write snapshot on the next poll. */
+function invalidateSnapshot(userId: string): void {
+  invalidateByPrefix(snapshotCacheKey(userId));
+}
+
 export async function createNotification<T extends NotificationType>(
   userId: string,
   type: T,
   payload: NotificationPayloads[T]
 ): Promise<void> {
   await siteDb.notification.create({ data: { userId, type, payload } });
+  invalidateSnapshot(userId);
 }
 
-const RECENT_LIMIT = 20;
-
-/** Most recent notifications for the bell dropdown — read and unread both, newest first. Polled (see src/context/NotificationsContext.tsx), so this is intentionally a plain point-in-time read, no cursor/pagination yet. */
-export async function getRecentNotifications(userId: string): Promise<NotificationRow[]> {
-  const rows = await siteDb.notification.findMany({
-    where: { userId },
-    orderBy: { createdAt: "desc" },
-    take: RECENT_LIMIT,
-    select: { id: true, type: true, payload: true, read: true, createdAt: true },
+/**
+ * The recent-list + unread-count pair GET /api/notifications actually
+ * serves, cached together (not as two separate cache entries — they're
+ * never read independently) for a short TTL. NotificationsContext polls
+ * that route every API.notificationsPollIntervalMs from every open,
+ * authenticated tab — this collapses concurrent tabs/rapid polls from the
+ * *same* user into one shared DB round trip, the same shape as
+ * getAllOnlinePlayers' own cache for /api/server-status/all. Explicitly
+ * invalidated after every write (see invalidateSnapshot) so a poll never
+ * serves data older than the reader's own last action.
+ */
+export async function getNotificationsSnapshot(userId: string): Promise<NotificationsSnapshot> {
+  return withCache(snapshotCacheKey(userId), SNAPSHOT_CACHE_TTL_MS, async () => {
+    const [items, unreadCount] = await Promise.all([
+      siteDb.notification.findMany({
+        where: { userId },
+        orderBy: { createdAt: "desc" },
+        take: RECENT_LIMIT,
+        select: { id: true, type: true, payload: true, read: true, createdAt: true },
+      }) as Promise<NotificationRow[]>,
+      siteDb.notification.count({ where: { userId, read: false } }),
+    ]);
+    return { items, unreadCount };
   });
-  return rows as NotificationRow[];
-}
-
-export async function getUnreadCount(userId: string): Promise<number> {
-  return siteDb.notification.count({ where: { userId, read: false } });
 }
 
 /** No-op (not an error) if `id` doesn't belong to `userId` or is already read — the caller (a Server Action) already has the real auth check via the session; this where-clause is just belt-and-suspenders against marking someone else's notification via a forged id. */
 export async function markNotificationRead(userId: string, id: string): Promise<void> {
   await siteDb.notification.updateMany({ where: { id, userId }, data: { read: true } });
+  invalidateSnapshot(userId);
 }
 
 export async function markAllNotificationsRead(userId: string): Promise<void> {
   await siteDb.notification.updateMany({ where: { userId, read: false }, data: { read: true } });
+  invalidateSnapshot(userId);
 }
 
 /** Only ever deletes `userId`'s own already-read notifications — an unread one has to be marked read first, same as a real inbox's "clear" action never silently discards something you haven't seen yet. */
 export async function deleteReadNotifications(userId: string): Promise<void> {
   await siteDb.notification.deleteMany({ where: { userId, read: true } });
+  invalidateSnapshot(userId);
 }

@@ -38,10 +38,21 @@ export interface TicketMessageDTO {
  * reaches a non-staff viewer's client state at all. Leaving it in the
  * payload just because the UI happens not to render it would still let it
  * be read from devtools/network.
+ *
+ * `afterCreatedAt` narrows to messages newer than that timestamp — the
+ * /api/tickets/[id] poll route passes the client's own latest-known message
+ * time here once it has one, so a poll only ever fetches (and re-resolves
+ * skins for) what's actually new instead of the whole thread every few
+ * seconds. Omitted for the ticket page's own initial server-side load,
+ * which needs the full history regardless.
  */
-export async function resolveTicketMessages(ticketId: string, viewerIsStaff: boolean): Promise<TicketMessageDTO[]> {
+export async function resolveTicketMessages(
+  ticketId: string,
+  viewerIsStaff: boolean,
+  afterCreatedAt?: Date
+): Promise<TicketMessageDTO[]> {
   const messages = await siteDb.message.findMany({
-    where: { ticketId },
+    where: { ticketId, ...(afterCreatedAt ? { createdAt: { gt: afterCreatedAt } } : {}) },
     orderBy: { createdAt: "asc" },
     select: {
       id: true,

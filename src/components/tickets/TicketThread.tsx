@@ -210,14 +210,33 @@ export function TicketThread({ lang, ticketId, subject, initialStatus, initialMe
   const [isPending, startTransition] = useTransition();
   const bottomRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  // A ref (not derived from `messages` state) so `poll`'s own identity stays
+  // stable across polls — depending on `messages` directly would give
+  // usePolling a new callback (and so a torn-down/recreated interval) every
+  // time a poll actually finds something new.
+  const latestCreatedAtRef = useRef<string | undefined>(initialMessages.at(-1)?.createdAt);
 
   const poll = useCallback(async () => {
     try {
-      const res = await fetch(`/api/tickets/${ticketId}`);
+      const since = latestCreatedAtRef.current;
+      const url = since
+        ? `/api/tickets/${ticketId}?since=${encodeURIComponent(since)}`
+        : `/api/tickets/${ticketId}`;
+      const res = await fetch(url);
       if (!res.ok) return;
       const data = await res.json();
       setStatus(data.status);
-      setMessages(data.messages);
+      // Server-side `since` already excludes anything the client has seen —
+      // this id-based filter is just a safety net against the same message
+      // arriving twice (e.g. a retried request), not the primary dedup.
+      setMessages((prev) => {
+        const newOnes = (data.messages as TicketMessageData[]).filter(
+          (m) => !prev.some((existing) => existing.id === m.id)
+        );
+        if (newOnes.length === 0) return prev;
+        latestCreatedAtRef.current = newOnes[newOnes.length - 1].createdAt;
+        return [...prev, ...newOnes];
+      });
     } catch {
       // Silent — a missed poll just tries again next interval.
     }

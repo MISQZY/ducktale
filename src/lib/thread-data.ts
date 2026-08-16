@@ -21,10 +21,15 @@ export interface ThreadMessageDTO {
  * per message) via resolveSkinUrlMap (@/lib/skin), the same chunked/cached
  * convention used everywhere else a player's head needs to render (navbar,
  * leaderboard, homepage marquee, ...).
+ *
+ * `afterCreatedAt` narrows to messages newer than that timestamp — see
+ * resolveTicketMessages' matching doc comment (src/lib/ticket-data.ts) for
+ * why: the /api/threads/[id] poll route passes the client's own
+ * latest-known message time here so a poll only fetches what's new.
  */
-export async function resolveThreadMessages(threadId: string): Promise<ThreadMessageDTO[]> {
+export async function resolveThreadMessages(threadId: string, afterCreatedAt?: Date): Promise<ThreadMessageDTO[]> {
   const messages = await siteDb.message.findMany({
-    where: { threadId },
+    where: { threadId, ...(afterCreatedAt ? { createdAt: { gt: afterCreatedAt } } : {}) },
     orderBy: { createdAt: "asc" },
     select: {
       id: true,

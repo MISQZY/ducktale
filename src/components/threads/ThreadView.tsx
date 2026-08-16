@@ -68,27 +68,35 @@ export function ThreadView({
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
   const bottomRef = useRef<HTMLDivElement>(null);
+  // A ref (not derived from `messages` state) so `poll`'s own identity stays
+  // stable across polls — see TicketThread.tsx's matching comment.
+  const latestCreatedAtRef = useRef<string | undefined>(initialMessages.at(-1)?.createdAt);
 
   const canModerate = isAuthor || isModerator;
 
   const poll = useCallback(async () => {
     try {
-      const res = await fetch(`/api/threads/${threadId}`);
+      const since = latestCreatedAtRef.current;
+      const url = since
+        ? `/api/threads/${threadId}?since=${encodeURIComponent(since)}`
+        : `/api/threads/${threadId}`;
+      const res = await fetch(url);
       if (!res.ok) return;
       const data = await res.json();
-      // Bails out (same array reference back to setState) when nothing
-      // actually changed since the last poll, instead of unconditionally
-      // replacing the array — messages only ever get appended here, never
-      // edited/removed, so "same length, same last id" reliably means
-      // "nothing new," and skips re-rendering (and re-resolving every
-      // author's skin) every 8s cycle for no reason.
-      setMessages((prev) => {
-        const next = data.messages;
-        const last = prev[prev.length - 1];
-        const nextLast = next[next.length - 1];
-        if (prev.length === next.length && last?.id === nextLast?.id) return prev;
-        return next;
-      });
+      // Server-side `since` already narrows to what's actually new — this
+      // just appends it (messages only ever get appended here, never
+      // edited/removed), skipping a re-render entirely when there's nothing
+      // new instead of unconditionally replacing the array every 8s cycle.
+      if (data.messages.length > 0) {
+        setMessages((prev) => {
+          const newOnes = (data.messages as ThreadMessageData[]).filter(
+            (m) => !prev.some((existing) => existing.id === m.id)
+          );
+          if (newOnes.length === 0) return prev;
+          latestCreatedAtRef.current = newOnes[newOnes.length - 1].createdAt;
+          return [...prev, ...newOnes];
+        });
+      }
       setClosed(data.closed);
     } catch {
       // Silent — a missed poll just tries again next interval.

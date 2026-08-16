@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { isRateLimited } from "@/lib/rate-limit";
-import { getRecentNotifications, getUnreadCount } from "@/lib/notifications";
+import { getNotificationsSnapshot } from "@/lib/notifications";
 
 export interface NotificationsResponse {
   items: {
@@ -21,7 +21,10 @@ export interface NotificationsResponse {
  * established for /api/server-status/all, rather than adding a first
  * WebSocket/SSE connection type to the app for this. Always the caller's
  * own notifications (no id/userId param) — the session is the only input
- * that decides what comes back.
+ * that decides what comes back. getNotificationsSnapshot caches the actual
+ * DB work for a short TTL (src/lib/notifications.ts) so multiple tabs/rapid
+ * polls from the same user share one DB round trip instead of each firing
+ * their own.
  */
 export async function GET(req: Request) {
   const session = await auth();
@@ -33,10 +36,7 @@ export async function GET(req: Request) {
     return NextResponse.json({ error: "Too many requests" }, { status: 429 });
   }
 
-  const [rows, unreadCount] = await Promise.all([
-    getRecentNotifications(session.user.id),
-    getUnreadCount(session.user.id),
-  ]);
+  const { items: rows, unreadCount } = await getNotificationsSnapshot(session.user.id);
 
   const result: NotificationsResponse = {
     items: rows.map((r) => ({
@@ -49,8 +49,9 @@ export async function GET(req: Request) {
     unreadCount,
   };
 
-  // No shared cache (unlike /api/server-status/all) — this response is
+  // No shared HTTP cache (unlike /api/server-status/all) — this response is
   // per-session, not something a CDN/shared cache could ever reuse across
-  // different visitors.
+  // different visitors. (getNotificationsSnapshot's own in-memory cache
+  // above is per-userId, which is exactly the granularity this needs.)
   return NextResponse.json(result, { headers: { "Cache-Control": "private, no-store" } });
 }
