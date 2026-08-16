@@ -100,7 +100,7 @@ export async function generateMetadata(props: {
   if (!page) notFound();
 
   return {
-    title: page.data.title + " | DuckTale",
+    title: page.data.title,
     description: page.data.description,
     openGraph: {
       images: getPageImage(server, page).url,

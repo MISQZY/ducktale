@@ -9,7 +9,7 @@ const ServersSection = dynamic(() => import("@/components/ServersSection"));
 const NetworkDiagram = dynamic(() => import("@/components/NetworkDiagram"));
 const SocialSection = dynamic(() => import("@/components/SocialSection"));
 
-export const generateMetadata = createMetadata({ namespace: "Home" });
+export const generateMetadata = createMetadata({ namespace: "Home", useDefaultTitle: true });
 
 export default function HomePage() {
   return (

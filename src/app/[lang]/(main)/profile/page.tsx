@@ -5,6 +5,7 @@ import { siteDb } from "@/lib/site-db";
 import { evaluateAutoBadges } from "@/lib/luckperms";
 import { hasAdminNavAccess } from "@/lib/admin";
 import type { LocalizedName } from "@/lib/i18n-name";
+import type { Metadata } from "next";
 
 import { CtaButton } from "@/components/common/CtaButton";
 import { ProfileQuickActions } from "@/components/account/ProfileQuickActions";
@@ -13,6 +14,17 @@ import { ProfileSectionCard } from "@/components/account/ProfileSectionCard";
 import { BadgePinSelector } from "@/components/badges/BadgePinSelector";
 import { Callout } from "@/components/docs/Callout";
 import { Link as LinkIcon } from "lucide-react";
+
+export async function generateMetadata(): Promise<Metadata> {
+  const session = await auth();
+  // No session redirects to login before rendering anything (see the
+  // component below) — nothing to name the title after, so it's left
+  // unset and just inherits the root layout's plain "DuckTale".
+  if (!session?.user?.name) return {};
+
+  const t = await getTranslations("Account.dashboard");
+  return { title: t("title", { name: session.user.name }) };
+}
 
 /** The signed-in user's own profile — /profile with no username. A username segment (/profile/[username]) is the public view of any user instead, see that route. */
 export default async function ProfilePage({

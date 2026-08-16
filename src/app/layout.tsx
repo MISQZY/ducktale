@@ -49,13 +49,13 @@ export const metadata: Metadata = {
     icon: "/icons/favicon.svg",
   },
   title: {
-    template: "%s | DuckTale",
-    default: "DuckTale — Minecraft Network",
+    template: "DuckTale - %s",
+    default: "DuckTale",
   },
   description:
     "DuckTale — сеть Minecraft серверов. DuckBurg — сервер выживания, DuckHood — сервер творчества.",
   openGraph: {
-    title: "DuckTale — Minecraft Network",
+    title: "DuckTale",
     description:
       "DuckTale — сеть Minecraft серверов. DuckBurg — выживание, DuckHood — творчество.",
     url: siteURL,
@@ -67,7 +67,7 @@ export const metadata: Metadata = {
         url: "/icons/favicon.svg",
         width: 1200,
         height: 630,
-        alt: "DuckTale — Minecraft Network",
+        alt: "DuckTale",
       },
     ],
   },

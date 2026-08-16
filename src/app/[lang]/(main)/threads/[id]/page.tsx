@@ -9,6 +9,21 @@ import { CompactBadgeChip } from "@/components/badges/CompactBadgeChip";
 import { getPlayerCard } from "@/lib/player-card";
 import { resolveThreadMessages } from "@/lib/thread-data";
 import { localizedName, type LocalizedName } from "@/lib/i18n-name";
+import type { Metadata } from "next";
+
+// A separate, minimal query rather than sharing the page component's full
+// thread fetch below — this only ever needs the title column, not worth a
+// cache()-shared fetch like profile/[username]/page.tsx's (that one avoids
+// duplicating a much heavier query).
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}): Promise<Metadata> {
+  const { id } = await params;
+  const thread = await siteDb.thread.findUnique({ where: { id }, select: { title: true } });
+  return thread ? { title: thread.title } : {};
+}
 
 export default async function ThreadPage({
   params,

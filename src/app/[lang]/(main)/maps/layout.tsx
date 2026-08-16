@@ -8,6 +8,15 @@ import {
   ResizablePanel,
   ResizablePanelGroup,
 } from "@/components/ui/resizable";
+import type { Metadata } from "next";
+
+// Default for the whole /maps subtree — [server]/[map]/page.tsx overrides
+// it with the specific map's name; the index/[server] redirect-only pages
+// have none of their own and just inherit this.
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations("Nav");
+  return { title: t("maps") };
+}
 
 /**
  * Gated once here (same shape as threads/layout.tsx) rather than in every

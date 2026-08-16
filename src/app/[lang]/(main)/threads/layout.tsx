@@ -1,3 +1,4 @@
+import { getTranslations } from "next-intl/server";
 import { requireResourceRole } from "@/lib/admin";
 import { siteDb } from "@/lib/site-db";
 import { ThreadTree } from "@/components/threads/ThreadTree";
@@ -6,6 +7,15 @@ import {
   ResizablePanel,
   ResizablePanelGroup,
 } from "@/components/ui/resizable";
+import type { Metadata } from "next";
+
+// Default for the whole /threads subtree — new/page.tsx and [id]/page.tsx
+// override it with something more specific; the plain list page (page.tsx)
+// has none of its own and just inherits this.
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations("Nav");
+  return { title: t("threads") };
+}
 
 export default async function ThreadsLayout({
   params,

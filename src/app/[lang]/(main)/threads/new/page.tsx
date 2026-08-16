@@ -1,5 +1,11 @@
 import { getTranslations } from "next-intl/server";
 import { NewThreadForm } from "@/components/threads/NewThreadForm";
+import type { Metadata } from "next";
+
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations("Threads");
+  return { title: t("newThreadTitle") };
+}
 
 export default async function NewThreadPage({
   params,
