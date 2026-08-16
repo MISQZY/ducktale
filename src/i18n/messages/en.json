@@ -832,6 +832,17 @@
     "send": "Send",
     "sending": "Sending..."
   },
+  "Notifications": {
+    "bellLabel": "Notifications",
+    "title": "Notifications",
+    "empty": "No notifications yet",
+    "markAllRead": "Mark all as read",
+    "deleteRead": "Delete read notifications",
+    "view": "Open",
+    "ticketReply": "New reply on ticket \"{subject}\"",
+    "ticketClosed": "Ticket \"{subject}\" was closed",
+    "badgeAwarded": "You earned the \"{name}\" badge"
+  },
   "Leaderboard": {
     "pageTitle": "Rankings",
     "pageDescription": "DuckTale network player and town rankings.",

@@ -2,6 +2,7 @@ import { Prisma } from "@prisma/client";
 import { withDb } from "@/lib/db";
 import { withCache } from "@/lib/query-cache";
 import { siteDb } from "@/lib/site-db";
+import { createNotification } from "@/lib/notifications";
 import type { LocalizedName } from "@/lib/i18n-name";
 
 /**
@@ -165,7 +166,10 @@ function getAutoConditionBadges() {
   return withCache("luckperms:autoConditionBadges", AUTO_CONDITION_BADGES_TTL_MS, () =>
     siteDb.badge.findMany({
       where: { autoRoles: { some: {} } },
-      select: { id: true, autoRoles: { select: { role: { select: { group: true } } } } },
+      select: {
+        id: true, name: true, icon: true, color: true,
+        autoRoles: { select: { role: { select: { group: true } } } },
+      },
     })
   );
 }
@@ -179,6 +183,17 @@ export async function evaluateAutoBadges(userId: string, minecraftUuid: string):
   const toAward = autoConditionBadges.filter((b) => b.autoRoles.some((ar) => heldGroups.has(ar.role.group)));
   if (toAward.length === 0) return;
 
+  // Checked up front (not inferred from createMany's count, which doesn't
+  // say *which* rows it actually inserted) so a badge this user already
+  // holds — the common case on every later profile visit, since this re-runs
+  // unconditionally — doesn't get renotified.
+  const alreadyHeld = await siteDb.userBadge.findMany({
+    where: { userId, badgeId: { in: toAward.map((b) => b.id) } },
+    select: { badgeId: true },
+  });
+  const alreadyHeldIds = new Set(alreadyHeld.map((r) => r.badgeId));
+  const newlyAwarded = toAward.filter((b) => !alreadyHeldIds.has(b.id));
+
   // One batched insert instead of N individual upserts — skipDuplicates
   // makes this the same "insert or ignore" semantics as the old per-badge
   // upsert, since a badge is never auto-revoked once earned.
@@ -186,4 +201,17 @@ export async function evaluateAutoBadges(userId: string, minecraftUuid: string):
     data: toAward.map((b) => ({ userId, badgeId: b.id })),
     skipDuplicates: true,
   });
+
+  if (newlyAwarded.length > 0) {
+    await Promise.all(
+      newlyAwarded.map((b) =>
+        createNotification(userId, "badge_awarded", {
+          badgeId: b.id,
+          badgeName: b.name as unknown as LocalizedName,
+          badgeIcon: b.icon,
+          badgeColor: b.color,
+        })
+      )
+    );
+  }
 }

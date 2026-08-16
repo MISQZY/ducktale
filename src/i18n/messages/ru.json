@@ -831,6 +831,17 @@
     "send": "Отправить",
     "sending": "Отправка..."
   },
+  "Notifications": {
+    "bellLabel": "Уведомления",
+    "title": "Уведомления",
+    "empty": "Пока нет уведомлений",
+    "markAllRead": "Отметить всё как прочитанное",
+    "deleteRead": "Удалить прочитанные",
+    "view": "Открыть",
+    "ticketReply": "Новый ответ в тикете «{subject}»",
+    "ticketClosed": "Тикет «{subject}» закрыт",
+    "badgeAwarded": "Вы получили бейдж «{name}»"
+  },
   "Leaderboard": {
     "pageTitle": "Рейтинги",
     "pageDescription": "Рейтинги игроков и городов сети DuckTale.",

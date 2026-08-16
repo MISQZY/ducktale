@@ -116,6 +116,8 @@ export const API = {
   serverStatusTimeoutMs: 8_000,
   /** Poll interval for live status widget (ms) */
   pollIntervalMs: 90_000,
+  /** Poll interval for /api/notifications (ms) — shorter than pollIntervalMs since a notification's whole point is showing up promptly as a toast, not just eventually. */
+  notificationsPollIntervalMs: 20_000,
   /** How long to cache GitHub last-modified results (ms) */
   githubCacheDurationMs: 60 * 60 * 1_000,
 } as const;

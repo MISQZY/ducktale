@@ -76,6 +76,7 @@ export const metadata: Metadata = {
 import { getLocale } from "next-intl/server";
 
 import { MouseTracker } from "@/components/common/MouseTracker";
+import { Toaster } from "@/components/ui/sonner";
 
 export default async function RootLayout({
   children,
@@ -107,6 +108,7 @@ export default async function RootLayout({
         >
           {children}
           <MouseTracker />
+          <Toaster position="bottom-right" />
         </ThemeProvider>
       </body>
     </html>

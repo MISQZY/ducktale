@@ -11,6 +11,7 @@ import DuckySwarm from "@/components/DuckySwarm";
 import PresenceHeartbeat from "@/components/PresenceHeartbeat";
 import { SessionRefresher } from "@/components/SessionRefresher";
 import { ConfirmDialogProvider } from "@/components/common/ConfirmDialogProvider";
+import { NotificationsProvider } from "@/context/NotificationsContext";
 
 export function AppProvider({
   children,
@@ -43,10 +44,12 @@ export function AppProvider({
         }}
       >
         <ConfirmDialogProvider>
-          {children}
-          <DuckyPet />
-          <DuckySwarm />
-          <PresenceHeartbeat />
+          <NotificationsProvider>
+            {children}
+            <DuckyPet />
+            <DuckySwarm />
+            <PresenceHeartbeat />
+          </NotificationsProvider>
         </ConfirmDialogProvider>
       </RootProvider>
     </SessionProvider>

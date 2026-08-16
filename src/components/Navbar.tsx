@@ -24,6 +24,7 @@ import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 import { NAV_LINKS } from "@/config/navigation";
 import { getDuckyVisible, setDuckyVisible } from "@/components/DuckyPet";
 import { useSyncExternalStore } from "react";
+import { NotificationBell } from "@/components/NotificationBell";
 
 function isActive(pathname: string, href: string): boolean {
   if (href.startsWith("/#")) return pathname === "/";
@@ -170,6 +171,10 @@ interface NavbarProps {
 export default function Navbar({ canViewLeaderboard = true, canViewThreads = true, canViewMaps = true }: NavbarProps) {
   const t = useTranslations("Nav");
   const pathname = usePathname();
+  // Gates the bell — an anonymous visitor has no notifications, and
+  // NotificationsContext only polls for an authenticated session anyway
+  // (see its own doc comment), so there's nothing for the bell to show them.
+  const { status } = useSession();
   const [menuOpen, setMenuOpen] = useState(false);
   const duckyVisible = useSyncExternalStore(subscribeDuckyToggle, getDuckyVisible, () => true);
 
@@ -253,6 +258,8 @@ export default function Navbar({ canViewLeaderboard = true, canViewThreads = tru
               <AccountLinkContent fallbackLabel={t("login")} />
             </Link>
 
+            {status === "authenticated" && <NotificationBell />}
+
             <LanguageSwitcher className="ml-1" />
             <ThemeToggle />
 
@@ -276,6 +283,7 @@ export default function Navbar({ canViewLeaderboard = true, canViewThreads = tru
 
           {/* Mobile burger */}
           <div className="nav-burger flex items-center gap-2">
+            {status === "authenticated" && <NotificationBell />}
             <LanguageSwitcher />
             <ThemeToggle />
 

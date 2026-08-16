@@ -49,6 +49,7 @@ model User {
   passwordResetTokens PasswordResetToken[]
   badges              UserBadge[]
   roles               UserRole[]
+  notifications       Notification[]
 
   @@map("{{PREFIX}}user")
 }
@@ -576,4 +577,27 @@ model ServerMap {
 
   @@index([serverId])
   @@map("{{PREFIX}}server_map")
+}
+
+/// An in-site notification for a user — a ticket reply, a badge award, and
+/// so on. `type` is a free string (not a Prisma enum) precisely so a new
+/// notification kind is just a new string constant plus a renderer
+/// registered in src/lib/notification-renderers.tsx, never a migration.
+/// `payload` carries whatever that type's renderer needs (a ticket id, a
+/// badge id, ...) — validated/shaped by the writer (src/lib/notifications.ts),
+/// not by the schema, same tradeoff already made for Badge.name/ServerMap.name
+/// being untyped Json. Polled, not pushed (src/context/NotificationsContext.tsx),
+/// so there's no delivery-state column here beyond `read`.
+model Notification {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type      String   @db.VarChar(64)
+  payload   Json
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([userId, read])
+  @@index([userId, createdAt])
+  @@map("{{PREFIX}}notification")
 }

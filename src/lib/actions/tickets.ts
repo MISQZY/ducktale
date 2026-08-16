@@ -5,6 +5,7 @@ import { saveAttachment, deleteAttachmentFile } from "@/lib/attachments";
 import { revalidatePath } from "next/cache";
 import { siteDb } from "@/lib/site-db";
 import { isRateLimitedByHeaders } from "@/lib/rate-limit";
+import { createNotification } from "@/lib/notifications";
 import {
   getTicketViewer,
   canViewTicket,
@@ -93,7 +94,7 @@ export async function sendTicketMessage(formData: FormData): Promise<void> {
 
   const ticket = await siteDb.ticket.findUnique({
     where: { id: ticketId },
-    select: { id: true, userId: true, status: true },
+    select: { id: true, userId: true, status: true, subject: true },
   });
   if (!ticket || !canViewTicket(viewer, ticket)) throw new Error("Ticket not found");
 
@@ -163,6 +164,12 @@ export async function sendTicketMessage(formData: FormData): Promise<void> {
     }),
   ]);
 
+  // Only the ticket owner, and only for a staff reply — a reply from the
+  // owner themselves doesn't need to notify... themselves.
+  if (isAdminReply) {
+    await createNotification(ticket.userId, "ticket_reply", { ticketId, ticketSubject: ticket.subject });
+  }
+
   revalidatePath(`/${lang}/tickets/${ticketId}`);
   revalidatePath(`/${lang}/account/tickets`);
   revalidatePath(`/${lang}/admin/tickets`);
@@ -179,7 +186,7 @@ export async function setTicketStatus(lang: string, ticketId: string, status: "O
   const viewer = await getTicketViewer();
   if (!viewer || !isTicketEditor(viewer)) throw new Error("Not authorized");
 
-  const ticket = await siteDb.ticket.findUnique({ where: { id: ticketId }, select: { userId: true } });
+  const ticket = await siteDb.ticket.findUnique({ where: { id: ticketId }, select: { userId: true, subject: true } });
   if (!ticket) throw new Error("Ticket not found");
 
   await siteDb.$transaction([
@@ -198,6 +205,12 @@ export async function setTicketStatus(lang: string, ticketId: string, status: "O
       },
     }),
   ]);
+
+  // Same self-ticket exclusion as above — a staffer closing their own
+  // ticket doesn't need to be told they just did that.
+  if (status === "CLOSED" && viewer.id !== ticket.userId) {
+    await createNotification(ticket.userId, "ticket_closed", { ticketId, ticketSubject: ticket.subject });
+  }
 
   revalidatePath(`/${lang}/tickets/${ticketId}`);
   revalidatePath(`/${lang}/admin/tickets`);

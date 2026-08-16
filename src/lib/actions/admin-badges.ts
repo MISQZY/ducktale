@@ -5,6 +5,7 @@ import { siteDb } from "@/lib/site-db";
 import { requireResourceRoleId } from "@/lib/admin";
 import { generateUniqueBadgeKey } from "@/lib/badges";
 import { isBadgeIconName } from "@/config/badges";
+import { createNotification } from "@/lib/notifications";
 import type { LocalizedName } from "@/lib/i18n-name";
 
 const NAME_MAX = 64;
@@ -103,6 +104,14 @@ export async function deleteBadge(lang: string, badgeId: string): Promise<void> 
 export async function awardBadge(lang: string, userId: string, badgeId: string): Promise<void> {
   await requireResourceRoleId("badges-edit");
 
+  // Checked up front (not inferred from upsert's return value, which looks
+  // the same either way) so re-awarding an already-held badge doesn't
+  // re-notify the user for something they already have.
+  const alreadyHeld = await siteDb.userBadge.findUnique({
+    where: { userId_badgeId: { userId, badgeId } },
+    select: { userId: true },
+  });
+
   // upsert (not create) — re-awarding a badge the user already has is a
   // harmless no-op rather than a unique-constraint error.
   await siteDb.userBadge.upsert({
@@ -110,6 +119,21 @@ export async function awardBadge(lang: string, userId: string, badgeId: string):
     create: { userId, badgeId },
     update: {},
   });
+
+  if (!alreadyHeld) {
+    const badge = await siteDb.badge.findUnique({
+      where: { id: badgeId },
+      select: { name: true, icon: true, color: true },
+    });
+    if (badge) {
+      await createNotification(userId, "badge_awarded", {
+        badgeId,
+        badgeName: badge.name as unknown as LocalizedName,
+        badgeIcon: badge.icon,
+        badgeColor: badge.color,
+      });
+    }
+  }
 
   revalidatePath(`/${lang}/admin/users`);
 }
