@@ -9,6 +9,15 @@ export function invalidateEffectiveResourceRolesCache(): void {
   invalidateByPrefix(EFFECTIVE_ROLES_CACHE_PREFIX);
 }
 
+// Once this process has confirmed every built-in Role exists, it stays true
+// for the rest of the process's life (reset naturally on the next deploy's
+// restart, same persistent-Node-process assumption query-cache.ts documents)
+// — without it, seedBuiltinRoles ran its full existence-check loop on every
+// single /admin/roles load forever, even though after the first successful
+// pass it's always a no-op. Left false on a thrown error so the next call
+// retries instead of getting stuck "done" after a failed attempt.
+let builtinRolesSeeded = false;
+
 /**
  * Ensures every code-defined built-in Role (BUILTIN_ROLE_DEFINITIONS)
  * exists as a row — skips any key that's already present, so it never
@@ -17,9 +26,11 @@ export function invalidateEffectiveResourceRolesCache(): void {
  * skipDuplicates like seedBuiltinBadges() — each Role needs a nested
  * RoleResourceRole write, which createMany can't express — but the list is
  * small and fixed (3 today), so a per-definition existence check is cheap
- * enough to run on every /admin/roles page load.
+ * enough to run once per process (see builtinRolesSeeded above).
  */
 export async function seedBuiltinRoles(): Promise<void> {
+  if (builtinRolesSeeded) return;
+
   for (const def of BUILTIN_ROLE_DEFINITIONS) {
     const exists = await siteDb.role.findUnique({ where: { key: def.key }, select: { id: true } });
     if (exists) continue;
@@ -35,6 +46,8 @@ export async function seedBuiltinRoles(): Promise<void> {
       },
     });
   }
+
+  builtinRolesSeeded = true;
 }
 
 /**
