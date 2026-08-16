@@ -13,9 +13,10 @@ import { buttonVariants } from "@/components/ui/button";
 import { useConfirm } from "@/components/common/ConfirmDialogProvider";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Marker, MarkerIcon, MarkerContent } from "@/components/ui/marker";
-import { Bubble, BubbleContent, BubbleGroup } from "@/components/ui/bubble";
 import { PlayerAvatar } from "@/components/common/PlayerAvatar";
+import { MessageBubble } from "@/components/common/MessageBubble";
 import { handleComposerKeyDown } from "@/lib/compose-keydown";
+import { usePolling } from "@/hooks/usePolling";
 
 type ThreadMessageType = "MESSAGE" | "CLOSED" | "REOPENED";
 
@@ -37,9 +38,12 @@ interface ThreadViewProps {
   initialMessages: ThreadMessageData[];
   /** The signed-in viewer's own user id — own messages align right, everyone else's align left (an open forum has more than 2 possible participants, unlike a ticket's fixed staff/owner split). */
   viewerId: string;
-  /** Author (or any admin) can close/reopen; only an admin can delete outright. */
+  /** Author (or a moderator) can close/reopen; only a threads-delete holder can delete outright. */
   isAuthor: boolean;
-  isAdmin: boolean;
+  /** isAdmin, or holds threads-edit — see isThreadModerator() in src/lib/threads.ts. */
+  isModerator: boolean;
+  /** isAdmin, or holds threads-delete — independent of isModerator (see RESOURCE_ROLE_ACTIONS's doc comment), see isThreadDeleter() in src/lib/threads.ts. */
+  isDeleter: boolean;
   /** Where to send the viewer after deleting the thread, since it no longer exists to render. */
   backHref: string;
 }
@@ -63,7 +67,7 @@ function ThreadEventMarker({ event, t, lang }: { event: ThreadMessageData; t: Re
 }
 
 export function ThreadView({
-  lang, threadId, title, initialClosed, initialMessages, viewerId, isAuthor, isAdmin, backHref,
+  lang, threadId, title, initialClosed, initialMessages, viewerId, isAuthor, isModerator, isDeleter, backHref,
 }: ThreadViewProps) {
   const t = useTranslations("Threads");
   const confirm = useConfirm();
@@ -75,7 +79,7 @@ export function ThreadView({
   const [isPending, startTransition] = useTransition();
   const bottomRef = useRef<HTMLDivElement>(null);
 
-  const canModerate = isAuthor || isAdmin;
+  const canModerate = isAuthor || isModerator;
 
   const poll = useCallback(async () => {
     try {
@@ -101,22 +105,10 @@ export function ThreadView({
     }
   }, [threadId]);
 
-  useEffect(() => {
-    // A closed thread can't receive new messages (see sendThreadMessage),
-    // so there's nothing left for polling to ever pick up — closing this
-    // effect's own interval here also means poll() itself stops being
-    // called at all, not just its result being discarded.
-    if (closed) return;
-    function tick() {
-      if (document.visibilityState === "visible") poll();
-    }
-    const interval = setInterval(tick, POLL_INTERVAL_MS);
-    document.addEventListener("visibilitychange", tick);
-    return () => {
-      clearInterval(interval);
-      document.removeEventListener("visibilitychange", tick);
-    };
-  }, [poll, closed]);
+  // A closed thread can't receive new messages (see sendThreadMessage), so
+  // there's nothing left for polling to ever pick up — `enabled: !closed`
+  // stops the interval entirely rather than just discarding its result.
+  usePolling(poll, POLL_INTERVAL_MS, !closed);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ block: "nearest" });
@@ -186,30 +178,29 @@ export function ThreadView({
               }
               const alignRight = m.authorId === viewerId;
               return (
-                <BubbleGroup key={m.id} className={alignRight ? "items-end" : "items-start"}>
-                  <PlayerAvatar
-                    name={m.authorNickname}
-                    skinUrl={m.authorSkinUrl}
-                    hasSiteProfile
-                    growName={false}
-                    avatarSize={18}
-                    avatarClassName="rounded-sm border-none"
-                    className="px-1 gap-1.5"
-                    nameNode={
-                      <span className="text-[0.65rem] text-foreground/50 hover:text-foreground/80 transition-colors">
-                        {m.authorNickname}
-                      </span>
-                    }
-                  />
-                  <Bubble align={alignRight ? "end" : "start"} variant={alignRight ? "default" : "secondary"}>
-                    <BubbleContent className="whitespace-pre-wrap break-words">
-                      {m.body}
-                    </BubbleContent>
-                  </Bubble>
-                  <span className={cn("text-[0.6rem] text-foreground/30 px-1", alignRight && "self-end")}>
-                    {new Date(m.createdAt).toLocaleString(lang === "ru" ? "ru-RU" : "en-US")}
-                  </span>
-                </BubbleGroup>
+                <MessageBubble
+                  key={m.id}
+                  alignRight={alignRight}
+                  lang={lang}
+                  createdAt={m.createdAt}
+                  body={m.body}
+                  header={
+                    <PlayerAvatar
+                      name={m.authorNickname}
+                      skinUrl={m.authorSkinUrl}
+                      hasSiteProfile
+                      growName={false}
+                      avatarSize={18}
+                      avatarClassName="rounded-sm border-none"
+                      className="px-1 gap-1.5"
+                      nameNode={
+                        <span className="text-[0.65rem] text-foreground/50 hover:text-foreground/80 transition-colors">
+                          {m.authorNickname}
+                        </span>
+                      }
+                    />
+                  }
+                />
               );
             })
           )}
@@ -247,7 +238,7 @@ export function ThreadView({
                 {closed ? <LockOpen size={14} /> : <Lock size={14} />}
               </button>
             )}
-            {isAdmin && (
+            {isDeleter && (
               <button
                 type="button"
                 disabled={isPending}

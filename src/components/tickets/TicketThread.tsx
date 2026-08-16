@@ -13,9 +13,10 @@ import { buttonVariants } from "@/components/ui/button";
 import { useConfirm } from "@/components/common/ConfirmDialogProvider";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Bubble, BubbleContent, BubbleGroup } from "@/components/ui/bubble";
 import { PlayerAvatar } from "@/components/common/PlayerAvatar";
+import { MessageBubble } from "@/components/common/MessageBubble";
 import { handleComposerKeyDown } from "@/lib/compose-keydown";
+import { usePolling } from "@/hooks/usePolling";
 import { TicketStatusBadge } from "./TicketStatusBadge";
 import type { TicketStatus } from ".prisma/site-client";
 
@@ -42,9 +43,12 @@ interface TicketThreadProps {
   subject: string;
   initialStatus: TicketStatus;
   initialMessages: TicketMessageData[];
-  /** Whether the current viewer is an admin — controls both the close/reopen
-   * controls and which side of the thread their own messages render on. */
-  isAdmin: boolean;
+  /** Whether the current viewer is ticket staff (isAdmin, or holds tickets-view/tickets-edit) — controls which side of the thread their own messages render on and whether replies show as anonymized "staff". */
+  isStaff: boolean;
+  /** Narrower than isStaff — tickets-edit (or isAdmin) only. Controls the close/reopen control. */
+  canEdit: boolean;
+  /** tickets-delete (or isAdmin) — independent of canEdit (see RESOURCE_ROLE_ACTIONS's doc comment), controls the delete control specifically. */
+  canDelete: boolean;
   /** Where to send the admin after deleting the ticket, since it no longer exists to render. */
   backHref: string;
 }
@@ -177,7 +181,7 @@ function SelectedFileChip({ file, onRemove }: { file: File; onRemove: () => void
 
 /* ---------- Main component ---------- */
 
-export function TicketThread({ lang, ticketId, subject, initialStatus, initialMessages, isAdmin, backHref }: TicketThreadProps) {
+export function TicketThread({ lang, ticketId, subject, initialStatus, initialMessages, isStaff, canEdit, canDelete, backHref }: TicketThreadProps) {
   const t = useTranslations("Tickets");
   const confirm = useConfirm();
   const router = useRouter();
@@ -202,17 +206,7 @@ export function TicketThread({ lang, ticketId, subject, initialStatus, initialMe
     }
   }, [ticketId]);
 
-  useEffect(() => {
-    function tick() {
-      if (document.visibilityState === "visible") poll();
-    }
-    const interval = setInterval(tick, POLL_INTERVAL_MS);
-    document.addEventListener("visibilitychange", tick);
-    return () => {
-      clearInterval(interval);
-      document.removeEventListener("visibilitychange", tick);
-    };
-  }, [poll]);
+  usePolling(poll, POLL_INTERVAL_MS);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ block: "nearest" });
@@ -289,46 +283,46 @@ export function TicketThread({ lang, ticketId, subject, initialStatus, initialMe
             messages.map((m) => {
               // Two-sided thread: "staff" (any admin reply) on one side, the
               // ticket owner on the other.
-              const alignRight = isAdmin ? m.isAdminReply : !m.isAdminReply;
-              // A non-admin viewer sees which staff member replied only as
+              const alignRight = isStaff ? m.isAdminReply : !m.isAdminReply;
+              // A non-staff viewer sees which staff member replied only as
               // "Administrator" (t("adminName")) — no name, no head, no
               // profile link, unlike every other message — so that case
               // skips PlayerAvatar entirely rather than just hiding it
               // visually.
-              const anonymized = m.isAdminReply && !isAdmin;
+              const anonymized = m.isAdminReply && !isStaff;
               return (
-                <BubbleGroup key={m.id} className={alignRight ? "items-end" : "items-start"}>
-                  {anonymized ? (
-                    <span className="text-[0.65rem] text-foreground/40 px-1">{t("adminName")}</span>
-                  ) : (
-                    <PlayerAvatar
-                      name={m.authorNickname}
-                      skinUrl={m.authorSkinUrl}
-                      hasSiteProfile
-                      growName={false}
-                      avatarSize={18}
-                      avatarClassName="rounded-sm border-none"
-                      className="px-1 gap-1.5"
-                      nameNode={
-                        <span className="text-[0.65rem] text-foreground/50 hover:text-foreground/80 transition-colors">
-                          {m.authorNickname}
-                          {m.isAdminReply && isAdmin && ` · ${t("staffLabel")}`}
-                        </span>
-                      }
-                    />
-                  )}
-                  <Bubble align={alignRight ? "end" : "start"} variant={alignRight ? "default" : "secondary"}>
-                    <BubbleContent className="whitespace-pre-wrap break-words">
-                      {m.body}
-                    </BubbleContent>
-                  </Bubble>
+                <MessageBubble
+                  key={m.id}
+                  alignRight={alignRight}
+                  lang={lang}
+                  createdAt={m.createdAt}
+                  body={m.body}
+                  header={
+                    anonymized ? (
+                      <span className="text-[0.65rem] text-foreground/40 px-1">{t("adminName")}</span>
+                    ) : (
+                      <PlayerAvatar
+                        name={m.authorNickname}
+                        skinUrl={m.authorSkinUrl}
+                        hasSiteProfile
+                        growName={false}
+                        avatarSize={18}
+                        avatarClassName="rounded-sm border-none"
+                        className="px-1 gap-1.5"
+                        nameNode={
+                          <span className="text-[0.65rem] text-foreground/50 hover:text-foreground/80 transition-colors">
+                            {m.authorNickname}
+                            {m.isAdminReply && isStaff && ` · ${t("staffLabel")}`}
+                          </span>
+                        }
+                      />
+                    )
+                  }
+                >
                   {m.attachments && m.attachments.length > 0 && (
                     <MessageAttachments attachments={m.attachments} />
                   )}
-                  <span className={cn("text-[0.6rem] text-foreground/30 px-1", alignRight && "self-end")}>
-                    {new Date(m.createdAt).toLocaleString(lang === "ru" ? "ru-RU" : "en-US")}
-                  </span>
-                </BubbleGroup>
+                </MessageBubble>
               );
             })
           )}
@@ -359,7 +353,7 @@ export function TicketThread({ lang, ticketId, subject, initialStatus, initialMe
 
         <div className="flex items-center justify-between gap-2">
           <div className="flex items-center gap-2">
-            {isAdmin && (
+            {canEdit && (
               <button
                 type="button"
                 disabled={isPending}
@@ -374,7 +368,7 @@ export function TicketThread({ lang, ticketId, subject, initialStatus, initialMe
                 {status === "CLOSED" ? <LockOpen size={14} /> : <Lock size={14} />}
               </button>
             )}
-            {isAdmin && (
+            {canDelete && (
               <button
                 type="button"
                 disabled={isPending}
