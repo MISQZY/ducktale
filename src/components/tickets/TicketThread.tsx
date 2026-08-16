@@ -15,6 +15,7 @@ import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { PlayerAvatar } from "@/components/common/PlayerAvatar";
 import { MessageBubble } from "@/components/common/MessageBubble";
+import { ConversationEventMarker } from "@/components/common/ConversationEventMarker";
 import { handleComposerKeyDown } from "@/lib/compose-keydown";
 import { usePolling } from "@/hooks/usePolling";
 import { TicketStatusBadge } from "./TicketStatusBadge";
@@ -29,6 +30,7 @@ interface AttachmentData {
 
 interface TicketMessageData {
   id: string;
+  type: "MESSAGE" | "CLOSED" | "REOPENED";
   body: string;
   isAdminReply: boolean;
   createdAt: string;
@@ -179,6 +181,21 @@ function SelectedFileChip({ file, onRemove }: { file: File; onRemove: () => void
   );
 }
 
+/* ---------- Event marker ---------- */
+
+/**
+ * Close/reopen event row — TicketThread's translation/label for the shared
+ * ConversationEventMarker. Anonymizes the acting staff member the same way
+ * a staff reply's PlayerAvatar is hidden below (isAdminReply && !isStaff):
+ * a non-staff viewer sees "closed by Administrator", never the specific
+ * staff nickname.
+ */
+function TicketEventMarker({ event, t, lang, isStaff }: { event: TicketMessageData; t: ReturnType<typeof useTranslations>; lang: string; isStaff: boolean }) {
+  const nickname = event.isAdminReply && !isStaff ? t("adminName") : event.authorNickname;
+  const label = t(event.type === "CLOSED" ? "ticketClosedEvent" : "ticketReopenedEvent", { nickname });
+  return <ConversationEventMarker type={event.type as "CLOSED" | "REOPENED"} label={label} createdAt={event.createdAt} lang={lang} />;
+}
+
 /* ---------- Main component ---------- */
 
 export function TicketThread({ lang, ticketId, subject, initialStatus, initialMessages, isStaff, canEdit, canDelete, backHref }: TicketThreadProps) {
@@ -281,6 +298,9 @@ export function TicketThread({ lang, ticketId, subject, initialStatus, initialMe
             <p className="text-center text-foreground/40 text-sm py-6">{t("noMessages")}</p>
           ) : (
             messages.map((m) => {
+              if (m.type !== "MESSAGE") {
+                return <TicketEventMarker key={m.id} event={m} t={t} lang={lang} isStaff={isStaff} />;
+              }
               // Two-sided thread: "staff" (any admin reply) on one side, the
               // ticket owner on the other.
               const alignRight = isStaff ? m.isAdminReply : !m.isAdminReply;

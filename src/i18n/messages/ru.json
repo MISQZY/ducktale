@@ -749,6 +749,8 @@
     "confirmDeleteTicket": "Удалить тикет «{subject}» безвозвратно? Все сообщения и вложения будут потеряны. Это действие нельзя отменить.",
     "staffLabel": "поддержка",
     "adminName": "Администратор",
+    "ticketClosedEvent": "Тикет закрыт пользователем {nickname}",
+    "ticketReopenedEvent": "Тикет переоткрыт пользователем {nickname}",
     "noMessages": "Сообщений пока нет.",
     "closedHint": "Тикет закрыт — отправка сообщения переоткроет его.",
     "replyPlaceholder": "Ваш ответ...",

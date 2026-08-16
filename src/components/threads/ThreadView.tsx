@@ -12,9 +12,9 @@ import { FormTextarea } from "@/components/common/FormTextarea";
 import { buttonVariants } from "@/components/ui/button";
 import { useConfirm } from "@/components/common/ConfirmDialogProvider";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Marker, MarkerIcon, MarkerContent } from "@/components/ui/marker";
 import { PlayerAvatar } from "@/components/common/PlayerAvatar";
 import { MessageBubble } from "@/components/common/MessageBubble";
+import { ConversationEventMarker } from "@/components/common/ConversationEventMarker";
 import { handleComposerKeyDown } from "@/lib/compose-keydown";
 import { usePolling } from "@/hooks/usePolling";
 
@@ -50,20 +50,10 @@ interface ThreadViewProps {
 
 const POLL_INTERVAL_MS = 8000;
 
-/** Close/reopen event row — rendered as a Marker instead of a chat bubble, interleaved in the same chronological list. */
+/** Close/reopen event row — ThreadView's translation/label for the shared ConversationEventMarker. */
 function ThreadEventMarker({ event, t, lang }: { event: ThreadMessageData; t: ReturnType<typeof useTranslations>; lang: string }) {
-  const Icon = event.type === "CLOSED" ? Lock : LockOpen;
   const label = t(event.type === "CLOSED" ? "threadClosedEvent" : "threadReopenedEvent", { nickname: event.authorNickname });
-  return (
-    <Marker variant="separator" className="my-1">
-      <MarkerIcon>
-        <Icon size={12} />
-      </MarkerIcon>
-      <MarkerContent>
-        {label} · {new Date(event.createdAt).toLocaleString(lang === "ru" ? "ru-RU" : "en-US")}
-      </MarkerContent>
-    </Marker>
-  );
+  return <ConversationEventMarker type={event.type as "CLOSED" | "REOPENED"} label={label} createdAt={event.createdAt} lang={lang} />;
 }
 
 export function ThreadView({

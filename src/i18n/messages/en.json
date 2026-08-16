@@ -750,6 +750,8 @@
     "confirmDeleteTicket": "Permanently delete the ticket \"{subject}\"? All messages and attachments will be lost. This cannot be undone.",
     "staffLabel": "support",
     "adminName": "Administrator",
+    "ticketClosedEvent": "Ticket closed by {nickname}",
+    "ticketReopenedEvent": "Ticket reopened by {nickname}",
     "noMessages": "No messages yet.",
     "closedHint": "This ticket is closed — sending a message will reopen it.",
     "replyPlaceholder": "Your reply...",

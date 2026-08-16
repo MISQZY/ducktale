@@ -10,6 +10,7 @@ export interface TicketAttachmentDTO {
 
 export interface TicketMessageDTO {
   id: string;
+  type: "MESSAGE" | "CLOSED" | "REOPENED";
   body: string;
   isAdminReply: boolean;
   createdAt: Date;
@@ -22,10 +23,12 @@ export interface TicketMessageDTO {
  * Shared by the ticket detail page's initial load and the /api/tickets/[id]
  * poll route — same shape both need, resolved once here instead of twice.
  * Mirrors resolveThreadMessages in @/lib/thread-data (both build on the same
- * resolveSkinUrlMap in @/lib/skin for per-unique-author skin batching) — the
- * two aren't merged into one helper since Ticket has attachments and Thread
- * doesn't, and the two message shapes would otherwise need an artificial
- * union just to share a function neither side fully needs.
+ * resolveSkinUrlMap in @/lib/skin for per-unique-author skin batching, and
+ * both query the same underlying Message table — see its doc comment in the
+ * schema) — the two resolvers aren't merged into one helper since Ticket
+ * messages carry attachments/isAdminReply and Thread ones don't need either,
+ * and the two DTO shapes would otherwise need an artificial union just to
+ * share a function neither side fully needs.
  *
  * viewerIsStaff (isTicketStaff() in @/lib/tickets — true for isAdmin and any
  * tickets-view/tickets-edit holder) controls the same anonymization
@@ -37,11 +40,12 @@ export interface TicketMessageDTO {
  * be read from devtools/network.
  */
 export async function resolveTicketMessages(ticketId: string, viewerIsStaff: boolean): Promise<TicketMessageDTO[]> {
-  const messages = await siteDb.ticketMessage.findMany({
+  const messages = await siteDb.message.findMany({
     where: { ticketId },
     orderBy: { createdAt: "asc" },
     select: {
       id: true,
+      type: true,
       body: true,
       isAdminReply: true,
       createdAt: true,
@@ -63,6 +67,7 @@ export async function resolveTicketMessages(ticketId: string, viewerIsStaff: boo
 
   return messages.map((m) => ({
     id: m.id,
+    type: m.type,
     body: m.body,
     isAdminReply: m.isAdminReply,
     createdAt: m.createdAt,
