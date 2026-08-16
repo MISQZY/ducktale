@@ -3,6 +3,7 @@ import { SERVERS } from "@/config/servers";
 import { getAllOnlinePlayers, groupOnlinePlayersByServer, getMaintenanceStatuses } from "@/lib/players";
 import { getCachedPing } from "@/lib/mcsrvstat";
 import { isRateLimited } from "@/lib/rate-limit";
+import { hasPublicResourceRole } from "@/lib/public-access";
 
 interface ServerStatus {
   online: boolean;
@@ -14,6 +15,12 @@ interface ServerStatus {
 export async function GET(req: Request) {
   if (isRateLimited(req, "server-status-all", 30, 60_000)) {
     return NextResponse.json({ error: "Too many requests" }, { status: 429 });
+  }
+
+  // Not cached (unlike the 200 below) — a denial shouldn't stick around in a
+  // shared cache for other visitors, especially once access is restored.
+  if (!(await hasPublicResourceRole("server-status-view"))) {
+    return NextResponse.json({ error: "Not authorized" }, { status: 403 });
   }
 
   const [allPlayers, pings, maintenanceStatuses] = await Promise.all([

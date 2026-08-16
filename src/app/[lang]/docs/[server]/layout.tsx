@@ -6,7 +6,12 @@ import { REPO } from "@/config/site";
 import { getDocsSource } from "@/lib/source";
 import Logo from "@/components/ui/Logo";
 import { ServerSwitcher } from "@/components/docs/ServerSwitcher";
+import { requirePublicResourceRole } from "@/lib/public-access";
 
+// Single choke point for the whole docs subsystem — every server's pages,
+// towny/whitelist tables, quest tree, all render as children of this layout
+// (see docs/layout.tsx above it, a pure pass-through). Gating here instead
+// of in each individual page/component.
 export default async function DocsServerLayout({
   children,
   params,
@@ -15,6 +20,7 @@ export default async function DocsServerLayout({
   params: Promise<{ lang: string; server: string }>;
 }) {
   const { lang, server } = await params;
+  await requirePublicResourceRole(lang, "docs-view");
   const fullConfig = SERVERS.find((s) => s.id === server);
   if (!fullConfig) notFound();
   // Server Components can't hand a Client Component a raw component

@@ -2,8 +2,15 @@ import { getTranslations } from "next-intl/server";
 import type { Metadata } from "next";
 import { GoldDivider } from "@/components/common/GoldDivider";
 import { RankingsTabs } from "@/components/leaderboard/RankingsTabs";
+import { requirePublicResourceRole } from "@/lib/public-access";
 
-export default async function LeaderboardPage() {
+export default async function LeaderboardPage({
+  params,
+}: {
+  params: Promise<{ lang: string }>;
+}) {
+  const { lang } = await params;
+  await requirePublicResourceRole(lang, "leaderboard-view");
   const t = await getTranslations("Leaderboard");
 
   return (

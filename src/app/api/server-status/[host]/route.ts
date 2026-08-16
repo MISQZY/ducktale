@@ -3,6 +3,7 @@ import { NETWORK_HOST, SERVERS } from "@/config/servers";
 import { getAllOnlinePlayers, groupOnlinePlayersByServer } from "@/lib/players";
 import { getCachedPing } from "@/lib/mcsrvstat";
 import { isRateLimited } from "@/lib/rate-limit";
+import { hasPublicResourceRole } from "@/lib/public-access";
 
 const ALLOWED_HOSTS = new Set([NETWORK_HOST, ...SERVERS.map((s) => s.host)]);
 const SERVER_UUID_BY_HOST = new Map(SERVERS.map((s) => [s.host, s.uuid]));
@@ -19,6 +20,12 @@ export async function GET(
 ) {
   if (isRateLimited(req, "server-status-host", 30, 60_000)) {
     return NextResponse.json({ error: "Too many requests" }, { status: 429 });
+  }
+
+  // Not cached (unlike the 200 below) — a denial shouldn't stick around in a
+  // shared cache for other visitors, especially once access is restored.
+  if (!(await hasPublicResourceRole("server-status-view"))) {
+    return NextResponse.json({ error: "Not authorized" }, { status: 403 });
   }
 
   const { host } = await params;

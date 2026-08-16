@@ -156,11 +156,24 @@ function AccountLinkContent({ fallbackLabel }: { fallbackLabel: string }) {
   );
 }
 
-export default function Navbar() {
+interface NavbarProps {
+  /** Whether the current viewer (anonymous-via-Guest-role or logged-in) can open /leaderboard — hides that nav link instead of showing a dead end that redirects away. Defaults to visible (e.g. not-found.tsx, which renders Navbar without computing this) rather than hiding navigation on an edge-case page. */
+  canViewLeaderboard?: boolean;
+  /** Same idea for /threads — that route only requires a session (no resource-role of its own, see getThreadViewer's doc comment), so this is just "is anyone logged in". */
+  canViewThreads?: boolean;
+}
+
+export default function Navbar({ canViewLeaderboard = true, canViewThreads = true }: NavbarProps) {
   const t = useTranslations("Nav");
   const pathname = usePathname();
   const [menuOpen, setMenuOpen] = useState(false);
   const duckyVisible = useSyncExternalStore(subscribeDuckyToggle, getDuckyVisible, () => true);
+
+  const visibleLinks = NAV_LINKS.filter((link) => {
+    if (link.key === "leaderboard") return canViewLeaderboard;
+    if (link.key === "threads") return canViewThreads;
+    return true;
+  });
 
   function toggleDucky() {
     setDuckyVisible(!duckyVisible);
@@ -207,7 +220,7 @@ export default function Navbar() {
               row (not just the space between logo and the right group),
               so they stay centered regardless of how wide either side is. */}
           <div className="nav-desktop absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 items-center gap-1">
-            {NAV_LINKS.filter((link) => link.key !== "profile").map((link) => (
+            {visibleLinks.filter((link) => link.key !== "profile").map((link) => (
               <Link
                 key={link.href}
                 href={link.href}
@@ -316,7 +329,7 @@ export default function Navbar() {
                 <div className="h-px mx-5 bg-linear-to-r from-transparent via-primary/25 to-transparent" />
 
                 <nav className="flex flex-col px-3 py-4 gap-0.5">
-                  {NAV_LINKS.map((link) => {
+                  {visibleLinks.map((link) => {
                     const isAccount = link.key === "profile";
                     return (
                       <SheetClose asChild key={link.href}>

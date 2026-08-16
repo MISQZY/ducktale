@@ -6,6 +6,8 @@ import { isUserOnline } from "@/lib/presence";
 import { formatLastSeen } from "@/lib/player-card-format";
 import { ProfilePlayerCard } from "@/components/account/ProfilePlayerCard";
 import { BadgePinSelector } from "@/components/badges/BadgePinSelector";
+import { requirePublicResourceRole } from "@/lib/public-access";
+import type { LocalizedName } from "@/lib/i18n-name";
 import type { Metadata } from "next";
 
 interface Params {
@@ -40,6 +42,7 @@ export default async function PublicProfilePage({
   params: Promise<Params>;
 }) {
   const { lang, username } = await params;
+  await requirePublicResourceRole(lang, "profiles-view");
   const user = await findUser(username);
   if (!user) notFound();
 
@@ -60,8 +63,9 @@ export default async function PublicProfilePage({
         {td("badgesSectionTitle")}
       </h2>
       <BadgePinSelector
+        lang={lang}
         readOnly
-        badges={user.badges.map(({ badge }) => badge)}
+        badges={user.badges.map(({ badge }) => ({ ...badge, name: badge.name as unknown as LocalizedName }))}
         initialPinnedBadgeId={user.badges.find((b) => b.pinned)?.badge.id ?? null}
       />
     </div>
