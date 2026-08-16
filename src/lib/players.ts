@@ -31,6 +31,7 @@ export async function resolveNicknames(usernames: string[]): Promise<Map<string,
 
 export interface OnlinePlayer {
   name: string;
+  uuid: string;
   serverId: string;
 }
 
@@ -48,7 +49,7 @@ export async function getAllOnlinePlayers(
   return withCache(`online-players:${dbKey}`, ONLINE_PLAYERS_TTL_MS, () =>
     withDb(dbKey, (db) =>
       db.$queryRaw<OnlinePlayer[]>(Prisma.sql`
-        SELECT p.name, s.value AS serverId
+        SELECT p.name, p.uuid, s.value AS serverId
         FROM fp_player p
         INNER JOIN fp_setting s
           ON  s.player = p.id

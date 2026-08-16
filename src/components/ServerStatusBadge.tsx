@@ -68,7 +68,7 @@ export default function ServerStatusBadge({ host }: { host: string }) {
                 {status.players.list.map((p) => (
                   <div key={p.name} className="flex items-center gap-2 text-xs text-foreground/80">
                     <SkinFace
-                      skinUrl={EXTERNAL_APIS.legacy_skin.skinUrl(p.name)}
+                      skinUrl={p.skinUrl ?? EXTERNAL_APIS.legacy_skin.skinUrl(p.name)}
                       size={16}
                       className="rounded-sm"
                     />

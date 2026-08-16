@@ -7,7 +7,7 @@ export interface ServerStatus {
   // that role gates online/who's-playing visibility, version stays public.
   online?: boolean;
   maintenance?: boolean;
-  players?: { online: number; max: number; list?: { name: string }[] };
+  players?: { online: number; max: number; list?: { name: string; skinUrl: string | null }[] };
   version?: string;
 }
 

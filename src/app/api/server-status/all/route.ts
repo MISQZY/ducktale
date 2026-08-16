@@ -4,6 +4,7 @@ import { getAllOnlinePlayers, groupOnlinePlayersByServer, getMaintenanceStatuses
 import { getCachedPing } from "@/lib/mcsrvstat";
 import { isRateLimited } from "@/lib/rate-limit";
 import { hasPublicResourceRole } from "@/lib/public-access";
+import { resolveSkinUrlMap } from "@/lib/skin";
 
 interface ServerStatus {
   // Both omitted (not just falsy) when the caller lacks server-status-view —
@@ -11,7 +12,7 @@ interface ServerStatus {
   online?: boolean;
   maintenance?: boolean;
   version?: string;
-  players?: { online: number; max: number; list: { name: string }[] };
+  players?: { online: number; max: number; list: { name: string; skinUrl: string | null }[] };
 }
 
 export async function GET(req: Request) {
@@ -44,6 +45,7 @@ export async function GET(req: Request) {
   ]);
 
   const grouped = groupOnlinePlayersByServer(allPlayers);
+  const skinByUuid = await resolveSkinUrlMap(allPlayers.map((p) => p.uuid));
 
   const statuses: Record<string, ServerStatus> = Object.fromEntries(
     SERVERS.map((s, i) => {
@@ -58,7 +60,7 @@ export async function GET(req: Request) {
           players: {
             online: roster.length,
             max: ping.players?.max ?? 0,
-            list: roster.map((p) => ({ name: p.name })),
+            list: roster.map((p) => ({ name: p.name, skinUrl: skinByUuid.get(p.uuid) ?? null })),
           },
         },
       ] as const;

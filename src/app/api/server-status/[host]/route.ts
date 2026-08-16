@@ -4,6 +4,7 @@ import { getAllOnlinePlayers, groupOnlinePlayersByServer } from "@/lib/players";
 import { getCachedPing } from "@/lib/mcsrvstat";
 import { isRateLimited } from "@/lib/rate-limit";
 import { hasPublicResourceRole } from "@/lib/public-access";
+import { resolveSkinUrls } from "@/lib/skin";
 
 const ALLOWED_HOSTS = new Set([NETWORK_HOST, ...SERVERS.map((s) => s.host)]);
 const SERVER_UUID_BY_HOST = new Map(SERVERS.map((s) => [s.host, s.uuid]));
@@ -13,7 +14,7 @@ interface ServerStatus {
   // version is public info independent of that role, see the branch below.
   online?: boolean;
   version?: string;
-  players?: { online: number; max: number; list: { name: string }[] };
+  players?: { online: number; max: number; list: { name: string; skinUrl: string | null }[] };
 }
 
 export async function GET(
@@ -53,13 +54,15 @@ export async function GET(
           SERVER_UUID_BY_HOST.get(host) ?? ""
         ) ?? [];
 
+  const skinUrls = await resolveSkinUrls(roster.map((p) => p.uuid));
+
   const status: ServerStatus = {
     online: ping.online,
     version: ping.version,
     players: {
       online: roster.length,
       max: ping.players?.max ?? 0,
-      list: roster.map((p) => ({ name: p.name })),
+      list: roster.map((p, i) => ({ name: p.name, skinUrl: skinUrls[i] ?? null })),
     },
   };
 
