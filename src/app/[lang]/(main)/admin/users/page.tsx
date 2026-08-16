@@ -1,12 +1,15 @@
 import { getTranslations } from "next-intl/server";
 import type { Prisma } from ".prisma/site-client";
-import { requireAdmin } from "@/lib/admin";
+import { requireResourceRole, getAdminNavAccess } from "@/lib/admin";
+import { hasResourceRole } from "@/config/resource-roles";
 import { siteDb } from "@/lib/site-db";
 import { seedBuiltinBadges } from "@/lib/badges";
 import { isUserOnline } from "@/lib/presence";
 
 import { AdminPageShell } from "@/components/admin/AdminPageShell";
 import { AdminUsersTable } from "@/components/admin/AdminUsersTable";
+import type { RoleOption } from "@/components/admin/RoleFormDialog";
+import type { LocalizedName } from "@/lib/i18n-name";
 
 import { SearchInput } from "@/components/ui/search-input";
 import { ServerPagination } from "@/components/common/ServerPagination";
@@ -31,7 +34,16 @@ export default async function AdminUsersPage({
   searchParams: Promise<{ search?: string; page?: string; sort?: string; order?: string }>;
 }) {
   const { lang } = await params;
-  const admin = await requireAdmin(lang);
+  const admin = await requireResourceRole(lang, "users-view");
+  const navAccess = await getAdminNavAccess();
+  // Reachable by a users-view-only holder now, so the table/dialog need to
+  // know which mutating controls they're actually allowed to use — badges
+  // and Roles are both awarded/assigned inline from this same table, hence
+  // the separate badges-edit/role-edit checks alongside users-edit.
+  const canEditUsers = admin.isAdmin || hasResourceRole(admin.roles, "users-edit");
+  const canDeleteUsers = admin.isAdmin || hasResourceRole(admin.roles, "users-delete");
+  const canEditBadges = admin.isAdmin || hasResourceRole(admin.roles, "badges-edit");
+  const canManageRoles = admin.isAdmin || hasResourceRole(admin.roles, "role-edit");
   const { search: rawSearch, page: rawPage, sort: rawSort, order: rawOrder } = await searchParams;
 
   const search = rawSearch?.trim() ?? "";
@@ -50,7 +62,7 @@ export default async function AdminUsersPage({
   // offers the built-in catalog even if nobody's visited the badges page yet.
   await seedBuiltinBadges();
 
-  const [users, total, badges] = await Promise.all([
+  const [users, total, badges, roleRows] = await Promise.all([
     siteDb.user.findMany({
       where,
       orderBy,
@@ -64,11 +76,23 @@ export default async function AdminUsersPage({
         lastSeenAt: true,
         accountLink: { select: { status: true, minecraftName: true, minecraftUuid: true } },
         badges: { select: { badge: { select: { id: true, name: true, icon: true, color: true } } } },
+        roles: { select: { roleId: true } },
       },
     }),
     siteDb.user.count({ where }),
-    siteDb.badge.findMany({ orderBy: { name: "asc" }, select: { id: true, name: true, icon: true, color: true } }),
+    siteDb.badge.findMany({ orderBy: { createdAt: "asc" }, select: { id: true, name: true, icon: true, color: true } }),
+    siteDb.role.findMany({ orderBy: { createdAt: "asc" }, select: { id: true, name: true, key: true } }),
   ]);
+
+  const badgesTyped = badges.map((b) => ({ ...b, name: b.name as unknown as LocalizedName }));
+
+  // "Гостевая" is excluded — it only means anything for anonymous (no
+  // session) visitors, assigning it to a real account doesn't actually
+  // restrict them (see assertAssignableToUser's doc comment, src/lib/
+  // actions/admin-roles.ts), so it isn't offered here at all.
+  const roleOptions: RoleOption[] = roleRows
+    .filter((r) => r.key !== "guest")
+    .map((r) => ({ id: r.id, name: r.name as unknown as LocalizedName }));
 
   const { resolveSkinUrls } = await import("@/lib/skin");
   const skinUrls = await resolveSkinUrls(users.map((u) => u.accountLink?.minecraftUuid));
@@ -118,11 +142,12 @@ export default async function AdminUsersPage({
       mcOnline,
       serverLastSeenMs,
       badgeIds: user.badges.map(({ badge }) => badge.id),
+      roleIds: user.roles.map((r) => r.roleId),
     };
   });
 
   return (
-    <AdminPageShell title={t("navUsers")} description={t("description", { count: total })} active="users">
+    <AdminPageShell title={t("navUsers")} description={t("description", { count: total })} active="users" navAccess={navAccess}>
       <div className="w-full">
         <form className="mb-6 flex justify-center">
           <SearchInput
@@ -134,7 +159,19 @@ export default async function AdminUsersPage({
         </form>
 
         <div className="min-h-[42vh]">
-          <AdminUsersTable lang={lang} users={userRows} badges={badges} sortColumn={sortKey} sortDirection={sortDir} rowOffset={(page - 1) * PAGE_SIZE} />
+          <AdminUsersTable
+            lang={lang}
+            users={userRows}
+            badges={badgesTyped}
+            roleOptions={roleOptions}
+            canEditUsers={canEditUsers}
+            canDeleteUsers={canDeleteUsers}
+            canEditBadges={canEditBadges}
+            canManageRoles={canManageRoles}
+            sortColumn={sortKey}
+            sortDirection={sortDir}
+            rowOffset={(page - 1) * PAGE_SIZE}
+          />
         </div>
 
         <ServerPagination

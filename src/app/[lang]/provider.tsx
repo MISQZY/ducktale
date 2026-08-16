@@ -9,6 +9,7 @@ import type { Session } from "next-auth";
 import DuckyPet from "@/components/DuckyPet";
 import DuckySwarm from "@/components/DuckySwarm";
 import PresenceHeartbeat from "@/components/PresenceHeartbeat";
+import { SessionRefresher } from "@/components/SessionRefresher";
 import { ConfirmDialogProvider } from "@/components/common/ConfirmDialogProvider";
 
 export function AppProvider({
@@ -25,6 +26,7 @@ export function AppProvider({
 
   return (
     <SessionProvider session={session}>
+      <SessionRefresher />
       <RootProvider
         theme={{ enabled: false }}
         i18n={{

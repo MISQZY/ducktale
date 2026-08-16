@@ -11,14 +11,17 @@ interface AdminRowActionsProps {
   itemName: string;
   onDelete: () => Promise<void>;
   editDialog: ReactNode;
-  translationsNamespace?: "Admin.badges" | "Admin.roles";
+  translationsNamespace?: "Admin.badges" | "Admin.ranks" | "Admin.roles" | "Admin.rowLevelRoles";
+  /** Hides the delete button entirely (e.g. a built-in Role that can't be removed) — editing stays available. Default true. */
+  canDelete?: boolean;
 }
 
 export function AdminRowActions({
   itemName,
   onDelete,
   editDialog,
-  translationsNamespace = "Admin.badges"
+  translationsNamespace = "Admin.badges",
+  canDelete = true,
 }: AdminRowActionsProps) {
   const t = useTranslations(translationsNamespace);
   const confirm = useConfirm();
@@ -41,19 +44,21 @@ export function AdminRowActions({
     <div className="flex flex-col items-end gap-2">
       <div className="flex flex-wrap items-center justify-end gap-1.5">
         {editDialog}
-        <button
-          type="button"
-          disabled={isPending}
-          onClick={handleDelete}
-          aria-label={t("delete")}
-          title={t("delete")}
-          className={cn(
-            buttonVariants({ variant: "outline", size: "icon-sm" }),
-            "bg-card/70 hover:text-destructive hover:border-destructive/40"
-          )}
-        >
-          <Trash2 size={14} />
-        </button>
+        {canDelete && (
+          <button
+            type="button"
+            disabled={isPending}
+            onClick={handleDelete}
+            aria-label={t("delete")}
+            title={t("delete")}
+            className={cn(
+              buttonVariants({ variant: "outline", size: "icon-sm" }),
+              "bg-card/70 hover:text-destructive hover:border-destructive/40"
+            )}
+          >
+            <Trash2 size={14} />
+          </button>
+        )}
       </div>
       {error && <p className="text-xs text-destructive">{error}</p>}
     </div>

@@ -13,10 +13,14 @@ interface AdminUserActionsProps {
   userId: string;
   nickname: string;
   isSelf: boolean;
+  /** users-edit OR role-edit (or isAdmin) — gates the edit-dialog trigger, since that dialog is also the only way to reach role assignment. Independent of canDelete (see RESOURCE_ROLE_ACTIONS's doc comment) — a users-view-only holder sees neither. */
+  canEdit: boolean;
+  /** users-delete (or isAdmin) — gates the delete button specifically, separate from canEdit. */
+  canDelete: boolean;
   onEdit: () => void;
 }
 
-export function AdminUserActions({ lang, userId, nickname, isSelf, onEdit }: AdminUserActionsProps) {
+export function AdminUserActions({ lang, userId, nickname, isSelf, canEdit, canDelete, onEdit }: AdminUserActionsProps) {
   const t = useTranslations("Admin");
   const confirm = useConfirm();
   const [isPending, startTransition] = useTransition();
@@ -34,23 +38,27 @@ export function AdminUserActions({ lang, userId, nickname, isSelf, onEdit }: Adm
     });
   }
 
+  if (!canEdit && !canDelete) return null;
+
   return (
     <div className="flex flex-col items-end gap-2">
       <div className="flex flex-wrap items-center justify-end gap-1.5">
-        <button
-          type="button"
-          aria-label={t("editUser")}
-          title={t("editUser")}
-          onClick={onEdit}
-          className={cn(
-            buttonVariants({ variant: "outline", size: "icon-sm" }),
-            "bg-card/70 hover:text-primary hover:border-primary/40"
-          )}
-        >
-          <Pencil size={14} />
-        </button>
+        {canEdit && (
+          <button
+            type="button"
+            aria-label={t("editUser")}
+            title={t("editUser")}
+            onClick={onEdit}
+            className={cn(
+              buttonVariants({ variant: "outline", size: "icon-sm" }),
+              "bg-card/70 hover:text-primary hover:border-primary/40"
+            )}
+          >
+            <Pencil size={14} />
+          </button>
+        )}
 
-        {!isSelf && (
+        {canDelete && !isSelf && (
           <button
             type="button"
             disabled={isPending}

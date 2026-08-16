@@ -12,10 +12,12 @@ interface FormFieldProps {
   label?: string;
   hint?: string;
   error?: string;
+  /** True when this is a required field with no value yet — same small red dot LocalizedNameInput already shows on its RU/EN toggle for an empty locale, next to the label here instead. FormField doesn't know its children's value, so the caller (FormInput/FormTextarea, or a custom field) computes this. */
+  requiredEmpty?: boolean;
   children: ReactNode;
 }
 
-export function FormField({ id, label, hint, error, children }: FormFieldProps) {
+export function FormField({ id, label, hint, error, requiredEmpty, children }: FormFieldProps) {
   return (
     <div className="flex flex-col gap-1.5">
       {label && (
@@ -23,6 +25,9 @@ export function FormField({ id, label, hint, error, children }: FormFieldProps) 
           <label htmlFor={id} className="text-xs uppercase tracking-widest text-foreground/50 leading-none">
             {label}
           </label>
+          {requiredEmpty && (
+            <span className="size-1.5 shrink-0 rounded-full bg-destructive" aria-hidden="true" />
+          )}
           {hint && (
             <TooltipProvider>
               <Tooltip delayDuration={200}>

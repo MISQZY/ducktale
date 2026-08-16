@@ -1,11 +1,14 @@
 import type { ReactNode } from "react";
 import { GoldDivider } from "@/components/common/GoldDivider";
 import { AdminNav } from "@/components/admin/AdminNav";
+import type { Resource } from "@/config/resource-roles";
 
 interface AdminPageShellProps {
   title: string;
   description: string;
-  active: "users" | "content" | "tickets" | "badges" | "roles";
+  active: Resource;
+  /** Which tabs the current viewer can open — from getAdminNavAccess() (src/lib/admin.ts). A resource-role holder with e.g. only tickets-view shouldn't see tabs for resources they can't reach. */
+  navAccess: Record<Resource, boolean>;
   children: ReactNode;
 }
 
@@ -17,7 +20,7 @@ import { useTranslations } from "next-intl";
  * shift the page. Only the content between AdminNav and the closing tag
  * differs per page.
  */
-export function AdminPageShell({ title, description, active, children }: AdminPageShellProps) {
+export function AdminPageShell({ title, description, active, navAccess, children }: AdminPageShellProps) {
   const t = useTranslations("Admin");
 
   return (
@@ -31,7 +34,7 @@ export function AdminPageShell({ title, description, active, children }: AdminPa
         </h1>
         <p className="text-foreground/60 mb-6 text-center">{description}</p>
 
-        <AdminNav active={active} />
+        <AdminNav active={active} navAccess={navAccess} />
 
         <GoldDivider className="mb-8" />
 

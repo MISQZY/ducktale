@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useTranslations } from "next-intl";
-import { KeyRound, Unlink, Shield, ShieldOff } from "lucide-react";
+import { KeyRound, Unlink } from "lucide-react";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
 } from "@/components/ui/dialog";
@@ -12,8 +12,11 @@ import { buttonVariants } from "@/components/ui/button";
 import CopyToClipboard from "@/components/ui/CopyToClipboard";
 import { cn } from "@/lib/utils";
 import { useConfirm } from "@/components/common/ConfirmDialogProvider";
-import { renameUser, resetUserPassword, unlinkUser, setUserAdmin } from "@/lib/actions/admin";
+import { renameUser, resetUserPassword, unlinkUser } from "@/lib/actions/admin";
+import { setUserRoles } from "@/lib/actions/admin-roles";
 import { NICKNAME_MAX_LENGTH } from "@/lib/nickname";
+import { UserRolesButton } from "./UserRolesButton";
+import type { RoleOption } from "./RoleFormDialog";
 import type { AdminUserRow } from "./AdminUsersTable";
 
 interface AdminUserEditDialogProps {
@@ -21,6 +24,18 @@ interface AdminUserEditDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   user: AdminUserRow | null;
+  /** users-edit (or isAdmin) — gates rename/reset-password/unlink. In practice this dialog only ever opens from a canEdit-gated button (AdminUserActions), but the check is repeated here too rather than trusted from the caller. */
+  canEdit: boolean;
+  /**
+   * role-edit (or isAdmin) — gates the roles-assignment button. There is no
+   * dedicated isAdmin grant/revoke control in this dialog anymore; the
+   * closest equivalent is assigning the built-in "super-admin" Role
+   * (src/config/roles.ts, seeded with every resource-role) via this button
+   * — note that's a full resource-role grant, not the real User.isAdmin
+   * superadmin bypass, which the two remain independent of.
+   */
+  canManageRoles: boolean;
+  roleOptions: RoleOption[];
 }
 
 const iconButtonClasses = cn(
@@ -39,7 +54,7 @@ const iconButtonClasses = cn(
  * stable component at a fixed tree position, isn't at risk of that the
  * same way a plain prop update doesn't reset a component's own local state.
  */
-export function AdminUserEditDialog({ lang, open, onOpenChange, user }: AdminUserEditDialogProps) {
+export function AdminUserEditDialog({ lang, open, onOpenChange, user, canEdit, canManageRoles, roleOptions }: AdminUserEditDialogProps) {
   const t = useTranslations("Admin");
   const confirm = useConfirm();
 
@@ -51,8 +66,6 @@ export function AdminUserEditDialog({ lang, open, onOpenChange, user }: AdminUse
   // component's doc comment) doesn't change the key, so it correctly
   // leaves an in-progress edit/resetLink/etc. alone instead of wiping it.
   const [nicknameValue, setNicknameValue] = useState(user?.nickname ?? "");
-  const [nicknameSaving, setNicknameSaving] = useState(false);
-  const [nicknameError, setNicknameError] = useState<string | null>(null);
   // The confirmed-on-server nickname — separate from `user.nickname` (a
   // prop that stays stale until the next revalidation actually lands) and
   // from `nicknameValue` (the live, possibly-unsaved input). The title and
@@ -61,29 +74,59 @@ export function AdminUserEditDialog({ lang, open, onOpenChange, user }: AdminUse
   // the old name / a still-enabled Save button until props catch up.
   const [savedNickname, setSavedNickname] = useState(user?.nickname ?? "");
 
+  // Same staged/confirmed split as nickname above, but for Role membership —
+  // UserRolesButton is a controlled checklist now (no per-checkbox
+  // persistence), so its selection only takes effect when Save runs.
+  const [selectedRoleIds, setSelectedRoleIds] = useState<string[]>(user?.roleIds ?? []);
+  const [savedRoleIds, setSavedRoleIds] = useState<string[]>(user?.roleIds ?? []);
+
+  const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
+
   const [resetLink, setResetLink] = useState<string | null>(null);
   const [linked, setLinked] = useState(user?.isLinked ?? false);
-  const [adminNow, setAdminNow] = useState(user?.isAdmin ?? false);
 
-  // Shared by reset/unlink/admin-toggle — these are mutually exclusive
-  // actions on the same user, not independent operations, so one running
-  // disables the others too (matches the pre-dialog inline buttons, which
-  // shared a single isPending from one useTransition).
+  // Shared by reset/unlink — these are mutually exclusive actions on the
+  // same user, not independent operations, so one running disables the
+  // other too (matches the pre-dialog inline buttons, which shared a single
+  // isPending from one useTransition).
   const [actionPending, setActionPending] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
 
-  async function handleSaveNickname() {
+  const nicknameDirty = nicknameValue.trim() !== savedNickname;
+  const rolesDirty = (() => {
+    if (selectedRoleIds.length !== savedRoleIds.length) return true;
+    const savedSet = new Set(savedRoleIds);
+    return selectedRoleIds.some((id) => !savedSet.has(id));
+  })();
+
+  async function handleSave() {
     if (!user) return;
-    setNicknameError(null);
-    setNicknameSaving(true);
+    // Unlike rename (reversible, low-impact), a Role change can grant or
+    // revoke real access immediately — same "are you sure?" bar as
+    // reset-password/unlink below, which this used to skip entirely.
+    if (rolesDirty && !(await confirm({ description: t("confirmRoleChange", { nickname: savedNickname }) }))) return;
+    setSaveError(null);
+    setSaving(true);
     try {
-      const saved = await renameUser(lang, user.id, nicknameValue);
-      setSavedNickname(saved);
-      setNicknameValue(saved);
+      if (nicknameDirty) {
+        const saved = await renameUser(lang, user.id, nicknameValue);
+        setSavedNickname(saved);
+        setNicknameValue(saved);
+      }
+      if (rolesDirty) {
+        // setUserRoles falls back to the built-in "guest" Role server-side
+        // if `selectedRoleIds` is empty (every user must hold at least one
+        // Role) — the returned ids reflect that so the checklist and the
+        // dirty-check both settle on what actually got persisted.
+        const finalRoleIds = await setUserRoles(lang, user.id, selectedRoleIds);
+        setSavedRoleIds(finalRoleIds);
+        setSelectedRoleIds(finalRoleIds);
+      }
     } catch (err) {
-      setNicknameError((err instanceof Error && err.message) || t("actionFailed"));
+      setSaveError((err instanceof Error && err.message) || t("actionFailed"));
     } finally {
-      setNicknameSaving(false);
+      setSaving(false);
     }
   }
 
@@ -116,24 +159,6 @@ export function AdminUserEditDialog({ lang, open, onOpenChange, user }: AdminUse
     }
   }
 
-  async function handleToggleAdmin() {
-    if (!user) return;
-    const confirmText = adminNow
-      ? t("confirmRevokeAdmin", { nickname: savedNickname })
-      : t("confirmGrantAdmin", { nickname: savedNickname });
-    if (!(await confirm({ description: confirmText, variant: adminNow ? "destructive" : "default" }))) return;
-    setActionError(null);
-    setActionPending(true);
-    try {
-      await setUserAdmin(lang, user.id, !adminNow);
-      setAdminNow(!adminNow);
-    } catch {
-      setActionError(t("actionFailed"));
-    } finally {
-      setActionPending(false);
-    }
-  }
-
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
@@ -154,39 +179,39 @@ export function AdminUserEditDialog({ lang, open, onOpenChange, user }: AdminUse
               value={nicknameValue}
               onChange={(e) => setNicknameValue(e.target.value)}
               maxLength={NICKNAME_MAX_LENGTH}
+              disabled={!canEdit}
+              required
             />
-            {nicknameError && <p className="text-xs text-destructive">{nicknameError}</p>}
           </div>
 
           <div className="h-px bg-border" />
 
           <div className="flex flex-col gap-2 min-w-0">
             <div className="flex items-center gap-1.5">
-              <button
-                type="button"
-                aria-label={t("resetPassword")}
-                title={t("resetPassword")}
-                disabled={actionPending}
-                onClick={handleResetPassword}
-                className={iconButtonClasses}
-              >
-                <KeyRound size={14} />
-              </button>
-
-              {user && !user.isSelf && (
+              {canEdit && (
                 <button
                   type="button"
-                  aria-label={adminNow ? t("revokeAdmin") : t("grantAdmin")}
-                  title={adminNow ? t("revokeAdmin") : t("grantAdmin")}
+                  aria-label={t("resetPassword")}
+                  title={t("resetPassword")}
                   disabled={actionPending}
-                  onClick={handleToggleAdmin}
+                  onClick={handleResetPassword}
                   className={iconButtonClasses}
                 >
-                  {adminNow ? <ShieldOff size={14} /> : <Shield size={14} />}
+                  <KeyRound size={14} />
                 </button>
               )}
 
-              {linked && (
+              {canManageRoles && user && (
+                <UserRolesButton
+                  lang={lang}
+                  roleOptions={roleOptions}
+                  selectedRoleIds={selectedRoleIds}
+                  onChange={setSelectedRoleIds}
+                  iconButtonClasses={iconButtonClasses}
+                />
+              )}
+
+              {canEdit && linked && (
                 <button
                   type="button"
                   aria-label={t("unlink")}
@@ -218,17 +243,21 @@ export function AdminUserEditDialog({ lang, open, onOpenChange, user }: AdminUse
 
             {actionError && <p className="text-xs text-destructive">{actionError}</p>}
           </div>
+
+          {saveError && <p className="text-xs text-destructive">{saveError}</p>}
         </div>
 
-        <DialogFooter>
-          <FormButton
-            disabled={nicknameSaving || !user || nicknameValue.trim() === savedNickname}
-            onClick={handleSaveNickname}
-            className="w-full sm:w-auto"
-          >
-            {nicknameSaving ? t("saving") : t("save")}
-          </FormButton>
-        </DialogFooter>
+        {(canEdit || canManageRoles) && (
+          <DialogFooter>
+            <FormButton
+              disabled={saving || !user || (!nicknameDirty && !rolesDirty)}
+              onClick={handleSave}
+              className="w-full sm:w-auto"
+            >
+              {saving ? t("saving") : t("save")}
+            </FormButton>
+          </DialogFooter>
+        )}
       </DialogContent>
     </Dialog>
   );

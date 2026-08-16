@@ -3,6 +3,8 @@ import { getTranslations } from "next-intl/server";
 import { auth } from "@/auth";
 import { siteDb } from "@/lib/site-db";
 import { evaluateAutoBadges } from "@/lib/luckperms";
+import { hasAdminNavAccess } from "@/lib/admin";
+import type { LocalizedName } from "@/lib/i18n-name";
 
 import { CtaButton } from "@/components/common/CtaButton";
 import { ProfileQuickActions } from "@/components/account/ProfileQuickActions";
@@ -38,9 +40,13 @@ export default async function ProfilePage({
     await evaluateAutoBadges(session.user.id, link.minecraftUuid);
   }
 
-  // isAdmin isn't selected here — it's already on session.user, which
-  // auth()'s session() callback fetched from the DB (and cache() now
-  // dedupes across every auth() call in this request, see src/auth.ts).
+  // Whether to show the "Admin panel" quick-link — broader than
+  // session.user.isAdmin, since reaching /admin only requires holding a
+  // sufficient resource-role bundle now (e.g. the built-in "Админ" Role),
+  // not the raw superadmin flag specifically. See hasAdminNavAccess's doc
+  // comment (src/lib/admin.ts).
+  const canAccessAdmin = await hasAdminNavAccess();
+
   const user = await siteDb.user.findUnique({
     where: { id: session.user.id },
     select: {
@@ -62,7 +68,7 @@ export default async function ProfilePage({
       </h2>
       <BadgePinSelector
         lang={lang}
-        badges={user.badges.map(({ badge }) => badge)}
+        badges={user.badges.map(({ badge }) => ({ ...badge, name: badge.name as unknown as LocalizedName }))}
         initialPinnedBadgeId={user.badges.find((b) => b.pinned)?.badge.id ?? null}
       />
     </div>
@@ -90,7 +96,7 @@ export default async function ProfilePage({
             <ProfileQuickActions
               lang={lang}
               publicProfileHref={`/profile/${encodeURIComponent(session.user.name ?? "")}`}
-              isAdmin={session.user.isAdmin}
+              canAccessAdmin={canAccessAdmin}
               viewProfileLabel={t("viewProfile")}
               adminPanelLabel={t("adminPanel")}
               signOutLabel={t("signOut")}

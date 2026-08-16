@@ -12,7 +12,8 @@ import { cn } from "@/lib/utils";
 interface ProfileQuickActionsProps {
   lang: string;
   publicProfileHref: string;
-  isAdmin: boolean;
+  /** Whether the viewer can open at least one /admin nav tab — see hasAdminNavAccess's doc comment (src/lib/admin.ts). Broader than the raw User.isAdmin flag. */
+  canAccessAdmin: boolean;
   viewProfileLabel: string;
   adminPanelLabel: string;
   signOutLabel: string;
@@ -36,7 +37,7 @@ const iconButtonClasses = cn(buttonVariants({ variant: "outline", size: "icon" }
 export function ProfileQuickActions({
   lang,
   publicProfileHref,
-  isAdmin,
+  canAccessAdmin,
   viewProfileLabel,
   adminPanelLabel,
   signOutLabel,
@@ -64,7 +65,7 @@ export function ProfileQuickActions({
       <Link href={publicProfileHref} className={iconButtonClasses} aria-label={viewProfileLabel} title={viewProfileLabel}>
         <UserRound size={16} />
       </Link>
-      {isAdmin && (
+      {canAccessAdmin && (
         <Link href="/admin" className={iconButtonClasses} aria-label={adminPanelLabel} title={adminPanelLabel}>
           <ShieldCheck size={16} />
         </Link>

@@ -11,12 +11,16 @@ interface FormTextareaProps extends TextareaHTMLAttributes<HTMLTextAreaElement> 
 }
 
 /** Same visual language as FormInput, for the multi-line fields it doesn't cover (ticket subject/body). */
-export function FormTextarea({ label, hint, error, className, id, ...props }: FormTextareaProps) {
+export function FormTextarea({ label, hint, error, className, id, required, value, ...props }: FormTextareaProps) {
+  // Same controlled-only caveat as FormInput's missing check.
+  const missing = required && value !== undefined && !String(value).trim();
   return (
-    <FormField id={id} label={label} hint={hint} error={error}>
+    <FormField id={id} label={label} hint={hint} error={error} requiredEmpty={missing}>
       <Textarea
         id={id}
-        className={cn("resize-none", formInputClasses(!!error, className))}
+        required={required}
+        value={value}
+        className={cn("resize-none", formInputClasses(!!error || missing, className))}
         style={formInputStyle}
         {...props}
       />

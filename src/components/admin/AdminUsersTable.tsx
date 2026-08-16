@@ -10,11 +10,13 @@ import { PlayerAvatar } from "@/components/common/PlayerAvatar";
 import { AdminUserActions } from "@/components/admin/AdminUserActions";
 import { AdminUserEditDialog } from "@/components/admin/AdminUserEditDialog";
 import { UserBadgesCell } from "@/components/admin/UserBadgesCell";
+import type { RoleOption } from "@/components/admin/RoleFormDialog";
 import { formatLastSeen } from "@/lib/player-card-format";
+import { localizedName, type LocalizedName } from "@/lib/i18n-name";
 
 export interface AdminBadgeOption {
   id: string;
-  name: string;
+  name: LocalizedName;
   icon: string;
   color: string | null;
 }
@@ -34,25 +36,34 @@ export interface AdminUserRow {
   mcOnline: boolean;
   serverLastSeenMs: number | null;
   badgeIds: string[];
+  roleIds: string[];
 }
 
 interface AdminUsersTableProps {
   lang: string;
   users: AdminUserRow[];
   badges: AdminBadgeOption[];
+  roleOptions: RoleOption[];
+  /** From getResourceRole checks on the page (users-edit / users-delete / badges-edit / role-edit / true isAdmin) — a users-view-only holder can reach this table but shouldn't see controls they can't use. users-edit and users-delete are independent (see RESOURCE_ROLE_ACTIONS's doc comment) — a holder of one but not the other sees exactly that one control. */
+  canEditUsers: boolean;
+  canDeleteUsers: boolean;
+  canEditBadges: boolean;
+  canManageRoles: boolean;
   sortColumn?: string;
   sortDirection?: "asc" | "desc";
   rowOffset?: number;
 }
 
 /** Client island for /admin/users — see AdminBadgesTable's doc comment for why the columns live here. Presence/online booleans are pre-computed server-side (they read an in-memory Map that only exists in the Node process) and passed in as plain data, never recomputed here. */
-export function AdminUsersTable({ lang, users, badges, sortColumn, sortDirection, rowOffset }: AdminUsersTableProps) {
+export function AdminUsersTable({ lang, users, badges, roleOptions, canEditUsers, canDeleteUsers, canEditBadges, canManageRoles, sortColumn, sortDirection, rowOffset }: AdminUsersTableProps) {
   const t = useTranslations("Admin");
   const tc = useTranslations("PlayerCard");
   const onSort = useAdminTableSort(sortColumn, sortDirection);
   // Owned here (not by each row) — see AdminUserEditDialog's doc comment
   // for why a per-row dialog instance lost its open state to revalidation.
   const [editingUser, setEditingUser] = useState<AdminUserRow | null>(null);
+
+  const roleById = useMemo(() => new Map(roleOptions.map((r) => [r.id, r])), [roleOptions]);
 
   const columns = useMemo<ColumnDef<AdminUserRow, unknown>[]>(() => [
     {
@@ -105,8 +116,31 @@ export function AdminUsersTable({ lang, users, badges, sortColumn, sortDirection
       // overlapping the badge chips).
       meta: { headClassName: "align-middle", cellClassName: "align-middle", withRightBorder: true },
       cell: ({ row }) => (
-        <UserBadgesCell lang={lang} userId={row.original.id} badges={badges} currentBadgeIds={row.original.badgeIds} />
+        <UserBadgesCell lang={lang} userId={row.original.id} badges={badges} currentBadgeIds={row.original.badgeIds} canEdit={canEditBadges} />
       ),
+    },
+    {
+      id: "roles",
+      header: t("rolesColumn"),
+      size: 200,
+      minSize: 130,
+      meta: { headClassName: "align-middle", cellClassName: "align-middle whitespace-normal text-xs text-foreground/60", withRightBorder: true },
+      cell: ({ row }) => {
+        const names = row.original.roleIds
+          .map((id) => roleById.get(id))
+          .filter((r): r is RoleOption => !!r)
+          .map((r) => localizedName(r.name, lang));
+        if (names.length === 0) return <span className="text-foreground/30">—</span>;
+        return (
+          <div className="flex flex-wrap gap-1">
+            {names.map((name, i) => (
+              <span key={i} className="rounded-full border border-primary/15 bg-primary/5 px-2 py-0.5 text-[11px] text-foreground/70">
+                {name}
+              </span>
+            ))}
+          </div>
+        );
+      },
     },
     {
       id: "presence",
@@ -175,11 +209,13 @@ export function AdminUsersTable({ lang, users, badges, sortColumn, sortDirection
           userId={row.original.id}
           nickname={row.original.nickname}
           isSelf={row.original.isSelf}
+          canEdit={canEditUsers || canManageRoles}
+          canDelete={canDeleteUsers}
           onEdit={() => setEditingUser(row.original)}
         />
       ),
     },
-  ], [lang, badges, t, tc]);
+  ], [lang, badges, canEditBadges, canEditUsers, canDeleteUsers, canManageRoles, roleById, t, tc]);
 
   return (
     <>
@@ -199,6 +235,9 @@ export function AdminUsersTable({ lang, users, badges, sortColumn, sortDirection
         open={editingUser !== null}
         onOpenChange={(next) => { if (!next) setEditingUser(null); }}
         user={editingUser}
+        canEdit={canEditUsers}
+        canManageRoles={canManageRoles}
+        roleOptions={roleOptions}
       />
     </>
   );

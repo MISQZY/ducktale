@@ -9,12 +9,18 @@ interface FormInputProps extends InputHTMLAttributes<HTMLInputElement> {
   error?: string;
 }
 
-export function FormInput({ label, hint, error, className, id, ...props }: FormInputProps) {
+export function FormInput({ label, hint, error, className, id, required, value, ...props }: FormInputProps) {
+  // Only meaningful for a controlled input (value passed in) — an
+  // uncontrolled field (defaultValue, no value prop) can't be tracked
+  // reactively here, so it's left exactly as before (no dot, no highlight).
+  const missing = required && value !== undefined && !String(value).trim();
   return (
-    <FormField id={id} label={label} hint={hint} error={error}>
+    <FormField id={id} label={label} hint={hint} error={error} requiredEmpty={missing}>
       <Input
         id={id}
-        className={formInputClasses(!!error, className)}
+        required={required}
+        value={value}
+        className={formInputClasses(!!error || missing, className)}
         style={formInputStyle}
         {...props}
       />

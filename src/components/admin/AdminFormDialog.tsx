@@ -19,6 +19,8 @@ interface AdminFormDialogProps {
   onSubmit: (formData: FormData) => void;
   children: ReactNode;
   className?: string;
+  /** Extra content rendered in the footer alongside the submit button (e.g. a "reset to default" link) — ResourceRoleLabelFormDialog is the first user of this, every other caller leaves it unset. */
+  footerExtra?: ReactNode;
 }
 
 export function AdminFormDialog({
@@ -33,6 +35,7 @@ export function AdminFormDialog({
   onSubmit,
   children,
   className,
+  footerExtra,
 }: AdminFormDialogProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -52,8 +55,10 @@ export function AdminFormDialog({
 
           {error && <p className="text-xs text-destructive">{error}</p>}
 
-          <DialogFooter>
-            <FormButton type="submit" disabled={submitting} className="w-full sm:w-auto">
+          {/* footerExtra (e.g. a "reset to default" link) always stacks under the submit button, never side-by-side — this dialog's width is fixed narrow (sm:max-w-sm) regardless of viewport, so a row layout has no room to fit a full-size CTA button next to anything else without squeezing it into an ugly wrap. */}
+          <DialogFooter className={footerExtra ? "sm:flex-col-reverse sm:items-stretch sm:justify-normal" : undefined}>
+            {footerExtra}
+            <FormButton type="submit" disabled={submitting} className={footerExtra ? "w-full" : "w-full sm:w-auto"}>
               {submitting ? submittingLabel : submitLabel}
             </FormButton>
           </DialogFooter>
