@@ -1,15 +1,13 @@
 "use client";
 
+import { flexRender } from "@tanstack/react-table";
 import {
-  useReactTable,
-  getCoreRowModel,
-  flexRender,
-  type ColumnDef,
-  type Table as TanstackTable,
-  type Header,
-  type VisibilityState,
-  type ColumnSizingState,
-} from "@tanstack/react-table";
+  useLegacyTable,
+  type LegacyColumnDef,
+  type LegacyTable,
+  type LegacyHeader,
+} from "@tanstack/react-table/legacy";
+import type { TableFeatures, RowData, ColumnVisibilityState, ColumnSizingState } from "@tanstack/table-core";
 import { useMemo, useState } from "react";
 import { SlidersHorizontal } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -26,6 +24,16 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Fragment, type ReactNode } from "react";
+
+// v8-shaped aliases over TanStack Table v9's useLegacyTable compat types —
+// every admin table's own ColumnDef<TData, unknown> import comes from here
+// now, not "@tanstack/react-table" directly, so this is the one place that
+// needs to know about the useLegacyTable shim (see useDataTable's doc
+// comment below for why it exists at all).
+export type ColumnDef<TData extends RowData, TValue = unknown> = LegacyColumnDef<TData, TValue>;
+export type TanstackTable<TData extends RowData> = LegacyTable<TData>;
+export type Header<TData extends RowData, TValue = unknown> = LegacyHeader<TData, TValue>;
+export type VisibilityState = ColumnVisibilityState;
 
 /**
  * Per-column metadata this project's DocsTable* primitives need beyond what
@@ -45,15 +53,15 @@ export interface DataTableColumnMeta {
   defaultSortDirection?: "asc" | "desc";
 }
 
-declare module "@tanstack/react-table" {
+declare module "@tanstack/table-core" {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars, @typescript-eslint/no-empty-object-type
-  interface ColumnMeta<TData, TValue> extends DataTableColumnMeta {}
+  interface ColumnMeta<TFeatures extends TableFeatures, TData extends RowData, TValue> extends DataTableColumnMeta {}
 }
 
 /** Every table gets this as its actual first column — see useDataTable. Not part of the columns[] a caller declares. */
 const ROW_NUMBER_COLUMN_ID = "__rowNumber";
 
-function buildRowNumberColumn<TData>(rowOffset: number): ColumnDef<TData, unknown> {
+function buildRowNumberColumn<TData extends RowData>(rowOffset: number): ColumnDef<TData, unknown> {
   return {
     id: ROW_NUMBER_COLUMN_ID,
     header: "№",
@@ -90,8 +98,16 @@ function buildRowNumberColumn<TData>(rowOffset: number): ColumnDef<TData, unknow
  * client-side (which columns you'd rather hide, how wide you dragged one) —
  * scoped to this hook call, so it resets on remount/reload rather than
  * persisting, same as every other ephemeral UI preference in this app.
+ *
+ * Runs on TanStack Table v9's `useLegacyTable` compat shim (not the native
+ * v9 `useTable({ features, ... })` API) — v9 restructured pagination/
+ * sorting/filtering/resizing into opt-in, tree-shakeable "features" with a
+ * different config shape entirely; the legacy shim keeps this file (and
+ * every ColumnDef in every admin table importing its `ColumnDef` type
+ * below) on the v8-shaped API this app already uses, deliberately deferring
+ * the native-v9 rewrite rather than bundling it into the version bump.
  */
-export function useDataTable<TData>(
+export function useDataTable<TData extends RowData>(
   columns: ColumnDef<TData, unknown>[],
   data: TData[],
   getRowId?: (row: TData, index: number) => string,
@@ -106,10 +122,9 @@ export function useDataTable<TData>(
     [columns, rowOffset, showRowNumber]
   );
 
-  return useReactTable({
+  return useLegacyTable({
     data,
     columns: columnsWithRowNumber,
-    getCoreRowModel: getCoreRowModel(),
     manualPagination: true,
     manualSorting: true,
     manualFiltering: true,
@@ -122,7 +137,7 @@ export function useDataTable<TData>(
   });
 }
 
-interface DataTableHeaderProps<TData> {
+interface DataTableHeaderProps<TData extends RowData> {
   table: TanstackTable<TData>;
   /** Current server-side sort state + handler — see useDataTable's doc comment on why this isn't TanStack's own sorting state. */
   sortColumn?: string;
@@ -130,7 +145,7 @@ interface DataTableHeaderProps<TData> {
   onSort?: (key: string, defaultDirection?: "asc" | "desc") => void;
 }
 
-function ResizeHandle<TData>({ header }: { header: Header<TData, unknown> }) {
+function ResizeHandle<TData extends RowData>({ header }: { header: Header<TData, unknown> }) {
   if (!header.column.getCanResize()) return null;
   const isResizing = header.column.getIsResizing();
   return (
@@ -170,7 +185,7 @@ function ResizeHandle<TData>({ header }: { header: Header<TData, unknown> }) {
  * colgroup doesn't have that failure mode: it fixes every column's width up
  * front, independent of what any given row's cells look like.
  */
-export function DataTableColGroup<TData>({ table }: { table: TanstackTable<TData> }) {
+export function DataTableColGroup<TData extends RowData>({ table }: { table: TanstackTable<TData> }) {
   // getVisibleLeafColumns, not getAllLeafColumns — colgroup assigns widths
   // positionally, and DataTableHeader/DataTableBody only ever render visible
   // columns' cells. Including hidden columns here would desync <col> count
@@ -185,7 +200,7 @@ export function DataTableColGroup<TData>({ table }: { table: TanstackTable<TData
   );
 }
 
-export function DataTableHeader<TData>({ table, sortColumn, sortDirection, onSort }: DataTableHeaderProps<TData>) {
+export function DataTableHeader<TData extends RowData>({ table, sortColumn, sortDirection, onSort }: DataTableHeaderProps<TData>) {
   return (
     <DocsTableHeader>
       {table.getHeaderGroups().map((headerGroup) => (
@@ -213,14 +228,14 @@ export function DataTableHeader<TData>({ table, sortColumn, sortDirection, onSor
   );
 }
 
-interface DataTableBodyProps<TData> {
+interface DataTableBodyProps<TData extends RowData> {
   table: TanstackTable<TData>;
   rowClassName?: (row: TData) => string | undefined;
   /** Renders an additional row right after a data row's own — for the one table (TownyTable) with an expandable accordion sub-row, since that doesn't fit TanStack's one-row-per-item column/cell model. Omit for every other table. */
   renderExtraRow?: (row: TData) => ReactNode;
 }
 
-export function DataTableBody<TData>({ table, rowClassName, renderExtraRow }: DataTableBodyProps<TData>) {
+export function DataTableBody<TData extends RowData>({ table, rowClassName, renderExtraRow }: DataTableBodyProps<TData>) {
   return (
     <>
       {table.getRowModel().rows.map((row) => (
@@ -253,7 +268,7 @@ export function DataTableBody<TData>({ table, rowClassName, renderExtraRow }: Da
  * every table in this app (never a rendered element), so it's safe to use
  * directly as checkbox text.
  */
-export function DataTableViewOptions<TData>({ table }: { table: TanstackTable<TData> }) {
+export function DataTableViewOptions<TData extends RowData>({ table }: { table: TanstackTable<TData> }) {
   const columns = table.getAllLeafColumns().filter((c) => c.getCanHide());
   if (columns.length === 0) return null;
 
@@ -293,7 +308,7 @@ export function DataTableViewOptions<TData>({ table }: { table: TanstackTable<TD
   );
 }
 
-interface DataTableProps<TData> {
+interface DataTableProps<TData extends RowData> {
   columns: ColumnDef<TData, unknown>[];
   data: TData[];
   getRowId?: (row: TData, index: number) => string;
@@ -316,7 +331,7 @@ interface DataTableProps<TData> {
  * DataTableHeader/DataTableBody directly instead, since they also need to
  * interleave a loading skeleton and an error state around the same table.
  */
-export function DataTable<TData>({
+export function DataTable<TData extends RowData>({
   columns, data, getRowId, rowClassName, sortColumn, sortDirection, onSort, emptyMessage, rowOffset, showRowNumber = true,
 }: DataTableProps<TData>) {
   const table = useDataTable(columns, data, getRowId, rowOffset, showRowNumber);

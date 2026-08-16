@@ -1,5 +1,6 @@
 import { type ReactNode } from "react";
-import type { ColumnDef } from "@tanstack/react-table";
+import type { ColumnDef } from "@/components/ui/data-table";
+import type { RowData } from "@tanstack/table-core";
 import { cn } from "@/lib/utils";
 import {
   DocsTable,
@@ -11,7 +12,7 @@ import {
 import { useDataTable, DataTableColGroup, DataTableHeader, DataTableBody, DataTableViewOptions } from "@/components/ui/data-table";
 import { TableSearch, TablePagination, TableSkeleton } from "@/components/docs/paged-table";
 
-interface PagedTableLayoutProps<TData> {
+interface PagedTableLayoutProps<TData extends RowData> {
   className?: string;
 
   // Header props
@@ -54,7 +55,7 @@ interface PagedTableLayoutProps<TData> {
   showPagination?: boolean;
 }
 
-export function PagedTableLayout<TData>({
+export function PagedTableLayout<TData extends RowData>({
   className,
   titleNode,
   total,

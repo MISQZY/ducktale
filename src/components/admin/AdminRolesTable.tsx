@@ -2,7 +2,7 @@
 
 import { useCallback, useMemo } from "react";
 import { useTranslations } from "next-intl";
-import type { ColumnDef } from "@tanstack/react-table";
+import type { ColumnDef } from "@/components/ui/data-table";
 import { Lock } from "lucide-react";
 import { DataTable } from "@/components/ui/data-table";
 import { RoleRowActions } from "@/components/admin/RoleRowActions";
