@@ -1,5 +1,6 @@
 import { getTranslations } from "next-intl/server";
 import type { Prisma } from ".prisma/site-client";
+import { Plus } from "lucide-react";
 import { requireResourceRole, getAdminNavAccess } from "@/lib/admin";
 import { hasResourceRole } from "@/config/resource-roles";
 import { siteDb } from "@/lib/site-db";
@@ -7,11 +8,16 @@ import { seedBuiltinBadges } from "@/lib/badges";
 import { AdminPageShell } from "@/components/admin/AdminPageShell";
 import { BadgeFormDialog } from "@/components/admin/BadgeFormDialog";
 import { AdminBadgesTable } from "@/components/admin/AdminBadgesTable";
-import { FormButton } from "@/components/common/FormButton";
-import { ServerPagination } from "@/components/common/ServerPagination";
+import { Button } from "@/components/ui/button";
+import { TablePagination } from "@/components/docs/paged-table/TablePagination";
+import { resolvePageSize } from "@/lib/pagination";
 import type { LocalizedName } from "@/lib/i18n-name";
 
-const PAGE_SIZE = 10;
+// Default/fallback only — useAdaptivePageSize (client-side, in
+// AdminBadgesTable) overrides this via ?pageSize= to whatever count
+// actually fills the viewport, so this is just what a fresh, JS-less first
+// load uses.
+const DEFAULT_PAGE_SIZE = 10;
 
 // "awarded" isn't a plain field (it's a relation count), so it doesn't fit
 // the single-field allowlist the other admin pages use — special-cased below.
@@ -23,16 +29,17 @@ export default async function AdminBadgesPage({
   searchParams,
 }: {
   params: Promise<{ lang: string }>;
-  searchParams: Promise<{ page?: string; sort?: string; order?: string }>;
+  searchParams: Promise<{ page?: string; pageSize?: string; sort?: string; order?: string }>;
 }) {
   const { lang } = await params;
   const admin = await requireResourceRole(lang, "badges-view");
   const navAccess = await getAdminNavAccess();
   const canEdit = admin.isAdmin || hasResourceRole(admin.roles, "badges-edit");
   const canDelete = admin.isAdmin || hasResourceRole(admin.roles, "badges-delete");
-  const { page: rawPage, sort: rawSort, order: rawOrder } = await searchParams;
+  const { page: rawPage, pageSize: rawPageSize, sort: rawSort, order: rawOrder } = await searchParams;
 
   const page = Math.max(1, parseInt(rawPage ?? "1", 10) || 1);
+  const PAGE_SIZE = resolvePageSize(rawPageSize, DEFAULT_PAGE_SIZE);
   const sortDir: "asc" | "desc" = rawOrder === "asc" || rawOrder === "desc" ? rawOrder : "asc";
   const sortKey: SortKey | undefined = SORTABLE_KEYS.includes(rawSort as SortKey) ? (rawSort as SortKey) : undefined;
   // "badge" (name) can't be sorted at the DB level any more — name is now a
@@ -81,31 +88,39 @@ export default async function AdminBadgesPage({
   const t = await getTranslations("Admin");
   const tb = await getTranslations("Admin.badges");
 
+  const createSlot = canEdit ? (
+    <BadgeFormDialog
+      lang={lang}
+      roleOptions={roleOptionsTyped}
+      trigger={
+        <Button variant="outline" size="icon" title={tb("createTitle")} aria-label={tb("createTitle")}>
+          <Plus size={16} />
+        </Button>
+      }
+    />
+  ) : undefined;
+
   return (
     <AdminPageShell title={t("badgesTitle")} description={tb("description", { count: total })} active="badges" navAccess={navAccess}>
       <div className="w-full">
-        {canEdit && (
-          <div className="flex justify-center mb-6">
-            <BadgeFormDialog
-              lang={lang}
-              roleOptions={roleOptionsTyped}
-              trigger={<FormButton className="px-5 py-2 text-xs">{tb("createTitle")}</FormButton>}
-            />
-          </div>
-        )}
+        <AdminBadgesTable lang={lang} badges={badges} roleOptions={roleOptionsTyped} canEdit={canEdit} canDelete={canDelete} sortColumn={sortKey} sortDirection={sortKey ? sortDir : undefined} rowOffset={(page - 1) * PAGE_SIZE} createSlot={createSlot} pageSize={PAGE_SIZE} />
 
-        <div className="min-h-[42vh]">
-          <AdminBadgesTable lang={lang} badges={badges} roleOptions={roleOptionsTyped} canEdit={canEdit} canDelete={canDelete} sortColumn={sortKey} sortDirection={sortKey ? sortDir : undefined} rowOffset={(page - 1) * PAGE_SIZE} />
+        <div className="mt-6">
+          <TablePagination
+            page={page}
+            totalPages={totalPages}
+            pageStart={(page - 1) * PAGE_SIZE}
+            pageSize={PAGE_SIZE}
+            total={total}
+            hrefBase={{
+              pathname: "/admin/badges",
+              query: {
+                ...(sortKey ? { sort: sortKey, order: sortDir } : {}),
+                ...(rawPageSize ? { pageSize: String(PAGE_SIZE) } : {}),
+              },
+            }}
+          />
         </div>
-
-        <ServerPagination
-          page={page}
-          totalPages={totalPages}
-          pathname="/admin/badges"
-          buildQuery={(p) => ({ ...(sortKey ? { sort: sortKey, order: sortDir } : {}), page: String(p) })}
-          prevText={t("prevPage")}
-          nextText={t("nextPage")}
-        />
       </div>
     </AdminPageShell>
   );

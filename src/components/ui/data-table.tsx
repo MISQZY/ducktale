@@ -8,8 +8,8 @@ import {
   type LegacyHeader,
 } from "@tanstack/react-table/legacy";
 import type { TableFeatures, RowData, ColumnVisibilityState, ColumnSizingState } from "@tanstack/table-core";
-import { useMemo, useState } from "react";
-import { SlidersHorizontal } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { Settings } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
   DocsTable,
@@ -266,7 +266,9 @@ export function DataTableBody<TData extends RowData>({ table, rowClassName, rend
  * columnVisibility state (see useDataTable). Column labels come straight
  * from each ColumnDef's `header`, which is a plain translated string on
  * every table in this app (never a rendered element), so it's safe to use
- * directly as checkbox text.
+ * directly as checkbox text. Icon-only trigger (matches the app's other
+ * small icon buttons — ThemeToggle, SkinViewButton, ...) rather than a
+ * labeled button, so it sits flush in a toolbar row next to search/create.
  */
 export function DataTableViewOptions<TData extends RowData>({ table }: { table: TanstackTable<TData> }) {
   const columns = table.getAllLeafColumns().filter((c) => c.getCanHide());
@@ -278,11 +280,12 @@ export function DataTableViewOptions<TData extends RowData>({ table }: { table: 
         <Button
           type="button"
           variant="outline"
-          size="xs"
-          className={cn("gap-1", DOCS_TABLE_THEME.textSoft)}
+          size="icon"
+          title="Столбцы"
+          aria-label="Столбцы"
+          className={DOCS_TABLE_THEME.textSoft}
         >
-          <SlidersHorizontal size={12} />
-          Столбцы
+          <Settings size={14} />
         </Button>
       </PopoverTrigger>
       <PopoverContent align="end" className="w-56">
@@ -321,7 +324,57 @@ interface DataTableProps<TData extends RowData> {
   rowOffset?: number;
   /** Set false if `columns` already leads with its own rank/position column — see useDataTable. Default true. */
   showRowNumber?: boolean;
+  /** Search input, grows to fill the row — same toolbar row as the columns button, not a separate one above it. */
+  toolbarLeft?: ReactNode;
+  /** "Create" trigger (an icon button — see AdminFormDialog callers), rendered right next to the columns button. */
+  toolbarRight?: ReactNode;
+  /**
+   * Pads the table out to this many rows with blank filler ones when it has
+   * fewer — for a paginated table, its PAGE_SIZE (so the last, partial page
+   * doesn't visibly shrink shorter than every other page); for an
+   * unpaginated table, a fixed baseline so it doesn't look tiny/collapsed
+   * with only a couple of rows. Acts as a floor when fillViewport is also
+   * set (the larger of the two wins). Omit both to size the table purely by
+   * its data.
+   */
+  minRows?: number;
+  /**
+   * Applied to every row's <tr> — real ones (merged with rowClassName) and
+   * filler ones alike — so all rows are the same height regardless of how
+   * much any individual row's content needs (e.g. a 1-line vs 2-line
+   * secondary text column). A plain h-[Npx] utility, not min-h: table rows
+   * don't honor min-height in the browser's row-height layout algorithm at
+   * all (a real, verified table-layout quirk, not a hunch) — height does,
+   * and per that same algorithm a row can still grow taller than it for
+   * content that needs more room, so it isn't a clipping risk either.
+   */
+  rowHeightClassName?: string;
+  /** Numeric px value matching rowHeightClassName — needed alongside it (not derived from it) only for fillViewport's arithmetic, since Tailwind can't generate CSS for a class built from a runtime template string. */
+  rowHeightPx?: number;
+  /**
+   * Grows the filler-row count (on top of minRows, whichever is bigger)
+   * to cover however much vertical space is actually free below the table
+   * in the viewport — e.g. a short unfiltered list on a tall monitor no
+   * longer leaves a dead gap between the table and the page's own bottom
+   * padding. Client-measured (getBoundingClientRect + a resize listener),
+   * so the extra rows appear a tick after the initial paint, and a table
+   * whose real data already exceeds the viewport height simply gets zero
+   * extra rows — no special-casing needed for that case.
+   *
+   * Only for unpaginated tables (ranks, roles, row-level-roles,
+   * resource-roles, maps) — a PAGINATED table's row count per page is a
+   * fixed, server-decided number (PAGE_SIZE, passed as minRows), so growing
+   * past it here would show e.g. 8 real rows + 2 filler ones that look like
+   * part of the page, only for the *next* page to start at row 9 anyway —
+   * genuinely confusing, not just extra whitespace. Paginated callers
+   * should pass minRows alone and leave this unset.
+   */
+  fillViewport?: boolean;
+  /** Vertical space below the table to leave alone when fillViewport is measuring — just the page's own bottom padding for the unpaginated tables this is meant for. Default 140; pass viewportBottomReservePx explicitly if a given page's chrome below the table differs. */
+  viewportBottomReservePx?: number;
 }
+
+const DEFAULT_VIEWPORT_BOTTOM_RESERVE_PX = 140;
 
 /**
  * Convenience wrapper for the RSC/server-paginated admin tables: data is
@@ -333,13 +386,45 @@ interface DataTableProps<TData extends RowData> {
  */
 export function DataTable<TData extends RowData>({
   columns, data, getRowId, rowClassName, sortColumn, sortDirection, onSort, emptyMessage, rowOffset, showRowNumber = true,
+  toolbarLeft, toolbarRight, minRows, rowHeightClassName, rowHeightPx, fillViewport, viewportBottomReservePx,
 }: DataTableProps<TData>) {
   const table = useDataTable(columns, data, getRowId, rowOffset, showRowNumber);
 
+  const wrapperRef = useRef<HTMLDivElement>(null);
+  const [viewportFillRows, setViewportFillRows] = useState(0);
+
+  useEffect(() => {
+    if (!fillViewport || !rowHeightPx) return;
+    const el = wrapperRef.current;
+    if (!el) return;
+
+    const reserve = viewportBottomReservePx ?? DEFAULT_VIEWPORT_BOTTOM_RESERVE_PX;
+
+    function recompute() {
+      const top = el!.getBoundingClientRect().top;
+      const available = window.innerHeight - top - reserve;
+      const rowsThatFit = Math.max(0, Math.floor(available / rowHeightPx!));
+      setViewportFillRows(Math.max(0, rowsThatFit - data.length));
+    }
+
+    recompute();
+    window.addEventListener("resize", recompute);
+    return () => window.removeEventListener("resize", recompute);
+  }, [fillViewport, rowHeightPx, viewportBottomReservePx, data.length]);
+
+  const fillerCount = Math.max(
+    minRows ? Math.max(0, minRows - data.length) : 0,
+    viewportFillRows
+  );
+
   return (
-    <div className="flex flex-col gap-1.5">
-      <div className="flex justify-end">
-        <DataTableViewOptions table={table} />
+    <div ref={wrapperRef} className="flex flex-col gap-1.5">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <div className="flex-1 min-w-[160px]">{toolbarLeft}</div>
+        <div className="flex items-center gap-2 shrink-0">
+          {toolbarRight}
+          <DataTableViewOptions table={table} />
+        </div>
       </div>
       {/* min-width (not width): the table should still stretch to fill a wide
           container via w-full, and only actually get wider — triggering the
@@ -356,7 +441,34 @@ export function DataTable<TData extends RowData>({
               </DocsTableCell>
             </DocsTableRow>
           ) : (
-            <DataTableBody table={table} rowClassName={rowClassName} />
+            <>
+              <DataTableBody
+                table={table}
+                rowClassName={(row) => cn(rowHeightClassName, rowClassName?.(row))}
+              />
+              {/* Blank rows padding a short page (typically the last one) up
+                  to the full page size — same cell padding/borders as real
+                  rows (via each column's own meta), just empty content, so
+                  the table's height stays constant across pages instead of
+                  visibly shrinking and jumping the pagination footer up. */}
+              {Array.from({ length: fillerCount }).map((_, i) => (
+                <DocsTableRow key={`__filler-${i}`} aria-hidden="true" className={cn("pointer-events-none", rowHeightClassName)}>
+                  {table.getVisibleLeafColumns().map((column) => {
+                    const meta = column.columnDef.meta;
+                    return (
+                      <DocsTableCell
+                        key={column.id}
+                        className={meta?.cellClassName}
+                        withRightBorder={meta?.withRightBorder}
+                        style={{ width: column.getSize(), maxWidth: column.getSize() }}
+                      >
+                        {" "}
+                      </DocsTableCell>
+                    );
+                  })}
+                </DocsTableRow>
+              ))}
+            </>
           )}
         </DocsTableBody>
       </DocsTable>

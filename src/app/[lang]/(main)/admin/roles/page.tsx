@@ -1,4 +1,5 @@
 import { getTranslations } from "next-intl/server";
+import { Plus } from "lucide-react";
 import { requireResourceRole, getAdminNavAccess } from "@/lib/admin";
 import { hasResourceRole, type ResourceRole } from "@/config/resource-roles";
 import { siteDb } from "@/lib/site-db";
@@ -7,7 +8,7 @@ import { getResourceLabels } from "@/lib/resource-role-labels";
 import { AdminPageShell } from "@/components/admin/AdminPageShell";
 import { RoleFormDialog, type RoleOption, type RowLevelRoleOption } from "@/components/admin/RoleFormDialog";
 import { AdminRolesTable, type AdminRoleRow } from "@/components/admin/AdminRolesTable";
-import { FormButton } from "@/components/common/FormButton";
+import { Button } from "@/components/ui/button";
 import type { LocalizedName } from "@/lib/i18n-name";
 
 /** Admin-composed bundles of resource-roles, assigned to users — see [[PERMISSIONS_BADGES]] §4.1. Small expected N, unpaginated like Ranks. */
@@ -69,25 +70,23 @@ export default async function AdminRolesPage({
 
   const tr = await getTranslations("Admin.roles");
 
+  const createSlot = canEdit ? (
+    <RoleFormDialog
+      lang={lang}
+      roleOptions={roleOptions}
+      rowLevelRoleOptions={rowLevelRoleOptions}
+      resourceLabels={resourceLabels}
+      trigger={
+        <Button variant="outline" size="icon" title={tr("createTitle")} aria-label={tr("createTitle")}>
+          <Plus size={16} />
+        </Button>
+      }
+    />
+  ) : undefined;
+
   return (
     <AdminPageShell title={tr("title")} description={tr("description", { count: roles.length })} active="role" navAccess={navAccess}>
-      <div className="w-full">
-        {canEdit && (
-          <div className="flex justify-center mb-6">
-            <RoleFormDialog
-              lang={lang}
-              roleOptions={roleOptions}
-              rowLevelRoleOptions={rowLevelRoleOptions}
-              resourceLabels={resourceLabels}
-              trigger={<FormButton className="px-5 py-2 text-xs">{tr("createTitle")}</FormButton>}
-            />
-          </div>
-        )}
-
-        <div className="min-h-[42vh]">
-          <AdminRolesTable lang={lang} roles={roles} rowLevelRoleOptions={rowLevelRoleOptions} resourceLabels={resourceLabels} canEdit={canEdit} canDelete={canDelete} />
-        </div>
-      </div>
+      <AdminRolesTable lang={lang} roles={roles} rowLevelRoleOptions={rowLevelRoleOptions} resourceLabels={resourceLabels} canEdit={canEdit} canDelete={canDelete} createSlot={createSlot} />
     </AdminPageShell>
   );
 }

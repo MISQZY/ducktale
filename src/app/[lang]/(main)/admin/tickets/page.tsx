@@ -7,10 +7,15 @@ import { isUserOnline } from "@/lib/presence";
 import { Link } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
 import { SearchInput } from "@/components/ui/search-input";
-import { ServerPagination } from "@/components/common/ServerPagination";
+import { TablePagination } from "@/components/docs/paged-table/TablePagination";
+import { resolvePageSize } from "@/lib/pagination";
 import type { Prisma, TicketStatus } from ".prisma/site-client";
 
-const PAGE_SIZE = 10;
+// Default/fallback only — useAdaptivePageSize (client-side, in
+// AdminTicketsTable) overrides this via ?pageSize= to whatever count
+// actually fills the viewport, so this is just what a fresh, JS-less first
+// load uses.
+const DEFAULT_PAGE_SIZE = 10;
 const STATUS_FILTERS = ["ALL", "OPEN", "ANSWERED", "CLOSED"] as const;
 type StatusFilter = (typeof STATUS_FILTERS)[number];
 
@@ -27,18 +32,19 @@ export default async function AdminTicketsPage({
   searchParams,
 }: {
   params: Promise<{ lang: string }>;
-  searchParams: Promise<{ search?: string; status?: string; page?: string; sort?: string; order?: string }>;
+  searchParams: Promise<{ search?: string; status?: string; page?: string; pageSize?: string; sort?: string; order?: string }>;
 }) {
   const { lang } = await params;
   await requireResourceRole(lang, "tickets-view");
   const navAccess = await getAdminNavAccess();
-  const { search: rawSearch, status: rawStatus, page: rawPage, sort: rawSort, order: rawOrder } = await searchParams;
+  const { search: rawSearch, status: rawStatus, page: rawPage, pageSize: rawPageSize, sort: rawSort, order: rawOrder } = await searchParams;
 
   const search = rawSearch?.trim() ?? "";
   const status: StatusFilter = STATUS_FILTERS.includes(rawStatus as StatusFilter)
     ? (rawStatus as StatusFilter)
     : "ALL";
   const page = Math.max(1, parseInt(rawPage ?? "1", 10) || 1);
+  const PAGE_SIZE = resolvePageSize(rawPageSize, DEFAULT_PAGE_SIZE);
   const sortDir: "asc" | "desc" = rawOrder === "asc" || rawOrder === "desc" ? rawOrder : "desc";
   const sortKey = (rawSort && rawSort in SORTABLE ? rawSort : "updated") as keyof typeof SORTABLE;
   const orderBy: Prisma.TicketOrderByWithRelationInput = { [SORTABLE[sortKey]]: sortDir };
@@ -88,6 +94,7 @@ export default async function AdminTicketsPage({
     ...(search ? { search } : {}),
     ...(status !== "ALL" ? { status } : {}),
     ...(rawSort && rawSort in SORTABLE ? { sort: sortKey, order: sortDir } : {}),
+    ...(rawPageSize ? { pageSize: String(PAGE_SIZE) } : {}),
   };
 
   const { getAllOnlinePlayers } = await import("@/lib/players");
@@ -109,23 +116,28 @@ export default async function AdminTicketsPage({
     mcOnline: ticket.user.accountLink?.minecraftName ? onlineMcNames.has(ticket.user.accountLink.minecraftName.toLowerCase()) : false,
   }));
 
+  const searchSlot = (
+    <form className="w-full max-w-xs">
+      <SearchInput name="search" defaultValue={search} placeholder={tt("adminSearchPlaceholder")} />
+    </form>
+  );
+
   return (
     <AdminPageShell title={t("ticketsTitle")} description={t("ticketsDescription", { count: total })} active="tickets" navAccess={navAccess}>
       <div className="w-full">
-        <form className="mb-4 flex justify-center">
-          <SearchInput
-            name="search"
-            defaultValue={search}
-            placeholder={tt("adminSearchPlaceholder")}
-            wrapperClassName="max-w-sm"
-          />
-        </form>
-
         <div className="flex items-center justify-center gap-2 mb-6 flex-wrap">
           {STATUS_FILTERS.map((s) => (
             <Link
               key={s}
-              href={{ pathname: "/admin/tickets", query: { ...(search ? { search } : {}), ...(s !== "ALL" ? { status: s } : {}) } }}
+              href={{
+                pathname: "/admin/tickets",
+                query: {
+                  ...(search ? { search } : {}),
+                  ...(rawSort && rawSort in SORTABLE ? { sort: sortKey, order: sortDir } : {}),
+                  ...(rawPageSize ? { pageSize: String(PAGE_SIZE) } : {}),
+                  ...(s !== "ALL" ? { status: s } : {}),
+                },
+              }}
               className={cn(
                 "px-3 py-1 rounded-full text-[0.65rem] uppercase tracking-widest border transition-colors",
                 status === s
@@ -138,18 +150,18 @@ export default async function AdminTicketsPage({
           ))}
         </div>
 
-        <div className="min-h-[42vh]">
-          <AdminTicketsTable tickets={ticketRows} sortColumn={sortKey} sortDirection={sortDir} rowOffset={(page - 1) * PAGE_SIZE} />
-        </div>
+        <AdminTicketsTable tickets={ticketRows} sortColumn={sortKey} sortDirection={sortDir} rowOffset={(page - 1) * PAGE_SIZE} searchSlot={searchSlot} pageSize={PAGE_SIZE} />
 
-        <ServerPagination
-          page={page}
-          totalPages={totalPages}
-          pathname="/admin/tickets"
-          buildQuery={(p) => ({ ...baseQuery, page: String(p) })}
-          prevText={t("prevPage")}
-          nextText={t("nextPage")}
-        />
+        <div className="mt-6">
+          <TablePagination
+            page={page}
+            totalPages={totalPages}
+            pageStart={(page - 1) * PAGE_SIZE}
+            pageSize={PAGE_SIZE}
+            total={total}
+            hrefBase={{ pathname: "/admin/tickets", query: baseQuery }}
+          />
+        </div>
       </div>
     </AdminPageShell>
   );

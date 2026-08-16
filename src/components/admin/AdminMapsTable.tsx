@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, type ReactNode } from "react";
 import { useTranslations } from "next-intl";
 import type { ColumnDef } from "@/components/ui/data-table";
 import { DataTable } from "@/components/ui/data-table";
@@ -26,10 +26,12 @@ interface AdminMapsTableProps {
   canDelete: boolean;
   sortColumn?: string;
   sortDirection?: "asc" | "desc";
+  /** "Create map" icon-button dialog trigger, built by the page — rendered in the table's own toolbar row next to the columns button. */
+  createSlot?: ReactNode;
 }
 
 /** Client island rendering the /admin/maps table — same DataTable shape every other admin list (badges, ranks, ...) uses, columns built here since a Server Component can't hand a ColumnDef[] (its `cell` entries are closures) across the RSC boundary. */
-export function AdminMapsTable({ lang, maps, servers, canEdit, canDelete, sortColumn, sortDirection }: AdminMapsTableProps) {
+export function AdminMapsTable({ lang, maps, servers, canEdit, canDelete, sortColumn, sortDirection, createSlot }: AdminMapsTableProps) {
   const t = useTranslations("Admin");
   const tm = useTranslations("Admin.maps");
   const onSort = useAdminTableSort(sortColumn, sortDirection);
@@ -97,6 +99,12 @@ export function AdminMapsTable({ lang, maps, servers, canEdit, canDelete, sortCo
       sortColumn={sortColumn}
       sortDirection={sortDirection}
       onSort={onSort}
+      toolbarRight={createSlot}
+      minRows={8}
+      rowHeightClassName="h-[76px]"
+      rowHeightPx={76}
+      fillViewport
+      viewportBottomReservePx={80}
     />
   );
 }

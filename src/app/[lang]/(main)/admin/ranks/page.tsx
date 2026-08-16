@@ -1,5 +1,6 @@
 import { getTranslations } from "next-intl/server";
 import type { Prisma } from ".prisma/site-client";
+import { Plus } from "lucide-react";
 import { requireResourceRole, getAdminNavAccess } from "@/lib/admin";
 import { hasResourceRole } from "@/config/resource-roles";
 import { siteDb } from "@/lib/site-db";
@@ -7,7 +8,7 @@ import { withDb } from "@/lib/db";
 import { AdminPageShell } from "@/components/admin/AdminPageShell";
 import { RankFormDialog } from "@/components/admin/RankFormDialog";
 import { AdminRanksTable } from "@/components/admin/AdminRanksTable";
-import { FormButton } from "@/components/common/FormButton";
+import { Button } from "@/components/ui/button";
 import type { LocalizedName } from "@/lib/i18n-name";
 
 /** group -> which lp_tracks it appears in — read-only context shown next to each row so an admin styling a group can see where it actually ranks, without cross-referencing the LuckPerms server separately. */
@@ -99,33 +100,32 @@ export default async function AdminRanksPage({
   const t = await getTranslations("Admin");
   const tr = await getTranslations("Admin.ranks");
 
+  const createSlot = canEdit ? (
+    <RankFormDialog
+      lang={lang}
+      groupSuggestions={groupSuggestions}
+      trigger={
+        <Button variant="outline" size="icon" title={tr("createTitle")} aria-label={tr("createTitle")}>
+          <Plus size={16} />
+        </Button>
+      }
+    />
+  ) : undefined;
+
   return (
     <AdminPageShell title={t("ranksTitle")} description={tr("description", { count: ranks.length })} active="ranks" navAccess={navAccess}>
-      <div className="w-full">
-        {canEdit && (
-          <div className="flex justify-center mb-6">
-            <RankFormDialog
-              lang={lang}
-              groupSuggestions={groupSuggestions}
-              trigger={<FormButton className="px-5 py-2 text-xs">{tr("createTitle")}</FormButton>}
-            />
-          </div>
-        )}
-
-        <div className="min-h-[42vh]">
-          <AdminRanksTable
-            lang={lang}
-            ranks={ranks}
-            tracksByGroup={[...tracksByGroup.entries()]}
-            userCounts={[...userCounts.entries()]}
-            groupSuggestions={groupSuggestions}
-            canEdit={canEdit}
-            canDelete={canDelete}
-            sortColumn={sortKey}
-            sortDirection={sortDir}
-          />
-        </div>
-      </div>
+      <AdminRanksTable
+        lang={lang}
+        ranks={ranks}
+        tracksByGroup={[...tracksByGroup.entries()]}
+        userCounts={[...userCounts.entries()]}
+        groupSuggestions={groupSuggestions}
+        canEdit={canEdit}
+        canDelete={canDelete}
+        sortColumn={sortKey}
+        sortDirection={sortDir}
+        createSlot={createSlot}
+      />
     </AdminPageShell>
   );
 }

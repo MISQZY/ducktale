@@ -110,6 +110,11 @@ export function AdminResourceRolesTable({ lang, rows, canEdit }: AdminResourceRo
       data={rows}
       getRowId={(r) => r.resource}
       emptyMessage={tr("noResults")}
+      minRows={8}
+      rowHeightClassName="h-[76px]"
+      rowHeightPx={76}
+      fillViewport
+      viewportBottomReservePx={80}
     />
   );
 }

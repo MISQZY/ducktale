@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useMemo, useState, type ReactNode } from "react";
 import { useTranslations } from "next-intl";
 import type { ColumnDef } from "@/components/ui/data-table";
 import { ChevronDown } from "lucide-react";
@@ -31,6 +31,8 @@ interface AdminRowLevelRolesTableProps {
   canEdit: boolean;
   /** row-level-roles-delete (or isAdmin), independent of canEdit (see RESOURCE_ROLE_ACTIONS's doc comment). */
   canDelete: boolean;
+  /** "Create row-level role" icon-button dialog trigger, built by the page — rendered in the table's own toolbar row next to the columns button. */
+  createSlot?: ReactNode;
 }
 
 /** Collapsed-by-default grants summary, same visual as RoleGrantsPopover but scoped to this table (kept separate rather than generalizing the shared component's Admin.roles-only i18n key). */
@@ -69,7 +71,7 @@ function RowLevelRoleGrantsPopover({ lang, resourceRoles, resourceLabels }: { la
 }
 
 /** Client island for /admin/row-level-roles — see AdminBadgesTable's doc comment for why the columns live here, not in the Server Component page. */
-export function AdminRowLevelRolesTable({ lang, rowLevelRoles, resourceLabels, canEdit, canDelete }: AdminRowLevelRolesTableProps) {
+export function AdminRowLevelRolesTable({ lang, rowLevelRoles, resourceLabels, canEdit, canDelete, createSlot }: AdminRowLevelRolesTableProps) {
   const t = useTranslations("Admin");
   const tr = useTranslations("Admin.rowLevelRoles");
 
@@ -132,6 +134,12 @@ export function AdminRowLevelRolesTable({ lang, rowLevelRoles, resourceLabels, c
       data={rowLevelRoles}
       getRowId={(r) => r.id}
       emptyMessage={tr("noResults")}
+      toolbarRight={createSlot}
+      minRows={8}
+      rowHeightClassName="h-[76px]"
+      rowHeightPx={76}
+      fillViewport
+      viewportBottomReservePx={80}
     />
   );
 }

@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { computePageNumbers } from "@/lib/pagination";
 
 // ─── Types ─────────────────────────────────────────────────────────────────────
 
@@ -262,17 +263,7 @@ export function usePagedTable<T>({
   const totalPages   = data?.totalPages ?? 1;
   const pageStart    = data ? (data.page - 1) * data.pageSize : 0;
 
-  const pageNumbers = useCallback((): (number | "…")[] => {
-    if (totalPages <= 7) return Array.from({ length: totalPages }, (_, i) => i + 1);
-    const pages: (number | "…")[] = [1];
-    const left  = Math.max(2, page - 1);
-    const right = Math.min(totalPages - 1, page + 1);
-    if (left > 2)               pages.push("…");
-    for (let i = left; i <= right; i++) pages.push(i);
-    if (right < totalPages - 1) pages.push("…");
-    pages.push(totalPages);
-    return pages;
-  }, [page, totalPages]);
+  const pageNumbers = useCallback((): (number | "…")[] => computePageNumbers(page, totalPages), [page, totalPages]);
 
   return {
     state, query, page, sortColumn, sortDirection, data,

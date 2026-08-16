@@ -32,11 +32,7 @@ export default async function AdminResourceRolesPage({
 
   return (
     <AdminPageShell title={tr("title")} description={tr("description", { count: RESOURCE_ROLES.length })} active="resource-roles" navAccess={navAccess}>
-      <div className="w-full">
-        <div className="min-h-[42vh]">
-          <AdminResourceRolesTable lang={lang} rows={rows} canEdit={canEdit} />
-        </div>
-      </div>
+      <AdminResourceRolesTable lang={lang} rows={rows} canEdit={canEdit} />
     </AdminPageShell>
   );
 }

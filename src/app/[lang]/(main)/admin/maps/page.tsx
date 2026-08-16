@@ -1,4 +1,5 @@
 import { getTranslations } from "next-intl/server";
+import { Plus } from "lucide-react";
 import { requireResourceRole, getAdminNavAccess } from "@/lib/admin";
 import { hasResourceRole } from "@/config/resource-roles";
 import { SERVERS } from "@/config/servers";
@@ -6,7 +7,7 @@ import { resolveServerMaps } from "@/lib/maps";
 import { AdminPageShell } from "@/components/admin/AdminPageShell";
 import { AdminMapsTable } from "@/components/admin/AdminMapsTable";
 import { MapFormDialog } from "@/components/admin/MapFormDialog";
-import { FormButton } from "@/components/common/FormButton";
+import { Button } from "@/components/ui/button";
 import { localizedName } from "@/lib/i18n-name";
 
 export default async function AdminMapsPage({
@@ -45,18 +46,20 @@ export default async function AdminMapsPage({
 
   const t = await getTranslations("Admin.maps");
 
+  const createSlot = canEdit ? (
+    <MapFormDialog
+      lang={lang}
+      servers={servers}
+      trigger={
+        <Button variant="outline" size="icon" title={t("addMap")} aria-label={t("addMap")}>
+          <Plus size={16} />
+        </Button>
+      }
+    />
+  ) : undefined;
+
   return (
     <AdminPageShell title={t("title")} description={t("description")} active="maps" navAccess={navAccess}>
-      {canEdit && (
-        <div className="flex justify-center mb-6">
-          <MapFormDialog
-            lang={lang}
-            servers={servers}
-            trigger={<FormButton className="px-5 py-2 text-xs">{t("addMap")}</FormButton>}
-          />
-        </div>
-      )}
-
       <AdminMapsTable
         lang={lang}
         maps={sorted}
@@ -65,6 +68,7 @@ export default async function AdminMapsPage({
         canDelete={canDelete}
         sortColumn={sortKey}
         sortDirection={sortKey ? sortDir : undefined}
+        createSlot={createSlot}
       />
     </AdminPageShell>
   );

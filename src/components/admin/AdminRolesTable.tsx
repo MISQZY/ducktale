@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useMemo } from "react";
+import { useCallback, useMemo, type ReactNode } from "react";
 import { useTranslations } from "next-intl";
 import type { ColumnDef } from "@/components/ui/data-table";
 import { Lock } from "lucide-react";
@@ -39,10 +39,12 @@ interface AdminRolesTableProps {
   canEdit: boolean;
   /** role-delete (or isAdmin) — independent of canEdit (see RESOURCE_ROLE_ACTIONS's doc comment), gates only the delete button. */
   canDelete: boolean;
+  /** "Create role" icon-button dialog trigger, built by the page — rendered in the table's own toolbar row next to the columns button. */
+  createSlot?: ReactNode;
 }
 
 /** Client island for /admin/roles — see AdminBadgesTable's doc comment for why the columns live here, not in the Server Component page. */
-export function AdminRolesTable({ lang, roles, rowLevelRoleOptions, resourceLabels, canEdit, canDelete }: AdminRolesTableProps) {
+export function AdminRolesTable({ lang, roles, rowLevelRoleOptions, resourceLabels, canEdit, canDelete, createSlot }: AdminRolesTableProps) {
   const t = useTranslations("Admin");
   const tr = useTranslations("Admin.roles");
 
@@ -159,6 +161,12 @@ export function AdminRolesTable({ lang, roles, rowLevelRoleOptions, resourceLabe
       data={roles}
       getRowId={(r) => r.id}
       emptyMessage={tr("noResults")}
+      toolbarRight={createSlot}
+      minRows={8}
+      rowHeightClassName="h-[76px]"
+      rowHeightPx={76}
+      fillViewport
+      viewportBottomReservePx={80}
     />
   );
 }

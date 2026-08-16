@@ -1,11 +1,12 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, type ReactNode } from "react";
 import { useTranslations } from "next-intl";
 import type { ColumnDef } from "@/components/ui/data-table";
 import { ShieldAlert } from "lucide-react";
 import { DataTable } from "@/components/ui/data-table";
 import { useAdminTableSort } from "@/hooks/useAdminTableSort";
+import { useAdaptivePageSize } from "@/hooks/useAdaptivePageSize";
 import { PlayerAvatar } from "@/components/common/PlayerAvatar";
 import { AdminUserActions } from "@/components/admin/AdminUserActions";
 import { AdminUserEditDialog } from "@/components/admin/AdminUserEditDialog";
@@ -52,13 +53,18 @@ interface AdminUsersTableProps {
   sortColumn?: string;
   sortDirection?: "asc" | "desc";
   rowOffset?: number;
+  /** Search form, built by the page (GET-submit, server-rendered) — rendered in the table's own toolbar row next to the columns button. */
+  searchSlot?: ReactNode;
+  /** The page's PAGE_SIZE — pads a short page (typically the last one) with blank rows so the table height stays constant across pages. */
+  pageSize?: number;
 }
 
 /** Client island for /admin/users — see AdminBadgesTable's doc comment for why the columns live here. Presence/online booleans are pre-computed server-side (they read an in-memory Map that only exists in the Node process) and passed in as plain data, never recomputed here. */
-export function AdminUsersTable({ lang, users, badges, roleOptions, canEditUsers, canDeleteUsers, canEditBadges, canManageRoles, sortColumn, sortDirection, rowOffset }: AdminUsersTableProps) {
+export function AdminUsersTable({ lang, users, badges, roleOptions, canEditUsers, canDeleteUsers, canEditBadges, canManageRoles, sortColumn, sortDirection, rowOffset, searchSlot, pageSize }: AdminUsersTableProps) {
   const t = useTranslations("Admin");
   const tc = useTranslations("PlayerCard");
   const onSort = useAdminTableSort(sortColumn, sortDirection);
+  const adaptiveRef = useAdaptivePageSize({ currentPageSize: pageSize ?? 8, rowHeightPx: 76 });
   // Owned here (not by each row) — see AdminUserEditDialog's doc comment
   // for why a per-row dialog instance lost its open state to revalidation.
   const [editingUser, setEditingUser] = useState<AdminUserRow | null>(null);
@@ -219,16 +225,21 @@ export function AdminUsersTable({ lang, users, badges, roleOptions, canEditUsers
 
   return (
     <>
-      <DataTable
-        columns={columns}
-        data={users}
-        getRowId={(u) => u.id}
-        emptyMessage={t("noResults")}
-        sortColumn={sortColumn}
-        sortDirection={sortDirection}
-        onSort={onSort}
-        rowOffset={rowOffset}
-      />
+      <div ref={adaptiveRef}>
+        <DataTable
+          columns={columns}
+          data={users}
+          getRowId={(u) => u.id}
+          emptyMessage={t("noResults")}
+          sortColumn={sortColumn}
+          sortDirection={sortDirection}
+          onSort={onSort}
+          rowOffset={rowOffset}
+          toolbarLeft={searchSlot}
+          minRows={pageSize}
+          rowHeightClassName="h-[76px]"
+        />
+      </div>
       <AdminUserEditDialog
         key={editingUser?.id ?? "none"}
         lang={lang}

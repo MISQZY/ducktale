@@ -12,12 +12,15 @@ import type { RoleOption } from "@/components/admin/RoleFormDialog";
 import type { LocalizedName } from "@/lib/i18n-name";
 
 import { SearchInput } from "@/components/ui/search-input";
-import { ServerPagination } from "@/components/common/ServerPagination";
+import { TablePagination } from "@/components/docs/paged-table/TablePagination";
+import { resolvePageSize } from "@/lib/pagination";
 
-// Smaller than the other admin tables' PAGE_SIZE — each row here is taller
-// (avatar + badges + two presence lines), so 10 rows routinely pushed the
-// pagination footer below the fold, forcing a scroll just to page through.
-const PAGE_SIZE = 8;
+// Default/fallback only — useAdaptivePageSize (client-side, in
+// AdminUsersTable) overrides this via ?pageSize= to whatever count actually
+// fills the viewport, so this is just what a fresh, JS-less first load uses.
+// Smaller than the other admin tables' default — each row here is taller
+// (avatar + badges + two presence lines).
+const DEFAULT_PAGE_SIZE = 8;
 
 // Allowlist, not a raw column passthrough — searchParams are user input, and
 // only these two columns are meaningful to sort a user list by.
@@ -31,7 +34,7 @@ export default async function AdminUsersPage({
   searchParams,
 }: {
   params: Promise<{ lang: string }>;
-  searchParams: Promise<{ search?: string; page?: string; sort?: string; order?: string }>;
+  searchParams: Promise<{ search?: string; page?: string; pageSize?: string; sort?: string; order?: string }>;
 }) {
   const { lang } = await params;
   const admin = await requireResourceRole(lang, "users-view");
@@ -44,10 +47,11 @@ export default async function AdminUsersPage({
   const canDeleteUsers = admin.isAdmin || hasResourceRole(admin.roles, "users-delete");
   const canEditBadges = admin.isAdmin || hasResourceRole(admin.roles, "badges-edit");
   const canManageRoles = admin.isAdmin || hasResourceRole(admin.roles, "role-edit");
-  const { search: rawSearch, page: rawPage, sort: rawSort, order: rawOrder } = await searchParams;
+  const { search: rawSearch, page: rawPage, pageSize: rawPageSize, sort: rawSort, order: rawOrder } = await searchParams;
 
   const search = rawSearch?.trim() ?? "";
   const page = Math.max(1, parseInt(rawPage ?? "1", 10) || 1);
+  const PAGE_SIZE = resolvePageSize(rawPageSize, DEFAULT_PAGE_SIZE);
   const sortDir: "asc" | "desc" = rawOrder === "asc" || rawOrder === "desc" ? rawOrder : "asc";
   const sortKey = (rawSort && rawSort in SORTABLE ? rawSort : "registration") as keyof typeof SORTABLE;
   const orderBy: Prisma.UserOrderByWithRelationInput = { [SORTABLE[sortKey]]: sortDir };
@@ -146,46 +150,48 @@ export default async function AdminUsersPage({
     };
   });
 
+  const searchSlot = (
+    <form className="w-full max-w-xs">
+      <SearchInput name="search" defaultValue={search} placeholder={t("searchPlaceholder")} />
+    </form>
+  );
+
   return (
     <AdminPageShell title={t("navUsers")} description={t("description", { count: total })} active="users" navAccess={navAccess}>
       <div className="w-full">
-        <form className="mb-6 flex justify-center">
-          <SearchInput
-            name="search"
-            defaultValue={search}
-            placeholder={t("searchPlaceholder")}
-            wrapperClassName="max-w-sm"
-          />
-        </form>
+        <AdminUsersTable
+          lang={lang}
+          users={userRows}
+          badges={badgesTyped}
+          roleOptions={roleOptions}
+          canEditUsers={canEditUsers}
+          canDeleteUsers={canDeleteUsers}
+          canEditBadges={canEditBadges}
+          canManageRoles={canManageRoles}
+          sortColumn={sortKey}
+          sortDirection={sortDir}
+          rowOffset={(page - 1) * PAGE_SIZE}
+          searchSlot={searchSlot}
+          pageSize={PAGE_SIZE}
+        />
 
-        <div className="min-h-[42vh]">
-          <AdminUsersTable
-            lang={lang}
-            users={userRows}
-            badges={badgesTyped}
-            roleOptions={roleOptions}
-            canEditUsers={canEditUsers}
-            canDeleteUsers={canDeleteUsers}
-            canEditBadges={canEditBadges}
-            canManageRoles={canManageRoles}
-            sortColumn={sortKey}
-            sortDirection={sortDir}
-            rowOffset={(page - 1) * PAGE_SIZE}
+        <div className="mt-6">
+          <TablePagination
+            page={page}
+            totalPages={totalPages}
+            pageStart={(page - 1) * PAGE_SIZE}
+            pageSize={PAGE_SIZE}
+            total={total}
+            hrefBase={{
+              pathname: "/admin/users",
+              query: {
+                ...(search ? { search } : {}),
+                ...(rawSort && rawSort in SORTABLE ? { sort: sortKey, order: sortDir } : {}),
+                ...(rawPageSize ? { pageSize: String(PAGE_SIZE) } : {}),
+              },
+            }}
           />
         </div>
-
-        <ServerPagination
-          page={page}
-          totalPages={totalPages}
-          pathname="/admin/users"
-          buildQuery={(p) => ({
-            ...(search ? { search } : {}),
-            ...(rawSort && rawSort in SORTABLE ? { sort: sortKey, order: sortDir } : {}),
-            page: String(p),
-          })}
-          prevText={t("prevPage")}
-          nextText={t("nextPage")}
-        />
       </div>
     </AdminPageShell>
   );

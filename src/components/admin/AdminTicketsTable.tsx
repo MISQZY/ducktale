@@ -1,11 +1,12 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, type ReactNode } from "react";
 import { useTranslations } from "next-intl";
 import type { ColumnDef } from "@/components/ui/data-table";
 import { Paperclip } from "lucide-react";
 import { DataTable } from "@/components/ui/data-table";
 import { useAdminTableSort } from "@/hooks/useAdminTableSort";
+import { useAdaptivePageSize } from "@/hooks/useAdaptivePageSize";
 import { PlayerAvatar } from "@/components/common/PlayerAvatar";
 import { TicketStatusBadge } from "@/components/tickets/TicketStatusBadge";
 import { Link } from "@/i18n/navigation";
@@ -31,12 +32,17 @@ interface AdminTicketsTableProps {
   sortColumn?: string;
   sortDirection?: "asc" | "desc";
   rowOffset?: number;
+  /** Search form, built by the page (GET-submit, server-rendered) — rendered in the table's own toolbar row next to the columns button. */
+  searchSlot?: ReactNode;
+  /** The page's PAGE_SIZE — pads a short page (typically the last one) with blank rows so the table height stays constant across pages. */
+  pageSize?: number;
 }
 
 /** Client island for /admin/tickets — see AdminBadgesTable's doc comment for why the columns live here. siteOnline/mcOnline are pre-computed server-side (isUserOnline reads an in-memory Map that only exists in the Node process). */
-export function AdminTicketsTable({ tickets, sortColumn, sortDirection, rowOffset }: AdminTicketsTableProps) {
+export function AdminTicketsTable({ tickets, sortColumn, sortDirection, rowOffset, searchSlot, pageSize }: AdminTicketsTableProps) {
   const tt = useTranslations("Tickets");
   const onSort = useAdminTableSort(sortColumn, sortDirection);
+  const adaptiveRef = useAdaptivePageSize({ currentPageSize: pageSize ?? 10, rowHeightPx: 76 });
 
   const columns = useMemo<ColumnDef<AdminTicketRow, unknown>[]>(() => [
     {
@@ -118,15 +124,20 @@ export function AdminTicketsTable({ tickets, sortColumn, sortDirection, rowOffse
   ], [tt]);
 
   return (
-    <DataTable
-      columns={columns}
-      data={tickets}
-      getRowId={(t) => t.id}
-      emptyMessage={tt("noTickets")}
-      sortColumn={sortColumn}
-      sortDirection={sortDirection}
-      onSort={onSort}
-      rowOffset={rowOffset}
-    />
+    <div ref={adaptiveRef}>
+      <DataTable
+        columns={columns}
+        data={tickets}
+        getRowId={(t) => t.id}
+        emptyMessage={tt("noTickets")}
+        sortColumn={sortColumn}
+        sortDirection={sortDirection}
+        onSort={onSort}
+        rowOffset={rowOffset}
+        toolbarLeft={searchSlot}
+        minRows={pageSize}
+        rowHeightClassName="h-[76px]"
+      />
+    </div>
   );
 }

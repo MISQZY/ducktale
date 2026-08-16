@@ -1,4 +1,5 @@
 import { getTranslations } from "next-intl/server";
+import { Plus } from "lucide-react";
 import { requireResourceRole, getAdminNavAccess } from "@/lib/admin";
 import { hasResourceRole, type ResourceRole } from "@/config/resource-roles";
 import { siteDb } from "@/lib/site-db";
@@ -6,7 +7,7 @@ import { getResourceLabels } from "@/lib/resource-role-labels";
 import { AdminPageShell } from "@/components/admin/AdminPageShell";
 import { RowLevelRoleFormDialog } from "@/components/admin/RowLevelRoleFormDialog";
 import { AdminRowLevelRolesTable, type AdminRowLevelRoleRow } from "@/components/admin/AdminRowLevelRolesTable";
-import { FormButton } from "@/components/common/FormButton";
+import { Button } from "@/components/ui/button";
 import type { LocalizedName } from "@/lib/i18n-name";
 
 /** Admin-composed bundles of resource-roles, pulled into a Role rather than assigned to a user directly — see RowLevelRole's doc comment in the schema. Small expected N, unpaginated like Ranks/Roles. */
@@ -42,23 +43,21 @@ export default async function AdminRowLevelRolesPage({
 
   const tr = await getTranslations("Admin.rowLevelRoles");
 
+  const createSlot = canEdit ? (
+    <RowLevelRoleFormDialog
+      lang={lang}
+      resourceLabels={resourceLabels}
+      trigger={
+        <Button variant="outline" size="icon" title={tr("createTitle")} aria-label={tr("createTitle")}>
+          <Plus size={16} />
+        </Button>
+      }
+    />
+  ) : undefined;
+
   return (
     <AdminPageShell title={tr("title")} description={tr("description", { count: rowLevelRoles.length })} active="row-level-roles" navAccess={navAccess}>
-      <div className="w-full">
-        {canEdit && (
-          <div className="flex justify-center mb-6">
-            <RowLevelRoleFormDialog
-              lang={lang}
-              resourceLabels={resourceLabels}
-              trigger={<FormButton className="px-5 py-2 text-xs">{tr("createTitle")}</FormButton>}
-            />
-          </div>
-        )}
-
-        <div className="min-h-[42vh]">
-          <AdminRowLevelRolesTable lang={lang} rowLevelRoles={rowLevelRoles} resourceLabels={resourceLabels} canEdit={canEdit} canDelete={canDelete} />
-        </div>
-      </div>
+      <AdminRowLevelRolesTable lang={lang} rowLevelRoles={rowLevelRoles} resourceLabels={resourceLabels} canEdit={canEdit} canDelete={canDelete} createSlot={createSlot} />
     </AdminPageShell>
   );
 }

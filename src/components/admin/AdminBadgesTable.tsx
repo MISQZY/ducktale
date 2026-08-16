@@ -1,10 +1,11 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, type ReactNode } from "react";
 import { useTranslations } from "next-intl";
 import type { ColumnDef } from "@/components/ui/data-table";
 import { DataTable } from "@/components/ui/data-table";
 import { useAdminTableSort } from "@/hooks/useAdminTableSort";
+import { useAdaptivePageSize } from "@/hooks/useAdaptivePageSize";
 import { BadgeChip } from "@/components/badges/BadgeChip";
 import { BadgeRowActions } from "@/components/admin/BadgeRowActions";
 import { BadgeUsersDialog } from "@/components/admin/BadgeUsersDialog";
@@ -33,6 +34,10 @@ interface AdminBadgesTableProps {
   sortColumn?: string;
   sortDirection?: "asc" | "desc";
   rowOffset?: number;
+  /** "Create badge" icon-button dialog trigger, built by the page (needs translations) — rendered in the table's own toolbar row next to the columns button. */
+  createSlot?: ReactNode;
+  /** The page's PAGE_SIZE — pads a short page (typically the last one) with blank rows so the table height stays constant across pages. */
+  pageSize?: number;
 }
 
 /**
@@ -44,10 +49,11 @@ interface AdminBadgesTableProps {
  * AdminUserActions/UserBadgesCell already use for this page's other
  * interactive pieces.
  */
-export function AdminBadgesTable({ lang, badges, roleOptions, canEdit, canDelete, sortColumn, sortDirection, rowOffset }: AdminBadgesTableProps) {
+export function AdminBadgesTable({ lang, badges, roleOptions, canEdit, canDelete, sortColumn, sortDirection, rowOffset, createSlot, pageSize }: AdminBadgesTableProps) {
   const t = useTranslations("Admin");
   const tb = useTranslations("Admin.badges");
   const onSort = useAdminTableSort(sortColumn, sortDirection);
+  const adaptiveRef = useAdaptivePageSize({ currentPageSize: pageSize ?? 10, rowHeightPx: 76 });
 
   const columns = useMemo<ColumnDef<AdminBadgeRow, unknown>[]>(() => [
     {
@@ -98,15 +104,20 @@ export function AdminBadgesTable({ lang, badges, roleOptions, canEdit, canDelete
   ], [lang, roleOptions, canEdit, canDelete, t, tb]);
 
   return (
-    <DataTable
-      columns={columns}
-      data={badges}
-      getRowId={(b) => b.id}
-      emptyMessage={tb("noResults")}
-      sortColumn={sortColumn}
-      sortDirection={sortDirection}
-      onSort={onSort}
-      rowOffset={rowOffset}
-    />
+    <div ref={adaptiveRef}>
+      <DataTable
+        columns={columns}
+        data={badges}
+        getRowId={(b) => b.id}
+        emptyMessage={tb("noResults")}
+        sortColumn={sortColumn}
+        sortDirection={sortDirection}
+        onSort={onSort}
+        rowOffset={rowOffset}
+        toolbarRight={createSlot}
+        minRows={pageSize}
+        rowHeightClassName="h-[76px]"
+      />
+    </div>
   );
 }
