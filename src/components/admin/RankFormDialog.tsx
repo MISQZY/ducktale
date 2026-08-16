@@ -2,27 +2,28 @@
 
 import { useState, type ReactNode } from "react";
 import { useTranslations } from "next-intl";
-import { FormInput } from "@/components/common/FormInput";
+import { LocalizedNameInput } from "@/components/common/LocalizedNameInput";
 import { FormField } from "@/components/common/FormField";
 import { formInputClasses, formInputStyle } from "@/components/common/form-styles";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { AdminFormDialog } from "./AdminFormDialog";
 import { IconPickerField } from "./IconPickerField";
 import { ColorPickerField } from "./ColorPickerField";
-import { createRole, updateRole } from "@/lib/actions/admin-roles";
+import { createRank, updateRank } from "@/lib/actions/admin-ranks";
+import type { LocalizedName } from "@/lib/i18n-name";
 
-interface RoleFormValues {
+interface RankFormValues {
   id:    string;
   group: string;
-  name:  string;
+  name:  LocalizedName;
   icon:  string;
   color: string | null;
 }
 
-interface RoleFormDialogProps {
+interface RankFormDialogProps {
   lang: string;
   /** Omitted = create mode. */
-  role?: RoleFormValues;
+  rank?: RankFormValues;
   /** Existing group names, offered as datalist suggestions — LuckPerms group names are known ahead of time via lp_tracks, this just saves retyping one exactly. */
   groupSuggestions: string[];
   trigger: ReactNode;
@@ -31,13 +32,16 @@ interface RoleFormDialogProps {
 const DEFAULT_COLOR = "#d4a017";
 const DEFAULT_ICON = "shield";
 
-export function RoleFormDialog({ lang, role, groupSuggestions, trigger }: RoleFormDialogProps) {
-  const t = useTranslations("Admin.roles");
+export function RankFormDialog({ lang, rank, groupSuggestions, trigger }: RankFormDialogProps) {
+  const t = useTranslations("Admin.ranks");
   const [open, setOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [icon, setIcon] = useState<string>(role?.icon ?? DEFAULT_ICON);
-  const [color, setColor] = useState<string>(role?.color ?? DEFAULT_COLOR);
+  const [group, setGroup] = useState<string>(rank?.group ?? "");
+  const [name, setName] = useState<LocalizedName>(rank?.name ?? { ru: "", en: "" });
+  const [activeLocale, setActiveLocale] = useState<"ru" | "en">("ru");
+  const [icon, setIcon] = useState<string>(rank?.icon ?? DEFAULT_ICON);
+  const [color, setColor] = useState<string>(rank?.color ?? DEFAULT_COLOR);
   const [iconQuery, setIconQuery] = useState("");
 
 
@@ -46,10 +50,10 @@ export function RoleFormDialog({ lang, role, groupSuggestions, trigger }: RoleFo
     setError(null);
     setSubmitting(true);
     try {
-      if (role) {
-        await updateRole(lang, role.id, formData);
+      if (rank) {
+        await updateRank(lang, rank.id, formData);
       } else {
-        await createRole(lang, formData);
+        await createRank(lang, formData);
       }
       setOpen(false);
     } catch (err) {
@@ -66,25 +70,28 @@ export function RoleFormDialog({ lang, role, groupSuggestions, trigger }: RoleFo
         setOpen(next);
         if (next) {
           setError(null);
-          setIcon(role?.icon ?? DEFAULT_ICON);
-          setColor(role?.color ?? DEFAULT_COLOR);
+          setGroup(rank?.group ?? "");
+          setName(rank?.name ?? { ru: "", en: "" });
+          setActiveLocale("ru");
+          setIcon(rank?.icon ?? DEFAULT_ICON);
+          setColor(rank?.color ?? DEFAULT_COLOR);
           setIconQuery("");
         }
       }}
       trigger={trigger}
-      title={role ? t("editTitle") : t("createTitle")}
+      title={rank ? t("editTitle") : t("createTitle")}
       error={error}
       submitting={submitting}
-      submitLabel={role ? t("save") : t("create")}
+      submitLabel={rank ? t("save") : t("create")}
       submittingLabel={t("saving")}
       onSubmit={handleSubmit}
       className="sm:max-w-lg"
     >
-      <FormField id="group" label={t("groupLabel")} hint={t("groupHint")}>
-        <Select name="group" defaultValue={role?.group} required>
-          <SelectTrigger 
-            id="group" 
-            className={formInputClasses(false, "w-full")}
+      <FormField id="group" label={t("groupLabel")} hint={t("groupHint")} requiredEmpty={!group}>
+        <Select name="group" value={group} onValueChange={setGroup} required>
+          <SelectTrigger
+            id="group"
+            className={formInputClasses(!group, "w-full")}
             style={formInputStyle}
           >
             <SelectValue placeholder={lang === "ru" ? "Выберите группу..." : "Select a group..."} />
@@ -99,12 +106,15 @@ export function RoleFormDialog({ lang, role, groupSuggestions, trigger }: RoleFo
         </Select>
       </FormField>
 
-      <FormInput
+      <LocalizedNameInput
         id="name"
-        name="name"
         label={t("nameLabel")}
-        defaultValue={role?.name}
-        required
+        ruName="nameRu"
+        enName="nameEn"
+        value={name}
+        onChange={setName}
+        active={activeLocale}
+        onActiveChange={setActiveLocale}
         maxLength={64}
       />
 

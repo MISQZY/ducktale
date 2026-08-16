@@ -385,7 +385,7 @@ model lp_tracks {
 /// The full group catalog — every group LuckPerms knows about, including
 /// ones that aren't a member of any track (e.g. "supporter", a perk group
 /// with no ranked progression) and ones nobody currently holds. This is
-/// what /admin/roles offers as suggestions when curating a role's display,
+/// what /admin/ranks offers as suggestions when curating a role's display,
 /// rather than only groups derived from lp_tracks or already-configured
 /// roles (which would miss exactly the standalone case this table exists
 /// to cover).

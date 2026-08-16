@@ -4,26 +4,29 @@ import { revalidatePath } from "next/cache";
 import { Prisma } from "@prisma/client";
 import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
 import { siteDb } from "@/lib/site-db";
-import { requireAdminId } from "@/lib/admin";
+import { requireResourceRoleId } from "@/lib/admin";
 import { isBadgeIconName } from "@/config/badges";
 import { withDb } from "@/lib/db";
+import type { LocalizedName } from "@/lib/i18n-name";
 
 const NAME_MAX = 64;
 const HEX_COLOR_PATTERN = /^#[0-9a-fA-F]{6}$/;
 
-interface RoleFields {
+interface RankFields {
   group: string;
-  name:  string;
+  name:  LocalizedName;
   icon:  string;
   color: string | null;
 }
 
-function readRoleFields(formData: FormData): RoleFields {
+function readRankFields(formData: FormData): RankFields {
   const group = (formData.get("group") as string | null)?.trim().slice(0, NAME_MAX) ?? "";
   if (!group) throw new Error("LuckPerms group is required");
 
-  const name = (formData.get("name") as string | null)?.trim().slice(0, NAME_MAX) ?? "";
-  if (!name) throw new Error("Name is required");
+  const ru = (formData.get("nameRu") as string | null)?.trim().slice(0, NAME_MAX) ?? "";
+  if (!ru) throw new Error("Russian name is required");
+  const en = (formData.get("nameEn") as string | null)?.trim().slice(0, NAME_MAX) ?? "";
+  if (!en) throw new Error("English name is required");
 
   const icon = (formData.get("icon") as string | null)?.trim() ?? "";
   if (!isBadgeIconName(icon)) throw new Error("Invalid icon");
@@ -31,7 +34,7 @@ function readRoleFields(formData: FormData): RoleFields {
   const rawColor = (formData.get("color") as string | null)?.trim() ?? "";
   if (rawColor && !HEX_COLOR_PATTERN.test(rawColor)) throw new Error("Color must be a hex value like #d4a017");
 
-  return { group, name, icon, color: rawColor || null };
+  return { group, name: { ru, en }, icon, color: rawColor || null };
 }
 
 function rethrowFriendly(err: unknown): never {
@@ -41,48 +44,48 @@ function rethrowFriendly(err: unknown): never {
   throw err;
 }
 
-export async function createRole(lang: string, formData: FormData): Promise<void> {
-  await requireAdminId();
+export async function createRank(lang: string, formData: FormData): Promise<void> {
+  await requireResourceRoleId("ranks-edit");
 
-  const fields = readRoleFields(formData);
+  const fields = readRankFields(formData);
   try {
     await siteDb.luckPermsRole.create({ data: fields });
   } catch (err) {
     rethrowFriendly(err);
   }
 
-  revalidatePath(`/${lang}/admin/roles`);
+  revalidatePath(`/${lang}/admin/ranks`);
 }
 
-export async function updateRole(lang: string, roleId: string, formData: FormData): Promise<void> {
-  await requireAdminId();
+export async function updateRank(lang: string, rankId: string, formData: FormData): Promise<void> {
+  await requireResourceRoleId("ranks-edit");
 
-  const fields = readRoleFields(formData);
+  const fields = readRankFields(formData);
   try {
-    await siteDb.luckPermsRole.update({ where: { id: roleId }, data: fields });
+    await siteDb.luckPermsRole.update({ where: { id: rankId }, data: fields });
   } catch (err) {
     rethrowFriendly(err);
   }
 
-  revalidatePath(`/${lang}/admin/roles`);
+  revalidatePath(`/${lang}/admin/ranks`);
   revalidatePath(`/${lang}/admin/badges`);
 }
 
-export async function deleteRole(lang: string, roleId: string): Promise<void> {
-  await requireAdminId();
+export async function deleteRank(lang: string, rankId: string): Promise<void> {
+  await requireResourceRoleId("ranks-delete");
 
   // Any BadgeAutoRole link row pointing here is onDelete: Cascade, so this
-  // just drops that badge's auto-grant condition on this role — the badge
-  // itself, and any of its other linked roles, survive.
-  await siteDb.luckPermsRole.delete({ where: { id: roleId } });
+  // just drops that badge's auto-grant condition on this rank — the badge
+  // itself, and any of its other linked ranks, survive.
+  await siteDb.luckPermsRole.delete({ where: { id: rankId } });
 
-  revalidatePath(`/${lang}/admin/roles`);
+  revalidatePath(`/${lang}/admin/ranks`);
   revalidatePath(`/${lang}/admin/badges`);
 }
 
-export async function getRoleUsers(group: string) {
-  await requireAdminId();
-  
+export async function getRankUsers(group: string) {
+  await requireResourceRoleId("ranks-view");
+
   // Find all UUIDs that have this group permission
   const rows = await withDb("luckperms", async (db) => {
     return await db.$queryRaw`
@@ -93,13 +96,13 @@ export async function getRoleUsers(group: string) {
         AND (expiry = 0 OR expiry > UNIX_TIMESTAMP())
     ` as { uuid: string }[];
   });
-  
+
   const uuids = rows.map(r => r.uuid);
-  
+
   if (uuids.length === 0) {
     return [];
   }
-  
+
   // Find the minecraft names for these UUIDs if they linked their account
   // Some users might not be linked, so we'll just return their UUIDs if we can't find a name.
   // status: CONFIRMED is technically redundant here — minecraftUuid is null
@@ -113,11 +116,11 @@ export async function getRoleUsers(group: string) {
     where: { minecraftUuid: { in: uuids }, status: "CONFIRMED" },
     select: { minecraftUuid: true, minecraftName: true, user: { select: { nickname: true } } }
   });
-  
+
   const nameMap = new Map<string, string>(
     links.map(l => [l.minecraftUuid!, l.user?.nickname || l.minecraftName || "Unknown"])
   );
-  
+
   const missingUuids = uuids.filter(u => !nameMap.has(u));
   if (missingUuids.length > 0) {
     const fpPlayers = await withDb("default", async (db) => {
@@ -131,7 +134,7 @@ export async function getRoleUsers(group: string) {
       nameMap.set(p.uuid, p.username);
     }
   }
-  
+
   const { resolveSkinUrls } = await import("@/lib/skin");
   const skinUrls = await resolveSkinUrls(uuids);
 

@@ -1,12 +1,14 @@
 import { getTranslations } from "next-intl/server";
 import type { Prisma } from ".prisma/site-client";
-import { requireAdmin } from "@/lib/admin";
+import { requireResourceRole, getAdminNavAccess } from "@/lib/admin";
+import { hasResourceRole } from "@/config/resource-roles";
 import { siteDb } from "@/lib/site-db";
 import { withDb } from "@/lib/db";
 import { AdminPageShell } from "@/components/admin/AdminPageShell";
-import { RoleFormDialog } from "@/components/admin/RoleFormDialog";
-import { AdminRolesTable } from "@/components/admin/AdminRolesTable";
+import { RankFormDialog } from "@/components/admin/RankFormDialog";
+import { AdminRanksTable } from "@/components/admin/AdminRanksTable";
 import { FormButton } from "@/components/common/FormButton";
+import type { LocalizedName } from "@/lib/i18n-name";
 
 /** group -> which lp_tracks it appears in — read-only context shown next to each row so an admin styling a group can see where it actually ranks, without cross-referencing the LuckPerms server separately. */
 async function resolveTracksByGroup(): Promise<Map<string, string[]>> {
@@ -50,7 +52,7 @@ async function resolveGroupUserCounts(): Promise<Map<string, number>> {
       GROUP BY permission
     `
   ) as { permission: string, cnt: bigint }[];
-  
+
   const map = new Map<string, number>();
   for (const r of rows) {
     const group = r.permission.slice(6); // remove 'group.'
@@ -60,12 +62,15 @@ async function resolveGroupUserCounts(): Promise<Map<string, number>> {
 }
 
 // Allowlist, not a raw column passthrough — searchParams are user input.
+// "name" no longer maps to an actually-orderable DB column (Json, same
+// tradeoff as Role.name/Badge.name) — kept as a selectable sortKey so the
+// header still shows as sortable, backed by createdAt instead.
 const SORTABLE = {
-  name: "name",
+  name: "createdAt",
   group: "group",
 } as const satisfies Record<string, keyof Prisma.LuckPermsRoleOrderByWithRelationInput>;
 
-export default async function AdminRolesPage({
+export default async function AdminRanksPage({
   params,
   searchParams,
 }: {
@@ -73,41 +78,49 @@ export default async function AdminRolesPage({
   searchParams: Promise<{ sort?: string; order?: string }>;
 }) {
   const { lang } = await params;
-  await requireAdmin(lang);
+  const admin = await requireResourceRole(lang, "ranks-view");
+  const navAccess = await getAdminNavAccess();
+  const canEdit = admin.isAdmin || hasResourceRole(admin.roles, "ranks-edit");
+  const canDelete = admin.isAdmin || hasResourceRole(admin.roles, "ranks-delete");
   const { sort: rawSort, order: rawOrder } = await searchParams;
 
   const sortDir: "asc" | "desc" = rawOrder === "asc" || rawOrder === "desc" ? rawOrder : "asc";
   const sortKey = (rawSort && rawSort in SORTABLE ? rawSort : "name") as keyof typeof SORTABLE;
   const orderBy: Prisma.LuckPermsRoleOrderByWithRelationInput = { [SORTABLE[sortKey]]: sortDir };
 
-  const roles = await siteDb.luckPermsRole.findMany({ orderBy });
+  const rankRows = await siteDb.luckPermsRole.findMany({ orderBy });
+  const ranks = rankRows.map((r) => ({ ...r, name: r.name as unknown as LocalizedName }));
   const tracksByGroup = await resolveTracksByGroup().catch(() => new Map<string, string[]>()); // LuckPerms DB unreachable shouldn't break this whole admin page
   const allGroups = await resolveAllGroups().catch(() => [] as string[]);
   const userCounts = await resolveGroupUserCounts().catch(() => new Map<string, number>());
 
-  const groupSuggestions = [...new Set([...allGroups, ...tracksByGroup.keys(), ...roles.map((r) => r.group)])].sort();
+  const groupSuggestions = [...new Set([...allGroups, ...tracksByGroup.keys(), ...ranks.map((r) => r.group)])].sort();
 
   const t = await getTranslations("Admin");
-  const tr = await getTranslations("Admin.roles");
+  const tr = await getTranslations("Admin.ranks");
 
   return (
-    <AdminPageShell title={t("rolesTitle")} description={tr("description", { count: roles.length })} active="roles">
+    <AdminPageShell title={t("ranksTitle")} description={tr("description", { count: ranks.length })} active="ranks" navAccess={navAccess}>
       <div className="w-full">
-        <div className="flex justify-center mb-6">
-          <RoleFormDialog
-            lang={lang}
-            groupSuggestions={groupSuggestions}
-            trigger={<FormButton className="px-5 py-2 text-xs">{tr("createTitle")}</FormButton>}
-          />
-        </div>
+        {canEdit && (
+          <div className="flex justify-center mb-6">
+            <RankFormDialog
+              lang={lang}
+              groupSuggestions={groupSuggestions}
+              trigger={<FormButton className="px-5 py-2 text-xs">{tr("createTitle")}</FormButton>}
+            />
+          </div>
+        )}
 
         <div className="min-h-[42vh]">
-          <AdminRolesTable
+          <AdminRanksTable
             lang={lang}
-            roles={roles}
+            ranks={ranks}
             tracksByGroup={[...tracksByGroup.entries()]}
             userCounts={[...userCounts.entries()]}
             groupSuggestions={groupSuggestions}
+            canEdit={canEdit}
+            canDelete={canDelete}
             sortColumn={sortKey}
             sortDirection={sortDir}
           />

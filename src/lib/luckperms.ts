@@ -2,6 +2,7 @@ import { Prisma } from "@prisma/client";
 import { withDb } from "@/lib/db";
 import { withCache } from "@/lib/query-cache";
 import { siteDb } from "@/lib/site-db";
+import type { LocalizedName } from "@/lib/i18n-name";
 
 /**
  * One resolved role for the player — either the highest-ranked held group
@@ -13,7 +14,7 @@ import { siteDb } from "@/lib/site-db";
 export interface PlayerTrackRole {
   trackKey: string;
   group:    string;
-  name:     string;
+  name:     LocalizedName;
   icon:     string;
   color:    string | null;
 }
@@ -86,7 +87,7 @@ async function getRoleDisplayCatalog() {
 
 /**
  * Two kinds of resolved role, both gated on being curated in
- * /admin/roles — a group with no display entry never shows up, whether
+ * /admin/ranks — a group with no display entry never shows up, whether
  * it's part of a track or not:
  *
  * - Track-based: for each of LuckPerms' own tracks (lp_tracks), the
@@ -127,7 +128,7 @@ export async function resolvePlayerTrackRoles(uuid: string): Promise<PlayerTrack
     roles.push({
       trackKey: track.name,
       group: highestHeldGroup,
-      name: display.name,
+      name: display.name as unknown as LocalizedName,
       icon: display.icon,
       color: display.color,
     });
@@ -140,7 +141,7 @@ export async function resolvePlayerTrackRoles(uuid: string): Promise<PlayerTrack
     roles.push({
       trackKey: display.group,
       group: display.group,
-      name: display.name,
+      name: display.name as unknown as LocalizedName,
       icon: display.icon,
       color: display.color,
     });

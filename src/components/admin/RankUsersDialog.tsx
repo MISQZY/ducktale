@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { useTranslations } from "next-intl";
 import { Users } from "lucide-react";
 import {
   Popover,
@@ -9,25 +10,26 @@ import {
 } from "@/components/ui/popover";
 import { Skeleton } from "@/components/ui/skeleton";
 import { SearchInput } from "@/components/ui/search-input";
-import { getRoleUsers } from "@/lib/actions/admin-roles";
+import { getRankUsers } from "@/lib/actions/admin-ranks";
 import { PlayerAvatar } from "@/components/common/PlayerAvatar";
 
-interface RoleUsersDialogProps {
+interface RankUsersDialogProps {
   lang: string;
   group: string;
   count: number;
 }
 
-interface RoleUser {
+interface RankUser {
   uuid: string;
   name: string | null;
   skinUrl?: string | null;
   hasSiteProfile?: boolean;
 }
 
-export function RoleUsersDialog({ lang, group, count }: RoleUsersDialogProps) {
+export function RankUsersDialog({ lang, group, count }: RankUsersDialogProps) {
+  const t = useTranslations("Admin");
   const [open, setOpen] = useState(false);
-  const [users, setUsers] = useState<RoleUser[] | null>(null);
+  const [users, setUsers] = useState<RankUser[] | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [isLoading, startTransition] = useTransition();
 
@@ -38,14 +40,14 @@ export function RoleUsersDialog({ lang, group, count }: RoleUsersDialogProps) {
     }
     if (isOpen && users === null) {
       startTransition(async () => {
-        const data = await getRoleUsers(group);
+        const data = await getRankUsers(group);
         setUsers(data);
       });
     }
   }
 
   const filteredUsers = users?.filter((u) =>
-    (u.name || "Аноним").toLowerCase().includes(searchQuery.toLowerCase())
+    (u.name || t("anonymousPlayer")).toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   return (
@@ -64,7 +66,7 @@ export function RoleUsersDialog({ lang, group, count }: RoleUsersDialogProps) {
         align="center"
       >
         <SearchInput
-          placeholder="Найти"
+          placeholder={t("searchPlaceholder")}
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           className="h-8 text-xs"
@@ -79,7 +81,7 @@ export function RoleUsersDialog({ lang, group, count }: RoleUsersDialogProps) {
             </div>
           ) : filteredUsers && filteredUsers.length === 0 ? (
             <p className="text-center text-xs text-foreground/50 py-6">
-              Ничего не найдено.
+              {t("noSearchResults")}
             </p>
           ) : (
             filteredUsers?.map((user) => (

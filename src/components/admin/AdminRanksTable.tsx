@@ -6,38 +6,43 @@ import type { ColumnDef } from "@tanstack/react-table";
 import { DataTable } from "@/components/ui/data-table";
 import { useAdminTableSort } from "@/hooks/useAdminTableSort";
 import { BadgeIcon } from "@/components/badges/BadgeIcon";
-import { RoleRowActions } from "@/components/admin/RoleRowActions";
-import { RoleUsersDialog } from "@/components/admin/RoleUsersDialog";
+import { RankRowActions } from "@/components/admin/RankRowActions";
+import { RankUsersDialog } from "@/components/admin/RankUsersDialog";
+import { localizedName, type LocalizedName } from "@/lib/i18n-name";
 
-export interface AdminRoleRow {
+export interface AdminRankRow {
   id: string;
   group: string;
-  name: string;
+  name: LocalizedName;
   icon: string;
   color: string | null;
 }
 
-interface AdminRolesTableProps {
+interface AdminRanksTableProps {
   lang: string;
-  roles: AdminRoleRow[];
+  ranks: AdminRankRow[];
   /** group -> lp_tracks it appears in, and group -> current holder count — plain arrays instead of Map since this crosses the server/client boundary as a prop. */
   tracksByGroup: [string, string[]][];
   userCounts: [string, number][];
   groupSuggestions: string[];
+  /** ranks-edit (or isAdmin) — gates the edit dialog. Independent of canDelete (see RESOURCE_ROLE_ACTIONS's doc comment). */
+  canEdit: boolean;
+  /** ranks-delete (or isAdmin) — gates the delete button specifically. */
+  canDelete: boolean;
   sortColumn?: string;
   sortDirection?: "asc" | "desc";
 }
 
-/** Client island for /admin/roles — see AdminBadgesTable's doc comment for why the columns live here, not in the Server Component page. */
-export function AdminRolesTable({ lang, roles, tracksByGroup, userCounts, groupSuggestions, sortColumn, sortDirection }: AdminRolesTableProps) {
+/** Client island for /admin/ranks — see AdminBadgesTable's doc comment for why the columns live here, not in the Server Component page. */
+export function AdminRanksTable({ lang, ranks, tracksByGroup, userCounts, groupSuggestions, canEdit, canDelete, sortColumn, sortDirection }: AdminRanksTableProps) {
   const t = useTranslations("Admin");
-  const tr = useTranslations("Admin.roles");
+  const tr = useTranslations("Admin.ranks");
   const onSort = useAdminTableSort(sortColumn, sortDirection);
 
   const tracksMap = useMemo(() => new Map(tracksByGroup), [tracksByGroup]);
   const countsMap = useMemo(() => new Map(userCounts), [userCounts]);
 
-  const columns = useMemo<ColumnDef<AdminRoleRow, unknown>[]>(() => [
+  const columns = useMemo<ColumnDef<AdminRankRow, unknown>[]>(() => [
     {
       id: "name",
       header: tr("nameLabel"),
@@ -48,7 +53,7 @@ export function AdminRolesTable({ lang, roles, tracksByGroup, userCounts, groupS
       cell: ({ row }) => (
         <span className="inline-flex items-center gap-2">
           <BadgeIcon name={row.original.icon} size={16} style={{ color: row.original.color ?? undefined }} />
-          {row.original.name}
+          {localizedName(row.original.name, lang)}
         </span>
       ),
     },
@@ -75,7 +80,7 @@ export function AdminRolesTable({ lang, roles, tracksByGroup, userCounts, groupS
       minSize: 90,
       meta: { headClassName: "text-center align-middle", cellClassName: "text-center align-middle", withRightBorder: true },
       cell: ({ row }) => (
-        <RoleUsersDialog lang={lang} group={row.original.group} count={countsMap.get(row.original.group) || 0} />
+        <RankUsersDialog lang={lang} group={row.original.group} count={countsMap.get(row.original.group) || 0} />
       ),
     },
     {
@@ -85,14 +90,14 @@ export function AdminRolesTable({ lang, roles, tracksByGroup, userCounts, groupS
       minSize: 76,
       enableHiding: false,
       meta: { headClassName: "align-middle text-right", cellClassName: "align-middle text-right" },
-      cell: ({ row }) => <RoleRowActions lang={lang} role={row.original} groupSuggestions={groupSuggestions} />,
+      cell: ({ row }) => <RankRowActions lang={lang} rank={row.original} groupSuggestions={groupSuggestions} canEdit={canEdit} canDelete={canDelete} />,
     },
-  ], [lang, groupSuggestions, t, tr, tracksMap, countsMap]);
+  ], [lang, groupSuggestions, canEdit, canDelete, t, tr, tracksMap, countsMap]);
 
   return (
     <DataTable
       columns={columns}
-      data={roles}
+      data={ranks}
       getRowId={(r) => r.id}
       emptyMessage={tr("noResults")}
       sortColumn={sortColumn}
