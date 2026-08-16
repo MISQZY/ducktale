@@ -5,6 +5,7 @@ import {
 } from "lucide-react";
 import { DuckCard, DuckCardContent } from "@/components/ui/duck/card";
 import { SkinFace } from "@/components/common/SkinFace";
+import { SkinViewButton } from "@/components/common/SkinViewButton";
 import { RoleBadgeChip } from "@/components/badges/RoleBadgeChip";
 import { formatDurationMs, formatLastSeen } from "@/lib/player-card-format";
 import { RESIDENT_ROLE_COLOR } from "@/lib/towny";
@@ -208,6 +209,7 @@ async function ProfilePlayerCardContent({ minecraftName, className, locale, regi
         className="border-primary/20 bg-duck-stone/40"
         style={nameColorStyle(player.nameColor)}
       >
+        <SkinViewButton skinUrl={player.skinUrl} nickname={player.username} />
         <DuckCardContent className="pt-4 flex flex-col items-center text-center gap-2">
           <SkinFace skinUrl={player.skinUrl} size={96} />
 

@@ -10,6 +10,7 @@ import { DuckCard, DuckCardContent } from "@/components/ui/duck/card";
 import { TableSearch } from "@/components/docs/paged-table";
 import { RESIDENT_ROLE_COLOR } from "@/lib/towny";
 import { SkinFace } from "@/components/common/SkinFace";
+import { SkinViewButton } from "@/components/common/SkinViewButton";
 import { RoleBadgeChip } from "@/components/badges/RoleBadgeChip";
 import { formatDurationMs, formatLastSeen } from "@/lib/player-card-format";
 import { localizedName } from "@/lib/i18n-name";
@@ -93,6 +94,7 @@ function PlayerCardView({ player }: { player: PlayerCardData }) {
   const locale = useLocale();
   return (
     <DuckCard className="border-primary/20 bg-duck-stone/40 min-h-70">
+      <SkinViewButton skinUrl={player.skinUrl} nickname={player.username} />
       <DuckCardContent className="pt-4 flex-1 flex flex-col">
         <div className="flex items-center justify-center gap-1.5 min-w-0">
           <h3

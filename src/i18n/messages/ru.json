@@ -74,6 +74,7 @@
     "searchPlaceholder": "Найти",
     "refreshLabel": "Случайный игрок",
     "whitelistedTitle": "В вайтлисте сервера",
+    "view3D": "Посмотреть 3D-модель",
     "loadError": "Не удалось загрузить данные игрока",
     "notFound": "Игрок не найден",
     "notFoundQuery": "Игрок «{query}» не найден",
