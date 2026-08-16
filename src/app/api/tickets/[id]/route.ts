@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { siteDb } from "@/lib/site-db";
 import { isRateLimited } from "@/lib/rate-limit";
-import { getTicketViewer, canViewTicket } from "@/lib/tickets";
+import { getTicketViewer, canViewTicket, isTicketStaff } from "@/lib/tickets";
 import { resolveTicketMessages } from "@/lib/ticket-data";
 
 /** Polled by TicketThread every few seconds while the tab is visible, to give the reply thread a live-chat feel without standing up a websocket. */
@@ -29,7 +29,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
 
-  const messages = await resolveTicketMessages(id, viewer.isAdmin);
+  const messages = await resolveTicketMessages(id, isTicketStaff(viewer));
 
   return NextResponse.json({
     status: ticket.status,

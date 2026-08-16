@@ -1,6 +1,6 @@
 import { notFound, redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
-import { getTicketViewer, canViewTicket } from "@/lib/tickets";
+import { getTicketViewer, canViewTicket, isTicketStaff, isTicketEditor, isTicketDeleter } from "@/lib/tickets";
 import { siteDb } from "@/lib/site-db";
 import { TicketThread } from "@/components/tickets/TicketThread";
 import { Link } from "@/i18n/navigation";
@@ -8,6 +8,7 @@ import { PlayerAvatar } from "@/components/common/PlayerAvatar";
 import { CompactBadgeChip } from "@/components/badges/CompactBadgeChip";
 import { getPlayerCard } from "@/lib/player-card";
 import { resolveTicketMessages } from "@/lib/ticket-data";
+import { localizedName, type LocalizedName } from "@/lib/i18n-name";
 
 export default async function TicketPage({
   params,
@@ -18,49 +19,60 @@ export default async function TicketPage({
   const viewer = await getTicketViewer();
   if (!viewer) redirect(`/${lang}/account/login`);
 
-  const ticket = await siteDb.ticket.findUnique({
-    where: { id },
-    select: {
-      id: true,
-      subject: true,
-      status: true,
-      userId: true,
-      user: { 
-        select: { 
-          nickname: true,
-          accountLink: {
-            select: { status: true, minecraftName: true }
-          },
-          badges: {
-            select: {
-              badge: {
-                select: { name: true, icon: true, color: true, description: true, earnCondition: true }
+  // isTicketStaff only depends on the viewer, not the ticket record, so it
+  // can be computed up front and resolveTicketMessages run alongside the
+  // ticket query instead of after it — an avoidable serial DB round trip.
+  // Safe to fetch before the canViewTicket check below: an unauthorized
+  // viewer still gets notFound() before anything is rendered, this only
+  // avoids wasting the round trip on the (common) authorized path.
+  const isStaff = isTicketStaff(viewer);
+
+  const [ticket, messages] = await Promise.all([
+    siteDb.ticket.findUnique({
+      where: { id },
+      select: {
+        id: true,
+        subject: true,
+        status: true,
+        userId: true,
+        user: {
+          select: {
+            nickname: true,
+            accountLink: {
+              select: { status: true, minecraftName: true }
+            },
+            badges: {
+              select: {
+                badge: {
+                  select: { id: true, name: true, icon: true, color: true, description: true, earnCondition: true }
+                }
               }
             }
           }
-        } 
+        },
       },
-    },
-  });
+    }),
+    resolveTicketMessages(id, isStaff),
+  ]);
 
   // Same outcome (404) whether the ticket doesn't exist or just isn't this
   // viewer's to see — doesn't confirm a ticket ID exists to an unauthorized visitor.
   if (!ticket || !canViewTicket(viewer, ticket)) notFound();
 
   const isOwner = ticket.userId === viewer.id;
+  const canEdit = isTicketEditor(viewer);
+  const canDelete = isTicketDeleter(viewer);
 
-  // Only ever rendered inside the viewer.isAdmin && !isOwner block below —
-  // skip the (multi-query + external skin fetch) getPlayerCard() call
-  // entirely for the common case of a user viewing their own ticket.
+  // Only ever rendered inside the isStaff && !isOwner block below — skip the
+  // (multi-query + external skin fetch) getPlayerCard() call entirely for
+  // the common case of a user viewing their own ticket.
   let playerCard = null;
-  if (viewer.isAdmin && !isOwner && ticket.user.accountLink?.status === "CONFIRMED" && ticket.user.accountLink.minecraftName) {
+  if (isStaff && !isOwner && ticket.user.accountLink?.status === "CONFIRMED" && ticket.user.accountLink.minecraftName) {
     playerCard = await getPlayerCard(ticket.user.accountLink.minecraftName);
   }
 
-  const messages = await resolveTicketMessages(id, viewer.isAdmin);
-
   const t = await getTranslations("Tickets");
-  const backHref = viewer.isAdmin && !isOwner ? `/admin/tickets` : `/account/tickets`;
+  const backHref = isStaff && !isOwner ? `/admin/tickets` : `/account/tickets`;
 
   return (
     <>
@@ -79,7 +91,7 @@ export default async function TicketPage({
             <h1 className="text-2xl text-primary/90 leading-tight" style={{ fontFamily: "var(--font-body)" }}>
               {ticket.subject}
             </h1>
-            {viewer.isAdmin && !isOwner && (
+            {isStaff && !isOwner && (
               <div className="flex items-center gap-2">
                 <span className="text-xs text-foreground/45">{t("initiatorLabel")}</span>
                 {ticket.user.accountLink?.status === "CONFIRMED" && ticket.user.accountLink.minecraftName && playerCard ? (
@@ -95,8 +107,8 @@ export default async function TicketPage({
                         <div className="flex items-center gap-1">
                           {ticket.user.badges.slice(0, 3).map((b) => (
                             <CompactBadgeChip
-                              key={b.badge.name}
-                              name={b.badge.name}
+                              key={b.badge.id}
+                              name={localizedName(b.badge.name as unknown as LocalizedName, lang)}
                               icon={b.badge.icon}
                               color={b.badge.color}
                               description={b.badge.description}
@@ -107,7 +119,7 @@ export default async function TicketPage({
                           {ticket.user.badges.length > 3 && (
                             <span
                               className="text-[0.65rem] text-foreground/40 shrink-0"
-                              title={ticket.user.badges.slice(3).map((b) => b.badge.name).join(", ")}
+                              title={ticket.user.badges.slice(3).map((b) => localizedName(b.badge.name as unknown as LocalizedName, lang)).join(", ")}
                             >
                               +{ticket.user.badges.length - 3}
                             </span>
@@ -137,7 +149,9 @@ export default async function TicketPage({
               backHref={backHref}
               initialStatus={ticket.status}
               initialMessages={messages.map((m) => ({ ...m, createdAt: m.createdAt.toISOString() }))}
-              isAdmin={viewer.isAdmin}
+              isStaff={isStaff}
+              canEdit={canEdit}
+              canDelete={canDelete}
             />
           </div>
         </div>

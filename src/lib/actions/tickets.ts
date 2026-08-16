@@ -8,6 +8,9 @@ import { isRateLimitedByHeaders } from "@/lib/rate-limit";
 import {
   getTicketViewer,
   canViewTicket,
+  isTicketStaff,
+  isTicketEditor,
+  isTicketDeleter,
   TICKET_SUBJECT_MAX,
   TICKET_MESSAGE_MAX,
   MAX_ATTACHMENT_BYTES,
@@ -117,7 +120,11 @@ export async function sendTicketMessage(formData: FormData): Promise<void> {
     attachmentsData.push(saved);
   }
 
-  const isAdminReply = viewer.isAdmin && viewer.id !== ticket.userId;
+  // isTicketStaff, not isTicketEditor — this flag drives which side of the
+  // thread the message renders on (TicketThread.tsx's alignRight/isStaff),
+  // so it must track the same "is staff" definition as the rest of the UI,
+  // not the narrower tickets-edit permission.
+  const isAdminReply = isTicketStaff(viewer) && viewer.id !== ticket.userId;
 
   await siteDb.$transaction([
     siteDb.ticketMessage.create({
@@ -149,7 +156,7 @@ export async function sendTicketMessage(formData: FormData): Promise<void> {
 
 export async function setTicketStatus(lang: string, ticketId: string, status: "OPEN" | "CLOSED"): Promise<void> {
   const viewer = await getTicketViewer();
-  if (!viewer?.isAdmin) throw new Error("Not authorized");
+  if (!viewer || !isTicketEditor(viewer)) throw new Error("Not authorized");
 
   await siteDb.ticket.update({ where: { id: ticketId }, data: { status } });
 
@@ -159,7 +166,7 @@ export async function setTicketStatus(lang: string, ticketId: string, status: "O
 
 export async function deleteTicket(lang: string, ticketId: string): Promise<void> {
   const viewer = await getTicketViewer();
-  if (!viewer?.isAdmin) throw new Error("Not authorized");
+  if (!viewer || !isTicketDeleter(viewer)) throw new Error("Not authorized");
 
   const attachments = await siteDb.ticketAttachment.findMany({
     where: { ticketMessage: { ticketId } },

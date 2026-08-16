@@ -1,5 +1,5 @@
 import { getTranslations } from "next-intl/server";
-import { requireAdmin } from "@/lib/admin";
+import { requireResourceRole, getAdminNavAccess } from "@/lib/admin";
 import { siteDb } from "@/lib/site-db";
 import { AdminPageShell } from "@/components/admin/AdminPageShell";
 import { AdminTicketsTable } from "@/components/admin/AdminTicketsTable";
@@ -30,7 +30,8 @@ export default async function AdminTicketsPage({
   searchParams: Promise<{ search?: string; status?: string; page?: string; sort?: string; order?: string }>;
 }) {
   const { lang } = await params;
-  await requireAdmin(lang);
+  await requireResourceRole(lang, "tickets-view");
+  const navAccess = await getAdminNavAccess();
   const { search: rawSearch, status: rawStatus, page: rawPage, sort: rawSort, order: rawOrder } = await searchParams;
 
   const search = rawSearch?.trim() ?? "";
@@ -109,7 +110,7 @@ export default async function AdminTicketsPage({
   }));
 
   return (
-    <AdminPageShell title={t("ticketsTitle")} description={t("ticketsDescription", { count: total })} active="tickets">
+    <AdminPageShell title={t("ticketsTitle")} description={t("ticketsDescription", { count: total })} active="tickets" navAccess={navAccess}>
       <div className="w-full">
         <form className="mb-4 flex justify-center">
           <SearchInput
