@@ -241,10 +241,8 @@ export default function Navbar({ canViewLeaderboard = true, canViewThreads = tru
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50">
-      <div className="h-px bg-linear-to-r from-transparent via-gold-500/70 to-transparent" />
-
       <nav
-        className="bg-background/90 backdrop-blur-md border-b border-primary/25"
+        className="backdrop-blur-md border-y border-primary/25"
         style={{ boxShadow: "0 1px 0 rgba(212,160,23,0.04), 0 4px 30px rgba(0,0,0,0.4)" }}
       >
         <div className="max-w-7xl mx-auto px-4 flex items-center justify-between h-16 relative">
