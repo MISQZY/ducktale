@@ -7,10 +7,10 @@ import type { Resource } from "@/config/resource-roles";
 export default async function AdminLoading() {
   const t = await getTranslations("Admin");
   const navAccess = await getAdminNavAccess();
-  const activeTab = "content" === "roles" ? "role" : "content";
+  const activeTab = "ranks" === "roles" ? "role" : "ranks";
 
   return (
-    <AdminPageShell title={t("navContent")} description="..." active={activeTab as Resource} navAccess={navAccess}>
+    <AdminPageShell title={t("navRanks")} description="..." active={activeTab as Resource} navAccess={navAccess}>
       <div className="w-full h-[600px] rounded-xl border border-primary/20 bg-card/60 p-6 flex flex-col gap-4">
         <Skeleton className="h-10 w-full rounded-md opacity-20" />
         <Skeleton className="flex-1 w-full rounded-md opacity-20" />
