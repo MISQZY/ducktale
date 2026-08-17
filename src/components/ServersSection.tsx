@@ -23,7 +23,7 @@ export default function ServersSection() {
           {SERVERS.map((server) => {
             const isMaintenance = statuses[server.host]?.maintenance;
             return (
-              <div key={server.id} className="relative group h-full">
+              <div key={server.id} className="relative group h-full pointer-events-auto">
                 <div
                   className={cn(
                     "liquid-card relative h-full rounded-2xl border p-8 transition-all duration-300",
@@ -110,7 +110,7 @@ export default function ServersSection() {
 
         <div
           id="connect"
-          className="liquid-card mt-12 rounded-2xl border border-primary/18 bg-card/55 p-8 text-center relative overflow-hidden"
+          className="liquid-card pointer-events-auto mt-12 rounded-2xl border border-primary/18 bg-card/55 p-8 text-center relative overflow-hidden"
         >
           <div className="absolute top-3 left-3 w-5 h-5 border-t border-l border-primary/20" />
           <div className="absolute bottom-3 right-3 w-5 h-5 border-b border-r border-primary/20" />

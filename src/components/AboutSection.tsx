@@ -44,7 +44,10 @@ export default function AboutSection() {
           {features.map(({ key, icon: Icon, title, desc }) => (
             <div
               key={key}
-              className="liquid-card w-full sm:w-[calc(33%-15px)] rounded-xl border border-primary/20 bg-muted/40 p-7 hover:border-primary/35 transition-all duration-300 group hover:bg-muted/60"
+              // pointer-events-auto: this card has a real visible
+              // background/border (unlike the section's mostly-empty
+              // z-10 column, see ScrollReveal), so it keeps its hover glow.
+              className="liquid-card pointer-events-auto w-full sm:w-[calc(33%-15px)] rounded-xl border border-primary/20 bg-muted/40 p-7 hover:border-primary/35 transition-all duration-300 group hover:bg-muted/60"
             >
               <div className="absolute inset-0 pointer-events-none rounded-xl">
                 <div className="corner-ornament w-full h-full" />

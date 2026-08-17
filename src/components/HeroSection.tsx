@@ -41,7 +41,12 @@ export default function HeroSection() {
       <PageBackground />
       
 
-      <div className="relative z-10 text-center max-w-4xl mx-auto">
+      {/* pointer-events-none: this column is mostly whitespace around the
+          badge/heading/CTAs, and was capturing clicks meant for whatever's
+          behind the page (the DuckyPet overlay) even over that empty space.
+          StatusBadge/CtaButton re-enable pointer-events-auto themselves;
+          the inline description links do it explicitly below. */}
+      <div className="relative z-10 text-center max-w-4xl mx-auto pointer-events-none">
         {/* Badge row */}
         <div className="flex items-center justify-center gap-3 mb-8 fade-up">
           <div className="h-px w-16 bg-linear-to-r from-transparent to-primary/60" />
@@ -83,7 +88,7 @@ export default function HeroSection() {
             duckburg: (chunks) => (
               <Link
                 href="/docs/duckburg"
-                className="text-emerald-600 dark:text-emerald-400/80 hover:text-emerald-500 dark:hover:text-emerald-300 transition-colors font-semibold border-b border-emerald-500/20 hover:border-emerald-400/40"
+                className="pointer-events-auto text-emerald-600 dark:text-emerald-400/80 hover:text-emerald-500 dark:hover:text-emerald-300 transition-colors font-semibold border-b border-emerald-500/20 hover:border-emerald-400/40"
               >
                 {chunks}
               </Link>
@@ -91,7 +96,7 @@ export default function HeroSection() {
             duckhood: (chunks) => (
               <Link
                 href="/docs/duckhood"
-                className="text-sky-600 dark:text-sky-400/80 hover:text-sky-500 dark:hover:text-sky-300 transition-colors font-semibold border-b border-sky-500/20 hover:border-sky-400/40"
+                className="pointer-events-auto text-sky-600 dark:text-sky-400/80 hover:text-sky-500 dark:hover:text-sky-300 transition-colors font-semibold border-b border-sky-500/20 hover:border-sky-400/40"
               >
                 {chunks}
               </Link>

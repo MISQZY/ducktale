@@ -35,7 +35,10 @@ export function CtaButton({
   return (
     <Button
       variant="ghost"
-      className={ctaButtonClasses(variant, className)}
+      // pointer-events-auto: makes the button clickable regardless of any
+      // ancestor wrapper that turns pointer-events off for its own
+      // otherwise-empty layout space (see ScrollReveal/HeroSection).
+      className={`pointer-events-auto ${ctaButtonClasses(variant, className)}`}
       style={CTA_FONT_STYLE}
       asChild
     >

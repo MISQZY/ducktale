@@ -119,7 +119,10 @@ export function PlayerAvatar({
       <Link
         href={linkHref}
         target="_blank"
-        className={cn("flex items-center gap-3 hover:opacity-80 transition-opacity group transform-gpu", widthClass, className)}
+        // pointer-events-auto: stays clickable regardless of an ancestor
+        // wrapper that turns pointer-events off for its own otherwise-empty
+        // layout space (e.g. the homepage's ScrollReveal-wrapped sections).
+        className={cn("pointer-events-auto flex items-center gap-3 hover:opacity-80 transition-opacity group transform-gpu", widthClass, className)}
         style={style}
       >
         {innerContent}

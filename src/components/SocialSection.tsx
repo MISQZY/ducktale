@@ -144,7 +144,7 @@ export default function SocialSection() {
                 target="_blank"
                 rel="noopener noreferrer"
                 className={cn(
-                  "liquid-card group relative flex flex-row items-center gap-3 rounded-xl border px-4 py-3 min-w-[200px]",
+                  "liquid-card pointer-events-auto group relative flex flex-row items-center gap-3 rounded-xl border px-4 py-3 min-w-[200px]",
                   "transition-all duration-300",
                   "hover:-translate-y-1 hover:scale-[1.02]",
                   social.color.bg,

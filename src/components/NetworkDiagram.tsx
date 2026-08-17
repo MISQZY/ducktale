@@ -144,19 +144,25 @@ export default function NetworkDiagram() {
           description={t("description")}
         />
 
+        {/* pointer-events-auto: the diagram frame has a real visible
+            background/border (unlike the section's mostly-empty z-10
+            column, see ScrollReveal) and needs pointer events for its own
+            drag/zoom/click interactions regardless. */}
         {isInView ? (
-          <GraphDiagram
-            nodes={nodes}
-            edges={edges}
-            initOffsets={DIAGRAM_INIT_OFFSETS}
-            header={t("titleBar")}
-            overlay={<DiagramChrome />}
-            expandLabel={t("expand")}
-            collapseLabel={t("collapse")}
-          />
+          <div className="pointer-events-auto">
+            <GraphDiagram
+              nodes={nodes}
+              edges={edges}
+              initOffsets={DIAGRAM_INIT_OFFSETS}
+              header={t("titleBar")}
+              overlay={<DiagramChrome />}
+              expandLabel={t("expand")}
+              collapseLabel={t("collapse")}
+            />
+          </div>
         ) : (
           <div
-            className="rounded-2xl border border-primary/25 bg-card/60"
+            className="rounded-2xl border border-primary/25 bg-card/60 pointer-events-auto"
             style={{ height: DIAGRAM.frameH }}
           />
         )}
