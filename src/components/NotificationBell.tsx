@@ -26,13 +26,24 @@ export function NotificationBell() {
   const [open, setOpen] = useState(false);
   const hasRead = items.some((n) => n.read);
 
-  function handleItemClick(id: string, read: boolean) {
+  async function handleItemClick(id: string, read: boolean) {
     if (!read) {
       markReadLocally(id);
-      // Fire-and-forget — a failure here just means the next poll (or the
-      // next time this same item is clicked) reconciles it; not worth a
-      // loading/error state for marking one notification read.
-      markNotificationRead(id).catch(() => {});
+      // Awaited, not fire-and-forget: this is a Server Action call, and
+      // closing the popover right after (setOpen(false) below) unmounts the
+      // very <Link> that triggered it — Next's Server Actions run inside an
+      // implicit transition tied to the calling client tree, so unmounting
+      // that tree before the action settles risked the write (and its
+      // invalidateSnapshot) getting dropped instead of actually landing,
+      // which is exactly what made a freshly-read notification come back as
+      // unread on the next full page load. Errors are still swallowed — the
+      // next poll reconciles either way, not worth a loading/error state for
+      // marking one notification read.
+      try {
+        await markNotificationRead(id);
+      } catch {
+        // Next poll reconciles.
+      }
     }
     setOpen(false);
   }

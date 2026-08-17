@@ -10,10 +10,11 @@ import {
 } from "react";
 import { useSession } from "next-auth/react";
 import { useTranslations, useLocale } from "next-intl";
-import { useRouter } from "@/i18n/navigation";
+import { useRouter, usePathname } from "@/i18n/navigation";
 import { toast } from "sonner";
 import { API } from "@/config/site";
 import { renderNotification } from "@/lib/notification-renderers";
+import { markNotificationRead } from "@/lib/actions/notifications";
 import type { NotificationsResponse } from "@/app/api/notifications/route";
 
 export type NotificationItem = NotificationsResponse["items"][number];
@@ -58,6 +59,7 @@ export function NotificationsProvider({ children }: { children: React.ReactNode 
   const lang = useLocale();
   const t = useTranslations("Notifications");
   const router = useRouter();
+  const pathname = usePathname();
   const [state, setState] = useState<NotificationsState>(DEFAULT_STATE);
   // Highest createdAtMs already shown as a toast (or present at the first
   // load, which shouldn't itself replay old notifications as toasts) — a
@@ -70,6 +72,10 @@ export function NotificationsProvider({ children }: { children: React.ReactNode 
       if (!r.ok) throw new Error(`HTTP ${r.status}`);
       const data: NotificationsResponse = await r.json();
 
+      // Ids this poll decides to silently mark read on the recipient's
+      // behalf — see the loop below for why.
+      const autoReadIds = new Set<string>();
+
       if (seenThroughMsRef.current === null) {
         // First load: establish the baseline without toasting anything —
         // otherwise every existing unread notification would replay as a
@@ -81,20 +87,57 @@ export function NotificationsProvider({ children }: { children: React.ReactNode 
           .sort((a, b) => a.createdAtMs - b.createdAtMs);
         for (const n of newItems) {
           const rendered = renderNotification(n.type, n.payload, { lang, t });
-          if (rendered) {
-            toast(rendered.message, { action: { label: t("view"), onClick: () => router.push(rendered.href) } });
+          if (!rendered) continue;
+          // Already looking at the exact conversation this is about (e.g.
+          // TicketThread/ReportThread's own 8s poll is already showing the
+          // new message live) — a toast on top of that is just noise, and
+          // there's nothing left to alert the user *to* mark read for.
+          if (rendered.href === pathname) {
+            if (!n.read) autoReadIds.add(n.id);
+            continue;
           }
+          toast(rendered.message, { action: { label: t("view"), onClick: () => router.push(rendered.href) } });
         }
         if (data.items[0]) {
           seenThroughMsRef.current = Math.max(seenThroughMsRef.current, data.items[0].createdAtMs);
         }
       }
 
-      setState({ items: data.items, unreadCount: data.unreadCount, loading: false });
+      for (const id of autoReadIds) {
+        markNotificationRead(id).catch(() => {});
+      }
+
+      // Merge in, don't blindly overwrite, this poll's read flags: clicking a
+      // notification marks it read locally (markReadLocally, see
+      // handleItemClick in NotificationBell.tsx) and fires the Server Action
+      // in the background — if a poll's GET request was already in flight
+      // (or served getNotificationsSnapshot's own 15s cache from just before
+      // that write's invalidateSnapshot landed), it can report that same
+      // item as still unread. `read` never goes true -> false in this app
+      // (there's no "mark unread" action), so once local state already has
+      // an item read, a poll saying otherwise is stale, not a real change —
+      // without this, that stale response replaces state wholesale and the
+      // item visibly reverts to unread until the *next* click. autoReadIds
+      // (just decided above, this same poll) gets the same treatment as
+      // already-locally-read ids, since both are cases where the client
+      // knows better than this response about to be applied.
+      setState((prev) => {
+        const forceReadIds = new Set(prev.items.filter((n) => n.read).map((n) => n.id));
+        for (const id of autoReadIds) forceReadIds.add(id);
+        let staleUnreadCorrected = 0;
+        const items = data.items.map((n) => {
+          if (!n.read && forceReadIds.has(n.id)) {
+            staleUnreadCorrected++;
+            return { ...n, read: true };
+          }
+          return n;
+        });
+        return { items, unreadCount: Math.max(0, data.unreadCount - staleUnreadCorrected), loading: false };
+      });
     } catch {
       setState((prev) => ({ ...prev, loading: false }));
     }
-  }, [lang, t, router]);
+  }, [lang, t, router, pathname]);
 
   useEffect(() => {
     if (status !== "authenticated") {
