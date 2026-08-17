@@ -205,6 +205,26 @@
 html {
   background-color: var(--color-bg-page);
   data-scroll-behavior: smooth;
+  /* Reserve the scrollbar's width even on short pages — otherwise the
+     fixed, full-viewport-width Navbar resizes by the scrollbar's width
+     every time navigation lands on a page whose content is short enough
+     to not need one, and the header visibly shifts. */
+  scrollbar-gutter: stable;
+}
+
+/* Radix's modal components (DropdownMenu, Dialog, Select, ...) lock page
+   scroll via react-remove-scroll-bar, which measures
+   innerWidth - documentElement.clientWidth and adds that as margin-right
+   on body to compensate for the scrollbar it assumes it's hiding. Now that
+   `scrollbar-gutter: stable` above reserves that width permanently, the
+   gutter never actually disappears — so this compensation is pure extra
+   margin, and it's what was shifting page content left every time a menu
+   like AdminNav's dropdown opened. Higher specificity than their
+   `body[data-scroll-locked]{margin-right:...!important}` rule (rather than
+   matching its own !important, which would just come down to DOM order) so
+   this reliably wins regardless of when their <style> tag is injected. */
+html body[data-scroll-locked] {
+  margin-right: 0 !important;
 }
 
 body {
