@@ -598,6 +598,7 @@
         "profiles": "Public profiles",
         "server-status": "Server status",
         "maps-page": "Maps",
+        "events-page": "Events",
         "applications": "[Admin] Applications"
       },
       "actionLabels": {

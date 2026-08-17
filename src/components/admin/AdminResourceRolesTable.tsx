@@ -25,13 +25,27 @@ interface AdminResourceRolesTableProps {
   canEdit: boolean;
 }
 
-/** Client island for /admin/resource-roles — a fixed catalog (RESOURCE_ROLE_ACTIONS), not a query result, so unlike every other admin table there's nothing to sort/paginate. One row per resource, View/Edit/Delete shown as the same read-only access marks ResourceRoleAccessGrid uses for a Role's grants — checked means the action exists for that resource, dash means it doesn't. The only "edit" is renaming a resource's display label (ResourceRoleLabel override), not the catalog itself. See [[PERMISSIONS_BADGES]] §4.1/§4.5. */
+/** Client island for /admin/resource-roles — a fixed catalog (RESOURCE_ROLE_ACTIONS), not a query result, so unlike every other admin table there's no pagination, just a fixed alphabetical ordering by the current locale's display name ("[...]"-prefixed admin-page resources first, see sortedRows below). One row per resource, View/Edit/Delete shown as the same read-only access marks ResourceRoleAccessGrid uses for a Role's grants — checked means the action exists for that resource, dash means it doesn't. The only "edit" is renaming a resource's display label (ResourceRoleLabel override), not the catalog itself. See [[PERMISSIONS_BADGES]] §4.1/§4.5. */
 export function AdminResourceRolesTable({ lang, rows, canEdit }: AdminResourceRolesTableProps) {
   const t = useTranslations("Admin");
   const tr = useTranslations("Admin.resourceRoles");
   const tal = useTranslations("Admin.resourceRoles.actionLabels");
 
   const resourceName = useCallback((r: AdminResourceRoleRow): string => (lang === "ru" ? r.resourceNameRu : r.resourceNameEn), [lang]);
+
+  // Alphabetical by the visible label, but "[Админ]"/"[Admin]" (admin-page
+  // resources) sort as a group before the plain (public-page) ones instead
+  // of "[" falling wherever the locale's collation happens to place it.
+  const sortedRows = useMemo(() => {
+    return [...rows].sort((a, b) => {
+      const nameA = resourceName(a);
+      const nameB = resourceName(b);
+      const bracketedA = nameA.startsWith("[");
+      const bracketedB = nameB.startsWith("[");
+      if (bracketedA !== bracketedB) return bracketedA ? -1 : 1;
+      return nameA.localeCompare(nameB, lang);
+    });
+  }, [rows, resourceName, lang]);
 
   const columns = useMemo<ColumnDef<AdminResourceRoleRow, unknown>[]>(() => [
     {
@@ -107,7 +121,7 @@ export function AdminResourceRolesTable({ lang, rows, canEdit }: AdminResourceRo
   return (
     <DataTable
       columns={columns}
-      data={rows}
+      data={sortedRows}
       getRowId={(r) => r.resource}
       emptyMessage={tr("noResults")}
       minRows={8}
