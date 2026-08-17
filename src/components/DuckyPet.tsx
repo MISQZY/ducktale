@@ -32,6 +32,17 @@ const DRAG_ROTATION_MAX = 34;
 const DRAG_ROTATION_FRICTION = 0.95;
 const DRAG_ROTATION_LERP = 0.14;
 
+// The canvas (drawn shadow/glow) extends this many px beyond the duck's own
+// hitbox/wander-bounds box on every side — the wander bounds below reserve
+// this margin so the canvas itself never renders past the document's true
+// edges and triggers a scrollbar. +2px over the canvas's actual geometric
+// overhang (10px) as slop for subpixel rounding: posRef is float (velocity
+// * dt accumulates fractional px), and a transform landing even a hair past
+// the document's exact scrollWidth is enough for the browser to draw a
+// scrollbar for it — touching the boundary exactly isn't safe, it has to
+// clear it.
+const CANVAS_PAD = 12;
+
 import { DUCKY_CONFIG } from "@/config/ducky";
 
 type Direction = "left" | "right";
@@ -108,6 +119,7 @@ export default function DuckyPet() {
 
   const duckRef = useRef<HTMLDivElement>(null);
   const bubbleRef = useRef<HTMLDivElement>(null);
+  const bubbleTailRef = useRef<HTMLDivElement>(null);
 
   const [mounted, setMounted] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
@@ -153,6 +165,82 @@ export default function DuckyPet() {
     window.addEventListener("ducky-toggle", callback);
     return () => window.removeEventListener("ducky-toggle", callback);
   }
+
+  // The duck's own element is position:absolute in document space, so
+  // document.documentElement.scrollWidth/Height already includes wherever
+  // it currently sits — measuring it live to decide "where's the wall" is
+  // self-referential. Sub-pixel rounding in that measurement then lets each
+  // bounce off the wall nudge the wall itself outward by a hair, and over
+  // many bounces that compounds into the duck (and the page's horizontal
+  // scrollbar) slowly creeping to the right forever. Measured with the
+  // duck's own element hidden so it can't pollute its own boundary, and
+  // cached rather than re-measured every frame/pointermove — refreshed only
+  // when the layout could plausibly have changed (mount, navigation,
+  // resize), never as a side effect of the duck's own movement.
+  const docBoundsRef = useRef<Vec2>({ x: CANVAS_PAD, y: CANVAS_PAD });
+  const measureDocBounds = useCallback((): Vec2 => {
+    const section = sectionRef.current;
+    const read = (): Vec2 => ({
+      // Floored at CANVAS_PAD (matching every clamp site's lower bound) so
+      // the [min, max] range is never inverted on a viewport narrow/short
+      // enough that DISPLAY_SIZE + CANVAS_PAD*2 doesn't fit.
+      x: Math.max(document.documentElement.scrollWidth, document.documentElement.clientWidth) - DISPLAY_SIZE - CANVAS_PAD,
+      y: Math.max(document.documentElement.scrollHeight, document.documentElement.clientHeight) - DISPLAY_SIZE - CANVAS_PAD,
+    });
+    if (!section) {
+      const b = read();
+      return { x: Math.max(b.x, CANVAS_PAD), y: Math.max(b.y, CANVAS_PAD) };
+    }
+    const prevDisplay = section.style.display;
+    section.style.display = "none";
+    const b = read();
+    section.style.display = prevDisplay;
+    return { x: Math.max(b.x, CANVAS_PAD), y: Math.max(b.y, CANVAS_PAD) };
+  }, []);
+  const refreshDocBounds = useCallback(() => {
+    docBoundsRef.current = measureDocBounds();
+  }, [measureDocBounds]);
+
+  // The speech bubble is centered on the duck and sized to fit whatever
+  // phrase it's showing — a long one can be far wider than the duck itself,
+  // so anchoring it purely on the duck's (already-safe) position isn't
+  // enough; it needs its own clamp against its actual rendered box so it
+  // can't stick out past the document's true edge and add a scrollbar of
+  // its own. Derives true document width/height from docBoundsRef instead
+  // of a fresh live measurement — that's already a duck-hidden, non-self-
+  // referential read, no need to repeat it.
+  const positionBubble = useCallback(() => {
+    const bubble = bubbleRef.current;
+    const pos = posRef.current;
+    if (!bubble || !pos) return;
+
+    const trueDocW = docBoundsRef.current.x + DISPLAY_SIZE;
+    const trueDocH = docBoundsRef.current.y + DISPLAY_SIZE;
+
+    const centerX = pos.x + DISPLAY_SIZE / 2;
+    const anchorY = pos.y + 18;
+
+    const halfW = bubble.offsetWidth / 2;
+    const bubbleH = bubble.offsetHeight;
+
+    const clampedCenterX = Math.min(Math.max(centerX, halfW), Math.max(trueDocW - halfW, halfW));
+    const clampedAnchorY = Math.min(Math.max(anchorY, bubbleH), trueDocH);
+
+    bubble.style.transform = `translate(${clampedCenterX}px, ${clampedAnchorY}px) translate(-50%, -100%)`;
+
+    // The tail is centered on the bubble by default (CSS margin: auto), but
+    // once the body's been shifted off the duck's true center to stay
+    // in-bounds, that leaves it pointing at empty space instead of the
+    // duck. Counter-shift it back toward the duck, capped so it can't slide
+    // out past the bubble's own rounded corners.
+    const tail = bubbleTailRef.current;
+    if (tail) {
+      const bodyShift = centerX - clampedCenterX;
+      const maxTailShift = Math.max(halfW - 12, 0);
+      const tailShift = Math.min(Math.max(bodyShift, -maxTailShift), maxTailShift);
+      tail.style.transform = `translateX(${tailShift}px)`;
+    }
+  }, []);
 
   const pickNewWander = useCallback(() => {
     const W = window.innerWidth;
@@ -229,11 +317,10 @@ export default function DuckyPet() {
     }
     lastMoveRef.current = { x: e.clientX, y: e.clientY, t: e.timeStamp };
 
-    const docW = Math.max(document.documentElement.scrollWidth, window.innerWidth) - DISPLAY_SIZE;
-    const docH = Math.max(document.documentElement.scrollHeight, window.innerHeight) - DISPLAY_SIZE;
-    const nx = Math.min(Math.max(dragStartPosRef.current.x + dx, 0), Math.max(docW, 0));
-    const ny = Math.min(Math.max(dragStartPosRef.current.y + dy, 0), Math.max(docH, 0));
-    posRef.current = { x: nx, y: ny };
+    const { x: docW, y: docH } = docBoundsRef.current;
+    const nx = Math.min(Math.max(dragStartPosRef.current.x + dx, CANVAS_PAD), Math.max(docW, CANVAS_PAD));
+    const ny = Math.min(Math.max(dragStartPosRef.current.y + dy, CANVAS_PAD), Math.max(docH, CANVAS_PAD));
+    posRef.current = { x: Math.round(nx), y: Math.round(ny) };
   }, []);
 
   const handlePointerUp = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
@@ -330,14 +417,18 @@ export default function DuckyPet() {
         let nx = cur.x + velRef.current.x * (dt / 1000);
         let ny = cur.y + velRef.current.y * (dt / 1000);
 
-        const docW = Math.max(document.documentElement.scrollWidth, window.innerWidth) - DISPLAY_SIZE;
-        const docH = Math.max(document.documentElement.scrollHeight, window.innerHeight) - DISPLAY_SIZE;
+        const { x: docW, y: docH } = docBoundsRef.current;
 
-        if (nx < 0) { nx = 0; velRef.current.x = Math.abs(velRef.current.x); dirRef.current = "right"; }
+        if (nx < CANVAS_PAD) { nx = CANVAS_PAD; velRef.current.x = Math.abs(velRef.current.x); dirRef.current = "right"; }
         if (nx > docW) { nx = docW; velRef.current.x = -Math.abs(velRef.current.x); dirRef.current = "left"; }
-        if (ny < 0) { ny = 0; velRef.current.y = Math.abs(velRef.current.y); }
+        if (ny < CANVAS_PAD) { ny = CANVAS_PAD; velRef.current.y = Math.abs(velRef.current.y); }
         if (ny > docH) { ny = docH; velRef.current.y = -Math.abs(velRef.current.y); }
 
+        // Kept as float here — velocity*dt is sub-pixel per frame (well
+        // under 1px at this speed), so rounding the accumulator itself
+        // would discard that fractional progress every frame and the duck
+        // would never actually move. Only the transform written to the DOM
+        // gets rounded, further down.
         posRef.current = { x: nx, y: ny };
 
         frameMsRef.current += dt;
@@ -366,23 +457,21 @@ export default function DuckyPet() {
       // position:absolute ancestor — see the wrapper's comment — so scroll
       // following is native compositing, not something re-synced here.
       if (duckRef.current && posRef.current) {
-        const docX = posRef.current.x;
-        const docY = posRef.current.y;
+        // Rounded here (display only) rather than on posRef itself — see
+        // the comment above where posRef.current gets set.
+        const docX = Math.round(posRef.current.x);
+        const docY = Math.round(posRef.current.y);
         const scale = dirRef.current === "left" ? -1 : 1;
         duckRef.current.style.transform = `translate(${docX}px, ${docY}px) scaleX(${scale}) rotate(${dragRotationRef.current.toFixed(2)}deg) scale(${dragScaleRef.current.toFixed(3)})`;
       }
 
-      if (bubbleRef.current && posRef.current) {
-        const docX = posRef.current.x + DISPLAY_SIZE / 2;
-        const docY = posRef.current.y + 18;
-        bubbleRef.current.style.transform = `translate(${docX}px, ${docY}px) translate(-50%, -100%)`;
-      }
+      positionBubble();
 
       drawFrame();
       rafRef.current = requestAnimationFrame(loop);
     };
     rafRef.current = requestAnimationFrame(loop);
-  }, [drawFrame, pickNewWander]);
+  }, [drawFrame, pickNewWander, positionBubble]);
 
   const stopLoop = useCallback(() => {
     if (rafRef.current) {
@@ -433,15 +522,18 @@ export default function DuckyPet() {
         const W = window.innerWidth;
         const H = window.innerHeight;
 
+        // Duck isn't in the DOM yet at this point, so a direct read is
+        // already duck-free — this seeds the cache other bounds checks use.
+        docBoundsRef.current = measureDocBounds();
+
         const savedPos = loadDuckyPos();
         if (savedPos) {
           // Clamp to the current document bounds — the saved spot may be
           // stale relative to a resized viewport/changed page content.
-          const docW = Math.max(document.documentElement.scrollWidth, window.innerWidth) - DISPLAY_SIZE;
-          const docH = Math.max(document.documentElement.scrollHeight, window.innerHeight) - DISPLAY_SIZE;
+          const { x: docW, y: docH } = docBoundsRef.current;
           posRef.current = {
-            x: Math.min(Math.max(savedPos.x, 0), Math.max(docW, 0)),
-            y: Math.min(Math.max(savedPos.y, 0), Math.max(docH, 0)),
+            x: Math.round(Math.min(Math.max(savedPos.x, CANVAS_PAD), docW)),
+            y: Math.round(Math.min(Math.max(savedPos.y, CANVAS_PAD), docH)),
           };
         } else {
           // spawn inside initial visible viewport
@@ -466,7 +558,7 @@ export default function DuckyPet() {
       isMounted = false;
       stopLoop();
     };
-  }, [pickNewWander, startLoop, stopLoop, isDocs]);
+  }, [pickNewWander, startLoop, stopLoop, isDocs, measureDocBounds]);
 
   // Persist the duck's last position so a reload resumes it there instead
   // of respawning off-screen. Saved on the way out (unload/tab-hide) rather
@@ -496,10 +588,6 @@ export default function DuckyPet() {
   // — and since it's a real positioned element, it inflates that page's
   // scrollable area to reach it, producing a huge empty scroll region
   // instead of the duck just being (invisibly) far below the fold.
-  // document.documentElement.scrollHeight/Width at this point already
-  // includes the duck's own current (possibly out-of-bounds) position, so
-  // measuring it directly would just confirm the stale bounds — hiding the
-  // duck's own element for the single synchronous read excludes it.
   const prevPathnameRef = useRef<string | null>(null);
   useLayoutEffect(() => {
     if (prevPathnameRef.current === null) {
@@ -511,14 +599,11 @@ export default function DuckyPet() {
 
     if (!posRef.current || !sectionRef.current) return;
 
-    const prevDisplay = sectionRef.current.style.display;
-    sectionRef.current.style.display = "none";
-    const docW = Math.max(document.documentElement.scrollWidth, window.innerWidth) - DISPLAY_SIZE;
-    const docH = Math.max(document.documentElement.scrollHeight, window.innerHeight) - DISPLAY_SIZE;
-    sectionRef.current.style.display = prevDisplay;
+    refreshDocBounds();
+    const { x: docW, y: docH } = docBoundsRef.current;
 
-    const clampedX = Math.min(Math.max(posRef.current.x, 0), Math.max(docW, 0));
-    const clampedY = Math.min(Math.max(posRef.current.y, 0), Math.max(docH, 0));
+    const clampedX = Math.min(Math.max(posRef.current.x, CANVAS_PAD), docW);
+    const clampedY = Math.min(Math.max(posRef.current.y, CANVAS_PAD), docH);
     if (clampedX !== posRef.current.x || clampedY !== posRef.current.y) {
       posRef.current = { x: clampedX, y: clampedY };
       // Apply immediately (not waiting for the next rAF tick) so there's no
@@ -528,21 +613,37 @@ export default function DuckyPet() {
         duckRef.current.style.transform = `translate(${clampedX}px, ${clampedY}px) scaleX(${scale})`;
       }
     }
-  }, [pathname]);
+  }, [pathname, refreshDocBounds]);
+
+  // Refresh the cached bounds on resize too — the window (or a
+  // scrollbar-gutter/layout reflow triggered by it) can change the true
+  // walkable area outside of a navigation.
+  useEffect(() => {
+    let raf = 0;
+    const onResize = () => {
+      cancelAnimationFrame(raf);
+      raf = requestAnimationFrame(refreshDocBounds);
+    };
+    window.addEventListener("resize", onResize);
+    return () => {
+      cancelAnimationFrame(raf);
+      window.removeEventListener("resize", onResize);
+    };
+  }, [refreshDocBounds]);
 
   // Seeds the bubble's transform synchronously before paint so it doesn't
   // flicker at (0,0) for a frame — the RAF loop (see startLoop) takes over
   // on every subsequent frame once it's running.
   useLayoutEffect(() => {
     if ((isHovered || activePhrase !== null) && bubbleRef.current && posRef.current) {
-      const docX = posRef.current.x + DISPLAY_SIZE / 2;
-      const docY = posRef.current.y + 18;
-      bubbleRef.current.style.transform = `translate(${docX}px, ${docY}px) translate(-50%, -100%)`;
+      positionBubble();
     }
-  }, [isHovered, activePhrase]);
+  }, [isHovered, activePhrase, positionBubble]);
 
   if (!mounted || isDocs) return null;
 
+  // The geometric padding actually drawn around the sprite is 10px.
+  // CANVAS_PAD (12px) is only used for the collision bounds to provide a 2px safety margin.
   const PAD = 10;
   const CV = DISPLAY_SIZE + PAD * 2;
 
@@ -662,8 +763,10 @@ export default function DuckyPet() {
               <p>{activePhrase}</p>
             )}
           </div>
-          {/* tail pointing down toward duck */}
-          <div style={{
+          {/* tail pointing down toward duck — nudged by positionBubble() to
+              keep pointing at the duck even when the bubble body itself has
+              been shifted to stay within the document's bounds */}
+          <div ref={bubbleTailRef} style={{
             width: 0,
             height: 0,
             borderLeft: "5px solid transparent",
