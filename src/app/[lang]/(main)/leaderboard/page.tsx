@@ -1,9 +1,11 @@
 import { getTranslations } from "next-intl/server";
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { GoldDivider } from "@/components/common/GoldDivider";
 import { RankingsTabs } from "@/components/leaderboard/RankingsTabs";
 import { requirePublicResourceRole } from "@/lib/public-access";
 import { getLeaderboardPlayersPage } from "@/lib/leaderboard-data";
+import { Skeleton } from "@/components/ui/skeleton";
 
 // Matches TopPlayersTable's own default pageSize prop — has to agree so the
 // cache key this prefetch writes is the one the client's own first fetch
@@ -19,11 +21,6 @@ export default async function LeaderboardPage({
   await requirePublicResourceRole(lang, "leaderboard-view");
   const t = await getTranslations("Leaderboard");
 
-  // RankingsTabs always mounts the "players" tab first (see its own doc
-  // comment) — prefetching here means the very first paint already has
-  // rows instead of a loading skeleton followed by a client-side fetch.
-  const initialPlayersData = await getLeaderboardPlayersPage(1, PLAYERS_TAB_PAGE_SIZE, "", "", "");
-
   return (
     <>
       <main className="relative overflow-hidden min-h-screen px-6 pt-24 pb-6">
@@ -38,11 +35,26 @@ export default async function LeaderboardPage({
 
           <GoldDivider className="mb-8" />
 
-          <RankingsTabs initialPlayersData={initialPlayersData} />
+          <Suspense fallback={
+            <div className="w-full h-[600px] rounded-2xl border border-primary/20 bg-card/60 flex flex-col p-4 gap-4">
+              <Skeleton className="h-10 w-64 rounded-md opacity-40" />
+              <Skeleton className="h-full w-full rounded-md opacity-40" />
+            </div>
+          }>
+            <LeaderboardContent />
+          </Suspense>
         </div>
       </main>
     </>
   );
+}
+
+async function LeaderboardContent() {
+  // RankingsTabs always mounts the "players" tab first (see its own doc
+  // comment) — prefetching here means the very first paint already has
+  // rows instead of a loading skeleton followed by a client-side fetch.
+  const initialPlayersData = await getLeaderboardPlayersPage(1, PLAYERS_TAB_PAGE_SIZE, "", "", "");
+  return <RankingsTabs initialPlayersData={initialPlayersData} />;
 }
 
 export async function generateMetadata(): Promise<Metadata> {

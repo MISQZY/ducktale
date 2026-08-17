@@ -551,6 +551,7 @@ model Message {
   @@index([threadId])
   @@index([reportId])
   @@index([applicationId])
+  @@index([authorId, createdAt])
   @@map("{{PREFIX}}message")
 }
 

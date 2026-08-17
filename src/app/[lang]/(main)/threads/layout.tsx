@@ -34,6 +34,7 @@ export default async function ThreadsLayout({
   await requireResourceRole(lang, "threads-view");
 
   const threads = await siteDb.thread.findMany({
+    take: 50,
     orderBy: { updatedAt: "desc" },
     select: {
       id: true,
