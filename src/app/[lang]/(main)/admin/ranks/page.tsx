@@ -8,7 +8,6 @@ import { withDb } from "@/lib/db";
 import { AdminPageShell } from "@/components/admin/AdminPageShell";
 import { RankFormDialog } from "@/components/admin/RankFormDialog";
 import { AdminRanksTable } from "@/components/admin/AdminRanksTable";
-import { Button } from "@/components/ui/button";
 import type { LocalizedName } from "@/lib/i18n-name";
 
 /** group -> which lp_tracks it appears in — read-only context shown next to each row so an admin styling a group can see where it actually ranks, without cross-referencing the LuckPerms server separately. */
@@ -104,11 +103,7 @@ export default async function AdminRanksPage({
     <RankFormDialog
       lang={lang}
       groupSuggestions={groupSuggestions}
-      trigger={
-        <Button variant="outline" size="icon" title={tr("createTitle")} aria-label={tr("createTitle")}>
-          <Plus size={16} />
-        </Button>
-      }
+      trigger={{ icon: <Plus size={16} />, label: tr("createTitle") }}
     />
   ) : undefined;
 

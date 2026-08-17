@@ -7,7 +7,6 @@ import { resolveServerMaps } from "@/lib/maps";
 import { AdminPageShell } from "@/components/admin/AdminPageShell";
 import { AdminMapsTable } from "@/components/admin/AdminMapsTable";
 import { MapFormDialog } from "@/components/admin/MapFormDialog";
-import { Button } from "@/components/ui/button";
 import { localizedName } from "@/lib/i18n-name";
 
 export default async function AdminMapsPage({
@@ -50,11 +49,7 @@ export default async function AdminMapsPage({
     <MapFormDialog
       lang={lang}
       servers={servers}
-      trigger={
-        <Button variant="outline" size="icon" title={t("addMap")} aria-label={t("addMap")}>
-          <Plus size={16} />
-        </Button>
-      }
+      trigger={{ icon: <Plus size={16} />, label: t("addMap") }}
     />
   ) : undefined;
 

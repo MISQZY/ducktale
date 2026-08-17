@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, type ReactNode } from "react";
+import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { LocalizedNameInput } from "@/components/common/LocalizedNameInput";
-import { AdminFormDialog } from "./AdminFormDialog";
+import { AdminFormDialog, type AdminFormDialogTrigger } from "./AdminFormDialog";
 import { upsertResourceLabel, resetResourceLabel } from "@/lib/actions/admin-resource-roles";
 import type { Resource } from "@/config/resource-roles";
 import type { LocalizedName } from "@/lib/i18n-name";
@@ -13,7 +13,7 @@ interface ResourceRoleLabelFormDialogProps {
   resource: Resource;
   currentNameRu: string;
   currentNameEn: string;
-  trigger: ReactNode;
+  trigger: AdminFormDialogTrigger;
 }
 
 /** Edits (or resets) the display-name override for one resource — both locales at once, see ResourceRoleLabel's doc comment in the schema. */

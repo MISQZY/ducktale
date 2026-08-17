@@ -1,12 +1,12 @@
 "use client";
 
-import { useState, type ReactNode } from "react";
+import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { LocalizedNameInput } from "@/components/common/LocalizedNameInput";
 import { FormField } from "@/components/common/FormField";
 import { formInputClasses, formInputStyle } from "@/components/common/form-styles";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { AdminFormDialog } from "./AdminFormDialog";
+import { AdminFormDialog, type AdminFormDialogTrigger } from "./AdminFormDialog";
 import { IconPickerField } from "./IconPickerField";
 import { ColorPickerField } from "./ColorPickerField";
 import { createRank, updateRank } from "@/lib/actions/admin-ranks";
@@ -26,7 +26,7 @@ interface RankFormDialogProps {
   rank?: RankFormValues;
   /** Existing group names, offered as datalist suggestions — LuckPerms group names are known ahead of time via lp_tracks, this just saves retyping one exactly. */
   groupSuggestions: string[];
-  trigger: ReactNode;
+  trigger: AdminFormDialogTrigger;
 }
 
 const DEFAULT_COLOR = "#d4a017";

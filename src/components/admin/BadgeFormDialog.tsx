@@ -1,10 +1,10 @@
 "use client";
 
-import { useState, type ReactNode } from "react";
+import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { LocalizedNameInput } from "@/components/common/LocalizedNameInput";
 import { FormTextarea } from "@/components/common/FormTextarea";
-import { AdminFormDialog } from "./AdminFormDialog";
+import { AdminFormDialog, type AdminFormDialogTrigger } from "./AdminFormDialog";
 import { IconPickerField } from "./IconPickerField";
 import { ColorPickerField } from "./ColorPickerField";
 import { createBadge, updateBadge } from "@/lib/actions/admin-badges";
@@ -39,7 +39,7 @@ interface BadgeFormDialogProps {
   badge?: BadgeFormValues;
   /** Full LuckPermsRole catalog to pick auto-grant roles from — the same role can be linked to more than one badge, so this isn't filtered down. */
   roleOptions: RoleOption[];
-  trigger: ReactNode;
+  trigger: AdminFormDialogTrigger;
 }
 
 const DEFAULT_COLOR = "#d4a017";

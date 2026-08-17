@@ -1,11 +1,11 @@
 "use client";
 
-import { useState, type ReactNode } from "react";
+import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { LocalizedNameInput } from "@/components/common/LocalizedNameInput";
 import { LocalizedTextareaInput } from "@/components/common/LocalizedTextareaInput";
 import { FormInput } from "@/components/common/FormInput";
-import { AdminFormDialog } from "./AdminFormDialog";
+import { AdminFormDialog, type AdminFormDialogTrigger } from "./AdminFormDialog";
 import { IconPickerField } from "./IconPickerField";
 import { createServerEvent, updateServerEvent } from "@/lib/actions/admin-events";
 import { formInputClasses, formInputStyle } from "@/components/common/form-styles";
@@ -37,7 +37,7 @@ interface EventFormDialogProps {
   /** Omitted = create mode. */
   event?: EventFormValues;
   servers: EventServerOption[];
-  trigger: ReactNode;
+  trigger: AdminFormDialogTrigger;
 }
 
 const DEFAULT_ICON = "calendar";

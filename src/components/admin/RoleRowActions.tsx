@@ -3,9 +3,7 @@
 import { useTranslations } from "next-intl";
 import { Edit } from "lucide-react";
 import { RoleFormDialog, type RoleOption, type RowLevelRoleOption } from "@/components/admin/RoleFormDialog";
-import { buttonVariants } from "@/components/ui/button";
 import { deleteRole } from "@/lib/actions/admin-roles";
-import { cn } from "@/lib/utils";
 import { AdminRowActions } from "./AdminRowActions";
 import type { ResourceRole } from "@/config/resource-roles";
 import type { ResourceLabelMap } from "@/lib/resource-role-labels";
@@ -44,19 +42,12 @@ export function RoleRowActions({ lang, role, roleOptions, rowLevelRoleOptions, r
   // the schema) still allows renaming (RoleFormDialog hides everything else
   // for it); only deletion is unconditionally blocked, same as any other
   // built-in.
-  const editButton = (
-    <button
-      type="button"
-      aria-label={t("edit")}
-      title={t("edit")}
-      className={cn(
-        buttonVariants({ variant: "outline", size: "icon-sm" }),
-        "bg-card/70 hover:text-primary hover:border-primary/40"
-      )}
-    >
-      <Edit size={14} />
-    </button>
-  );
+  const editTrigger = {
+    icon: <Edit size={14} />,
+    label: t("edit"),
+    size: "icon-sm" as const,
+    className: "bg-card/70 hover:text-primary hover:border-primary/40",
+  };
 
   return (
     <AdminRowActions
@@ -72,7 +63,7 @@ export function RoleRowActions({ lang, role, roleOptions, rowLevelRoleOptions, r
             roleOptions={roleOptions}
             rowLevelRoleOptions={rowLevelRoleOptions}
             resourceLabels={resourceLabels}
-            trigger={editButton}
+            trigger={editTrigger}
           />
         ) : null
       }

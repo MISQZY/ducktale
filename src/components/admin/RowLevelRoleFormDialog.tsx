@@ -1,10 +1,10 @@
 "use client";
 
-import { useState, type ReactNode } from "react";
+import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { LocalizedNameInput } from "@/components/common/LocalizedNameInput";
 import { formInputClasses, formInputStyle } from "@/components/common/form-styles";
-import { AdminFormDialog } from "./AdminFormDialog";
+import { AdminFormDialog, type AdminFormDialogTrigger } from "./AdminFormDialog";
 import { SearchInput } from "@/components/ui/search-input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { ChevronDown } from "lucide-react";
@@ -28,7 +28,7 @@ interface RowLevelRoleFormDialogProps {
   rowLevelRole?: RowLevelRoleFormValues;
   /** Effective (override-or-default) display names per resource, from getResourceLabels() — used for the resource-role picker's labels. */
   resourceLabels: ResourceLabelMap;
-  trigger: ReactNode;
+  trigger: AdminFormDialogTrigger;
 }
 
 /** Same resource-role picker as RoleFormDialog's, minus the "include roles" picker — a RowLevelRole is a flat bundle of resource-roles, see RowLevelRole's doc comment in the schema. */

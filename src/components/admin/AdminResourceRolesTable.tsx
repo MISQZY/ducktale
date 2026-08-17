@@ -5,8 +5,6 @@ import { useTranslations } from "next-intl";
 import type { ColumnDef } from "@/components/ui/data-table";
 import { Edit, Eye, Pencil, Trash2 } from "lucide-react";
 import { DataTable } from "@/components/ui/data-table";
-import { buttonVariants } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
 import { ResourceRoleLabelFormDialog } from "@/components/admin/ResourceRoleLabelFormDialog";
 import { AccessMark } from "@/components/admin/ResourceRoleAccessGrid";
 import { RESOURCE_ROLE_ACTIONS, type Resource } from "@/config/resource-roles";
@@ -103,16 +101,12 @@ export function AdminResourceRolesTable({ lang, rows, canEdit }: AdminResourceRo
             resource={row.original.resource}
             currentNameRu={row.original.resourceNameRu}
             currentNameEn={row.original.resourceNameEn}
-            trigger={
-              <button
-                type="button"
-                aria-label={tr("editLabelTitle")}
-                title={tr("editLabelTitle")}
-                className={cn(buttonVariants({ variant: "outline", size: "icon-sm" }), "bg-card/70 hover:text-primary hover:border-primary/40")}
-              >
-                <Edit size={14} />
-              </button>
-            }
+            trigger={{
+              icon: <Edit size={14} />,
+              label: tr("editLabelTitle"),
+              size: "icon-sm",
+              className: "bg-card/70 hover:text-primary hover:border-primary/40",
+            }}
           />
         ) : null,
     },

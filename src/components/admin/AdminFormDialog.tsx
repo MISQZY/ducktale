@@ -5,12 +5,35 @@ import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter,
 } from "@/components/ui/dialog";
 import { FormButton } from "@/components/common/FormButton";
+import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+
+/**
+ * A `<Button>`/`<button>` element built by the caller and merged onto
+ * `DialogTrigger` via Radix's `asChild` used to be the API here — but that
+ * requires Radix's `Slot` to see *exactly* one valid React element, and for
+ * every "create" trigger (built in a Server Component page.tsx and passed
+ * down as a prop into this "use client" tree) that could transiently not
+ * hold under fast client-side navigation, throwing "Primitive.button failed
+ * to slot onto its children" — and forcing `asChild` off as a fallback
+ * produced a *different* DOM shape (a real nested `<button>`) than the
+ * `asChild`-merged one, which is exactly what a hydration mismatch is.
+ * Owning the one real `<button>` here instead — icon and label are plain
+ * data, always safe to render as children regardless of any of that timing,
+ * with nothing left to structurally branch on.
+ */
+export interface AdminFormDialogTrigger {
+  icon: ReactNode;
+  label: string;
+  /** "icon" (default — every "create" trigger) or "icon-sm" (row-action "edit" triggers, smaller to match the row height). */
+  size?: "icon" | "icon-sm";
+  className?: string;
+}
 
 interface AdminFormDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  trigger: ReactNode;
+  trigger: AdminFormDialogTrigger;
   title: string;
   error: string | null;
   submitting: boolean;
@@ -39,7 +62,14 @@ export function AdminFormDialog({
 }: AdminFormDialogProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogTrigger asChild>{trigger}</DialogTrigger>
+      <DialogTrigger
+        type="button"
+        title={trigger.label}
+        aria-label={trigger.label}
+        className={cn(buttonVariants({ variant: "outline", size: trigger.size ?? "icon" }), trigger.className)}
+      >
+        {trigger.icon}
+      </DialogTrigger>
       <DialogContent className={cn("sm:max-w-md", className)}>
         <DialogHeader>
           <DialogTitle 

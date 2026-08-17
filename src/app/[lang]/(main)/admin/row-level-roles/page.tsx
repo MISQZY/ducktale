@@ -7,7 +7,6 @@ import { getResourceLabels } from "@/lib/resource-role-labels";
 import { AdminPageShell } from "@/components/admin/AdminPageShell";
 import { RowLevelRoleFormDialog } from "@/components/admin/RowLevelRoleFormDialog";
 import { AdminRowLevelRolesTable, type AdminRowLevelRoleRow } from "@/components/admin/AdminRowLevelRolesTable";
-import { Button } from "@/components/ui/button";
 import type { LocalizedName } from "@/lib/i18n-name";
 
 /** Admin-composed bundles of resource-roles, pulled into a Role rather than assigned to a user directly — see RowLevelRole's doc comment in the schema. Small expected N, unpaginated like Ranks/Roles. */
@@ -47,11 +46,7 @@ export default async function AdminRowLevelRolesPage({
     <RowLevelRoleFormDialog
       lang={lang}
       resourceLabels={resourceLabels}
-      trigger={
-        <Button variant="outline" size="icon" title={tr("createTitle")} aria-label={tr("createTitle")}>
-          <Plus size={16} />
-        </Button>
-      }
+      trigger={{ icon: <Plus size={16} />, label: tr("createTitle") }}
     />
   ) : undefined;
 

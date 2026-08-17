@@ -3,9 +3,7 @@
 import { useTranslations } from "next-intl";
 import { Edit } from "lucide-react";
 import { BadgeFormDialog, type RoleOption } from "@/components/admin/BadgeFormDialog";
-import { buttonVariants } from "@/components/ui/button";
 import { deleteBadge } from "@/lib/actions/admin-badges";
-import { cn } from "@/lib/utils";
 import { AdminRowActions } from "./AdminRowActions";
 import { localizedName, type LocalizedName } from "@/lib/i18n-name";
 
@@ -32,19 +30,12 @@ export function BadgeRowActions({ lang, badge, roleOptions, canEdit, canDelete }
 
   if (!canEdit && !canDelete) return null;
 
-  const editButton = (
-    <button
-      type="button"
-      aria-label={t("edit")}
-      title={t("edit")}
-      className={cn(
-        buttonVariants({ variant: "outline", size: "icon-sm" }),
-        "bg-card/70 hover:text-primary hover:border-primary/40"
-      )}
-    >
-      <Edit size={14} />
-    </button>
-  );
+  const editTrigger = {
+    icon: <Edit size={14} />,
+    label: t("edit"),
+    size: "icon-sm" as const,
+    className: "bg-card/70 hover:text-primary hover:border-primary/40",
+  };
 
   return (
     <AdminRowActions
@@ -58,7 +49,7 @@ export function BadgeRowActions({ lang, badge, roleOptions, canEdit, canDelete }
             lang={lang}
             badge={badge}
             roleOptions={roleOptions}
-            trigger={editButton}
+            trigger={editTrigger}
           />
         ) : null
       }

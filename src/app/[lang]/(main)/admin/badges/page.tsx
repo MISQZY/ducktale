@@ -8,7 +8,6 @@ import { seedBuiltinBadges } from "@/lib/badges";
 import { AdminPageShell } from "@/components/admin/AdminPageShell";
 import { BadgeFormDialog } from "@/components/admin/BadgeFormDialog";
 import { AdminBadgesTable } from "@/components/admin/AdminBadgesTable";
-import { Button } from "@/components/ui/button";
 import { TablePagination } from "@/components/docs/paged-table/TablePagination";
 import { resolvePageSize } from "@/lib/pagination";
 import type { LocalizedName } from "@/lib/i18n-name";
@@ -92,11 +91,7 @@ export default async function AdminBadgesPage({
     <BadgeFormDialog
       lang={lang}
       roleOptions={roleOptionsTyped}
-      trigger={
-        <Button variant="outline" size="icon" title={tb("createTitle")} aria-label={tb("createTitle")}>
-          <Plus size={16} />
-        </Button>
-      }
+      trigger={{ icon: <Plus size={16} />, label: tb("createTitle") }}
     />
   ) : undefined;
 

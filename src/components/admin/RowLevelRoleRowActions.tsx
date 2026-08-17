@@ -3,9 +3,7 @@
 import { useTranslations } from "next-intl";
 import { Edit } from "lucide-react";
 import { RowLevelRoleFormDialog } from "@/components/admin/RowLevelRoleFormDialog";
-import { buttonVariants } from "@/components/ui/button";
 import { deleteRowLevelRole } from "@/lib/actions/admin-row-level-roles";
-import { cn } from "@/lib/utils";
 import { AdminRowActions } from "./AdminRowActions";
 import type { ResourceRole } from "@/config/resource-roles";
 import type { ResourceLabelMap } from "@/lib/resource-role-labels";
@@ -32,19 +30,12 @@ export function RowLevelRoleRowActions({ lang, rowLevelRole, resourceLabels, can
 
   const name = localizedName(rowLevelRole.name, lang);
 
-  const editButton = (
-    <button
-      type="button"
-      aria-label={t("edit")}
-      title={t("edit")}
-      className={cn(
-        buttonVariants({ variant: "outline", size: "icon-sm" }),
-        "bg-card/70 hover:text-primary hover:border-primary/40"
-      )}
-    >
-      <Edit size={14} />
-    </button>
-  );
+  const editTrigger = {
+    icon: <Edit size={14} />,
+    label: t("edit"),
+    size: "icon-sm" as const,
+    className: "bg-card/70 hover:text-primary hover:border-primary/40",
+  };
 
   return (
     <AdminRowActions
@@ -58,7 +49,7 @@ export function RowLevelRoleRowActions({ lang, rowLevelRole, resourceLabels, can
             lang={lang}
             rowLevelRole={rowLevelRole}
             resourceLabels={resourceLabels}
-            trigger={editButton}
+            trigger={editTrigger}
           />
         ) : null
       }

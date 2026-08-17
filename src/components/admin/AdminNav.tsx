@@ -1,8 +1,9 @@
 "use client";
 
+import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { ChevronDown } from "lucide-react";
-import { Link } from "@/i18n/navigation";
+import { useRouter } from "@/i18n/navigation";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -53,6 +54,26 @@ function itemClass(active: boolean): string {
  */
 export function AdminNav({ active, navAccess }: AdminNavProps) {
   const t = useTranslations("Admin");
+  const router = useRouter();
+
+  // Each group's open state is controlled (not a `DropdownMenuItem asChild`
+  // wrapping a `Link`) so a click can close the menu and *then* navigate on
+  // the next tick, instead of both happening in the same commit. Racing
+  // Radix's own close-triggered portal/scroll-lock teardown against the
+  // next admin page mounting a brand new DropdownMenu (every admin page
+  // renders its own AdminNav — there's no shared/persistent instance across
+  // navigation) was intermittently throwing a "Primitive.button failed to
+  // slot onto its children" error from a *different* dropdown-adjacent
+  // Radix Slot on the incoming page, but only via client-side Link
+  // navigation — never on a hard reload of the destination page directly.
+  const [usersOpen, setUsersOpen] = useState(false);
+  const [appealsOpen, setAppealsOpen] = useState(false);
+  const [contentOpen, setContentOpen] = useState(false);
+
+  function goTo(href: string, close: () => void) {
+    close();
+    setTimeout(() => router.push(href), 0);
+  }
 
   const usersItems: NavItem[] = ([
     { resource: "users", href: "/admin/users", label: t("navUsers") },
@@ -89,15 +110,19 @@ export function AdminNav({ active, navAccess }: AdminNavProps) {
     <div className="flex items-center justify-center mb-6">
       <div className="inline-flex items-center gap-1 rounded-full border border-primary/15 bg-card/50 p-1">
         {(usersItems.length > 0 || permissionsItems.length > 0) && (
-          <DropdownMenu>
+          <DropdownMenu open={usersOpen} onOpenChange={setUsersOpen}>
             <DropdownMenuTrigger className={groupTriggerClass(usersGroupActive)}>
               {t("navUsers")}
               <ChevronDown className="size-3 opacity-60" />
             </DropdownMenuTrigger>
             <DropdownMenuContent align="start">
               {usersItems.map((item) => (
-                <DropdownMenuItem key={item.resource} asChild className={itemClass(item.resource === active)}>
-                  <Link href={item.href}>{item.label}</Link>
+                <DropdownMenuItem
+                  key={item.resource}
+                  className={itemClass(item.resource === active)}
+                  onSelect={() => goTo(item.href, () => setUsersOpen(false))}
+                >
+                  {item.label}
                 </DropdownMenuItem>
               ))}
               {permissionsItems.length > 0 && (
@@ -107,8 +132,12 @@ export function AdminNav({ active, navAccess }: AdminNavProps) {
                   </DropdownMenuSubTrigger>
                   <DropdownMenuSubContent>
                     {permissionsItems.map((item) => (
-                      <DropdownMenuItem key={item.resource} asChild className={itemClass(item.resource === active)}>
-                        <Link href={item.href}>{item.label}</Link>
+                      <DropdownMenuItem
+                        key={item.resource}
+                        className={itemClass(item.resource === active)}
+                        onSelect={() => goTo(item.href, () => setUsersOpen(false))}
+                      >
+                        {item.label}
                       </DropdownMenuItem>
                     ))}
                   </DropdownMenuSubContent>
@@ -119,15 +148,19 @@ export function AdminNav({ active, navAccess }: AdminNavProps) {
         )}
 
         {appealsItems.length > 0 && (
-          <DropdownMenu>
+          <DropdownMenu open={appealsOpen} onOpenChange={setAppealsOpen}>
             <DropdownMenuTrigger className={groupTriggerClass(appealsGroupActive)}>
               {t("navAppeals")}
               <ChevronDown className="size-3 opacity-60" />
             </DropdownMenuTrigger>
             <DropdownMenuContent align="start">
               {appealsItems.map((item) => (
-                <DropdownMenuItem key={item.resource} asChild className={itemClass(item.resource === active)}>
-                  <Link href={item.href}>{item.label}</Link>
+                <DropdownMenuItem
+                  key={item.resource}
+                  className={itemClass(item.resource === active)}
+                  onSelect={() => goTo(item.href, () => setAppealsOpen(false))}
+                >
+                  {item.label}
                 </DropdownMenuItem>
               ))}
             </DropdownMenuContent>
@@ -135,15 +168,19 @@ export function AdminNav({ active, navAccess }: AdminNavProps) {
         )}
 
         {contentItems.length > 0 && (
-          <DropdownMenu>
+          <DropdownMenu open={contentOpen} onOpenChange={setContentOpen}>
             <DropdownMenuTrigger className={groupTriggerClass(contentGroupActive)}>
               {t("navContent")}
               <ChevronDown className="size-3 opacity-60" />
             </DropdownMenuTrigger>
             <DropdownMenuContent align="start">
               {contentItems.map((item) => (
-                <DropdownMenuItem key={item.resource} asChild className={itemClass(item.resource === active)}>
-                  <Link href={item.href}>{item.label}</Link>
+                <DropdownMenuItem
+                  key={item.resource}
+                  className={itemClass(item.resource === active)}
+                  onSelect={() => goTo(item.href, () => setContentOpen(false))}
+                >
+                  {item.label}
                 </DropdownMenuItem>
               ))}
             </DropdownMenuContent>

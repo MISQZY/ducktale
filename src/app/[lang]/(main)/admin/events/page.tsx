@@ -7,7 +7,6 @@ import { SERVERS } from "@/config/servers";
 import { AdminPageShell } from "@/components/admin/AdminPageShell";
 import { AdminEventsTable } from "@/components/admin/AdminEventsTable";
 import { EventFormDialog } from "@/components/admin/EventFormDialog";
-import { Button } from "@/components/ui/button";
 
 export default async function AdminEventsPage({
   params,
@@ -50,11 +49,7 @@ export default async function AdminEventsPage({
     <EventFormDialog
       lang={lang}
       servers={servers}
-      trigger={
-        <Button variant="outline" size="icon" title={t("addEvent")} aria-label={t("addEvent")}>
-          <Plus size={16} />
-        </Button>
-      }
+      trigger={{ icon: <Plus size={16} />, label: t("addEvent") }}
     />
   ) : undefined;
 

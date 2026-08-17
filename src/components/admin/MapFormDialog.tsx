@@ -1,10 +1,10 @@
 "use client";
 
-import { useState, type ReactNode } from "react";
+import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { LocalizedNameInput } from "@/components/common/LocalizedNameInput";
 import { FormInput } from "@/components/common/FormInput";
-import { AdminFormDialog } from "./AdminFormDialog";
+import { AdminFormDialog, type AdminFormDialogTrigger } from "./AdminFormDialog";
 import { createServerMap, updateServerMap } from "@/lib/actions/admin-maps";
 import { formInputClasses, formInputStyle } from "@/components/common/form-styles";
 import type { LocalizedName } from "@/lib/i18n-name";
@@ -27,7 +27,7 @@ interface MapFormDialogProps {
   /** Omitted = create mode. */
   map?: MapFormValues;
   servers: MapServerOption[];
-  trigger: ReactNode;
+  trigger: AdminFormDialogTrigger;
 }
 
 export function MapFormDialog({ lang, map, servers, trigger }: MapFormDialogProps) {
