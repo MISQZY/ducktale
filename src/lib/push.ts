@@ -46,6 +46,8 @@ const PUSH_RENDERERS: { [T in NotificationType]: PushRenderer<T> } = {
   badge_awarded: (payload) => ({ title: "Новый бейдж", body: `Вы получили «${localizedName(payload.badgeName, "ru")}»`, url: "/ru/profile" }),
   report_reply: (payload) => ({ title: "Новый ответ по репорту", body: `На «${payload.reportedName}»`, url: `/ru/reports/${payload.reportId}` }),
   report_status_changed: (payload) => ({ title: "Статус репорта изменён", body: `На «${payload.reportedName}»`, url: `/ru/reports/${payload.reportId}` }),
+  application_reply: (payload) => ({ title: "Новый ответ по заявке", body: `«${payload.applicantName}»`, url: `/ru/applications/${payload.applicationId}` }),
+  application_status_changed: (payload) => ({ title: "Статус заявки изменён", body: `«${payload.applicantName}»`, url: `/ru/applications/${payload.applicationId}` }),
 };
 
 // routing.ts's localePrefix is "always" (every URL needs a /ru or /en

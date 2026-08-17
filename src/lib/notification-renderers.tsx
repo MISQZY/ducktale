@@ -42,6 +42,14 @@ const RENDERERS: { [Type in NotificationType]: Renderer<Type> } = {
     message: t("reportStatusChanged", { reportedName: payload.reportedName }),
     href: `/reports/${payload.reportId}`,
   }),
+  application_reply: (payload, { t }) => ({
+    message: t("applicationReply", { applicantName: payload.applicantName }),
+    href: `/applications/${payload.applicationId}`,
+  }),
+  application_status_changed: (payload, { t }) => ({
+    message: t("applicationStatusChanged", { applicantName: payload.applicantName }),
+    href: `/applications/${payload.applicationId}`,
+  }),
 };
 
 /** null for a type with no registered renderer — e.g. an older client that hasn't shipped a newly-added type's renderer yet, or plain data corruption. Callers skip rendering that notification rather than crashing on it. */

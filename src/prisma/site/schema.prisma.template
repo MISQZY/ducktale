@@ -51,6 +51,7 @@ model User {
   roles               UserRole[]
   notifications       Notification[]
   reports             Report[]
+  applications        Application[]
   pushSubscriptions   PushSubscription[]
 
   @@map("{{PREFIX}}user")
@@ -523,10 +524,11 @@ enum MessageType {
 /// `isAdminReply` is ticket-only — drives TicketThread's staff/anonymization
 /// display — and stays false/unused on thread rows, which have no
 /// staff-vs-owner split (see isTicketStaff() in src/lib/tickets.ts).
-/// `reportId` extends the original ticketId-XOR-threadId contract (see this
-/// model's own doc comment above) to a three-way "exactly one of
-/// ticketId/threadId/reportId" — enforced the same way, at the application
-/// layer only (every write site sets exactly one of the three).
+/// `reportId`/`applicationId` extend the original ticketId-XOR-threadId
+/// contract (see this model's own doc comment above) to a four-way "exactly
+/// one of ticketId/threadId/reportId/applicationId" — enforced the same way,
+/// at the application layer only (every write site sets exactly one of the
+/// four).
 model Message {
   id           String   @id @default(uuid())
   ticketId     String?
@@ -535,6 +537,8 @@ model Message {
   thread       Thread?  @relation(fields: [threadId], references: [id], onDelete: Cascade)
   reportId     String?
   report       Report?  @relation(fields: [reportId], references: [id], onDelete: Cascade)
+  applicationId String?
+  application   Application? @relation(fields: [applicationId], references: [id], onDelete: Cascade)
   authorId     String
   author       User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
   type         MessageType @default(MESSAGE)
@@ -546,6 +550,7 @@ model Message {
   @@index([ticketId])
   @@index([threadId])
   @@index([reportId])
+  @@index([applicationId])
   @@map("{{PREFIX}}message")
 }
 
@@ -709,4 +714,53 @@ model Report {
   @@index([reporterId])
   @@index([status, updatedAt])
   @@map("{{PREFIX}}report")
+}
+
+enum ApplicationStatus {
+  OPEN
+  IN_REVIEW
+  ACCEPTED
+  REJECTED
+}
+
+/// A generic "заявка" (staff application, whitelist request, unban appeal,
+/// ...) filed by a site user from /account/applications/new — third sibling
+/// of Ticket/Report on the shared Message table (Message.applicationId, see
+/// that model's doc comment), same reasoning as Report reusing it instead of
+/// a bespoke conversation table.
+///
+/// Shape deliberately closer to Report than Ticket: a nickname (applicantName
+/// — free text, not an FK, same reasoning as Report.reportedName: the
+/// applicant's site account may not be linked to a Minecraft account yet) and
+/// a server (serverId — matches SERVERS[].id, src/config/servers.ts, no FK,
+/// same as ServerMap/ServerEvent's own serverId), but no category — an
+/// application isn't classified into a fixed catalog the way a report's
+/// violation type is. `description` is optional (unlike Report, where a
+/// description is required unless there's an attachment) — a bare
+/// nickname+server pair ("I'd like to apply for DuckBurg staff") is a
+/// complete, if terse, submission on its own.
+///
+/// Status semantics mirror Report exactly (see that model's doc comment for
+/// the full reasoning): OPEN -> IN_REVIEW automatically on the first staff
+/// reply; ACCEPTED/REJECTED are terminal, staff-only, reachable from any
+/// prior status, and reject new Messages until staff explicitly reopens.
+/// ACCEPTED plays the role Report's RESOLVED does — renamed since "an
+/// application was resolved" reads oddly next to "an application was
+/// accepted/rejected".
+model Application {
+  id            String            @id @default(uuid())
+  applicantId   String
+  applicant     User              @relation(fields: [applicantId], references: [id], onDelete: Cascade)
+  applicantName String            @db.VarChar(16)
+  // Validated at the app layer against SERVERS[].id (src/config/servers.ts).
+  serverId      String            @db.VarChar(64)
+  description   String?           @db.Text
+  status        ApplicationStatus @default(OPEN)
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+  messages      Message[]
+
+  @@index([applicantId])
+  @@index([status, updatedAt])
+  @@map("{{PREFIX}}application")
 }

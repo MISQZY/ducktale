@@ -69,6 +69,7 @@ export function AdminNav({ active, navAccess }: AdminNavProps) {
   const appealsItems: NavItem[] = ([
     { resource: "tickets", href: "/admin/tickets", label: t("navTickets") },
     { resource: "reports", href: "/admin/reports", label: t("navReports") },
+    { resource: "applications", href: "/admin/applications", label: t("navApplications") },
   ] as NavItem[]).filter((item) => navAccess[item.resource]);
 
   const contentItems: NavItem[] = ([

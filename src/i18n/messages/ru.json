@@ -429,7 +429,8 @@
       "supportSectionTitle": "Поддержка",
       "supportSectionDescription": "Есть вопрос или проблема? Откройте тикет — админ увидит его и ответит здесь же.",
       "myTickets": "Мои тикеты",
-      "myReports": "Мои репорты"
+      "myReports": "Мои репорты",
+      "myApplications": "Мои заявки"
     },
     "link": {
       "title": "Привязка Minecraft-аккаунта",
@@ -594,7 +595,8 @@
         "leaderboard": "Рейтинг",
         "profiles": "Публичные профили",
         "server-status": "Статус сервера",
-        "maps-page": "Карты"
+        "maps-page": "Карты",
+        "applications": "[Админ] Заявки"
       },
       "actionLabels": {
         "view": "Просмотр",
@@ -763,7 +765,32 @@
       "errors": {
         "generic": "Что-то пошло не так. Попробуйте позже."
       }
-    }
+    },
+    "applications": {
+      "title": "Заявки",
+      "description": "Заявки на сервер от игроков.",
+      "applicantColumn": "Объект обращения",
+      "submitterColumn": "Автор",
+      "serverColumn": "Сервер",
+      "statusColumn": "Статус",
+      "createdColumn": "Создана",
+      "statusAll": "Все",
+      "searchPlaceholder": "Найти по нику...",
+      "statuses": {
+        "OPEN": "Открыта",
+        "IN_REVIEW": "На рассмотрении",
+        "ACCEPTED": "Принят",
+        "REJECTED": "Отклонена"
+      },
+      "open": "Открыть",
+      "delete": "Удалить",
+      "confirmDelete": "Удалить заявку «{name}» безвозвратно? Вся переписка и вложения будут потеряны.",
+      "noResults": "Заявок пока нет.",
+      "errors": {
+        "generic": "Что-то пошло не так. Попробуйте позже."
+      }
+    },
+    "navApplications": "Заявки"
   },
   "Profile": {
     "pageTitle": "Профиль игрока {name}",
@@ -985,7 +1012,9 @@
     "pushEnable": "Включить push-уведомления",
     "pushDisable": "Отключить push-уведомления",
     "pushPermissionDenied": "Уведомления заблокированы в настройках браузера",
-    "pushError": "Не удалось включить push-уведомления. Попробуйте позже."
+    "pushError": "Не удалось включить push-уведомления. Попробуйте позже.",
+    "applicationReply": "Новый ответ по заявке «{applicantName}»",
+    "applicationStatusChanged": "Статус заявки «{applicantName}» изменён"
   },
   "Leaderboard": {
     "pageTitle": "Рейтинги",
@@ -1021,5 +1050,65 @@
       "network": "Не удалось связаться с сервером — проверьте интернет-соединение",
       "generic": "Не удалось загрузить данные — попробуйте ещё раз"
     }
+  },
+  "Applications": {
+    "myApplicationsTitle": "Мои заявки",
+    "myApplicationsDescription": "Заявки на сервер и переписка по ним.",
+    "newApplication": "Новая заявка",
+    "noApplications": "Заявок пока нет.",
+    "updatedAt": "Обновлено: {date}",
+    "prevPage": "← Назад",
+    "nextPage": "Вперёд →",
+    "pageInfo": "Стр. {page} из {totalPages}",
+    "statusAll": "Все",
+    "status": {
+      "OPEN": "Открыта",
+      "IN_REVIEW": "На рассмотрении",
+      "ACCEPTED": "Принят",
+      "REJECTED": "Отклонена"
+    },
+    "attachmentsLabel": "Прикрепить файл",
+    "newApplicationTitle": "Новая заявка",
+    "newApplicationDescription": "Укажите ник и сервер — описание и вложения по желанию.",
+    "applicantNameLabel": "Ваш ник",
+    "applicantNamePlaceholder": "Начните вводить ник...",
+    "applicantNameNoMatches": "Совпадений нет — можно ввести ник вручную",
+    "serverLabel": "Сервер",
+    "descriptionLabel": "Описание (необязательно)",
+    "descriptionPlaceholder": "Расскажите о себе или укажите детали заявки",
+    "submit": "Отправить заявку",
+    "submitting": "Отправка...",
+    "errors": {
+      "required": "Укажите ваш ник",
+      "generic": "Не удалось выполнить действие. Попробуйте позже.",
+      "invalidFileType": "Неподдерживаемый формат файла: {name}. Разрешены изображения, .txt, .log, .pdf, .zip, видео и .jar.",
+      "tooManyFiles": "Вложений должно быть не больше {max}."
+    },
+    "backToList": "← К списку заявок",
+    "applicantLabel": "Объект обращения:",
+    "submittedByLabel": "От кого:",
+    "applicantColumn": "Объект обращения",
+    "serverColumn": "Сервер",
+    "statusColumn": "Статус",
+    "updatedColumn": "Обновлена",
+    "createdColumn": "Создана",
+    "deleteApplication": "Удалить заявку",
+    "confirmDeleteApplication": "Удалить заявку «{name}» безвозвратно? Вся переписка и вложения будут потеряны. Это действие нельзя отменить.",
+    "setStatus": "Статус:",
+    "markInReview": "На рассмотрении",
+    "markAccepted": "Принят",
+    "markRejected": "Отклонена",
+    "reopenApplication": "Переоткрыть",
+    "staffLabel": "модерация",
+    "adminName": "Модератор",
+    "noMessages": "Сообщений пока нет.",
+    "closedHint": "Заявка закрыта для новых сообщений — дождитесь, пока модератор её переоткроет.",
+    "replyPlaceholder": "Ваше сообщение...",
+    "send": "Отправить",
+    "sending": "Отправка...",
+    "adminSearchPlaceholder": "Найти по нику...",
+    "messageCount": "{count, plural, one {# сообщение} few {# сообщения} many {# сообщений} other {# сообщений}}",
+    "attachmentCount": "{count, plural, one {# вложение} few {# вложения} many {# вложений} other {# вложений}}",
+    "imageLoadError": "Не удалось загрузить изображение"
   }
 }

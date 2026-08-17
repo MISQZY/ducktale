@@ -23,6 +23,10 @@ export interface NotificationPayloads {
   report_reply: { reportId: string; reportedName: string };
   /** Staff changed the status of `userId`'s own report (setReportStatus) — not fired when staff changes the status of their own report. */
   report_status_changed: { reportId: string; reportedName: string; status: "OPEN" | "IN_REVIEW" | "RESOLVED" | "REJECTED" };
+  /** Staff replied to `userId`'s own application (sendApplicationMessage's first staff reply on an OPEN application). */
+  application_reply: { applicationId: string; applicantName: string };
+  /** Staff changed the status of `userId`'s own application (setApplicationStatus) — not fired when staff changes the status of their own application. */
+  application_status_changed: { applicationId: string; applicantName: string; status: "OPEN" | "IN_REVIEW" | "ACCEPTED" | "REJECTED" };
 }
 
 export type NotificationType = keyof NotificationPayloads;

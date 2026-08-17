@@ -430,7 +430,8 @@
       "supportSectionTitle": "Support",
       "supportSectionDescription": "Have a question or an issue? Open a ticket — an admin will see it and reply right here.",
       "myTickets": "My tickets",
-      "myReports": "My reports"
+      "myReports": "My reports",
+      "myApplications": "My applications"
     },
     "link": {
       "title": "Link your Minecraft account",
@@ -595,7 +596,8 @@
         "leaderboard": "Leaderboard",
         "profiles": "Public profiles",
         "server-status": "Server status",
-        "maps-page": "Maps"
+        "maps-page": "Maps",
+        "applications": "[Admin] Applications"
       },
       "actionLabels": {
         "view": "View",
@@ -764,7 +766,32 @@
       "errors": {
         "generic": "Something went wrong. Please try again."
       }
-    }
+    },
+    "applications": {
+      "title": "Applications",
+      "description": "Server applications from players.",
+      "applicantColumn": "Subject",
+      "submitterColumn": "Submitted by",
+      "serverColumn": "Server",
+      "statusColumn": "Status",
+      "createdColumn": "Created",
+      "statusAll": "All",
+      "searchPlaceholder": "Search by nickname...",
+      "statuses": {
+        "OPEN": "Open",
+        "IN_REVIEW": "In review",
+        "ACCEPTED": "Accepted",
+        "REJECTED": "Rejected"
+      },
+      "open": "Open",
+      "delete": "Delete",
+      "confirmDelete": "Permanently delete the application \"{name}\"? All messages and attachments will be lost.",
+      "noResults": "No applications yet.",
+      "errors": {
+        "generic": "Something went wrong. Please try again."
+      }
+    },
+    "navApplications": "Applications"
   },
   "Profile": {
     "pageTitle": "Player profile {name}",
@@ -986,7 +1013,9 @@
     "pushEnable": "Enable push notifications",
     "pushDisable": "Disable push notifications",
     "pushPermissionDenied": "Notifications are blocked in browser settings",
-    "pushError": "Couldn't enable push notifications. Try again later."
+    "pushError": "Couldn't enable push notifications. Try again later.",
+    "applicationReply": "New reply on your application \"{applicantName}\"",
+    "applicationStatusChanged": "Status changed on your application \"{applicantName}\""
   },
   "Leaderboard": {
     "pageTitle": "Rankings",
@@ -1022,5 +1051,65 @@
       "network": "Couldn't reach the server — check your internet connection",
       "generic": "Something went wrong while loading — try again"
     }
+  },
+  "Applications": {
+    "myApplicationsTitle": "My applications",
+    "myApplicationsDescription": "Server applications you have submitted and their replies.",
+    "newApplication": "New application",
+    "noApplications": "No applications yet.",
+    "updatedAt": "Updated: {date}",
+    "prevPage": "← Back",
+    "nextPage": "Next →",
+    "pageInfo": "Page {page} of {totalPages}",
+    "statusAll": "All",
+    "status": {
+      "OPEN": "Open",
+      "IN_REVIEW": "In review",
+      "ACCEPTED": "Accepted",
+      "REJECTED": "Rejected"
+    },
+    "attachmentsLabel": "Attach file",
+    "newApplicationTitle": "New application",
+    "newApplicationDescription": "Name yourself and pick a server — description and attachments are optional.",
+    "applicantNameLabel": "Your nickname",
+    "applicantNamePlaceholder": "Start typing a nickname...",
+    "applicantNameNoMatches": "No matches — you can still type the nickname manually",
+    "serverLabel": "Server",
+    "descriptionLabel": "Description (optional)",
+    "descriptionPlaceholder": "Tell us about yourself or add details to your application",
+    "submit": "Send application",
+    "submitting": "Sending...",
+    "errors": {
+      "required": "Fill in your nickname",
+      "invalidFileType": "Unsupported file format: {name}. Allowed: images, .txt, .log, .pdf, .zip, video, and .jar.",
+      "tooManyFiles": "No more than {max} attachments allowed.",
+      "generic": "Couldn't complete that. Try again later."
+    },
+    "backToList": "← Back to applications",
+    "applicantLabel": "Subject:",
+    "submittedByLabel": "Filed by:",
+    "applicantColumn": "Subject",
+    "serverColumn": "Server",
+    "statusColumn": "Status",
+    "updatedColumn": "Updated",
+    "createdColumn": "Created",
+    "deleteApplication": "Delete application",
+    "confirmDeleteApplication": "Permanently delete the application \"{name}\"? All messages and attachments will be lost. This cannot be undone.",
+    "setStatus": "Status:",
+    "markInReview": "In review",
+    "markAccepted": "Accepted",
+    "markRejected": "Rejected",
+    "reopenApplication": "Reopen",
+    "staffLabel": "moderation",
+    "adminName": "Moderator",
+    "noMessages": "No messages yet.",
+    "closedHint": "This application is closed to new messages — wait for a moderator to reopen it.",
+    "replyPlaceholder": "Your message...",
+    "send": "Send",
+    "sending": "Sending...",
+    "adminSearchPlaceholder": "Search by nickname...",
+    "messageCount": "{count, plural, one {# message} other {# messages}}",
+    "attachmentCount": "{count, plural, one {# attachment} other {# attachments}}",
+    "imageLoadError": "Couldn't load image"
   }
 }
