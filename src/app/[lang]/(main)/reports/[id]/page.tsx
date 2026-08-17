@@ -139,6 +139,7 @@ export default async function ReportPage({
             backHref={backHref}
             initialStatus={report.status}
             initialMessages={messages.map((m) => ({ ...m, createdAt: m.createdAt.toISOString() }))}
+            viewerId={viewer.id}
             isStaff={isStaff}
             canEdit={canEdit}
             canDelete={canDelete}

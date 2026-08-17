@@ -6,7 +6,8 @@ import { Trash2, Lock, LockOpen, Paperclip, FileText, Download, X, Image as Imag
 import { cn } from "@/lib/utils";
 import { useRouter } from "@/i18n/navigation";
 import { sendTicketMessage, setTicketStatus, deleteTicket } from "@/lib/actions/tickets";
-import { TICKET_MESSAGE_MAX } from "@/lib/tickets";
+import { TICKET_MESSAGE_MAX, MAX_FILES_PER_MESSAGE } from "@/lib/tickets";
+import { isAllowedAttachmentExtension, ATTACHMENT_ACCEPT } from "@/config/attachments";
 import { FormButton } from "@/components/common/FormButton";
 import { FormTextarea } from "@/components/common/FormTextarea";
 import { buttonVariants } from "@/components/ui/button";
@@ -34,6 +35,7 @@ interface TicketMessageData {
   body: string;
   isAdminReply: boolean;
   createdAt: string;
+  authorId: string;
   authorNickname: string;
   authorSkinUrl: string | null;
   attachments?: AttachmentData[];
@@ -45,7 +47,9 @@ interface TicketThreadProps {
   subject: string;
   initialStatus: TicketStatus;
   initialMessages: TicketMessageData[];
-  /** Whether the current viewer is ticket staff (isAdmin, or holds tickets-view/tickets-edit) — controls which side of the thread their own messages render on and whether replies show as anonymized "staff". */
+  /** The current viewer's own User.id — which side of the thread a message renders on compares against this directly (m.authorId === viewerId), not staff-vs-owner grouping, so it stays correct even with multiple staff replying to the same ticket. */
+  viewerId: string;
+  /** Whether the current viewer is ticket staff (isAdmin, or holds tickets-view/tickets-edit) — controls only the anonymization of *other* staff members' replies and the "staff" label suffix, not which side a message renders on. */
   isStaff: boolean;
   /** Narrower than isStaff — tickets-edit (or isAdmin) only. Controls the close/reopen control. */
   canEdit: boolean;
@@ -198,7 +202,7 @@ function TicketEventMarker({ event, t, lang, isStaff }: { event: TicketMessageDa
 
 /* ---------- Main component ---------- */
 
-export function TicketThread({ lang, ticketId, subject, initialStatus, initialMessages, isStaff, canEdit, canDelete, backHref }: TicketThreadProps) {
+export function TicketThread({ lang, ticketId, subject, initialStatus, initialMessages, viewerId, isStaff, canEdit, canDelete, backHref }: TicketThreadProps) {
   const t = useTranslations("Tickets");
   const confirm = useConfirm();
   const router = useRouter();
@@ -209,7 +213,6 @@ export function TicketThread({ lang, ticketId, subject, initialStatus, initialMe
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
   const bottomRef = useRef<HTMLDivElement>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
   // A ref (not derived from `messages` state) so `poll`'s own identity stays
   // stable across polls — depending on `messages` directly would give
   // usePolling a new callback (and so a torn-down/recreated interval) every
@@ -320,9 +323,12 @@ export function TicketThread({ lang, ticketId, subject, initialStatus, initialMe
               if (m.type !== "MESSAGE") {
                 return <TicketEventMarker key={m.id} event={m} t={t} lang={lang} isStaff={isStaff} />;
               }
-              // Two-sided thread: "staff" (any admin reply) on one side, the
-              // ticket owner on the other.
-              const alignRight = isStaff ? m.isAdminReply : !m.isAdminReply;
+              // Which side of the thread this message renders on — the
+              // viewer's own messages, specifically, not "staff" as a group.
+              // With more than one staff member replying to the same ticket,
+              // grouping by role would put a colleague's reply on "your"
+              // side even though you didn't write it.
+              const alignRight = m.authorId === viewerId;
               // A non-staff viewer sees which staff member replied only as
               // "Administrator" (t("adminName")) — no name, no head, no
               // profile link, unlike every other message — so that case
@@ -422,29 +428,42 @@ export function TicketThread({ lang, ticketId, subject, initialStatus, initialMe
                 <Trash2 size={14} />
               </button>
             )}
+            {/* <label htmlFor> instead of a hidden input triggered via
+                ref.click() — opens the native file dialog through plain
+                browser behavior, not a JS-simulated click. */}
+            <label
+              htmlFor="ticket-thread-files"
+              className={cn(
+                buttonVariants({ variant: "outline", size: "sm" }),
+                "gap-1.5 text-[0.7rem] bg-card/50 hover:bg-card/80 cursor-pointer"
+              )}
+            >
+              <Paperclip size={13} />
+              {t("attachmentsLabel")}
+            </label>
             <input
-              ref={fileInputRef}
+              id="ticket-thread-files"
               type="file"
               multiple
+              accept={ATTACHMENT_ACCEPT}
               onChange={(e) => {
                 if (e.target.files) {
-                  setFiles((prev) => [...prev, ...Array.from(e.target.files!)]);
+                  const picked = Array.from(e.target.files);
+                  const invalid = picked.filter((f) => !isAllowedAttachmentExtension(f.name));
+                  if (invalid.length > 0) {
+                    setError(t("errors.invalidFileType", { name: invalid.map((f) => f.name).join(", ") }));
+                  }
+                  const valid = picked.filter((f) => isAllowedAttachmentExtension(f.name));
+                  if (files.length + valid.length > MAX_FILES_PER_MESSAGE) {
+                    setError(t("errors.tooManyFiles", { max: MAX_FILES_PER_MESSAGE }));
+                  } else if (valid.length > 0) {
+                    setFiles((prev) => [...prev, ...valid]);
+                  }
                   e.target.value = "";
                 }
               }}
               className="hidden"
             />
-            <button
-              type="button"
-              onClick={() => fileInputRef.current?.click()}
-              className={cn(
-                buttonVariants({ variant: "outline", size: "sm" }),
-                "gap-1.5 text-[0.7rem] bg-card/50 hover:bg-card/80"
-              )}
-            >
-              <Paperclip size={13} />
-              {t("attachmentsLabel")}
-            </button>
           </div>
 
           <FormButton type="submit" disabled={isPending || (!body.trim() && files.length === 0)} className="px-6 py-2 text-xs">

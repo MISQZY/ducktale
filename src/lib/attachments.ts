@@ -4,26 +4,16 @@ import { createWriteStream, existsSync } from "fs";
 import { pipeline } from "stream/promises";
 import { Readable } from "stream";
 import { randomUUID } from "crypto";
+import { getFileExtension, isAllowedAttachmentExtension } from "@/config/attachments";
 
 const UPLOADS_DIR = join(process.cwd(), "uploads", "attachments");
 
-// Deliberately excludes anything a browser might execute if it were ever
-// served back inline (html, svg, js, ...) — the download route also forces
-// Content-Disposition: attachment as the primary defense, but this list is
-// what keeps that kind of content off disk in the first place.
-const ALLOWED_EXTENSIONS = new Set([
-  "png", "jpg", "jpeg", "gif", "webp",
-  "pdf", "txt", "log", "zip",
-  "mp4", "webm", "mov",
-]);
-
 export async function saveAttachment(file: File): Promise<{ filename: string; size: number; mimeType: string; path: string }> {
-  // Only the substring after the last dot, stripped to a bare alphanumeric
-  // token — this can never come out containing "/" or ".." regardless of
-  // what's in the original (client-supplied) filename, so it's safe to
+  // getFileExtension never returns anything containing "/" or ".." regardless
+  // of what's in the original (client-supplied) filename, so it's safe to
   // build a filesystem path from directly.
-  const rawExt = (file.name.split(".").pop() ?? "").toLowerCase().replace(/[^a-z0-9]/g, "");
-  if (!rawExt || !ALLOWED_EXTENSIONS.has(rawExt)) {
+  const rawExt = getFileExtension(file.name);
+  if (!isAllowedAttachmentExtension(file.name)) {
     throw new Error(`File type not allowed: ${file.name}`);
   }
 

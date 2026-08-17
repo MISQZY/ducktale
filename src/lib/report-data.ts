@@ -13,6 +13,8 @@ export interface ReportMessageDTO {
   body: string;
   isAdminReply: boolean;
   createdAt: Date;
+  /** Which side of the thread a message renders on (ReportThread.tsx compares this against the current viewer's own id) — deliberately not staff-vs-reporter grouping, so replying-among-multiple-staff still shows each message on whichever side its actual author is looking from. Not anonymized like authorSkinUrl below: it's never displayed, only compared. */
+  authorId: string;
   authorNickname: string;
   authorSkinUrl: string | null;
   attachments: ReportAttachmentDTO[];
@@ -48,6 +50,7 @@ export async function resolveReportMessages(
       body: true,
       isAdminReply: true,
       createdAt: true,
+      authorId: true,
       author: {
         select: {
           nickname: true,
@@ -69,6 +72,7 @@ export async function resolveReportMessages(
     body: m.body,
     isAdminReply: m.isAdminReply,
     createdAt: m.createdAt,
+    authorId: m.authorId,
     authorNickname: m.author.nickname,
     authorSkinUrl:
       m.isAdminReply && !viewerIsStaff

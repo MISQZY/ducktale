@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState, type FormEvent } from "react";
+import { useState, type FormEvent } from "react";
 import { useTranslations } from "next-intl";
 import { useRouter } from "@/i18n/navigation";
 import { Paperclip, X } from "lucide-react";
@@ -11,12 +11,12 @@ import { FormButton } from "@/components/common/FormButton";
 import { buttonVariants } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { createTicket } from "@/lib/actions/tickets";
-import { TICKET_SUBJECT_MAX, TICKET_MESSAGE_MAX } from "@/lib/tickets";
+import { TICKET_SUBJECT_MAX, TICKET_MESSAGE_MAX, MAX_FILES_PER_MESSAGE } from "@/lib/tickets";
+import { isAllowedAttachmentExtension, ATTACHMENT_ACCEPT } from "@/config/attachments";
 
 export function NewTicketForm({ lang }: { lang: string }) {
   const t = useTranslations("Tickets");
   const router = useRouter();
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [subject, setSubject] = useState("");
   const [message, setMessage] = useState("");
@@ -28,7 +28,7 @@ export function NewTicketForm({ lang }: { lang: string }) {
     e.preventDefault();
     setError(null);
 
-    if (!subject.trim() || !message.trim()) {
+    if (!subject.trim() || (!message.trim() && files.length === 0)) {
       setError(t("errors.required"));
       return;
     }
@@ -72,33 +72,47 @@ export function NewTicketForm({ lang }: { lang: string }) {
         onChange={(e) => setMessage(e.target.value)}
         maxLength={TICKET_MESSAGE_MAX}
         rows={6}
-        required
+        required={files.length === 0}
       />
 
       <div className="flex flex-col gap-2">
+        {/* <label htmlFor> instead of a hidden input triggered via ref.click()
+            — opens the native file dialog through plain browser behavior,
+            not a JS-simulated click, so it can't be affected by a ref not
+            being attached yet or any other timing quirk. */}
+        <label
+          htmlFor="new-ticket-files"
+          className={cn(
+            buttonVariants({ variant: "outline", size: "sm" }),
+            "gap-1.5 text-xs bg-card/50 hover:bg-card/80 self-start cursor-pointer"
+          )}
+        >
+          <Paperclip size={13} />
+          {t("attachmentsLabel")}
+        </label>
         <input
-          ref={fileInputRef}
+          id="new-ticket-files"
           type="file"
           multiple
+          accept={ATTACHMENT_ACCEPT}
           onChange={(e) => {
             if (e.target.files) {
-              setFiles((prev) => [...prev, ...Array.from(e.target.files!)]);
+              const picked = Array.from(e.target.files);
+              const invalid = picked.filter((f) => !isAllowedAttachmentExtension(f.name));
+              if (invalid.length > 0) {
+                setError(t("errors.invalidFileType", { name: invalid.map((f) => f.name).join(", ") }));
+              }
+              const valid = picked.filter((f) => isAllowedAttachmentExtension(f.name));
+              if (files.length + valid.length > MAX_FILES_PER_MESSAGE) {
+                setError(t("errors.tooManyFiles", { max: MAX_FILES_PER_MESSAGE }));
+              } else if (valid.length > 0) {
+                setFiles((prev) => [...prev, ...valid]);
+              }
               e.target.value = "";
             }
           }}
           className="hidden"
         />
-        <button
-          type="button"
-          onClick={() => fileInputRef.current?.click()}
-          className={cn(
-            buttonVariants({ variant: "outline", size: "sm" }),
-            "gap-1.5 text-xs bg-card/50 hover:bg-card/80 self-start"
-          )}
-        >
-          <Paperclip size={13} />
-          {t("attachmentsLabel")}
-        </button>
 
         {files.length > 0 && (
           <div className="flex flex-wrap gap-1.5">

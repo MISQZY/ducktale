@@ -829,7 +829,7 @@
       "ANSWERED": "Answered",
       "CLOSED": "Closed"
     },
-    "attachmentsLabel": "Attachments",
+    "attachmentsLabel": "Attach file",
     "statusAll": "All",
     "newTicketTitle": "New ticket",
     "newTicketDescription": "Describe your question — an admin will reply right here.",
@@ -841,6 +841,8 @@
     "submitting": "Submitting...",
     "errors": {
       "required": "Fill in a subject and message",
+      "invalidFileType": "Unsupported file format: {name}. Allowed: images, .txt, .log, .pdf, .zip, video, and .jar.",
+      "tooManyFiles": "No more than {max} attachments allowed.",
       "generic": "Couldn't complete that. Try again later."
     },
     "backToList": "← Back to tickets",
@@ -925,7 +927,7 @@
       "scam": "Scam",
       "other": "Other"
     },
-    "attachmentsLabel": "Evidence",
+    "attachmentsLabel": "Attach file",
     "newReportTitle": "New report",
     "newReportDescription": "Name the offender, pick a category, and describe what happened — attach screenshots or video as evidence.",
     "reportedNameLabel": "Offender's nickname",
@@ -938,6 +940,8 @@
     "submitting": "Sending...",
     "errors": {
       "required": "Fill in the offender's nickname and describe the violation",
+      "invalidFileType": "Unsupported file format: {name}. Allowed: images, .txt, .log, .pdf, .zip, video, and .jar.",
+      "tooManyFiles": "No more than {max} attachments allowed.",
       "generic": "Couldn't complete that. Try again later."
     },
     "backToList": "← Back to reports",

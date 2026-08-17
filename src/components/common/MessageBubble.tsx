@@ -28,11 +28,38 @@ export function MessageBubble({ alignRight, lang, createdAt, body, header, child
   return (
     <BubbleGroup className={alignRight ? "items-end" : "items-start"}>
       {header}
-      <Bubble align={alignRight ? "end" : "start"} variant={alignRight ? "default" : "secondary"}>
-        <BubbleContent className="whitespace-pre-wrap break-words">
-          {body}
-        </BubbleContent>
-      </Bubble>
+      {/* Skipped entirely for a file-only message (empty body — see
+          TicketThread/ReportThread's own submitMessage guard, which allows
+          sending with no text as long as there's an attachment) — an empty
+          Bubble still renders its own padding and BubbleGroup's gap-2 before
+          the next child, leaving a blank padded pill above the attachment
+          for text that was never there. */}
+      {body && (
+        <Bubble align={alignRight ? "end" : "start"}>
+          {/* Explicit gold/gray here (not the generic default/secondary
+              bubbleVariants) so "own message" reads the same unmistakable
+              way everywhere this component is used — TicketThread,
+              ReportThread, ThreadView — regardless of how --primary/
+              --secondary happen to be tuned for the rest of the site.
+              Bubble (no `variant` passed) still falls back to cva's own
+              "default" variant, which unconditionally paints every
+              BubbleContent gold via `*:data-[slot=bubble-content]:bg-primary`
+              — a plain class on the element turned out NOT to reliably beat
+              that in the generated stylesheet (both sides showing gold was
+              exactly this: whichever rule happened to come later in the
+              build won, not whichever was "more specific"). `!` forces these
+              two to win unconditionally instead of hoping for favorable
+              cascade order. */}
+          <BubbleContent
+            className={cn(
+              "whitespace-pre-wrap break-words",
+              alignRight ? "!bg-gold-400 !text-stone-950" : "!bg-stone-600 !text-foreground"
+            )}
+          >
+            {body}
+          </BubbleContent>
+        </Bubble>
+      )}
       {children}
       <span className={cn("text-[0.6rem] text-foreground/30 px-1", alignRight && "self-end")}>
         {new Date(createdAt).toLocaleString(lang === "ru" ? "ru-RU" : "en-US")}

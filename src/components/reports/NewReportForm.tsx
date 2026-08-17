@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState, type FormEvent } from "react";
+import { useState, type FormEvent } from "react";
 import { useTranslations } from "next-intl";
 import { useRouter } from "@/i18n/navigation";
 import { Paperclip, X } from "lucide-react";
@@ -12,14 +12,14 @@ import { formInputClasses, formInputStyle } from "@/components/common/form-style
 import { buttonVariants } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { createReport } from "@/lib/actions/reports";
-import { REPORT_DESCRIPTION_MAX, REPORTED_NAME_MAX } from "@/lib/reports";
+import { REPORT_DESCRIPTION_MAX, REPORTED_NAME_MAX, MAX_FILES_PER_MESSAGE } from "@/lib/reports";
 import { REPORT_CATEGORIES } from "@/config/reports";
 import type { ReportCategory } from "@/config/reports";
+import { isAllowedAttachmentExtension, ATTACHMENT_ACCEPT } from "@/config/attachments";
 
 export function NewReportForm({ lang }: { lang: string }) {
   const t = useTranslations("Reports");
   const router = useRouter();
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [reportedName, setReportedName] = useState("");
   const [category, setCategory] = useState<ReportCategory>(REPORT_CATEGORIES[0]);
@@ -32,7 +32,7 @@ export function NewReportForm({ lang }: { lang: string }) {
     e.preventDefault();
     setError(null);
 
-    if (!reportedName.trim() || !description.trim()) {
+    if (!reportedName.trim() || (!description.trim() && files.length === 0)) {
       setError(t("errors.required"));
       return;
     }
@@ -98,33 +98,47 @@ export function NewReportForm({ lang }: { lang: string }) {
         onChange={(e) => setDescription(e.target.value)}
         maxLength={REPORT_DESCRIPTION_MAX}
         rows={6}
-        required
+        required={files.length === 0}
       />
 
       <div className="flex flex-col gap-2">
+        {/* <label htmlFor> instead of a hidden input triggered via ref.click()
+            — opens the native file dialog through plain browser behavior,
+            not a JS-simulated click, so it can't be affected by a ref not
+            being attached yet or any other timing quirk. */}
+        <label
+          htmlFor="new-report-files"
+          className={cn(
+            buttonVariants({ variant: "outline", size: "sm" }),
+            "gap-1.5 text-xs bg-card/50 hover:bg-card/80 self-start cursor-pointer"
+          )}
+        >
+          <Paperclip size={13} />
+          {t("attachmentsLabel")}
+        </label>
         <input
-          ref={fileInputRef}
+          id="new-report-files"
           type="file"
           multiple
+          accept={ATTACHMENT_ACCEPT}
           onChange={(e) => {
             if (e.target.files) {
-              setFiles((prev) => [...prev, ...Array.from(e.target.files!)]);
+              const picked = Array.from(e.target.files);
+              const invalid = picked.filter((f) => !isAllowedAttachmentExtension(f.name));
+              if (invalid.length > 0) {
+                setError(t("errors.invalidFileType", { name: invalid.map((f) => f.name).join(", ") }));
+              }
+              const valid = picked.filter((f) => isAllowedAttachmentExtension(f.name));
+              if (files.length + valid.length > MAX_FILES_PER_MESSAGE) {
+                setError(t("errors.tooManyFiles", { max: MAX_FILES_PER_MESSAGE }));
+              } else if (valid.length > 0) {
+                setFiles((prev) => [...prev, ...valid]);
+              }
               e.target.value = "";
             }
           }}
           className="hidden"
         />
-        <button
-          type="button"
-          onClick={() => fileInputRef.current?.click()}
-          className={cn(
-            buttonVariants({ variant: "outline", size: "sm" }),
-            "gap-1.5 text-xs bg-card/50 hover:bg-card/80 self-start"
-          )}
-        >
-          <Paperclip size={13} />
-          {t("attachmentsLabel")}
-        </button>
 
         {files.length > 0 && (
           <div className="flex flex-wrap gap-1.5">

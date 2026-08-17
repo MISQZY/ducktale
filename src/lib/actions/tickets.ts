@@ -31,12 +31,17 @@ export async function createTicket(formData: FormData): Promise<CreateTicketResu
   const subject = formData.get("subject") as string;
   const message = formData.get("message") as string;
   const files = formData.getAll("files") as File[];
+  const validFiles = files.filter(f => f.size > 0);
 
   const cleanSubject = (subject || "").trim().slice(0, TICKET_SUBJECT_MAX);
+  // Message is only required when there's no attachment to carry the report
+  // instead — an attachment-only ticket ("here's a screenshot of the bug")
+  // is a legitimate submission, same reasoning as sendTicketMessage below.
   const cleanMessage = (message || "").trim().slice(0, TICKET_MESSAGE_MAX);
-  if (!cleanSubject || !cleanMessage) throw new Error("Subject and message are required");
+  if (!cleanSubject || (!cleanMessage && validFiles.length === 0)) {
+    throw new Error("Subject and message are required");
+  }
 
-  const validFiles = files.filter(f => f.size > 0);
   if (validFiles.length > MAX_FILES_PER_MESSAGE) {
     throw new Error(`Too many attachments, max ${MAX_FILES_PER_MESSAGE} per message`);
   }
@@ -91,6 +96,7 @@ export async function sendTicketMessage(formData: FormData): Promise<void> {
   const ticketId = formData.get("ticketId") as string;
   const body = formData.get("body") as string;
   const files = formData.getAll("files") as File[];
+  const validFiles = files.filter(f => f.size > 0);
 
   const ticket = await siteDb.ticket.findUnique({
     where: { id: ticketId },
@@ -98,10 +104,11 @@ export async function sendTicketMessage(formData: FormData): Promise<void> {
   });
   if (!ticket || !canViewTicket(viewer, ticket)) throw new Error("Ticket not found");
 
+  // Empty body is fine as long as there's an attachment — matches
+  // TicketThread.tsx's own submitMessage guard (!trimmed && files.length === 0).
   const cleanBody = (body || "").trim().slice(0, TICKET_MESSAGE_MAX);
-  if (!cleanBody) throw new Error("Message is required");
+  if (!cleanBody && validFiles.length === 0) throw new Error("Message is required");
 
-  const validFiles = files.filter(f => f.size > 0);
   if (validFiles.length > MAX_FILES_PER_MESSAGE) {
     throw new Error(`Too many attachments, max ${MAX_FILES_PER_MESSAGE} per message`);
   }

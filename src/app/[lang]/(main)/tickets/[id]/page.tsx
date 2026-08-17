@@ -149,6 +149,7 @@ export default async function TicketPage({
               backHref={backHref}
               initialStatus={ticket.status}
               initialMessages={messages.map((m) => ({ ...m, createdAt: m.createdAt.toISOString() }))}
+              viewerId={viewer.id}
               isStaff={isStaff}
               canEdit={canEdit}
               canDelete={canDelete}

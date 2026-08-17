@@ -14,6 +14,8 @@ export interface TicketMessageDTO {
   body: string;
   isAdminReply: boolean;
   createdAt: Date;
+  /** Which side of the thread a message renders on (TicketThread.tsx compares this against the current viewer's own id) — deliberately not staff-vs-owner grouping, so replying-among-multiple-staff still shows each message on whichever side its actual author is looking from. Not anonymized like authorSkinUrl below: it's never displayed, only compared. */
+  authorId: string;
   authorNickname: string;
   authorSkinUrl: string | null;
   attachments: TicketAttachmentDTO[];
@@ -60,6 +62,7 @@ export async function resolveTicketMessages(
       body: true,
       isAdminReply: true,
       createdAt: true,
+      authorId: true,
       author: {
         select: {
           nickname: true,
@@ -82,6 +85,7 @@ export async function resolveTicketMessages(
     body: m.body,
     isAdminReply: m.isAdminReply,
     createdAt: m.createdAt,
+    authorId: m.authorId,
     authorNickname: m.author.nickname,
     authorSkinUrl:
       m.isAdminReply && !viewerIsStaff

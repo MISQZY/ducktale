@@ -6,7 +6,8 @@ import { Trash2, Paperclip, FileText, Download, X, Image as ImageIcon, ImageOff 
 import { cn } from "@/lib/utils";
 import { useRouter } from "@/i18n/navigation";
 import { sendReportMessage, setReportStatus, deleteReport } from "@/lib/actions/reports";
-import { REPORT_MESSAGE_MAX } from "@/lib/reports";
+import { REPORT_MESSAGE_MAX, MAX_FILES_PER_MESSAGE } from "@/lib/reports";
+import { isAllowedAttachmentExtension, ATTACHMENT_ACCEPT } from "@/config/attachments";
 import { FormButton } from "@/components/common/FormButton";
 import { FormTextarea } from "@/components/common/FormTextarea";
 import { formInputClasses, formInputStyle } from "@/components/common/form-styles";
@@ -33,6 +34,7 @@ interface ReportMessageData {
   body: string;
   isAdminReply: boolean;
   createdAt: string;
+  authorId: string;
   authorNickname: string;
   authorSkinUrl: string | null;
   attachments?: AttachmentData[];
@@ -44,7 +46,9 @@ interface ReportThreadProps {
   reportedName: string;
   initialStatus: ReportStatus;
   initialMessages: ReportMessageData[];
-  /** Whether the current viewer is report staff (isAdmin, or holds reports-view) — controls which side of the thread their own messages render on and whether replies show anonymized. */
+  /** The current viewer's own User.id — which side of the thread a message renders on compares against this directly (m.authorId === viewerId), not staff-vs-reporter grouping, so it stays correct even with multiple staff replying to the same report. */
+  viewerId: string;
+  /** Whether the current viewer is report staff (isAdmin, or holds reports-view) — controls only the anonymization of *other* staff members' replies, not which side a message renders on. */
   isStaff: boolean;
   /** Narrower than isStaff — reports-edit specifically. Controls the status controls. */
   canEdit: boolean;
@@ -181,7 +185,7 @@ function SelectedFileChip({ file, onRemove }: { file: File; onRemove: () => void
 
 /* ---------- Main component ---------- */
 
-export function ReportThread({ lang, reportId, reportedName, initialStatus, initialMessages, isStaff, canEdit, canDelete, backHref }: ReportThreadProps) {
+export function ReportThread({ lang, reportId, reportedName, initialStatus, initialMessages, viewerId, isStaff, canEdit, canDelete, backHref }: ReportThreadProps) {
   const t = useTranslations("Reports");
   const confirm = useConfirm();
   const router = useRouter();
@@ -192,7 +196,6 @@ export function ReportThread({ lang, reportId, reportedName, initialStatus, init
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
   const bottomRef = useRef<HTMLDivElement>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
   const latestCreatedAtRef = useRef<string | undefined>(initialMessages.at(-1)?.createdAt);
 
   const isTerminal = TERMINAL_STATUSES.includes(status);
@@ -312,9 +315,12 @@ export function ReportThread({ lang, reportId, reportedName, initialStatus, init
             <p className="text-center text-foreground/40 text-sm py-6">{t("noMessages")}</p>
           ) : (
             messages.map((m) => {
-              // Two-sided thread: "staff" (any admin reply) on one side, the
-              // report's own reporter on the other.
-              const alignRight = isStaff ? m.isAdminReply : !m.isAdminReply;
+              // Which side of the thread this message renders on — the
+              // viewer's own messages, specifically, not "staff" as a group.
+              // With more than one staff member replying to the same report,
+              // grouping by role would put a colleague's reply on "your"
+              // side even though you didn't write it.
+              const alignRight = m.authorId === viewerId;
               const anonymized = m.isAdminReply && !isStaff;
               return (
                 <MessageBubble
@@ -394,31 +400,47 @@ export function ReportThread({ lang, reportId, reportedName, initialStatus, init
                 <Trash2 size={14} />
               </button>
             )}
+            {/* <label htmlFor> instead of a hidden input triggered via
+                ref.click() — opens the native file dialog through plain
+                browser behavior, not a JS-simulated click. A <label> has no
+                `disabled` of its own, but a click on it targeting a disabled
+                input is a no-op per spec (browsers don't open the dialog) —
+                pointer-events-none/opacity backs that up visually. */}
+            <label
+              htmlFor="report-thread-files"
+              className={cn(
+                buttonVariants({ variant: "outline", size: "sm" }),
+                "gap-1.5 text-[0.7rem] bg-card/50 hover:bg-card/80",
+                isTerminal ? "opacity-50 pointer-events-none" : "cursor-pointer"
+              )}
+            >
+              <Paperclip size={13} />
+              {t("attachmentsLabel")}
+            </label>
             <input
-              ref={fileInputRef}
+              id="report-thread-files"
               type="file"
               multiple
+              accept={ATTACHMENT_ACCEPT}
               disabled={isTerminal}
               onChange={(e) => {
                 if (e.target.files) {
-                  setFiles((prev) => [...prev, ...Array.from(e.target.files!)]);
+                  const picked = Array.from(e.target.files);
+                  const invalid = picked.filter((f) => !isAllowedAttachmentExtension(f.name));
+                  if (invalid.length > 0) {
+                    setError(t("errors.invalidFileType", { name: invalid.map((f) => f.name).join(", ") }));
+                  }
+                  const valid = picked.filter((f) => isAllowedAttachmentExtension(f.name));
+                  if (files.length + valid.length > MAX_FILES_PER_MESSAGE) {
+                    setError(t("errors.tooManyFiles", { max: MAX_FILES_PER_MESSAGE }));
+                  } else if (valid.length > 0) {
+                    setFiles((prev) => [...prev, ...valid]);
+                  }
                   e.target.value = "";
                 }
               }}
               className="hidden"
             />
-            <button
-              type="button"
-              disabled={isTerminal}
-              onClick={() => fileInputRef.current?.click()}
-              className={cn(
-                buttonVariants({ variant: "outline", size: "sm" }),
-                "gap-1.5 text-[0.7rem] bg-card/50 hover:bg-card/80"
-              )}
-            >
-              <Paperclip size={13} />
-              {t("attachmentsLabel")}
-            </button>
           </div>
 
           <FormButton type="submit" disabled={isPending || isTerminal || (!body.trim() && files.length === 0)} className="px-6 py-2 text-xs">

@@ -18,6 +18,7 @@ const SAFE_CONTENT_TYPES = new Set([
   "text/plain",
   "video/mp4", "video/webm", "video/quicktime",
   "application/zip",
+  "application/java-archive", "application/x-java-archive",
 ]);
 
 export async function GET(req: Request, { params }: { params: Promise<{ id: string }> }) {
