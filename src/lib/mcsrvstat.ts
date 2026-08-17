@@ -9,7 +9,7 @@ interface McsrvstatPing {
 }
 
 const SUCCESS_TTL_MS = 60 * 60 * 1000;
-const FAILURE_TTL_MS = 60 * 1000;
+const FAILURE_TTL_MS = 5 * 60 * 1000;
 
 const cache = new Map<string, { data: McsrvstatPing; fetchedAt: number }>();
 

@@ -4,23 +4,28 @@ import { useEffect } from "react";
 
 export function MouseTracker() {
   useEffect(() => {
+    let ticking = false;
+
     const handleMouseMove = (e: MouseEvent) => {
-      // Find the closest badge that we are hovering over
-      const target = e.target as HTMLElement;
-      if (!target || !target.closest) return;
-      
-      let current: HTMLElement | null = target;
-      while (current) {
-        const match = current.closest(".liquid-badge, [data-roles-badge], .liquid-card, [data-card], .fd-card") as HTMLElement;
-        if (!match) break;
-        
-        const rect = match.getBoundingClientRect();
-        const x = e.clientX - rect.left;
-        const y = e.clientY - rect.top;
-        match.style.setProperty("--mouse-x", `${x}px`);
-        match.style.setProperty("--mouse-y", `${y}px`);
-        
-        current = match.parentElement;
+      if (!ticking) {
+        window.requestAnimationFrame(() => {
+          const target = e.target as HTMLElement;
+          if (target && target.closest) {
+            let current = target.closest(".liquid-badge, [data-roles-badge], .liquid-card, [data-card], .fd-card") as HTMLElement | null;
+            while (current) {
+              const rect = current.getBoundingClientRect();
+              const x = e.clientX - rect.left;
+              const y = e.clientY - rect.top;
+              current.style.setProperty("--mouse-x", `${x}px`);
+              current.style.setProperty("--mouse-y", `${y}px`);
+              
+              const parent = current.parentElement;
+              current = parent ? parent.closest(".liquid-badge, [data-roles-badge], .liquid-card, [data-card], .fd-card") as HTMLElement | null : null;
+            }
+          }
+          ticking = false;
+        });
+        ticking = true;
       }
     };
 

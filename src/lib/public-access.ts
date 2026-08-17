@@ -49,9 +49,11 @@ export async function requirePublicResourceRole(lang: string, role: ResourceRole
   if (!hasResourceRole(guestRoles, role)) redirect(`/${lang}/account/login`);
 }
 
+import { type Session } from "next-auth";
+
 /** Same resolution as requirePublicResourceRole, but returns a boolean instead of redirecting — for API routes (src/app/api/server-status/*), which respond with a JSON error (or, for server-status, a version-only response — see that route) rather than a page redirect. */
-export async function hasPublicResourceRole(role: ResourceRole): Promise<boolean> {
-  const session = await auth();
+export async function hasPublicResourceRole(role: ResourceRole, providedSession?: Session | null): Promise<boolean> {
+  const session = providedSession !== undefined ? providedSession : await auth();
   if (session?.user?.id) {
     return session.user.isAdmin || hasResourceRole(session.user.roles, role);
   }

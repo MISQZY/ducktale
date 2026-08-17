@@ -1,5 +1,5 @@
 "use client";
-
+import { useState, useEffect, useRef } from "react";
 import { useTranslations } from "next-intl";
 import dynamic from "next/dynamic";
 import { DIAGRAM, DIAGRAM_LINE as LINE } from "@/config/site";
@@ -100,6 +100,26 @@ function DiagramChrome() {
 
 export default function NetworkDiagram() {
   const t = useTranslations("Infrastructure");
+  const sectionRef = useRef<HTMLElement>(null);
+  const [isInView, setIsInView] = useState(false);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsInView(true);
+          observer.disconnect(); // Only need to load it once
+        }
+      },
+      { rootMargin: "200px" } // Start loading a bit before it comes into view
+    );
+
+    if (sectionRef.current) {
+      observer.observe(sectionRef.current);
+    }
+
+    return () => observer.disconnect();
+  }, []);
 
   const nodes = DIAGRAM_NODE_DEFS.map((n) => ({
     ...n,
@@ -114,7 +134,7 @@ export default function NetworkDiagram() {
   }));
 
   return (
-    <section id="infrastructure" className="py-16 px-6 relative">
+    <section id="infrastructure" ref={sectionRef} className="py-16 px-6 relative">
       <div className="max-w-5xl mx-auto relative z-10">
         <SectionHeader
           label={t("label")}
@@ -122,15 +142,22 @@ export default function NetworkDiagram() {
           description={t("description")}
         />
 
-        <GraphDiagram
-          nodes={nodes}
-          edges={edges}
-          initOffsets={DIAGRAM_INIT_OFFSETS}
-          header={t("titleBar")}
-          overlay={<DiagramChrome />}
-          expandLabel={t("expand")}
-          collapseLabel={t("collapse")}
-        />
+        {isInView ? (
+          <GraphDiagram
+            nodes={nodes}
+            edges={edges}
+            initOffsets={DIAGRAM_INIT_OFFSETS}
+            header={t("titleBar")}
+            overlay={<DiagramChrome />}
+            expandLabel={t("expand")}
+            collapseLabel={t("collapse")}
+          />
+        ) : (
+          <div
+            className="rounded-2xl border border-primary/25 bg-card/60"
+            style={{ height: DIAGRAM.frameH }}
+          />
+        )}
       </div>
     </section>
   );
