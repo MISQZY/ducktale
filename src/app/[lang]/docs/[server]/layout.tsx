@@ -26,6 +26,7 @@ export default async function DocsServerLayout({
   // Server Components can't hand a Client Component a raw component
   // reference (ServerConfig.icon), only plain data — ServerSwitcher never
   // reads .icon anyway, so it's dropped here rather than in the config.
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars -- icon intentionally discarded via destructuring
   const { icon: _icon, ...config } = fullConfig;
 
   const source = getDocsSource(server);

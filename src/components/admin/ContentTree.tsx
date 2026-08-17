@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Settings2, ChevronRight, ChevronDown } from "lucide-react";
+import { Settings2, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { CONTENT_LOCALES, metaSlugFor, type ServerContentTree, type ContentTreeNode } from "@/lib/content-tree";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";

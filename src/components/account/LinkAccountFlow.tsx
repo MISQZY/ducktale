@@ -6,7 +6,6 @@ import { FormButton } from "@/components/common/FormButton";
 import { StatusBadge } from "@/components/common/StatusBadge";
 import CopyToClipboard from "@/components/ui/CopyToClipboard";
 import { useRouter } from "@/i18n/navigation";
-import { unlinkAccount } from "@/lib/actions/account-link";
 import { invalidateAvatarCache } from "@/lib/avatar-cache";
 
 type LinkStatusValue = "PENDING" | "CONFIRMED" | "EXPIRED";
@@ -23,7 +22,7 @@ interface LinkAccountFlowProps {
   initialLink: LinkState | null;
 }
 
-export function LinkAccountFlow({ lang, initialLink }: LinkAccountFlowProps) {
+export function LinkAccountFlow({ initialLink }: LinkAccountFlowProps) {
   const t = useTranslations("Account.link");
   const router = useRouter();
   const [link, setLink] = useState<LinkState | null>(initialLink);

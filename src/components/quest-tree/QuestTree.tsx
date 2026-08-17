@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useRef, useState, useId } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Graph } from "@antv/x6";
 import { GraphCanvas } from "@/components/graph/GraphCanvas";
 import { edgeLineAttrs } from "@/components/graph/shapes";

@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
+import type { Session } from "next-auth";
 import { auth } from "@/auth";
 import { siteDb } from "@/lib/site-db";
 import { evaluateAutoBadges } from "@/lib/luckperms";
@@ -60,7 +61,7 @@ export default async function ProfilePage({
   );
 }
 
-async function ProfileContent({ lang, session }: { lang: string; session: any }) {
+async function ProfileContent({ lang, session }: { lang: string; session: Session }) {
   const t = await getTranslations("Account.dashboard");
   const tp = await getTranslations("Profile");
 

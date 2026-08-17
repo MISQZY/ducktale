@@ -26,7 +26,7 @@ interface RankUser {
   hasSiteProfile?: boolean;
 }
 
-export function RankUsersDialog({ lang, group, count }: RankUsersDialogProps) {
+export function RankUsersDialog({ group, count }: RankUsersDialogProps) {
   const t = useTranslations("Admin");
   const [open, setOpen] = useState(false);
   const [users, setUsers] = useState<RankUser[] | null>(null);
