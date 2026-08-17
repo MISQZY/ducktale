@@ -30,6 +30,10 @@ export function NodeCard({ node }: { node: Node }) {
           ? `0 0 20px ${c.glow}, 0 0 6px rgba(0,0,0,0.6)`
           : "0 2px 14px rgba(0,0,0,0.55)",
         backdropFilter: "blur(8px)",
+        // Force hardware acceleration layer to fix iOS Safari WebKit bug 23113 
+        // where backdrop-filter/transitions inside foreignObject cause nodes to jump to 0,0.
+        WebkitTransform: "translateZ(0)",
+        transform: "translateZ(0)",
       }}
     >
       <div className={cn("w-8 h-8 rounded-lg flex items-center justify-center border", c.bg, c.border)}>

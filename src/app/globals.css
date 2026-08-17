@@ -861,3 +861,13 @@ body {
 .animate-marquee:hover {
   animation-play-state: paused;
 }
+
+/* Fix antv/x6 foreignObject bug on iOS Safari (WebKit Bug 23113).
+   backdrop-filter and transitions inside SVG foreignObject cause Safari to lose the coordinate system 
+   and throw all nodes to the top-left (0,0). Disabling the blur specifically on iOS ensures the graph is usable. */
+@supports (-webkit-touch-callout: none) {
+  .x6-node foreignObject * {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+}
