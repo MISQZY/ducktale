@@ -2,6 +2,7 @@
 
 import { useEffect, useLayoutEffect, useRef, useState, useCallback } from "react";
 import { useSyncExternalStore } from "react";
+import { createPortal } from "react-dom";
 import { usePathname } from "next/navigation";
 import { DUCKY_EASTER_EGG_HOST } from "@/config/servers";
 
@@ -16,6 +17,7 @@ const FRAME_MS = 200;
 const SPEED_PX_PER_SEC = 45;
 const STORAGE_KEY = "duckyVisible";
 const STORAGE_KEY_MUTED = "duckyMuted";
+const STORAGE_KEY_POS = "duckyPos";
 
 // Tight hitbox matching the duck's actual silhouette within the 48x48 sprite
 // frame (the frame itself has lots of transparent padding around the duck).
@@ -56,6 +58,24 @@ export function getDuckyMuted(): boolean {
 export function setDuckyMuted(v: boolean) {
   try { localStorage.setItem(STORAGE_KEY_MUTED, String(v)); } catch { /* */ }
   window.dispatchEvent(new CustomEvent("ducky-toggle", { detail: v }));
+}
+
+function loadDuckyPos(): Vec2 | null {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY_POS);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    if (typeof parsed?.x === "number" && typeof parsed?.y === "number" && Number.isFinite(parsed.x) && Number.isFinite(parsed.y)) {
+      return { x: parsed.x, y: parsed.y };
+    }
+    return null;
+  } catch {
+    return null;
+  }
+}
+
+function saveDuckyPos(pos: Vec2) {
+  try { localStorage.setItem(STORAGE_KEY_POS, JSON.stringify(pos)); } catch { /* */ }
 }
 
 function loadImage(src: string): Promise<HTMLImageElement> {
@@ -226,6 +246,7 @@ export default function DuckyPet() {
       isHoveredRef.current = false;
       setIsDragging(false);
       pickNewWander();
+      if (posRef.current) saveDuckyPos(posRef.current);
     }
   }, [pickNewWander]);
 
@@ -341,18 +362,20 @@ export default function DuckyPet() {
       dragRotationRef.current += (dragRotationTargetRef.current - dragRotationRef.current) * DRAG_ROTATION_LERP;
       dragScaleRef.current += ((isDraggingRef.current ? DRAG_SCALE : 1) - dragScaleRef.current) * 0.2;
 
-      // Update DOM directly for smooth scroll following
+      // Positioned in document (not viewport) space against a plain
+      // position:absolute ancestor — see the wrapper's comment — so scroll
+      // following is native compositing, not something re-synced here.
       if (duckRef.current && posRef.current) {
         const docX = posRef.current.x;
         const docY = posRef.current.y;
         const scale = dirRef.current === "left" ? -1 : 1;
-        duckRef.current.style.transform = `translate(${docX - window.scrollX}px, ${docY - window.scrollY}px) scaleX(${scale}) rotate(${dragRotationRef.current.toFixed(2)}deg) scale(${dragScaleRef.current.toFixed(3)})`;
+        duckRef.current.style.transform = `translate(${docX}px, ${docY}px) scaleX(${scale}) rotate(${dragRotationRef.current.toFixed(2)}deg) scale(${dragScaleRef.current.toFixed(3)})`;
       }
-      
+
       if (bubbleRef.current && posRef.current) {
         const docX = posRef.current.x + DISPLAY_SIZE / 2;
         const docY = posRef.current.y + 18;
-        bubbleRef.current.style.transform = `translate(${docX - window.scrollX}px, ${docY - window.scrollY}px) translate(-50%, -100%)`;
+        bubbleRef.current.style.transform = `translate(${docX}px, ${docY}px) translate(-50%, -100%)`;
       }
 
       drawFrame();
@@ -409,12 +432,24 @@ export default function DuckyPet() {
 
         const W = window.innerWidth;
         const H = window.innerHeight;
-        // spawn inside initial visible viewport
-        const spawn = {
-           x: window.scrollX + (Math.random() > 0.5 ? -DISPLAY_SIZE : W),
-           y: window.scrollY + rnd(80, Math.max(81, H - 80 - DISPLAY_SIZE))
-        };
-        posRef.current = spawn;
+
+        const savedPos = loadDuckyPos();
+        if (savedPos) {
+          // Clamp to the current document bounds — the saved spot may be
+          // stale relative to a resized viewport/changed page content.
+          const docW = Math.max(document.documentElement.scrollWidth, window.innerWidth) - DISPLAY_SIZE;
+          const docH = Math.max(document.documentElement.scrollHeight, window.innerHeight) - DISPLAY_SIZE;
+          posRef.current = {
+            x: Math.min(Math.max(savedPos.x, 0), Math.max(docW, 0)),
+            y: Math.min(Math.max(savedPos.y, 0), Math.max(docH, 0)),
+          };
+        } else {
+          // spawn inside initial visible viewport
+          posRef.current = {
+            x: window.scrollX + (Math.random() > 0.5 ? -DISPLAY_SIZE : W),
+            y: window.scrollY + rnd(80, Math.max(81, H - 80 - DISPLAY_SIZE)),
+          };
+        }
         pickNewWander();
 
         setMounted(true); // trigger initial render
@@ -433,6 +468,68 @@ export default function DuckyPet() {
     };
   }, [pickNewWander, startLoop, stopLoop, isDocs]);
 
+  // Persist the duck's last position so a reload resumes it there instead
+  // of respawning off-screen. Saved on the way out (unload/tab-hide) rather
+  // than continuously, since posRef.current changes every animation frame.
+  useEffect(() => {
+    const save = () => {
+      if (posRef.current) saveDuckyPos(posRef.current);
+    };
+    const onVisibilityChange = () => {
+      if (document.visibilityState === "hidden") save();
+    };
+    window.addEventListener("beforeunload", save);
+    window.addEventListener("pagehide", save);
+    document.addEventListener("visibilitychange", onVisibilityChange);
+    return () => {
+      window.removeEventListener("beforeunload", save);
+      window.removeEventListener("pagehide", save);
+      document.removeEventListener("visibilitychange", onVisibilityChange);
+    };
+  }, []);
+
+  // Re-clamp the duck into the new page's bounds on every client-side
+  // navigation. The duck stays mounted across route changes (it lives in
+  // the root provider, not per-page), so a position picked up while
+  // wandering/dragged far down a tall page (e.g. the homepage's diagram
+  // section) would otherwise carry straight over onto a much shorter page
+  // — and since it's a real positioned element, it inflates that page's
+  // scrollable area to reach it, producing a huge empty scroll region
+  // instead of the duck just being (invisibly) far below the fold.
+  // document.documentElement.scrollHeight/Width at this point already
+  // includes the duck's own current (possibly out-of-bounds) position, so
+  // measuring it directly would just confirm the stale bounds — hiding the
+  // duck's own element for the single synchronous read excludes it.
+  const prevPathnameRef = useRef<string | null>(null);
+  useLayoutEffect(() => {
+    if (prevPathnameRef.current === null) {
+      prevPathnameRef.current = pathname;
+      return;
+    }
+    if (prevPathnameRef.current === pathname) return;
+    prevPathnameRef.current = pathname;
+
+    if (!posRef.current || !sectionRef.current) return;
+
+    const prevDisplay = sectionRef.current.style.display;
+    sectionRef.current.style.display = "none";
+    const docW = Math.max(document.documentElement.scrollWidth, window.innerWidth) - DISPLAY_SIZE;
+    const docH = Math.max(document.documentElement.scrollHeight, window.innerHeight) - DISPLAY_SIZE;
+    sectionRef.current.style.display = prevDisplay;
+
+    const clampedX = Math.min(Math.max(posRef.current.x, 0), Math.max(docW, 0));
+    const clampedY = Math.min(Math.max(posRef.current.y, 0), Math.max(docH, 0));
+    if (clampedX !== posRef.current.x || clampedY !== posRef.current.y) {
+      posRef.current = { x: clampedX, y: clampedY };
+      // Apply immediately (not waiting for the next rAF tick) so there's no
+      // flash of the old, out-of-bounds position on the new page.
+      if (duckRef.current) {
+        const scale = dirRef.current === "left" ? -1 : 1;
+        duckRef.current.style.transform = `translate(${clampedX}px, ${clampedY}px) scaleX(${scale})`;
+      }
+    }
+  }, [pathname]);
+
   // Seeds the bubble's transform synchronously before paint so it doesn't
   // flicker at (0,0) for a frame — the RAF loop (see startLoop) takes over
   // on every subsequent frame once it's running.
@@ -440,7 +537,7 @@ export default function DuckyPet() {
     if ((isHovered || activePhrase !== null) && bubbleRef.current && posRef.current) {
       const docX = posRef.current.x + DISPLAY_SIZE / 2;
       const docY = posRef.current.y + 18;
-      bubbleRef.current.style.transform = `translate(${docX - window.scrollX}px, ${docY - window.scrollY}px) translate(-50%, -100%)`;
+      bubbleRef.current.style.transform = `translate(${docX}px, ${docY}px) translate(-50%, -100%)`;
     }
   }, [isHovered, activePhrase]);
 
@@ -451,8 +548,17 @@ export default function DuckyPet() {
 
   const showBubble = isHovered || activePhrase !== null;
 
-  return (
-    <div ref={sectionRef} style={{ position: "fixed", top: 0, left: 0, width: 0, height: 0, pointerEvents: "none", zIndex: 0 }}>
+  return createPortal(
+    // Portaled straight to <body> and positioned absolute (document space,
+    // not viewport space) rather than the old position:fixed + per-frame
+    // `transform: translate(doc - scroll)` — that manual resync couldn't
+    // keep up with iOS Safari's compositor-thread momentum scrolling and
+    // made the duck visibly swim/detach mid-scroll. A plain absolute
+    // element scrolls with the page natively, no JS in the loop at all.
+    // Portaling (rather than just switching position here) sidesteps any
+    // ancestor in the provider tree that might set its own position/
+    // transform and would otherwise become this element's containing block.
+    <div ref={sectionRef} style={{ position: "absolute", top: 0, left: 0, width: 0, height: 0, pointerEvents: "none", zIndex: 0 }}>
       <div
         ref={duckRef}
         style={{
@@ -567,6 +673,7 @@ export default function DuckyPet() {
           }} />
         </div>
       )}
-    </div>
+    </div>,
+    document.body
   );
 }
