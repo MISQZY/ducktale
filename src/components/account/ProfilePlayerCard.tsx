@@ -209,7 +209,7 @@ async function ProfilePlayerCardContent({ minecraftName, className, locale, regi
         className="border-primary/20 bg-duck-stone/40"
         style={nameColorStyle(player.nameColor)}
       >
-        <SkinViewButton skinUrl={player.skinUrl} nickname={player.username} />
+        <SkinViewButton skinUrl={player.skinUrl} nickname={player.username} nameColor={player.nameColor} />
         <DuckCardContent className="pt-4 flex flex-col items-center text-center gap-2">
           <SkinFace skinUrl={player.skinUrl} size={96} />
 

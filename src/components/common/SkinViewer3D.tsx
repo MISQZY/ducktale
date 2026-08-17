@@ -1,10 +1,22 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { SkinViewer, IdleAnimation } from "skinview3d";
+import { SkinViewer, IdleAnimation, WalkingAnimation, WaveAnimation, type PlayerAnimation } from "skinview3d";
+
+export type SkinAnimationKey = "idle" | "walking" | "wave";
+
+const ANIMATION_FACTORIES: Record<SkinAnimationKey, () => PlayerAnimation> = {
+  idle: () => new IdleAnimation(),
+  walking: () => new WalkingAnimation(),
+  wave: () => new WaveAnimation(),
+};
 
 interface SkinViewer3DProps {
   skinUrl: string;
+  /** Resolved flat hex (nameColorSolid, src/lib/name-color.ts) — the SkinViewer's own scene.background, not CSS: the canvas's WebGLRenderer isn't created with `alpha: true` (skinview3d hardcodes new WebGLRenderer({canvas, preserveDrawingBuffer}) without it), so the browser composites it as fully opaque regardless of what CSS sits behind it — a background-color on this component's wrapper div would just be invisible, painted over by the canvas's own solid clear color. */
+  background?: string | null;
+  /** @default "idle" */
+  animation?: SkinAnimationKey;
 }
 
 // Used only until the ResizeObserver below reports the wrapper's real
@@ -31,10 +43,18 @@ const FALLBACK_SIZE = { width: 320, height: 420 };
  * of a flex/percentage-height chain, matching ImageViewer.tsx's pattern —
  * more robust than depending on height:100% resolving through a `flex-1`
  * ancestor.
+ *
+ * `animation` is applied through a *second* effect that swaps `viewer.animation`
+ * on the already-live instance, deliberately kept out of the constructor
+ * effect's dependency array — recreating the whole SkinViewer on every
+ * animation switch would reset the camera's orbit/zoom the viewer (visitor)
+ * already set up, which a same-skin/same-background animation change has no
+ * reason to disturb.
  */
-export default function SkinViewer3D({ skinUrl }: SkinViewer3DProps) {
+export default function SkinViewer3D({ skinUrl, background, animation = "idle" }: SkinViewer3DProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const viewerRef = useRef<SkinViewer | null>(null);
 
   useEffect(() => {
     const container = containerRef.current;
@@ -46,8 +66,10 @@ export default function SkinViewer3D({ skinUrl }: SkinViewer3DProps) {
       width: FALLBACK_SIZE.width,
       height: FALLBACK_SIZE.height,
       skin: skinUrl,
-      animation: new IdleAnimation(),
+      animation: ANIMATION_FACTORIES.idle(),
+      background: background ?? undefined,
     });
+    viewerRef.current = viewer;
 
     const observer = new ResizeObserver(([entry]) => {
       const { width, height } = entry.contentRect;
@@ -61,8 +83,13 @@ export default function SkinViewer3D({ skinUrl }: SkinViewer3DProps) {
     return () => {
       observer.disconnect();
       viewer.dispose();
+      viewerRef.current = null;
     };
-  }, [skinUrl]);
+  }, [skinUrl, background]);
+
+  useEffect(() => {
+    if (viewerRef.current) viewerRef.current.animation = ANIMATION_FACTORIES[animation]();
+  }, [animation]);
 
   return (
     <div ref={containerRef} className="absolute inset-0">

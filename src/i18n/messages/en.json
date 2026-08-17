@@ -65,6 +65,8 @@
     "refreshLabel": "Random player",
     "whitelistedTitle": "Whitelisted on the server",
     "view3D": "View 3D model",
+    "animationWalking": "Walk",
+    "animationWave": "Wave",
     "loadError": "Failed to load player data",
     "notFound": "Player not found",
     "notFoundQuery": "Player \"{query}\" not found",

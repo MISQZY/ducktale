@@ -65,6 +65,8 @@
     "refreshLabel": "Случайный игрок",
     "whitelistedTitle": "В вайтлисте сервера",
     "view3D": "Посмотреть 3D-модель",
+    "animationWalking": "Ходьба",
+    "animationWave": "Помахать",
     "loadError": "Не удалось загрузить данные игрока",
     "notFound": "Игрок не найден",
     "notFoundQuery": "Игрок «{query}» не найден",
