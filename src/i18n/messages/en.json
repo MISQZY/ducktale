@@ -130,6 +130,7 @@
     "closeMenu": "Close menu",
     "duckShow": "Show the duck",
     "duckHide": "Hide the duck",
+    "duckMute": "Mute the duck's sounds",
     "switchLanguage": "Switch language"
   },
   "Hero": {

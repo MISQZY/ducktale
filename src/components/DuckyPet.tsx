@@ -15,6 +15,20 @@ const FRAME_MS = 200;
 
 const SPEED_PX_PER_SEC = 45;
 const STORAGE_KEY = "duckyVisible";
+const STORAGE_KEY_MUTED = "duckyMuted";
+
+// Tight hitbox matching the duck's actual silhouette within the 48x48 sprite
+// frame (the frame itself has lots of transparent padding around the duck).
+const HITBOX_LEFT = 21;
+const HITBOX_TOP = 31;
+const HITBOX_WIDTH = 33;
+const HITBOX_HEIGHT = 41;
+
+const DRAG_SCALE = 1.12;
+const DRAG_ROTATION_FACTOR = 16;
+const DRAG_ROTATION_MAX = 34;
+const DRAG_ROTATION_FRICTION = 0.95;
+const DRAG_ROTATION_LERP = 0.14;
 
 import { DUCKY_CONFIG } from "@/config/ducky";
 
@@ -32,6 +46,15 @@ export function getDuckyVisible(): boolean {
 
 export function setDuckyVisible(v: boolean) {
   try { localStorage.setItem(STORAGE_KEY, String(v)); } catch { /* */ }
+  window.dispatchEvent(new CustomEvent("ducky-toggle", { detail: v }));
+}
+
+export function getDuckyMuted(): boolean {
+  try { return localStorage.getItem(STORAGE_KEY_MUTED) === "true"; } catch { return false; }
+}
+
+export function setDuckyMuted(v: boolean) {
+  try { localStorage.setItem(STORAGE_KEY_MUTED, String(v)); } catch { /* */ }
   window.dispatchEvent(new CustomEvent("ducky-toggle", { detail: v }));
 }
 
@@ -68,9 +91,22 @@ export default function DuckyPet() {
 
   const [mounted, setMounted] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
   const [activePhrase, setActivePhrase] = useState<string | null>(null);
   const activePhraseRef = useRef<string | null>(null);
+
+  const isDraggingRef = useRef(false);
+  const dragPointerIdRef = useRef<number | null>(null);
+  const dragMovedRef = useRef(false);
+  const dragStartClientRef = useRef<Vec2>({ x: 0, y: 0 });
+  const dragStartPosRef = useRef<Vec2>({ x: 0, y: 0 });
+  const lastMoveRef = useRef<{ x: number; y: number; t: number } | null>(null);
+  const dragRotationRef = useRef(0);
+  const dragRotationTargetRef = useRef(0);
+  const dragScaleRef = useRef(1);
+  const mutedRef = useRef(false);
   const visible = useSyncExternalStore(subscribeDuckyToggle, getDuckyVisible, () => true);
+  const muted = useSyncExternalStore(subscribeDuckyToggle, getDuckyMuted, () => false);
 
   // Do not render on docs pages
   const isDocs = pathname?.includes("/docs");
@@ -78,6 +114,20 @@ export default function DuckyPet() {
   useEffect(() => {
     visibleRef.current = visible;
   }, [visible]);
+
+  useEffect(() => {
+    mutedRef.current = muted;
+  }, [muted]);
+
+  const playQuack = useCallback(() => {
+    if (mutedRef.current) return;
+    try {
+      const audio = new Audio('/sounds/quack.mp3');
+      audio.volume = DUCKY_CONFIG.volume;
+      audio.playbackRate = 0.9 + Math.random() * 0.2;
+      audio.play().catch(() => {});
+    } catch { /* */ }
+  }, []);
 
   function subscribeDuckyToggle(callback: () => void) {
     window.addEventListener("ducky-toggle", callback);
@@ -117,11 +167,67 @@ export default function DuckyPet() {
     const angle = rnd(aMin, aMax);
     const speed = rnd(SPEED_PX_PER_SEC * 0.6, SPEED_PX_PER_SEC * 1.5);
     velRef.current = { x: Math.cos(angle) * speed, y: Math.sin(angle) * speed };
-    
+
     const newDir = velRef.current.x >= 0 ? "right" : "left";
     dirRef.current = newDir;
     wanderTimerRef.current = rnd(1500, 4000);
   }, []);
+
+  const handlePointerDown = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
+    if (e.pointerType === "mouse" && e.button !== 0) return;
+    dragPointerIdRef.current = e.pointerId;
+    dragMovedRef.current = false;
+    dragStartClientRef.current = { x: e.clientX, y: e.clientY };
+    dragStartPosRef.current = posRef.current ?? { x: window.scrollX, y: window.scrollY };
+    lastMoveRef.current = { x: e.clientX, y: e.clientY, t: e.timeStamp };
+    try { e.currentTarget.setPointerCapture(e.pointerId); } catch { /* */ }
+  }, []);
+
+  const handlePointerMove = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
+    if (dragPointerIdRef.current !== e.pointerId) return;
+    const dx = e.clientX - dragStartClientRef.current.x;
+    const dy = e.clientY - dragStartClientRef.current.y;
+
+    if (!dragMovedRef.current) {
+      if (Math.abs(dx) < 4 && Math.abs(dy) < 4) return;
+      dragMovedRef.current = true;
+      isDraggingRef.current = true;
+      isHoveredRef.current = true;
+      setIsDragging(true);
+      setIsHovered(false);
+      setActivePhrase(null);
+      activePhraseRef.current = null;
+      frameRef.current = 0;
+      frameMsRef.current = 0;
+    }
+
+    const last = lastMoveRef.current;
+    if (last) {
+      const dt = Math.max(e.timeStamp - last.t, 1);
+      const vx = (e.clientX - last.x) / dt;
+      dragRotationTargetRef.current = Math.max(-DRAG_ROTATION_MAX, Math.min(DRAG_ROTATION_MAX, vx * DRAG_ROTATION_FACTOR));
+    }
+    lastMoveRef.current = { x: e.clientX, y: e.clientY, t: e.timeStamp };
+
+    const docW = Math.max(document.documentElement.scrollWidth, window.innerWidth) - DISPLAY_SIZE;
+    const docH = Math.max(document.documentElement.scrollHeight, window.innerHeight) - DISPLAY_SIZE;
+    const nx = Math.min(Math.max(dragStartPosRef.current.x + dx, 0), Math.max(docW, 0));
+    const ny = Math.min(Math.max(dragStartPosRef.current.y + dy, 0), Math.max(docH, 0));
+    posRef.current = { x: nx, y: ny };
+  }, []);
+
+  const handlePointerUp = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
+    if (dragPointerIdRef.current !== e.pointerId) return;
+    dragPointerIdRef.current = null;
+    lastMoveRef.current = null;
+    try { e.currentTarget.releasePointerCapture(e.pointerId); } catch { /* */ }
+    if (dragMovedRef.current) {
+      isDraggingRef.current = false;
+      isHoveredRef.current = false;
+      setIsDragging(false);
+      pickNewWander();
+    }
+  }, [pickNewWander]);
 
   const drawFrame = useCallback(() => {
     const canvas = canvasRef.current;
@@ -151,7 +257,13 @@ export default function DuckyPet() {
     // Adaptive shadow based on theme
     const isDark = document.documentElement.classList.contains("dark");
     const glowColor = isDark ? "rgba(87, 46, 2, 0.88)" : "rgba(212, 160, 23, 0.25)";
-    
+
+    // While being dragged, push the shadow further down and fade it a bit
+    // to sell the duck as lifted off the ground.
+    const dragging = isDraggingRef.current;
+    const shadowLift = dragging ? 9 : 2;
+    const shadowAlphaMul = dragging ? 0.6 : 1;
+
     const passes = [
       { spread: 7, alpha: 0.08 },
       { spread: 5, alpha: 0.10 },
@@ -160,10 +272,10 @@ export default function DuckyPet() {
     ];
     ctx.save();
     for (const { spread: sp, alpha } of passes) {
-      ctx.globalAlpha = alpha;
+      ctx.globalAlpha = alpha * shadowAlphaMul;
       for (let bx = -sp; bx <= sp; bx += Math.max(1, sp)) {
         for (let by = -sp; by <= sp; by += Math.max(1, sp)) {
-          ctx.drawImage(img, sx, 0, sw, sh, dx + bx, dy + by + 2, dw, dh);
+          ctx.drawImage(img, sx, 0, sw, sh, dx + bx, dy + by + shadowLift, dw, dh);
         }
       }
     }
@@ -212,7 +324,9 @@ export default function DuckyPet() {
           frameMsRef.current = 0;
           frameRef.current = (frameRef.current + 1) % WALK_FRAMES;
         }
-      } else {
+      } else if (!isDraggingRef.current) {
+        // Idle's own bob (frame swap) fights the drag swing, so freeze the
+        // frame while held instead of cycling it.
         frameMsRef.current += dt;
         if (frameMsRef.current >= FRAME_MS * 1.5) {
           frameMsRef.current = 0;
@@ -220,12 +334,19 @@ export default function DuckyPet() {
         }
       }
 
+      // Drag "held" physics: rotation swings with lag behind pointer velocity
+      // (friction decay + lerp), and scale eases toward a lifted pop. Runs
+      // unconditionally so the swing keeps settling after release too.
+      dragRotationTargetRef.current *= DRAG_ROTATION_FRICTION;
+      dragRotationRef.current += (dragRotationTargetRef.current - dragRotationRef.current) * DRAG_ROTATION_LERP;
+      dragScaleRef.current += ((isDraggingRef.current ? DRAG_SCALE : 1) - dragScaleRef.current) * 0.2;
+
       // Update DOM directly for smooth scroll following
       if (duckRef.current && posRef.current) {
         const docX = posRef.current.x;
         const docY = posRef.current.y;
         const scale = dirRef.current === "left" ? -1 : 1;
-        duckRef.current.style.transform = `translate(${docX - window.scrollX}px, ${docY - window.scrollY}px) scaleX(${scale})`;
+        duckRef.current.style.transform = `translate(${docX - window.scrollX}px, ${docY - window.scrollY}px) scaleX(${scale}) rotate(${dragRotationRef.current.toFixed(2)}deg) scale(${dragScaleRef.current.toFixed(3)})`;
       }
       
       if (bubbleRef.current && posRef.current) {
@@ -264,12 +385,7 @@ export default function DuckyPet() {
         const phrase = DUCKY_CONFIG.phrases[Math.floor(Math.random() * DUCKY_CONFIG.phrases.length)];
         setActivePhrase(phrase);
         activePhraseRef.current = phrase;
-        try {
-          const audio = new Audio('/sounds/quack.mp3');
-          audio.volume = DUCKY_CONFIG.volume;
-          audio.playbackRate = 0.9 + Math.random() * 0.2;
-          audio.play().catch(() => {});
-        } catch {}
+        playQuack();
         setTimeout(() => {
           setActivePhrase(null);
           activePhraseRef.current = null;
@@ -277,7 +393,7 @@ export default function DuckyPet() {
       }
     }, DUCKY_CONFIG.quackIntervalMs);
     return () => clearInterval(interval);
-  }, [visible, isDocs, isHovered]);
+  }, [visible, isDocs, isHovered, playQuack]);
 
   useEffect(() => {
     let isMounted = true;
@@ -302,7 +418,7 @@ export default function DuckyPet() {
         pickNewWander();
 
         setMounted(true); // trigger initial render
-        
+
         if (visibleRef.current && !isDocs) {
           startLoop();
         }
@@ -346,26 +462,11 @@ export default function DuckyPet() {
           width: DISPLAY_SIZE,
           height: DISPLAY_SIZE,
           opacity: visible ? 1 : 0,
-          pointerEvents: visible ? "auto" : "none",
+          pointerEvents: "none",
           transition: "opacity 0.3s ease",
+          transformOrigin: "50% 35%",
           // transform is managed by requestAnimationFrame
         }}
-        onMouseEnter={() => { 
-          isHoveredRef.current = true; 
-          setIsHovered(true); 
-          setActivePhrase(null);
-          activePhraseRef.current = null;
-          frameRef.current = 0; 
-          frameMsRef.current = 0;
-          try {
-            const audio = new Audio('/sounds/quack.mp3');
-            audio.volume = DUCKY_CONFIG.volume;
-            audio.playbackRate = 0.9 + Math.random() * 0.2;
-            audio.play().catch(() => {});
-          } catch {}
-        }}
-        onMouseLeave={() => { isHoveredRef.current = false; setIsHovered(false); frameRef.current = 0; frameMsRef.current = 0; }}
-        onClick={() => window.open("https://" + DUCKY_EASTER_EGG_HOST, "_blank", "noopener,noreferrer")}
       >
         <canvas
           ref={canvasRef}
@@ -377,6 +478,43 @@ export default function DuckyPet() {
             top: -PAD,
             imageRendering: "pixelated",
             pointerEvents: "none",
+          }}
+        />
+
+        {/* Tight hitbox matching the duck's silhouette, not the padded sprite frame */}
+        <div
+          style={{
+            position: "absolute" as const,
+            left: HITBOX_LEFT,
+            top: HITBOX_TOP,
+            width: HITBOX_WIDTH,
+            height: HITBOX_HEIGHT,
+            pointerEvents: visible ? "auto" : "none",
+            cursor: isDragging ? "grabbing" : "grab",
+            touchAction: "none",
+            userSelect: "none",
+          }}
+          onMouseEnter={() => {
+            if (isDragging) return;
+            isHoveredRef.current = true;
+            setIsHovered(true);
+            setActivePhrase(null);
+            activePhraseRef.current = null;
+            frameRef.current = 0;
+            frameMsRef.current = 0;
+            playQuack();
+          }}
+          onMouseLeave={() => { if (isDragging) return; isHoveredRef.current = false; setIsHovered(false); frameRef.current = 0; frameMsRef.current = 0; }}
+          onPointerDown={handlePointerDown}
+          onPointerMove={handlePointerMove}
+          onPointerUp={handlePointerUp}
+          onPointerCancel={handlePointerUp}
+          onClick={() => {
+            if (dragMovedRef.current) {
+              dragMovedRef.current = false;
+              return;
+            }
+            window.open("https://" + DUCKY_EASTER_EGG_HOST, "_blank", "noopener,noreferrer");
           }}
         />
       </div>

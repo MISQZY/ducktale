@@ -22,7 +22,7 @@ import {
 } from "@/components/ui/sheet";
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 import { NAV_LINKS } from "@/config/navigation";
-import { getDuckyVisible, setDuckyVisible } from "@/components/DuckyPet";
+import { getDuckyVisible, setDuckyVisible, getDuckyMuted, setDuckyMuted } from "@/components/DuckyPet";
 import { useSyncExternalStore } from "react";
 import { NotificationBell } from "@/components/NotificationBell";
 
@@ -36,27 +36,43 @@ function subscribeDuckyToggle(callback: () => void) {
   return () => window.removeEventListener("ducky-toggle", callback);
 }
 
-// Simple duck icon (pixel-style svg)
-function DuckIcon({ visible }: { visible: boolean }) {
+type DuckyState = "on" | "muted" | "off";
+
+// Simple duck icon (pixel-style svg). A small speaker glyph sits in the
+// bottom-right corner as the sound indicator: plain = sound on, struck
+// through (only the speaker, not the duck) = muted. When hidden, the duck
+// itself is drawn in a flat gray instead of the accent color, rather than
+// crossed out.
+function DuckIcon({ state }: { state: DuckyState }) {
+  const visible = state !== "off";
+  const muted = state === "muted";
+  const duckColor = visible ? "currentColor" : "var(--muted-foreground)";
+  const beakColor = visible ? "var(--color-accent-gold)" : "var(--muted-foreground)";
   return (
     <svg
-      width="18" height="18" viewBox="0 0 18 18" fill="none"
+      width="18" height="18" viewBox="0 0 20 18" fill="none"
       xmlns="http://www.w3.org/2000/svg"
-      style={{ opacity: visible ? 1 : 0.45, transition: "opacity 0.3s" }}
+      style={{ transition: "color 0.3s" }}
     >
       {/* body */}
-      <ellipse cx="8" cy="11" rx="5" ry="4" fill="currentColor" opacity="0.9" />
+      <ellipse cx="8" cy="11" rx="5" ry="4" fill={duckColor} opacity="0.9" />
       {/* head */}
-      <circle cx="12" cy="7" r="3" fill="currentColor" opacity="0.9" />
+      <circle cx="12" cy="7" r="3" fill={duckColor} opacity="0.9" />
       {/* beak */}
-      <rect x="14.5" y="6.5" width="2.5" height="1.5" rx="0.5" fill="var(--color-accent-gold)" />
+      <rect x="14.5" y="6.5" width="2.5" height="1.5" rx="0.5" fill={beakColor} />
       {/* eye */}
       <circle cx="13" cy="6.2" r="0.7" fill="var(--background)" />
       {/* wing hint */}
-      <ellipse cx="7" cy="11" rx="2.5" ry="1.5" fill="currentColor" opacity="0.5" />
-      {/* crossed out line when hidden */}
-      {!visible && (
-        <line x1="2" y1="2" x2="16" y2="16" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" opacity="0.7" />
+      <ellipse cx="7" cy="11" rx="2.5" ry="1.5" fill={duckColor} opacity="0.5" />
+      {/* speaker — sound indicator, bottom-right corner. Muted is drawn as
+          a plain speaker with no sound wave, rather than struck through. */}
+      {visible && (
+        <g opacity="0.85">
+          <path d="M13 12.2 L14.6 12.2 L17 10.2 L17 17.2 L14.6 15.2 L13 15.2 Z" fill="currentColor" />
+          {!muted && (
+            <path d="M17.4 11.2 A2.5 2.5 0 0 1 17.4 16.2" stroke="currentColor" strokeWidth="1" strokeLinecap="round" fill="none" />
+          )}
+        </g>
       )}
     </svg>
   );
@@ -179,6 +195,7 @@ export default function Navbar({ canViewLeaderboard = true, canViewThreads = tru
   const { status } = useSession();
   const [menuOpen, setMenuOpen] = useState(false);
   const duckyVisible = useSyncExternalStore(subscribeDuckyToggle, getDuckyVisible, () => true);
+  const duckyMuted = useSyncExternalStore(subscribeDuckyToggle, getDuckyMuted, () => false);
 
   const visibleLinks = NAV_LINKS.filter((link) => {
     if (link.key === "leaderboard") return canViewLeaderboard;
@@ -188,11 +205,22 @@ export default function Navbar({ canViewLeaderboard = true, canViewThreads = tru
     return true;
   });
 
+  // Cycle: sound on -> muted (still visible) -> hidden -> sound on ...
+  const duckyState: DuckyState = !duckyVisible ? "off" : duckyMuted ? "muted" : "on";
+
   function toggleDucky() {
-    setDuckyVisible(!duckyVisible);
+    if (duckyState === "on") {
+      setDuckyMuted(true);
+    } else if (duckyState === "muted") {
+      setDuckyVisible(false);
+    } else {
+      setDuckyVisible(true);
+      setDuckyMuted(false);
+    }
   }
 
-  const duckyBtnTitle = duckyVisible ? t("duckHide") : t("duckShow");
+  const duckyBtnTitle =
+    duckyState === "on" ? t("duckMute") : duckyState === "muted" ? t("duckHide") : t("duckShow");
 
   const handleNavClick = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
     if (href.includes("#")) {
@@ -280,7 +308,7 @@ export default function Navbar({ canViewLeaderboard = true, canViewThreads = tru
                   : "text-primary/40 hover:text-primary/70 hover:bg-primary/5"
               )}
             >
-              <DuckIcon visible={duckyVisible} />
+              <DuckIcon state={duckyState} />
             </Button>
           </div>
 
@@ -304,7 +332,7 @@ export default function Navbar({ canViewLeaderboard = true, canViewThreads = tru
                   : "text-foreground/40 hover:text-foreground/70 hover:bg-primary/5"
               )}
             >
-              <DuckIcon visible={duckyVisible} />
+              <DuckIcon state={duckyState} />
             </Button>
 
             <Sheet open={menuOpen} onOpenChange={setMenuOpen}>
