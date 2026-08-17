@@ -12,14 +12,16 @@ import {
 } from "@/config/diagram";
 import SectionHeader from "@/components/SectionHeader";
 
+import { Skeleton } from "@/components/ui/skeleton";
+
 // AntV X6 touches `window` at module scope, so it can only load in the
 // browser — importing it during the server render pass crashes the SSR
 // worker outright, before any useEffect guard would even run.
 const GraphDiagram = dynamic(() => import("./graph").then((m) => m.GraphDiagram), {
   ssr: false,
   loading: () => (
-    <div
-      className="rounded-2xl border border-primary/25 bg-card/60 animate-pulse"
+    <Skeleton
+      className="rounded-2xl border border-primary/25 bg-card/60 opacity-50"
       style={{ height: DIAGRAM.frameH }}
     />
   ),

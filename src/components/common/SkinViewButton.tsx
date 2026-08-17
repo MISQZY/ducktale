@@ -12,7 +12,12 @@ import { nameColorSolid } from "@/lib/name-color";
 import type { PlayerColor } from "@/types/player-card";
 import type { SkinAnimationKey } from "./SkinViewer3D";
 
-const SkinViewer3D = dynamic(() => import("./SkinViewer3D"), { ssr: false });
+import { Skeleton } from "@/components/ui/skeleton";
+
+const SkinViewer3D = dynamic(() => import("./SkinViewer3D"), { 
+  ssr: false,
+  loading: () => <Skeleton className="w-full h-full rounded-none opacity-20" />
+});
 
 interface SkinViewButtonProps {
   skinUrl: string | null;

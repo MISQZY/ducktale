@@ -4,10 +4,20 @@ import { createMetadata } from "@/lib/create-metadata";
 import ScrollReveal from "@/components/common/ScrollReveal";
 import dynamic from "next/dynamic";
 
-const AboutSection = dynamic(() => import("@/components/AboutSection"));
-const ServersSection = dynamic(() => import("@/components/ServersSection"));
-const NetworkDiagram = dynamic(() => import("@/components/NetworkDiagram"));
-const SocialSection = dynamic(() => import("@/components/SocialSection"));
+import { Skeleton } from "@/components/ui/skeleton";
+
+const AboutSection = dynamic(() => import("@/components/AboutSection"), { 
+  loading: () => <Skeleton className="w-full max-w-5xl mx-auto h-[400px] my-16 rounded-3xl opacity-20" /> 
+});
+const ServersSection = dynamic(() => import("@/components/ServersSection"), {
+  loading: () => <Skeleton className="w-full max-w-5xl mx-auto h-[500px] my-16 rounded-3xl opacity-20" />
+});
+const NetworkDiagram = dynamic(() => import("@/components/NetworkDiagram"), {
+  loading: () => <Skeleton className="w-full max-w-5xl mx-auto h-[600px] my-16 rounded-3xl opacity-20" />
+});
+const SocialSection = dynamic(() => import("@/components/SocialSection"), {
+  loading: () => <Skeleton className="w-full max-w-5xl mx-auto h-[300px] my-16 rounded-3xl opacity-20" />
+});
 
 export const generateMetadata = createMetadata({ namespace: "Home", useDefaultTitle: true });
 
