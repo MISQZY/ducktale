@@ -14,6 +14,5 @@ export { StepList } from "./StepList";
 export { TownyTable } from "./TownyTable";
 export { WhitelistTable } from "./WhitelistTable";
 export { GitHubLastModified } from "./GitHubLastModified";
-export { EventTimeline } from "./EventTimeLine";
 export { PermissionTable } from "./PermissionTable";
 

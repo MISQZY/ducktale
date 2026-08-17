@@ -45,7 +45,7 @@ export const BUILTIN_ROLE_DEFINITIONS: BuiltinRoleDefinition[] = [
   {
     key: "guest",
     name: { ru: "Гостевая", en: "Guest" },
-    resourceRoles: ["docs-view", "leaderboard-view", "profiles-view", "server-status-view", "maps-page-view"],
+    resourceRoles: ["docs-view", "leaderboard-view", "profiles-view", "server-status-view", "maps-page-view", "events-page-view"],
   },
   {
     key: "user",

@@ -1,4 +1,8 @@
+import type { LocalizedName } from "@/lib/i18n-name";
+
 export type EventCategory = "pvp" | "world" | "pve" | "economy";
+
+export const EVENT_CATEGORIES: EventCategory[] = ["pvp", "world", "pve", "economy"];
 
 export interface EventCategoryStyle {
   accent: string;
@@ -45,45 +49,30 @@ export const EVENT_CATEGORY_STYLE: Record<EventCategory, EventCategoryStyle> = {
   },
 };
 
+/**
+ * Admin-managed now (ServerEvent, site DB, /admin/events,
+ * src/lib/actions/admin-events.ts) — this used to also hold the structural
+ * data (UPCOMING_EVENTS) with name/description resolved from
+ * i18n/messages/{locale}.json under Events.items.<id>. An admin-created
+ * event has no i18n key to hang text off of, so name/description moved onto
+ * the row itself (LocalizedName) — see the ServerEvent model's doc comment
+ * in schema.prisma.template. The public /events page fetches this shape
+ * server-side (resolveServerEvents(), src/lib/events.ts) and passes it to
+ * EventTimeline.tsx as a prop.
+ */
 export interface ServerEvent {
   id: string;
-  emoji: string;
+  /** null = network-wide event, not tied to one server. Otherwise matches SERVERS[].id. */
+  serverId: string | null;
+  /** lucide-react icon name, or a `Gi*` name from react-icons/gi — same catalog Badge.icon uses (isBadgeIconName, src/config/badges.ts), rendered via <BadgeIcon>. */
+  icon: string;
   category: EventCategory;
+  name: LocalizedName;
+  description: LocalizedName;
   /** Unix seconds — event start */
   startAt: number;
   /** Unix seconds — event end */
   endAt: number;
   /** Optional link to Discord announcement or doc page */
-  href?: string;
+  href: string | null;
 }
-
-/**
- * Structural data only — name/description are localized and live in
- * src/i18n/messages/{locale}.json under Events.items.<id>, keyed by `id`.
- */
-export const UPCOMING_EVENTS: ServerEvent[] = [
-  {
-    id: "invite-system",
-    emoji: "👥",
-    category: "world",
-    startAt: 1767250800,
-    endAt: 1790838000,
-    href: "",
-  },
-  {
-    id: "nether-world-open",
-    emoji: "🌑",
-    category: "world",
-    startAt: 1718002800,
-    endAt: 1718002800,
-    href: "",
-  },
-  {
-    id: "end-world-open",
-    emoji: "🌕",
-    category: "world",
-    startAt: 1718002800,
-    endAt: 1718002800,
-    href: "",
-  },
-];

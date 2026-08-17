@@ -27,9 +27,14 @@
     "copyCommand": "Скопировать {command}"
   },
   "Events": {
-    "eyebrow": "Ивенты",
-    "title": "Ближайшие события",
-    "refreshNote": "↻ каждую минуту",
+    "eyebrow": "Хроники сети",
+    "title": "События",
+    "description": "Турниры, открытия миров и другие события DuckTale — здесь мы ведём им счёт.",
+    "realms": {
+      "groupLabel": "Мир",
+      "all": "Все миры",
+      "network": "Общие"
+    },
     "categories": {
       "all": "Все",
       "pvp": "PvP",
@@ -53,21 +58,7 @@
       "all": "Нет событий",
       "category": "Нет событий в категории «{category}»"
     },
-    "overflow": "+ ещё {count, plural, one {# событие} few {# события} many {# событий} other {# события}} — смотрите в Discord",
-    "items": {
-      "invite-system": {
-        "name": "Проход на сервер",
-        "description": "Попади в мир DuckBurg, путешествуй, исследуй, развивайся. Не забудь пригласить друзей поиграть вместе с тобой!"
-      },
-      "nether-world-open": {
-        "name": "Открытие Незер мира",
-        "description": "Открытие порталов в мир Незера откроет перед игроками больше возможностей в развитии на просторах мира DuckBurg."
-      },
-      "end-world-open": {
-        "name": "Открытие мира Края",
-        "description": "Открытие порталов в мир Края откроет перед игроками возможность сразиться с Черным Драконом и доказать, что летать тоже нужно уметь."
-      }
-    }
+    "overflow": "+ ещё {count, plural, one {# событие} few {# события} many {# событий} other {# события}} — смотрите в Discord"
   },
   "PlayerCard": {
     "searchPlaceholder": "Найти",
@@ -128,6 +119,7 @@
     "leaderboard": "Рейтинги",
     "threads": "Треды",
     "maps": "Карты",
+    "events": "События",
     "profile": "Профиль",
     "login": "Войти",
     "home": "DuckTale — на главную",
@@ -434,7 +426,8 @@
       "viewProfile": "Моя публичная страница",
       "supportSectionTitle": "Поддержка",
       "supportSectionDescription": "Есть вопрос или проблема? Откройте тикет — админ увидит его и ответит здесь же.",
-      "myTickets": "Мои тикеты"
+      "myTickets": "Мои тикеты",
+      "myReports": "Мои репорты"
     },
     "link": {
       "title": "Привязка Minecraft-аккаунта",
@@ -471,6 +464,9 @@
     "navUsers": "Пользователи",
     "navContent": "Контент",
     "navMaps": "Карты",
+    "navEvents": "События",
+    "navAppeals": "Обращения",
+    "navReports": "Репорты",
     "navPermissions": "Права",
     "adminBadge": "Админ",
     "createdAt": "Регистрация: {date}",
@@ -589,6 +585,8 @@
         "role": "[Админ] Роли",
         "row-level-roles": "[Админ] Роли уровня строк",
         "maps": "[Админ] Карты",
+        "events": "[Админ] События",
+        "reports": "[Админ] Репорты",
         "threads": "Треды",
         "docs": "Документация",
         "leaderboard": "Рейтинг",
@@ -690,6 +688,76 @@
       "delete": "Удалить",
       "confirmDelete": "Удалить карту «{name}» безвозвратно?",
       "noResults": "Карты пока не настроены.",
+      "errors": {
+        "generic": "Что-то пошло не так. Попробуйте позже."
+      }
+    },
+    "events": {
+      "title": "События",
+      "description": "Ближайшие и прошедшие ивенты сети — показываются на отдельной публичной странице «События».",
+      "nameColumn": "Название",
+      "serverColumn": "Сервер",
+      "categoryColumn": "Категория",
+      "periodColumn": "Период",
+      "serverLabel": "Сервер",
+      "serverNetworkWide": "— Общее событие —",
+      "categoryLabel": "Категория",
+      "nameLabel": "Название",
+      "descriptionLabel": "Описание",
+      "iconLabel": "Иконка",
+      "iconSearchPlaceholder": "Найти",
+      "iconSearchEmpty": "По запросу ничего не найдено.",
+      "startLabel": "Начало",
+      "endLabel": "Окончание",
+      "hrefLabel": "Ссылка (Discord, доки)",
+      "categories": {
+        "pvp": "PvP",
+        "world": "Мировые",
+        "pve": "PvE",
+        "economy": "Экономика"
+      },
+      "addEvent": "Добавить событие",
+      "createTitle": "Создать событие",
+      "editTitle": "Редактировать событие",
+      "create": "Создать",
+      "save": "Сохранить",
+      "saving": "Сохранение...",
+      "saveFailed": "Не удалось сохранить. Попробуйте позже.",
+      "edit": "Редактировать",
+      "delete": "Удалить",
+      "confirmDelete": "Удалить событие «{name}» безвозвратно?",
+      "noResults": "События пока не настроены.",
+      "errors": {
+        "generic": "Что-то пошло не так. Попробуйте позже."
+      }
+    },
+    "reports": {
+      "title": "Репорты",
+      "description": "Жалобы на нарушения от игроков.",
+      "reporterColumn": "Автор",
+      "reportedColumn": "На кого",
+      "categoryColumn": "Категория",
+      "statusColumn": "Статус",
+      "createdColumn": "Создан",
+      "statusAll": "Все",
+      "searchPlaceholder": "Найти по нику...",
+      "statuses": {
+        "OPEN": "Открыт",
+        "IN_REVIEW": "На рассмотрении",
+        "RESOLVED": "Решён",
+        "REJECTED": "Отклонён"
+      },
+      "categories": {
+        "cheating": "Читерство",
+        "griefing": "Гриферство",
+        "chat": "Чат/поведение",
+        "scam": "Обман/скам",
+        "other": "Другое"
+      },
+      "open": "Открыть",
+      "delete": "Удалить",
+      "confirmDelete": "Удалить репорт на «{name}» безвозвратно? Вся переписка и вложения будут потеряны.",
+      "noResults": "Репортов пока нет.",
       "errors": {
         "generic": "Что-то пошло не так. Попробуйте позже."
       }
@@ -831,6 +899,71 @@
     "send": "Отправить",
     "sending": "Отправка..."
   },
+  "Reports": {
+    "myReportsTitle": "Мои репорты",
+    "myReportsDescription": "Жалобы на нарушения игроков и переписка по ним.",
+    "newReport": "Новый репорт",
+    "noReports": "Репортов пока нет.",
+    "updatedAt": "Обновлено: {date}",
+    "prevPage": "← Назад",
+    "nextPage": "Вперёд →",
+    "pageInfo": "Стр. {page} из {totalPages}",
+    "statusAll": "Все",
+    "status": {
+      "OPEN": "Открыт",
+      "IN_REVIEW": "На рассмотрении",
+      "RESOLVED": "Решён",
+      "REJECTED": "Отклонён"
+    },
+    "category": {
+      "cheating": "Читерство",
+      "griefing": "Гриферство",
+      "chat": "Чат/поведение",
+      "scam": "Обман/скам",
+      "other": "Другое"
+    },
+    "attachmentsLabel": "Доказательства",
+    "newReportTitle": "Новый репорт",
+    "newReportDescription": "Укажите нарушителя, категорию и опишите, что произошло — приложите скриншоты или видео как доказательство.",
+    "reportedNameLabel": "Ник нарушителя",
+    "reportedNamePlaceholder": "Начните вводить ник...",
+    "reportedNameNoMatches": "Совпадений нет — можно ввести ник вручную",
+    "categoryLabel": "Категория",
+    "descriptionLabel": "Описание нарушения",
+    "descriptionPlaceholder": "Опишите, что произошло, когда и при каких обстоятельствах",
+    "submit": "Отправить репорт",
+    "submitting": "Отправка...",
+    "errors": {
+      "required": "Укажите ник нарушителя и опишите нарушение",
+      "generic": "Не удалось выполнить действие. Попробуйте позже."
+    },
+    "backToList": "← К списку репортов",
+    "reportedLabel": "На кого:",
+    "reporterLabel": "От кого:",
+    "reportColumn": "Репорт",
+    "reportedColumn": "На кого",
+    "statusColumn": "Статус",
+    "updatedColumn": "Обновлен",
+    "createdColumn": "Создан",
+    "deleteReport": "Удалить репорт",
+    "confirmDeleteReport": "Удалить репорт на «{name}» безвозвратно? Вся переписка и вложения будут потеряны. Это действие нельзя отменить.",
+    "setStatus": "Статус:",
+    "markInReview": "На рассмотрении",
+    "markResolved": "Решён",
+    "markRejected": "Отклонён",
+    "reopenReport": "Переоткрыть",
+    "staffLabel": "модерация",
+    "adminName": "Модератор",
+    "noMessages": "Сообщений пока нет.",
+    "closedHint": "Репорт закрыт для новых сообщений — дождитесь, пока модератор его переоткроет.",
+    "replyPlaceholder": "Ваше сообщение...",
+    "send": "Отправить",
+    "sending": "Отправка...",
+    "adminSearchPlaceholder": "Найти по нику...",
+    "messageCount": "{count, plural, one {# сообщение} few {# сообщения} many {# сообщений} other {# сообщений}}",
+    "attachmentCount": "{count, plural, one {# вложение} few {# вложения} many {# вложений} other {# вложений}}",
+    "imageLoadError": "Не удалось загрузить изображение"
+  },
   "Notifications": {
     "bellLabel": "Уведомления",
     "title": "Уведомления",
@@ -840,7 +973,13 @@
     "view": "Открыть",
     "ticketReply": "Новый ответ в тикете «{subject}»",
     "ticketClosed": "Тикет «{subject}» закрыт",
-    "badgeAwarded": "Вы получили бейдж «{name}»"
+    "badgeAwarded": "Вы получили бейдж «{name}»",
+    "reportReply": "Новый ответ по репорту на «{reportedName}»",
+    "reportStatusChanged": "Статус репорта на «{reportedName}» изменён",
+    "pushEnable": "Включить push-уведомления",
+    "pushDisable": "Отключить push-уведомления",
+    "pushPermissionDenied": "Уведомления заблокированы в настройках браузера",
+    "pushError": "Не удалось включить push-уведомления. Попробуйте позже."
   },
   "Leaderboard": {
     "pageTitle": "Рейтинги",

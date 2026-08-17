@@ -152,9 +152,14 @@ export default async function ProfilePage({
 
           <ProfileSectionCard title={t("supportSectionTitle")}>
             <p className="text-foreground/45 text-sm mb-5">{t("supportSectionDescription")}</p>
-            <CtaButton href={`/${lang}/account/tickets`} variant="outline">
-              {t("myTickets")}
-            </CtaButton>
+            <div className="flex flex-wrap gap-2.5">
+              <CtaButton href={`/${lang}/account/tickets`} variant="outline">
+                {t("myTickets")}
+              </CtaButton>
+              <CtaButton href={`/${lang}/account/reports`} variant="outline">
+                {t("myReports")}
+              </CtaButton>
+            </div>
           </ProfileSectionCard>
         </div>
       </main>

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Bell, CheckCheck, Trash2 } from "lucide-react";
+import { Bell, BellRing, BellOff, CheckCheck, Trash2 } from "lucide-react";
 import { useTranslations, useLocale } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
@@ -10,6 +10,7 @@ import { cn } from "@/lib/utils";
 import { useNotifications } from "@/context/NotificationsContext";
 import { renderNotification } from "@/lib/notification-renderers";
 import { formatLastSeen } from "@/lib/player-card-format";
+import { usePushSubscription } from "@/hooks/usePushSubscription";
 import {
   markNotificationRead,
   markAllNotificationsRead,
@@ -21,6 +22,7 @@ export function NotificationBell() {
   const t = useTranslations("Notifications");
   const lang = useLocale();
   const { items, unreadCount, markReadLocally, markAllReadLocally, deleteReadLocally } = useNotifications();
+  const push = usePushSubscription();
   const [open, setOpen] = useState(false);
   const hasRead = items.some((n) => n.read);
 
@@ -94,8 +96,30 @@ export function NotificationBell() {
             >
               <Trash2 size={14} />
             </Button>
+            {push.support !== "unsupported" && (
+              <Button
+                variant="ghost"
+                size="icon-sm"
+                onClick={() => push.toggle()}
+                disabled={push.support === "checking" || push.busy}
+                title={
+                  push.error === "denied"
+                    ? t("pushPermissionDenied")
+                    : push.subscribed
+                      ? t("pushDisable")
+                      : t("pushEnable")
+                }
+                aria-label={push.subscribed ? t("pushDisable") : t("pushEnable")}
+                className={cn("text-foreground/40 hover:text-primary", push.subscribed && "text-primary/80")}
+              >
+                {push.subscribed ? <BellRing size={14} /> : <BellOff size={14} />}
+              </Button>
+            )}
           </div>
         </div>
+        {push.error === "generic" && (
+          <p className="px-3 py-1.5 text-[11px] text-destructive border-b border-border">{t("pushError")}</p>
+        )}
 
         <div className="max-h-96 overflow-y-auto custom-scrollbar">
           {items.length === 0 ? (

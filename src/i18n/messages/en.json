@@ -27,9 +27,14 @@
     "copyCommand": "Copy {command}"
   },
   "Events": {
-    "eyebrow": "Events",
-    "title": "Upcoming events",
-    "refreshNote": "↻ every minute",
+    "eyebrow": "Network Chronicles",
+    "title": "Events",
+    "description": "Tournaments, world openings, and everything else happening across DuckTale — kept here for the record.",
+    "realms": {
+      "groupLabel": "Realm",
+      "all": "All realms",
+      "network": "Network-wide"
+    },
     "categories": {
       "all": "All",
       "pvp": "PvP",
@@ -53,21 +58,7 @@
       "all": "No events",
       "category": "No events in the \"{category}\" category"
     },
-    "overflow": "+ {count, plural, one {# more event} other {# more events}} — check Discord",
-    "items": {
-      "invite-system": {
-        "name": "Server access",
-        "description": "Step into the world of DuckBurg, travel, explore, and grow. Don't forget to invite friends to play with you!"
-      },
-      "nether-world-open": {
-        "name": "Nether world opening",
-        "description": "Opening portals to the Nether gives players more ways to grow and develop across DuckBurg."
-      },
-      "end-world-open": {
-        "name": "End world opening",
-        "description": "Opening portals to the End lets players face the Ender Dragon and prove that flying takes skill too."
-      }
-    }
+    "overflow": "+ {count, plural, one {# more event} other {# more events}} — check Discord"
   },
   "PlayerCard": {
     "searchPlaceholder": "Search by nickname or username…",
@@ -128,6 +119,7 @@
     "leaderboard": "Rankings",
     "threads": "Threads",
     "maps": "Maps",
+    "events": "Events",
     "profile": "Profile",
     "login": "Sign in",
     "home": "DuckTale — home",
@@ -435,7 +427,8 @@
       "viewProfile": "My public profile",
       "supportSectionTitle": "Support",
       "supportSectionDescription": "Have a question or an issue? Open a ticket — an admin will see it and reply right here.",
-      "myTickets": "My tickets"
+      "myTickets": "My tickets",
+      "myReports": "My reports"
     },
     "link": {
       "title": "Link your Minecraft account",
@@ -472,6 +465,9 @@
     "navUsers": "Users",
     "navContent": "Content",
     "navMaps": "Maps",
+    "navEvents": "Events",
+    "navAppeals": "Requests",
+    "navReports": "Reports",
     "navPermissions": "Permissions",
     "adminBadge": "Admin",
     "createdAt": "Registered: {date}",
@@ -590,6 +586,8 @@
         "role": "[Admin] Roles",
         "row-level-roles": "[Admin] Row-level roles",
         "maps": "[Admin] Maps",
+        "events": "[Admin] Events",
+        "reports": "[Admin] Reports",
         "threads": "Threads",
         "docs": "Docs",
         "leaderboard": "Leaderboard",
@@ -691,6 +689,76 @@
       "delete": "Delete",
       "confirmDelete": "Permanently delete the map \"{name}\"?",
       "noResults": "No maps configured yet.",
+      "errors": {
+        "generic": "Something went wrong. Please try again."
+      }
+    },
+    "events": {
+      "title": "Events",
+      "description": "Upcoming and past network events — shown on the public \"Events\" page.",
+      "nameColumn": "Name",
+      "serverColumn": "Server",
+      "categoryColumn": "Category",
+      "periodColumn": "Period",
+      "serverLabel": "Server",
+      "serverNetworkWide": "— Network-wide event —",
+      "categoryLabel": "Category",
+      "nameLabel": "Name",
+      "descriptionLabel": "Description",
+      "iconLabel": "Icon",
+      "iconSearchPlaceholder": "Search",
+      "iconSearchEmpty": "No results.",
+      "startLabel": "Start",
+      "endLabel": "End",
+      "hrefLabel": "Link (Discord, docs)",
+      "categories": {
+        "pvp": "PvP",
+        "world": "World",
+        "pve": "PvE",
+        "economy": "Economy"
+      },
+      "addEvent": "Add event",
+      "createTitle": "Create event",
+      "editTitle": "Edit event",
+      "create": "Create",
+      "save": "Save",
+      "saving": "Saving...",
+      "saveFailed": "Couldn't save. Please try again.",
+      "edit": "Edit",
+      "delete": "Delete",
+      "confirmDelete": "Permanently delete the event \"{name}\"?",
+      "noResults": "No events configured yet.",
+      "errors": {
+        "generic": "Something went wrong. Please try again."
+      }
+    },
+    "reports": {
+      "title": "Reports",
+      "description": "Player conduct reports.",
+      "reporterColumn": "Reporter",
+      "reportedColumn": "Reported player",
+      "categoryColumn": "Category",
+      "statusColumn": "Status",
+      "createdColumn": "Created",
+      "statusAll": "All",
+      "searchPlaceholder": "Search by nickname...",
+      "statuses": {
+        "OPEN": "Open",
+        "IN_REVIEW": "In review",
+        "RESOLVED": "Resolved",
+        "REJECTED": "Rejected"
+      },
+      "categories": {
+        "cheating": "Cheating",
+        "griefing": "Griefing",
+        "chat": "Chat/behavior",
+        "scam": "Scam",
+        "other": "Other"
+      },
+      "open": "Open",
+      "delete": "Delete",
+      "confirmDelete": "Permanently delete the report on \"{name}\"? All messages and attachments will be lost.",
+      "noResults": "No reports yet.",
       "errors": {
         "generic": "Something went wrong. Please try again."
       }
@@ -832,6 +900,71 @@
     "send": "Send",
     "sending": "Sending..."
   },
+  "Reports": {
+    "myReportsTitle": "My reports",
+    "myReportsDescription": "Player conduct reports you've filed and their replies.",
+    "newReport": "New report",
+    "noReports": "No reports yet.",
+    "updatedAt": "Updated: {date}",
+    "prevPage": "← Back",
+    "nextPage": "Next →",
+    "pageInfo": "Page {page} of {totalPages}",
+    "statusAll": "All",
+    "status": {
+      "OPEN": "Open",
+      "IN_REVIEW": "In review",
+      "RESOLVED": "Resolved",
+      "REJECTED": "Rejected"
+    },
+    "category": {
+      "cheating": "Cheating",
+      "griefing": "Griefing",
+      "chat": "Chat/behavior",
+      "scam": "Scam",
+      "other": "Other"
+    },
+    "attachmentsLabel": "Evidence",
+    "newReportTitle": "New report",
+    "newReportDescription": "Name the offender, pick a category, and describe what happened — attach screenshots or video as evidence.",
+    "reportedNameLabel": "Offender's nickname",
+    "reportedNamePlaceholder": "Start typing a nickname...",
+    "reportedNameNoMatches": "No matches — you can still type the nickname manually",
+    "categoryLabel": "Category",
+    "descriptionLabel": "Description",
+    "descriptionPlaceholder": "Describe what happened, when, and under what circumstances",
+    "submit": "Send report",
+    "submitting": "Sending...",
+    "errors": {
+      "required": "Fill in the offender's nickname and describe the violation",
+      "generic": "Couldn't complete that. Try again later."
+    },
+    "backToList": "← Back to reports",
+    "reportedLabel": "Reported:",
+    "reporterLabel": "Filed by:",
+    "reportColumn": "Report",
+    "reportedColumn": "Reported player",
+    "statusColumn": "Status",
+    "updatedColumn": "Updated",
+    "createdColumn": "Created",
+    "deleteReport": "Delete report",
+    "confirmDeleteReport": "Permanently delete the report on \"{name}\"? All messages and attachments will be lost. This cannot be undone.",
+    "setStatus": "Status:",
+    "markInReview": "In review",
+    "markResolved": "Resolved",
+    "markRejected": "Rejected",
+    "reopenReport": "Reopen",
+    "staffLabel": "moderation",
+    "adminName": "Moderator",
+    "noMessages": "No messages yet.",
+    "closedHint": "This report is closed to new messages — wait for a moderator to reopen it.",
+    "replyPlaceholder": "Your message...",
+    "send": "Send",
+    "sending": "Sending...",
+    "adminSearchPlaceholder": "Search by nickname...",
+    "messageCount": "{count, plural, one {# message} other {# messages}}",
+    "attachmentCount": "{count, plural, one {# attachment} other {# attachments}}",
+    "imageLoadError": "Couldn't load image"
+  },
   "Notifications": {
     "bellLabel": "Notifications",
     "title": "Notifications",
@@ -841,7 +974,13 @@
     "view": "Open",
     "ticketReply": "New reply on ticket \"{subject}\"",
     "ticketClosed": "Ticket \"{subject}\" was closed",
-    "badgeAwarded": "You earned the \"{name}\" badge"
+    "badgeAwarded": "You earned the \"{name}\" badge",
+    "reportReply": "New reply on your report on \"{reportedName}\"",
+    "reportStatusChanged": "Status changed on your report on \"{reportedName}\"",
+    "pushEnable": "Enable push notifications",
+    "pushDisable": "Disable push notifications",
+    "pushPermissionDenied": "Notifications are blocked in browser settings",
+    "pushError": "Couldn't enable push notifications. Try again later."
   },
   "Leaderboard": {
     "pageTitle": "Rankings",

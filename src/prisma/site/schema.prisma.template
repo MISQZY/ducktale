@@ -50,6 +50,8 @@ model User {
   badges              UserBadge[]
   roles               UserRole[]
   notifications       Notification[]
+  reports             Report[]
+  pushSubscriptions   PushSubscription[]
 
   @@map("{{PREFIX}}user")
 }
@@ -521,12 +523,18 @@ enum MessageType {
 /// `isAdminReply` is ticket-only — drives TicketThread's staff/anonymization
 /// display — and stays false/unused on thread rows, which have no
 /// staff-vs-owner split (see isTicketStaff() in src/lib/tickets.ts).
+/// `reportId` extends the original ticketId-XOR-threadId contract (see this
+/// model's own doc comment above) to a three-way "exactly one of
+/// ticketId/threadId/reportId" — enforced the same way, at the application
+/// layer only (every write site sets exactly one of the three).
 model Message {
   id           String   @id @default(uuid())
   ticketId     String?
   ticket       Ticket?  @relation(fields: [ticketId], references: [id], onDelete: Cascade)
   threadId     String?
   thread       Thread?  @relation(fields: [threadId], references: [id], onDelete: Cascade)
+  reportId     String?
+  report       Report?  @relation(fields: [reportId], references: [id], onDelete: Cascade)
   authorId     String
   author       User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
   type         MessageType @default(MESSAGE)
@@ -537,6 +545,7 @@ model Message {
 
   @@index([ticketId])
   @@index([threadId])
+  @@index([reportId])
   @@map("{{PREFIX}}message")
 }
 
@@ -600,4 +609,104 @@ model Notification {
   @@index([userId, read])
   @@index([userId, createdAt])
   @@map("{{PREFIX}}notification")
+}
+
+/// A subscription to one browser's Web Push endpoint for a user — see
+/// src/lib/push.ts. A user can hold several (one per browser/device); unique
+/// on `endpoint` (not `userId`) since that's what actually identifies one
+/// subscription, and re-subscribing the same browser upserts the same row
+/// rather than creating a duplicate. Pruned lazily by sendPushToUser() when
+/// the push service reports the endpoint as gone (404/410), the same
+/// lazily-clean-what-turned-stale pattern already used elsewhere in this app
+/// (e.g. skin cache, presence).
+model PushSubscription {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  endpoint  String   @unique @db.VarChar(512)
+  p256dh    String   @db.VarChar(255)
+  auth      String   @db.VarChar(255)
+  userAgent String?  @db.VarChar(255)
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@map("{{PREFIX}}push_subscription")
+}
+
+/// Admin-managed calendar entry, shown on the public /events page (its own
+/// top-level nav entry, gated by the public `events-page` resource-role —
+/// same admin/public split as ServerMap's `maps`/`maps-page`) and managed at
+/// /admin/events (gated by `events`). `serverId` is nullable — null means a
+/// network-wide event (not tied to one server), a set value matches one of
+/// SERVERS[].id (src/config/servers.ts, a fixed code-defined catalog, so no
+/// FK here — same reasoning ServerMap.serverId already documents). `name`/
+/// `description` are LocalizedName (see Role.name's doc comment) — on the
+/// row instead of i18n/messages/*.json under Events.items.<id>, since an
+/// admin-created event has no i18n key to hang text off of. `category` is
+/// validated at the app layer against EventCategory (src/config/events.ts,
+/// which now only holds presentation — EVENT_CATEGORY_STYLE — and the type).
+/// `icon` is a lucide-react icon name (or `Gi*` from react-icons/gi),
+/// validated against isBadgeIconName() (src/config/badges.ts) — reused
+/// directly rather than duplicated, same icon catalog Badge.icon already
+/// uses, rendered the same way via <BadgeIcon>.
+model ServerEvent {
+  id          String   @id @default(uuid())
+  serverId    String?  @db.VarChar(64)
+  icon        String   @db.VarChar(64)
+  category    String   @db.VarChar(16)
+  name        Json
+  description Json
+  startAt     DateTime
+  endAt       DateTime
+  href        String?  @db.VarChar(1024)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([startAt])
+  @@index([serverId])
+  @@map("{{PREFIX}}server_event")
+}
+
+enum ReportStatus {
+  OPEN
+  IN_REVIEW
+  RESOLVED
+  REJECTED
+}
+
+/// A player-conduct report, filed by a site user from /account/reports/new
+/// against a Minecraft nickname (reportedName — free text, not an FK: the
+/// reported player may have no linked site account, same reasoning
+/// AccountLink.minecraftName is nullable/unverified until link confirmation).
+/// Conversation reuses the same shared Message table Ticket/Thread already
+/// use (Message.reportId, see that model's doc comment) rather than a
+/// separate table — same "shared conversation-message table" reasoning that
+/// already applies across Ticket/Thread.
+///
+/// Status semantics deliberately differ from Ticket's OPEN/ANSWERED (which
+/// tracks "whose turn to reply"): OPEN -> IN_REVIEW happens automatically on
+/// the first staff reply (mirrors Ticket's ANSWERED flip), but RESOLVED/
+/// REJECTED are terminal and only ever set explicitly by staff
+/// (setReportStatus, reports-edit) from any prior status — a report doesn't
+/// need to pass through IN_REVIEW first. Unlike Ticket (where a user reply
+/// implicitly reopens a CLOSED ticket), a terminal report rejects new
+/// Messages outright (same as Thread.closed) until staff explicitly moves it
+/// back — a moderation decision shouldn't silently reopen just because the
+/// reporter added a message.
+model Report {
+  id           String       @id @default(uuid())
+  reporterId   String
+  reporter     User         @relation(fields: [reporterId], references: [id], onDelete: Cascade)
+  reportedName String       @db.VarChar(16)
+  // Validated at the app layer against REPORT_CATEGORIES (src/config/reports.ts),
+  // same pattern as ServerEvent.category.
+  category     String       @db.VarChar(32)
+  status       ReportStatus @default(OPEN)
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+  messages     Message[]
+
+  @@index([reporterId])
+  @@index([status, updatedAt])
+  @@map("{{PREFIX}}report")
 }

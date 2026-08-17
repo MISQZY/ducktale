@@ -83,6 +83,18 @@
  * admin-only "can manage map records" grant and a public "can browse the
  * map section at all" grant are genuinely different levers an admin should
  * be able to hand out independently, not one permission wearing two hats.
+ *
+ * `events`/`events-page` — the same admin/public split as `maps`/`maps-page`:
+ * `events` (view/edit/delete) gates /admin/events (ServerEvent CRUD,
+ * src/lib/actions/admin-events.ts); `events-page` (view only, guest-
+ * inclusive) gates the public /events page, its own top-level nav entry
+ * (unlike the old docs-embedded EventTimeline this replaced, which relied on
+ * /docs's own docs-view gate and had no resource-role of its own).
+ *
+ * `reports` (view/edit/delete) gates the player-conduct report system
+ * (Report model, /admin/reports, src/lib/actions/reports.ts) — staff-only,
+ * no public split at all: a report's owner sees only their own via ownership
+ * (canViewReport), the same shape tickets already use for `tickets`.
  */
 export const RESOURCE_ROLE_ACTIONS = {
   users: ["view", "edit", "delete"],
@@ -100,6 +112,9 @@ export const RESOURCE_ROLE_ACTIONS = {
   "server-status": ["view"],
   maps: ["view", "edit", "delete"],
   "maps-page": ["view"],
+  events: ["view", "edit", "delete"],
+  "events-page": ["view"],
+  reports: ["view", "edit", "delete"],
 } as const;
 
 export type Resource = keyof typeof RESOURCE_ROLE_ACTIONS;

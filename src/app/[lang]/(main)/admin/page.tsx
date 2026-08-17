@@ -3,17 +3,20 @@ import { getAdminNavAccess } from "@/lib/admin";
 import type { Resource } from "@/config/resource-roles";
 
 // Same order as the tabs in AdminNav.tsx (Users group — including its nested
-// Permissions flyout — then Content) — first one the viewer can open wins.
+// Permissions flyout — then Appeals, then Content) — first one the viewer
+// can open wins.
 const ADMIN_TAB_PATHS: [Resource, string][] = [
   ["users", "users"],
-  ["tickets", "tickets"],
   ["badges", "badges"],
   ["ranks", "ranks"],
   ["role", "roles"],
   ["row-level-roles", "row-level-roles"],
   ["resource-roles", "resource-roles"],
+  ["tickets", "tickets"],
+  ["reports", "reports"],
   ["content", "content"],
   ["maps", "maps"],
+  ["events", "events"],
 ];
 
 /** /admin has no content of its own — redirects to the first tab the viewer can actually open (a resource-role holder might not have users-view), falling back to the home page if they hold none. */

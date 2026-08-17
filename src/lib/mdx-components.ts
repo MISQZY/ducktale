@@ -22,7 +22,6 @@ import {
   DocsTableHead,
   DocsTableCell,
 } from "@/components/ui/docs-table";
-import { EventTimeline } from "@/components/docs/EventTimeLine";
 import { PermissionTable } from "@/components/docs/PermissionTable";
 
 export const docsComponents = {
@@ -45,6 +44,5 @@ export const docsComponents = {
   ServerStatusWidget,
   StepList,
   WhitelistTable,
-  EventTimeline,
   PermissionTable
 };

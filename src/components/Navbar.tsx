@@ -166,9 +166,11 @@ interface NavbarProps {
   canViewThreads?: boolean;
   /** Same idea as canViewLeaderboard — resolved through the guest Role for an anonymous visitor (hasPublicResourceRole("maps-view")), not just session.user.roles. */
   canViewMaps?: boolean;
+  /** Same idea as canViewMaps — hasPublicResourceRole("events-page-view"). */
+  canViewEvents?: boolean;
 }
 
-export default function Navbar({ canViewLeaderboard = true, canViewThreads = true, canViewMaps = true }: NavbarProps) {
+export default function Navbar({ canViewLeaderboard = true, canViewThreads = true, canViewMaps = true, canViewEvents = true }: NavbarProps) {
   const t = useTranslations("Nav");
   const pathname = usePathname();
   // Gates the bell — an anonymous visitor has no notifications, and
@@ -182,6 +184,7 @@ export default function Navbar({ canViewLeaderboard = true, canViewThreads = tru
     if (link.key === "leaderboard") return canViewLeaderboard;
     if (link.key === "threads") return canViewThreads;
     if (link.key === "maps") return canViewMaps;
+    if (link.key === "events") return canViewEvents;
     return true;
   });
 

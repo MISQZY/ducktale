@@ -42,21 +42,20 @@ function itemClass(active: boolean): string {
 }
 
 /**
- * Admin nav, grouped into two dropdown menus ("Пользователи"/"Контент")
- * instead of one flat row of tabs — the flat row grew to 8 entries once
- * Роли/Роли-уровня-строк/Ресурсные-роли (see [[PERMISSIONS_BADGES]] §4.1/
- * §4.1а) joined Тикеты/Бейджи/Ранги under Users. "Права" nests one level
- * deeper as a DropdownMenuSub inside the Users group, at the user's request
- * — those three permission-model pages are conceptually "users" territory
- * but distinct enough to warrant their own flyout rather than sitting flat
- * alongside Тикеты/Бейджи/Ранги.
+ * Admin nav, grouped into dropdown menus instead of one flat row of tabs —
+ * the flat row grew too wide once enough resources joined. "Права" nests one
+ * level deeper as a DropdownMenuSub inside the Users group (permission-model
+ * pages are conceptually "users" territory but distinct enough for their own
+ * flyout). "Обращения" (Tickets + Reports) was split out of Users into its
+ * own top-level group at the user's request — both are player-facing
+ * request/response flows, a different kind of thing from user/role
+ * management, and warranted their own group once Reports joined Tickets.
  */
 export function AdminNav({ active, navAccess }: AdminNavProps) {
   const t = useTranslations("Admin");
 
   const usersItems: NavItem[] = ([
     { resource: "users", href: "/admin/users", label: t("navUsers") },
-    { resource: "tickets", href: "/admin/tickets", label: t("navTickets") },
     { resource: "badges", href: "/admin/badges", label: t("navBadges") },
     { resource: "ranks", href: "/admin/ranks", label: t("navRanks") },
   ] as NavItem[]).filter((item) => navAccess[item.resource]);
@@ -67,16 +66,23 @@ export function AdminNav({ active, navAccess }: AdminNavProps) {
     { resource: "resource-roles", href: "/admin/resource-roles", label: t("navResourceRoles") },
   ] as NavItem[]).filter((item) => navAccess[item.resource]);
 
+  const appealsItems: NavItem[] = ([
+    { resource: "tickets", href: "/admin/tickets", label: t("navTickets") },
+    { resource: "reports", href: "/admin/reports", label: t("navReports") },
+  ] as NavItem[]).filter((item) => navAccess[item.resource]);
+
   const contentItems: NavItem[] = ([
     { resource: "content", href: "/admin/content", label: t("navContent") },
     { resource: "maps", href: "/admin/maps", label: t("navMaps") },
+    { resource: "events", href: "/admin/events", label: t("navEvents") },
   ] as NavItem[]).filter((item) => navAccess[item.resource]);
 
   const permissionsActive = permissionsItems.some((item) => item.resource === active);
   const usersGroupActive = usersItems.some((item) => item.resource === active) || permissionsActive;
+  const appealsGroupActive = appealsItems.some((item) => item.resource === active);
   const contentGroupActive = contentItems.some((item) => item.resource === active);
 
-  if (usersItems.length + permissionsItems.length === 0 && contentItems.length === 0) return null;
+  if (usersItems.length + permissionsItems.length === 0 && appealsItems.length === 0 && contentItems.length === 0) return null;
 
   return (
     <div className="flex items-center justify-center mb-6">
@@ -107,6 +113,22 @@ export function AdminNav({ active, navAccess }: AdminNavProps) {
                   </DropdownMenuSubContent>
                 </DropdownMenuSub>
               )}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        )}
+
+        {appealsItems.length > 0 && (
+          <DropdownMenu>
+            <DropdownMenuTrigger className={groupTriggerClass(appealsGroupActive)}>
+              {t("navAppeals")}
+              <ChevronDown className="size-3 opacity-60" />
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="start">
+              {appealsItems.map((item) => (
+                <DropdownMenuItem key={item.resource} asChild className={itemClass(item.resource === active)}>
+                  <Link href={item.href}>{item.label}</Link>
+                </DropdownMenuItem>
+              ))}
             </DropdownMenuContent>
           </DropdownMenu>
         )}

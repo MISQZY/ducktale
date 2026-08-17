@@ -1,5 +1,6 @@
 import { siteDb } from "@/lib/site-db";
 import { withCache, invalidateByPrefix } from "@/lib/query-cache";
+import { sendPushToUser } from "@/lib/push";
 import type { LocalizedName } from "@/lib/i18n-name";
 
 /**
@@ -18,6 +19,10 @@ export interface NotificationPayloads {
   ticket_closed: { ticketId: string; ticketSubject: string };
   /** `userId` was awarded a badge (manually or via an auto-grant condition). */
   badge_awarded: { badgeId: string; badgeName: LocalizedName; badgeIcon: string; badgeColor: string | null };
+  /** Staff replied to `userId`'s own report (sendReportMessage's first staff reply on an OPEN report). */
+  report_reply: { reportId: string; reportedName: string };
+  /** Staff changed the status of `userId`'s own report (setReportStatus) — not fired when staff changes the status of their own report. */
+  report_status_changed: { reportId: string; reportedName: string; status: "OPEN" | "IN_REVIEW" | "RESOLVED" | "REJECTED" };
 }
 
 export type NotificationType = keyof NotificationPayloads;
@@ -55,6 +60,15 @@ export async function createNotification<T extends NotificationType>(
 ): Promise<void> {
   await siteDb.notification.create({ data: { userId, type, payload } });
   invalidateSnapshot(userId);
+
+  // Single choke point for Web Push — every notification type is pushed
+  // automatically to whichever devices the user has subscribed from,
+  // without any of this function's callers (sendTicketMessage, awardBadge,
+  // setReportStatus, ...) needing to know push exists at all. Best-effort:
+  // a push delivery failure shouldn't fail the write that already succeeded.
+  sendPushToUser(userId, type, payload).catch((err) => {
+    console.error("[notifications] push delivery failed:", err);
+  });
 }
 
 /**
