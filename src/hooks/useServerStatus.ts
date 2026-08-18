@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { useServerStatuses } from "@/context/ServerStatusContext";
 
 export interface ServerStatus {
@@ -18,7 +19,10 @@ export type ServerStatusResult =
 
 export function useServerStatus(host: string): ServerStatusResult {
   const { statuses, loading, error } = useServerStatuses();
-  if (loading) return { state: "loading" };
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+
+  if (!mounted || loading) return { state: "loading" };
   if (error) return { state: "error" };
   return { state: "ok", status: statuses[host] ?? { online: false } };
 }

@@ -1,5 +1,7 @@
 "use client";
 
+import { useState, useEffect } from "react";
+
 import { Link } from "@/i18n/navigation";
 import { useTranslations } from "next-intl";
 import { ArrowRight, Sword, Settings } from "lucide-react";
@@ -14,6 +16,8 @@ import { useServerStatuses } from "@/context/ServerStatusContext";
 export default function ServersSection() {
   const t = useTranslations("Servers");
   const { statuses } = useServerStatuses();
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
 
   return (
     <section id="servers" className="py-16 px-6 relative">
@@ -21,7 +25,7 @@ export default function ServersSection() {
         <SectionHeader label={t("label")} title={t("title")} />
         <div className="grid md:grid-cols-2 gap-6">
           {SERVERS.map((server) => {
-            const isMaintenance = statuses[server.host]?.maintenance;
+            const isMaintenance = mounted && statuses[server.host]?.maintenance;
             return (
               <div key={server.id} className="relative group h-full pointer-events-auto">
                 <div
