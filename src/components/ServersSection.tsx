@@ -17,6 +17,7 @@ export default function ServersSection() {
   const t = useTranslations("Servers");
   const { statuses } = useServerStatuses();
   const [mounted, setMounted] = useState(false);
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => setMounted(true), []);
 
   return (

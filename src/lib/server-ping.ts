@@ -1,5 +1,4 @@
 import { API } from "@/config/site";
-import { EXTERNAL_APIS } from "@/config/external-apis";
 import * as util from "minecraft-server-util";
 
 interface ServerPing {
@@ -38,7 +37,7 @@ async function fetchPing(host: string): Promise<ServerPing> {
       version: result.version.name,
       players: { max: result.players.max },
     };
-  } catch (error) {
+  } catch {
     // If it fails (e.g. offline, timeout, network error), return our error state
     return { online: false, _isError: true };
   }

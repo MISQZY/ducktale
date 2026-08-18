@@ -21,6 +21,7 @@ export type ServerStatusResult =
 export function useServerStatus(host: string): ServerStatusResult {
   const { statuses, loading, error } = useServerStatuses();
   const [mounted, setMounted] = useState(false);
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => setMounted(true), []);
 
   if (!mounted || loading) return { state: "loading" };
