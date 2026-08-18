@@ -4,7 +4,7 @@
 const FADE_MASK =
   "linear-gradient(to bottom, black calc(100% - 16rem), transparent 100%)";
 
-export function PageBackground() {
+export function PageBackground({ showGlows = true }: { showGlows?: boolean }) {
   return (
     <div
       className="absolute inset-0 pointer-events-none"
@@ -32,24 +32,26 @@ export function PageBackground() {
       />
 
       {/* 3. Illumination Glows (acts as flickering light on the stone) */}
-      <div className="absolute inset-0 mix-blend-overlay">
-        <div className="absolute top-1/2 left-[48%] -translate-x-1/2 -translate-y-1/2">
-          <div
-            className="rounded-full blur-[100px] bg-primary/80 hero-pulse"
-            style={{ width: 1000, height: 750 }}
-          />
-        </div>
+      {showGlows && (
+        <div className="absolute inset-0 mix-blend-overlay">
+          <div className="absolute top-1/2 left-[48%] -translate-x-1/2 -translate-y-1/2">
+            <div
+              className="rounded-full blur-[100px] bg-primary/80 hero-pulse"
+              style={{ width: 1000, height: 750 }}
+            />
+          </div>
 
-        <div className="absolute top-[52%] left-[52%] -translate-x-1/2 -translate-y-1/2">
-          <div
-            className="rounded-full blur-[70px] bg-primary/50 hero-pulse-2"
-            style={{ width: 600, height: 600 }}
-          />
-        </div>
+          <div className="absolute top-[52%] left-[52%] -translate-x-1/2 -translate-y-1/2">
+            <div
+              className="rounded-full blur-[70px] bg-primary/50 hero-pulse-2"
+              style={{ width: 600, height: 600 }}
+            />
+          </div>
 
-        <div className="absolute top-0 left-0 w-64 h-64 bg-primary/10 blur-2xl rounded-full -translate-x-1/2 -translate-y-1/2" />
-        <div className="absolute bottom-0 right-0 w-64 h-64 bg-primary/10 blur-2xl rounded-full translate-x-1/2 translate-y-1/2" />
-      </div>
+          <div className="absolute top-0 left-0 w-64 h-64 bg-primary/10 blur-2xl rounded-full -translate-x-1/2 -translate-y-1/2" />
+          <div className="absolute bottom-0 right-0 w-64 h-64 bg-primary/10 blur-2xl rounded-full translate-x-1/2 translate-y-1/2" />
+        </div>
+      )}
     </div>
   );
 }

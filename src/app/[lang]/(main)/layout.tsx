@@ -2,6 +2,7 @@ import Navbar from "@/components/Navbar";
 import { auth } from "@/auth";
 import { hasPublicResourceRole } from "@/lib/public-access";
 import { hasResourceRole } from "@/config/resource-roles";
+import { GlobalHeaderDecorations } from "@/components/common/GlobalHeaderDecorations";
 
 export default async function MainLayout({
   children,
@@ -29,6 +30,7 @@ export default async function MainLayout({
   return (
     <>
       <Navbar canViewLeaderboard={canViewLeaderboard} canViewThreads={canViewThreads} canViewMaps={canViewMaps} canViewEvents={canViewEvents} />
+      <GlobalHeaderDecorations />
       {children}
     </>
   );

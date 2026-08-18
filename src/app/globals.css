@@ -892,11 +892,7 @@ body {
   top: -5rem;
   left: 0;
   right: 0;
-  /* Has to contain every last leaf, not just the piece boxes: `no-repeat`
-     masking makes anything outside this box transparent, and the cascade's
-     drooping branches hang ~250px below their own box. Measured, not guessed —
-     see the ink-extent check in the notes. */
-  height: calc(108vh + 5rem);
+  height: calc(100vh + 5rem);
   z-index: 5;
   pointer-events: none;
   /* opacity is set directly by JS — see HeaderVines.tsx apply callback. */
