@@ -8,13 +8,15 @@ export async function GET(req: Request, { params }: { params: Promise<{ name: st
     return NextResponse.json({ error: "Name is required" }, { status: 400 });
   }
 
-  const url = await getMojangSkinUrl(name);
+  let url = await getMojangSkinUrl(name);
   
   if (!url) {
-    // If Mojang fails to resolve the skin, redirect to a fallback Steve/Alex skin?
-    // Minotar returns a default Steve skin for unknown users.
-    // We can return a 404 for now, SkinFace falls back to a placeholder.
-    return NextResponse.json({ error: "Not found" }, { status: 404 });
+    // If Mojang fails to resolve the skin (e.g. offline/cracked player), 
+    // gracefully fallback to the official MHF_Steve skin texture to mimic minotar.net
+    url = await getMojangSkinUrl("MHF_Steve");
+    if (!url) {
+      return NextResponse.json({ error: "Not found" }, { status: 404 });
+    }
   }
 
   // Next.js will cache this response at the edge for 1 hour
