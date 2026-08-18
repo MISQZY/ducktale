@@ -45,13 +45,13 @@ export default function ServerStatusBadge({ host }: { host: string }) {
       {status.online !== undefined && (
         <div className={cn(
           "flex items-center gap-1.5",
-          status.online ? "text-emerald-400" : "text-destructive"
+          status.error ? "text-amber-500/80" : (status.online ? "text-emerald-400" : "text-destructive")
         )}>
           <span className={cn(
             "w-1.5 h-1.5 rounded-full",
-            status.online ? "bg-emerald-400 animate-pulse" : "bg-destructive"
+            status.error ? "bg-amber-500/80" : (status.online ? "bg-emerald-400 animate-pulse" : "bg-destructive")
           )} />
-          {status.online ? t("online") : t("offline")}
+          {status.error ? t("unavailable") : (status.online ? t("online") : t("offline"))}
         </div>
       )}
 

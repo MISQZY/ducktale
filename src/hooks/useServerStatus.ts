@@ -7,6 +7,7 @@ export interface ServerStatus {
   // Undefined (not just false) when the viewer lacks server-status-view —
   // that role gates online/who's-playing visibility, version stays public.
   online?: boolean;
+  error?: boolean;
   maintenance?: boolean;
   players?: { online: number; max: number; list?: { name: string; skinUrl: string | null }[] };
   version?: string;

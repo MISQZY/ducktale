@@ -13,6 +13,7 @@ interface ServerStatus {
   // Both omitted (not just falsy) when the caller lacks server-status-view —
   // version is public info independent of that role, see the branch below.
   online?: boolean;
+  error?: boolean;
   version?: string;
   players?: { online: number; max: number; list: { name: string; skinUrl: string | null }[] };
 }
@@ -38,7 +39,7 @@ export async function GET(
   if (!(await hasPublicResourceRole("server-status-view"))) {
     return NextResponse.json(
       { version: ping.version } satisfies ServerStatus,
-      { headers: { "Cache-Control": "public, s-maxage=60, stale-while-revalidate=30" } }
+      { headers: { "Cache-Control": ping._isError ? "public, s-maxage=10, stale-while-revalidate=10" : "public, s-maxage=60, stale-while-revalidate=30" } }
     );
   }
 
@@ -58,6 +59,7 @@ export async function GET(
 
   const status: ServerStatus = {
     online: ping.online,
+    error: ping._isError,
     version: ping.version,
     players: {
       online: roster.length,
@@ -66,7 +68,11 @@ export async function GET(
     },
   };
 
+  const cacheControl = ping._isError
+    ? "public, s-maxage=10, stale-while-revalidate=10"
+    : "public, s-maxage=60, stale-while-revalidate=30";
+
   return NextResponse.json(status, {
-    headers: { "Cache-Control": "public, s-maxage=60, stale-while-revalidate=30" },
+    headers: { "Cache-Control": cacheControl },
   });
 }

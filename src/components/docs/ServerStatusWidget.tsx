@@ -86,18 +86,20 @@ export function ServerStatusWidget({ host, serverName, className }: ServerStatus
               "gap-1.5 text-xs",
               isUnknown
                 ? "border-foreground/20 bg-muted text-foreground/50"
-                : status.online
-                  ? "border-green-700/40 bg-green-950/30 text-green-700 dark:text-green-300"
-                  : "border-red-700/40 bg-red-950/30 text-red-700 dark:text-red-300"
+                : status.error
+                  ? "border-amber-700/40 bg-amber-950/30 text-amber-700 dark:text-amber-300"
+                  : status.online
+                    ? "border-green-700/40 bg-green-950/30 text-green-700 dark:text-green-300"
+                    : "border-red-700/40 bg-red-950/30 text-red-700 dark:text-red-300"
             )}
           >
             <span
               className={cn(
                 "inline-block w-1.5 h-1.5 rounded-full",
-                isUnknown ? "bg-foreground/30" : status.online ? "bg-green-400 animate-pulse" : "bg-red-400"
+                isUnknown ? "bg-foreground/30" : status.error ? "bg-amber-400" : status.online ? "bg-green-400 animate-pulse" : "bg-red-400"
               )}
             />
-            {isUnknown ? t("unknown") : status.online ? t("online") : t("offline")}
+            {isUnknown ? t("unknown") : status.error ? t("unavailable") : status.online ? t("online") : t("offline")}
           </DuckBadge>
         </div>
       </DuckCardHeader>

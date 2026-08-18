@@ -10,6 +10,7 @@ interface ServerStatus {
   // Both omitted (not just falsy) when the caller lacks server-status-view —
   // version is public info independent of that role, see the branch below.
   online?: boolean;
+  error?: boolean;
   maintenance?: boolean;
   version?: string;
   players?: { online: number; max: number; list: { name: string; skinUrl: string | null }[] };
@@ -28,8 +29,9 @@ export async function GET(req: Request) {
     const versionOnly: Record<string, ServerStatus> = Object.fromEntries(
       SERVERS.map((s, i) => [s.host, { version: pings[i].version }] as const)
     );
+    const hasErrors = pings.some((p) => p._isError);
     return NextResponse.json(versionOnly, {
-      headers: { "Cache-Control": "public, s-maxage=60, stale-while-revalidate=30" },
+      headers: { "Cache-Control": hasErrors ? "public, s-maxage=10, stale-while-revalidate=10" : "public, s-maxage=60, stale-while-revalidate=30" },
     });
   }
 
@@ -55,6 +57,7 @@ export async function GET(req: Request) {
         s.host,
         {
           online: ping.online,
+          error: ping._isError,
           maintenance: maintenanceStatuses.has(s.uuid),
           version: ping.version,
           players: {
@@ -67,7 +70,12 @@ export async function GET(req: Request) {
     })
   );
 
+  const hasErrors = pings.some((p) => p._isError);
+  const cacheControl = hasErrors
+    ? "public, s-maxage=10, stale-while-revalidate=10"
+    : "public, s-maxage=60, stale-while-revalidate=30";
+
   return NextResponse.json(statuses, {
-    headers: { "Cache-Control": "public, s-maxage=60, stale-while-revalidate=30" },
+    headers: { "Cache-Control": cacheControl },
   });
 }
