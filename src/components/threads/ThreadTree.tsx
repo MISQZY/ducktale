@@ -45,7 +45,7 @@ export function ThreadTree({ lang, threads }: ThreadTreeProps) {
   }, [threads, lang]);
 
   return (
-    <aside className="w-full h-full flex flex-col min-w-0 overflow-hidden rounded-2xl border border-primary/20 bg-card/50 p-4">
+    <aside className="liquid-card w-full h-full flex flex-col min-w-0 overflow-hidden rounded-2xl border border-primary/20 bg-card/50 p-4">
       <Link
         href="/threads/new"
         className={cn(
