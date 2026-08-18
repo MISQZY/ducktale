@@ -1,6 +1,6 @@
 /**
  * Generic in-memory TTL cache for DB-query results, following the same
- * Map + fetchedAt shape as the external-ping cache in `src/lib/mcsrvstat.ts`.
+ * Map + fetchedAt shape as the external-ping cache in `src/lib/server-ping.ts`.
  * Safe here specifically because the app runs as a persistent
  * `output: standalone` Node process (see Dockerfile), not serverless/edge —
  * module scope survives across requests, so this doesn't reset per-invocation

@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { SERVERS } from "@/config/servers";
 import { getAllOnlinePlayers, groupOnlinePlayersByServer, getMaintenanceStatuses } from "@/lib/players";
-import { getCachedPing } from "@/lib/mcsrvstat";
+import { getCachedPing } from "@/lib/server-ping";
 import { isRateLimited } from "@/lib/rate-limit";
 import { hasPublicResourceRole } from "@/lib/public-access";
 import { resolveSkinUrlMap } from "@/lib/skin";

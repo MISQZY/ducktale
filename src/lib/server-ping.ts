@@ -2,20 +2,21 @@ import { API } from "@/config/site";
 import { EXTERNAL_APIS } from "@/config/external-apis";
 import * as util from "minecraft-server-util";
 
-interface McsrvstatPing {
+interface ServerPing {
   online: boolean;
   version?: string;
   players?: { max?: number };
+  _isError?: boolean;
   [key: string]: unknown;
 }
 
 const SUCCESS_TTL_MS = 60 * 60 * 1000;
 const FAILURE_TTL_MS = 5 * 60 * 1000;
 
-const cache = new Map<string, { data: McsrvstatPing; fetchedAt: number }>();
-const inflight = new Map<string, Promise<McsrvstatPing>>();
+const cache = new Map<string, { data: ServerPing; fetchedAt: number }>();
+const inflight = new Map<string, Promise<ServerPing>>();
 
-async function fetchPing(host: string): Promise<McsrvstatPing> {
+async function fetchPing(host: string): Promise<ServerPing> {
   try {
     let hostname = host;
     let port = 25565;
@@ -43,7 +44,7 @@ async function fetchPing(host: string): Promise<McsrvstatPing> {
   }
 }
 
-export async function getCachedPing(host: string): Promise<McsrvstatPing> {
+export async function getCachedPing(host: string): Promise<ServerPing> {
   const cached = cache.get(host);
   const now = Date.now();
   

@@ -3,7 +3,7 @@
  *
  * These base URLs and link-building helpers were previously duplicated as
  * raw string literals across several unrelated files (github.ts, Authors.tsx,
- * GitHubLastModified.tsx, useModrinth.ts, ResourceCard.tsx, mcsrvstat.ts).
+ * GitHubLastModified.tsx, useModrinth.ts, ResourceCard.tsx, server-ping.ts).
  * Keep every external host/path pattern here so a change only needs one edit.
  */
 
@@ -17,9 +17,6 @@ export const EXTERNAL_APIS = {
   modrinth: {
     apiBase: "https://api.modrinth.com/v2",
     projectUrl: (slug: string) => `https://modrinth.com/project/${slug}`,
-  },
-  mcsrvstat: {
-    pingUrl: (host: string) => `https://api.mcsrvstat.us/3/${host}`,
   },
   uiAvatars: {
     /** Fallback avatar used when a GitHub avatar 404s. */
