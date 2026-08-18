@@ -30,8 +30,8 @@ export function MouseTracker() {
     };
 
     // Use capturing phase so we catch it before any stopPropagation
-    window.addEventListener("mousemove", handleMouseMove, true);
-    return () => window.removeEventListener("mousemove", handleMouseMove, true);
+    window.addEventListener("mousemove", handleMouseMove, { capture: true, passive: true });
+    return () => window.removeEventListener("mousemove", handleMouseMove, { capture: true } as EventListenerOptions);
   }, []);
 
   return null;

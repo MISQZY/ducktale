@@ -41,7 +41,7 @@ export default function ScrollReveal({
         // page (the DuckyPet overlay) even over empty space. Actual
         // interactive/visible elements (cards, buttons, links) re-enable
         // pointer-events-auto individually.
-        "relative z-10 pointer-events-none transition-all duration-1000 ease-out",
+        "relative z-10 pointer-events-none transition-[transform,opacity] duration-1000 ease-out",
         isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-12",
         className
       )}

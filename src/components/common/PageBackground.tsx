@@ -20,20 +20,20 @@ export function PageBackground() {
       <div className="absolute inset-0">
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
           <div
-            className="rounded-full blur-[120px] bg-primary/8 hero-pulse"
-            style={{ width: 900, height: 700 }}
+            className="rounded-full blur-[50px] bg-primary/8 hero-pulse will-change-[opacity]"
+            style={{ width: 1100, height: 850 }}
           />
         </div>
 
         <div className="absolute top-[45%] left-[48%] -translate-x-1/2 -translate-y-1/2">
           <div
-            className="rounded-full blur-[80px] bg-foreground/6 hero-pulse-2"
-            style={{ width: 500, height: 500 }}
+            className="rounded-full blur-[35px] bg-foreground/6 hero-pulse-2 will-change-[opacity]"
+            style={{ width: 620, height: 620 }}
           />
         </div>
 
-        <div className="absolute top-0 left-0 w-64 h-64 bg-primary/3 blur-3xl rounded-full -translate-x-1/2 -translate-y-1/2" />
-        <div className="absolute bottom-0 right-0 w-64 h-64 bg-primary/3 blur-3xl rounded-full translate-x-1/2 translate-y-1/2" />
+        <div className="absolute top-0 left-0 w-64 h-64 bg-primary/3 blur-2xl rounded-full -translate-x-1/2 -translate-y-1/2" />
+        <div className="absolute bottom-0 right-0 w-64 h-64 bg-primary/3 blur-2xl rounded-full translate-x-1/2 translate-y-1/2" />
       </div>
     </div>
   );
