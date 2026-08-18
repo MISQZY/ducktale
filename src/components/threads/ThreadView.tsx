@@ -165,7 +165,7 @@ export function ThreadView({
   return (
     <div className="flex flex-col h-full min-h-0">
       {/* Messages area — fills remaining height */}
-      <ScrollArea className="flex-1 min-h-0 rounded-2xl border border-primary/15 bg-card/30">
+      <ScrollArea className="flex-1 min-h-0 rounded-2xl border border-primary/15 bg-card">
         <div className="flex flex-col gap-3 p-4">
           {messages.length === 0 ? (
             <p className="text-center text-foreground/40 text-sm py-6">{t("noMessages")}</p>

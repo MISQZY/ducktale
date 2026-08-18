@@ -73,7 +73,7 @@ export function EmbedPage({
   const isHeaderFunction = typeof header === "function";
 
   const defaultHeader = (
-    <div className="flex items-center gap-2 px-5 py-3 border-b border-primary/20 bg-card/40 relative z-10 shrink-0">
+    <div className="flex items-center gap-2 px-5 py-3 border-b border-primary/20 bg-card relative z-10 shrink-0">
       <div className="flex gap-1.5">
         <span className="w-2.5 h-2.5 rounded-full bg-rose-500/70" />
         <span className="w-2.5 h-2.5 rounded-full bg-primary/70" />
@@ -117,9 +117,9 @@ export function EmbedPage({
         ref={dialogRef}
         onClose={onDialogClose}
         className={cn(
-          "relative overflow-hidden rounded-2xl border border-primary/25 bg-card/60 not-prose p-0 text-foreground m-0 max-w-none max-h-none",
+          "relative overflow-hidden rounded-2xl border border-primary/25 bg-card not-prose p-0 text-foreground m-0 max-w-none max-h-none",
           fullscreen 
-            ? "fixed inset-10 z-50 flex flex-col bg-card animate-in fade-in zoom-in-[0.98] duration-500 ease-out backdrop:bg-black/50 backdrop:animate-in backdrop:fade-in backdrop:duration-500 w-[calc(100vw-5rem)] h-[calc(100vh-5rem)] shadow-[0_0_60px_rgba(0,0,0,0.6),_inset_0_1px_0_rgba(212,160,23,0.06)]" 
+            ? "fixed inset-10 z-50 flex flex-col animate-in fade-in zoom-in-[0.98] duration-500 ease-out backdrop:bg-black/50 backdrop:animate-in backdrop:fade-in backdrop:duration-500 w-[calc(100vw-5rem)] h-[calc(100vh-5rem)] shadow-[0_0_60px_rgba(0,0,0,0.6),_inset_0_1px_0_rgba(212,160,23,0.06)]" 
             : "my-4 w-full block shadow-[0_2px_10px_rgba(0,0,0,0.4),_inset_0_1px_0_rgba(212,160,23,0.06)]"
         )}
       >

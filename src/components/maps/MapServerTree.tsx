@@ -76,7 +76,7 @@ export function MapServerTree({ lang, servers, noMapsLabel }: MapServerTreeProps
   const activeMapId = pathname.match(/^\/maps\/[^/]+\/([^/]+)$/)?.[1];
 
   return (
-    <aside className="liquid-card w-full h-full flex flex-col min-w-0 overflow-hidden overflow-y-auto custom-scrollbar rounded-2xl border border-primary/20 bg-card/50 p-3">
+    <aside suppressHydrationWarning className="liquid-card w-full h-full flex flex-col min-w-0 overflow-hidden overflow-y-auto custom-scrollbar rounded-2xl border border-primary/20 bg-card/50 p-3">
       <div className="space-y-1">
         {servers.map((server) => (
           <ServerNode key={server.id} lang={lang} server={server} activeMapId={activeMapId} noMapsLabel={noMapsLabel} />
