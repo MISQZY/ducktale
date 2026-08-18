@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { getDuckyVisible } from "./DuckyPet";
+import { getDuckyVisible, getDuckyMuted } from "./DuckyPet";
 
 const DISPLAY_SIZE = 72;
 const SPEED = 150;
@@ -88,7 +88,7 @@ export default function DuckySwarm() {
       
       try {
         const initialAudio = audioPoolRef.current[0];
-        if (initialAudio) {
+        if (initialAudio && !getDuckyMuted()) {
           initialAudio.volume = 0.5;
           initialAudio.currentTime = 0;
           initialAudio.play().catch(() => {});
@@ -169,7 +169,7 @@ export default function DuckySwarm() {
       }
 
       // Random quacking using the pre-initialized audio pool (much better for GC)
-      if (Math.random() < 0.04 && audioPoolRef.current.length > 0) {
+      if (Math.random() < 0.04 && audioPoolRef.current.length > 0 && !getDuckyMuted()) {
         try {
           const audio = audioPoolRef.current[Math.floor(Math.random() * audioPoolRef.current.length)];
           audio.volume = 0.15 + Math.random() * 0.15;
