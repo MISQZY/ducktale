@@ -113,7 +113,7 @@ export const RULE_SEVERITY_STYLE: Record<RuleSeverity, { badge: string; dot: str
 
 export const API = {
   /** Timeout for external MC-status requests (ms) */
-  serverStatusTimeoutMs: 2_000,
+  serverStatusTimeoutMs: 5_000,
   /** Poll interval for live status widget (ms) */
   pollIntervalMs: 90_000,
   /** Poll interval for /api/notifications (ms) — shorter than pollIntervalMs since a notification's whole point is showing up promptly as a toast, not just eventually. */
