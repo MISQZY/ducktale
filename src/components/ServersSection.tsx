@@ -25,6 +25,7 @@ export default function ServersSection() {
             return (
               <div key={server.id} className="relative group h-full pointer-events-auto">
                 <div
+                  suppressHydrationWarning
                   className={cn(
                     "liquid-card relative h-full rounded-2xl border p-8 transition-all duration-300",
                     server.border,
@@ -110,6 +111,7 @@ export default function ServersSection() {
 
         <div
           id="connect"
+          suppressHydrationWarning
           className="liquid-card pointer-events-auto mt-12 rounded-2xl border border-primary/18 bg-card/55 p-8 text-center relative overflow-hidden"
         >
           <div className="absolute top-3 left-3 w-5 h-5 border-t border-l border-primary/20" />
