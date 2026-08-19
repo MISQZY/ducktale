@@ -32,57 +32,53 @@ export function PageBackground({ showGlows = true, showFog = true }: { showGlows
         }}
       />
 
-      {/* 3. Illumination Glows / Fog */}
-      <div className="absolute inset-0 hero-glows">
-          
-          {showGlows && <>
-          {/* Dark Theme: Gold Flickering Glows */}
-          <div className="hidden dark:block absolute inset-0 mix-blend-overlay">
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
-              <div
-                className="rounded-full blur-[100px] bg-primary/80 hero-pulse"
-                style={{ width: 1000, height: 750 }}
-              />
-            </div>
-
-            <div className="absolute top-[52%] left-1/2 -translate-x-1/2 -translate-y-1/2">
-              <div
-                className="rounded-full blur-[70px] bg-primary/50 hero-pulse-2"
-                style={{ width: 600, height: 600 }}
-              />
-            </div>
-
-            <div className="absolute top-0 left-0 w-64 h-64 bg-primary/10 blur-2xl rounded-full -translate-x-1/2 -translate-y-1/2" />
-            <div className="absolute bottom-0 right-0 w-64 h-64 bg-primary/10 blur-2xl rounded-full translate-x-1/2 translate-y-1/2" />
-          </div>
-          </>}
-
-          {showFog && <>
-          {/* Light Theme: Dissipating Fog */}
-          <div className="block dark:hidden absolute inset-0 mix-blend-normal pointer-events-none overflow-hidden">
-            {/* Weak overall fog */}
-            <div className="absolute inset-0 bg-white/40" />
-
-            {/* Drifting fog clouds (ovals) */}
+      {/* 3. Dark Theme: Gold Flickering Glows */}
+      {showGlows && (
+        <div className="hidden dark:block absolute inset-0 mix-blend-overlay hero-glows">
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
             <div
-              className="fog-cloud"
-              style={{ top: "10%", width: "900px", height: "300px", animationDuration: "35s", animationDelay: "-10s", opacity: 0.6 }}
-            />
-            <div
-              className="fog-cloud"
-              style={{ top: "40%", width: "1200px", height: "400px", animationDuration: "45s", animationDelay: "-25s", opacity: 0.7 }}
-            />
-            <div
-              className="fog-cloud"
-              style={{ top: "70%", width: "1000px", height: "350px", animationDuration: "30s", animationDelay: "-5s", opacity: 0.5 }}
-            />
-            <div
-              className="fog-cloud"
-              style={{ top: "30%", width: "800px", height: "250px", animationDuration: "40s", animationDelay: "-20s", opacity: 0.8 }}
+              className="rounded-full blur-[100px] bg-primary/80 hero-pulse"
+              style={{ width: 1000, height: 750 }}
             />
           </div>
-          </>}
+
+          <div className="absolute top-[52%] left-1/2 -translate-x-1/2 -translate-y-1/2">
+            <div
+              className="rounded-full blur-[70px] bg-primary/50 hero-pulse-2"
+              style={{ width: 600, height: 600 }}
+            />
+          </div>
+
+          <div className="absolute top-0 left-0 w-64 h-64 bg-primary/10 blur-2xl rounded-full -translate-x-1/2 -translate-y-1/2" />
+          <div className="absolute bottom-0 right-0 w-64 h-64 bg-primary/10 blur-2xl rounded-full translate-x-1/2 translate-y-1/2" />
         </div>
+      )}
+
+      {/* 4. Light Theme: Dissipating Fog */}
+      {showFog && (
+        <div className="block dark:hidden absolute inset-0 mix-blend-normal pointer-events-none overflow-hidden hero-glows">
+          {/* Weak overall fog */}
+          <div className="absolute inset-0 bg-white/40" />
+
+          {/* Drifting fog clouds (ovals) */}
+          <div
+            className="fog-cloud"
+            style={{ top: "10%", width: "900px", height: "300px", animationDuration: "35s", animationDelay: "-10s", opacity: 0.6 }}
+          />
+          <div
+            className="fog-cloud"
+            style={{ top: "40%", width: "1200px", height: "400px", animationDuration: "45s", animationDelay: "-25s", opacity: 0.7 }}
+          />
+          <div
+            className="fog-cloud"
+            style={{ top: "70%", width: "1000px", height: "350px", animationDuration: "30s", animationDelay: "-5s", opacity: 0.5 }}
+          />
+          <div
+            className="fog-cloud"
+            style={{ top: "30%", width: "800px", height: "250px", animationDuration: "40s", animationDelay: "-20s", opacity: 0.8 }}
+          />
+        </div>
+      )}
     </div>
   );
 }
