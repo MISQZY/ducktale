@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Download, Minimize2, Maximize2 } from "lucide-react";
 import { EmbedPage } from "@/components/docs/EmbedPage";
 import { cn } from "@/lib/utils";
+import { buttonVariants } from "@/components/ui/button";
 
 interface EmbedImageProps {
   url: string;
@@ -61,14 +62,6 @@ export function EmbedImage({ url, filename, className, imgClassName, onError }: 
               {filename}
             </p>
             <div className="ml-auto flex items-center gap-4">
-              <a
-                href={url}
-                download={filename}
-                className="flex items-center justify-center text-primary/40 hover:text-primary transition-colors outline-none rounded"
-                title="Download"
-              >
-                <Download size={14} />
-              </a>
               <button
                 ref={closeButtonRef}
                 onClick={toggleFullscreen}
@@ -80,7 +73,17 @@ export function EmbedImage({ url, filename, className, imgClassName, onError }: 
           </div>
         )}
       >
-        <div className="flex items-center justify-center w-full h-full p-4 bg-black/40">
+        <div className="relative flex items-center justify-center w-full h-full p-4 bg-black/40">
+          <div className="absolute top-3 right-3 z-10 flex gap-2">
+            <a
+              href={url}
+              download={filename}
+              className={cn(buttonVariants({ variant: "outline", size: "icon" }), "bg-stone-800 text-foreground/70 hover:text-foreground")}
+              title="Download"
+            >
+              <Download size={16} />
+            </a>
+          </div>
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={url} alt={filename} className="object-contain max-w-full max-h-full" />
         </div>
