@@ -35,7 +35,7 @@ export function TownNameLabel({ tag, name, query, variant = "dot" }: TownNameLab
   const nameClassName = "text-base font-semibold";
 
   if (variant === "text") {
-    return <HighlightMatch text={name} query={query} className={nameClassName} style={{ color }} />;
+    return <HighlightMatch text={name} query={query} className={nameClassName} style={{ color, textShadow: "-1px -1px 0 rgba(0,0,0,0.25), 1px -1px 0 rgba(0,0,0,0.25), -1px 1px 0 rgba(0,0,0,0.25), 1px 1px 0 rgba(0,0,0,0.25)" }} />;
   }
 
   return (
