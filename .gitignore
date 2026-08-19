@@ -41,7 +41,7 @@ Caddyfile
 
 # Prisma
 node_modules/.prisma/
-# Generated from schema.prisma.template by scripts/render-site-schema.js —
+# Generated from schema.prisma.template by render-site-schema.js —
 # edit the template, not this.
 src/prisma/site/schema.prisma
 
@@ -57,3 +57,4 @@ AGENTS.md
 CLAUDE.md
 MINECRAFT_ACCOUNT_LINK.md
 BETONQUEST_QUEST_TREE.md
+scripts/
