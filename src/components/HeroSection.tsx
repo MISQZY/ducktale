@@ -59,7 +59,7 @@ export default function HeroSection() {
           className="text-5xl sm:text-7xl md:text-9xl mb-4 leading-none fade-up fade-up-1"
           style={{ fontFamily: "var(--font-display)", letterSpacing: "-0.02em" }}
         >
-          <span className="px-4 shimmer-gold" style={{ textShadow: "0 0 40px rgba(212,160,23,0.3)" }}>
+          <span className="px-4 shimmer-gold drop-shadow-md dark:drop-shadow-[0_0_40px_rgba(212,160,23,0.3)]">
             {SITE.name}
           </span>
         </h1>

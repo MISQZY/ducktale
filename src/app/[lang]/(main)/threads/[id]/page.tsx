@@ -47,7 +47,7 @@ export default async function ThreadPage({
         id: true,
         title: true,
         description: true,
-        closed: true,
+        status: { select: { isClosed: true } },
         authorId: true,
         author: {
           select: {
@@ -151,7 +151,7 @@ export default async function ThreadPage({
           threadId={thread.id}
           title={thread.title}
           backHref="/threads"
-          initialClosed={thread.closed}
+          initialClosed={thread.status?.isClosed ?? false}
           initialMessages={messages.map((m) => ({ ...m, createdAt: m.createdAt.toISOString() }))}
           viewerId={viewer.id}
           isAuthor={viewer.id === thread.authorId}

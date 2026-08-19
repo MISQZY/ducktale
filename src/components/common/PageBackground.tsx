@@ -1,8 +1,9 @@
 // Fade applied directly to the texture/glow layers themselves (not just an
 // opaque div painted on top of them) so nothing — grid lines, glow blur,
 // anything — can leave a hard edge where this section meets the next one.
-const FADE_MASK =
-  "linear-gradient(to bottom, black calc(100% - 16rem), transparent 100%)";
+// Used a radial gradient to give the fade an organic, curved (dome-like) shape
+// instead of a harsh flat horizontal line.
+const FADE_MASK = "radial-gradient(ellipse 150% 100% at 50% 0%, black 75%, transparent 100%)";
 
 export function PageBackground({ showGlows = true }: { showGlows?: boolean }) {
   return (
@@ -33,7 +34,7 @@ export function PageBackground({ showGlows = true }: { showGlows?: boolean }) {
 
       {/* 3. Illumination Glows (acts as flickering light on the stone) */}
       {showGlows && (
-        <div className="absolute inset-0 mix-blend-overlay hero-glows">
+        <div className="absolute inset-0 mix-blend-multiply dark:mix-blend-overlay opacity-50 dark:opacity-100 hero-glows">
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
             <div
               className="rounded-full blur-[100px] bg-primary/80 hero-pulse"

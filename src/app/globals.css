@@ -287,6 +287,24 @@ body {
 .shimmer-gold {
   background: linear-gradient(
     105deg,
+    #8b6508 0%,
+    #a67c00 30%,
+    #b8860b 42%,
+    #e6b93a 50%,
+    #b8860b 58%,
+    #a67c00 70%,
+    #8b6508 100%
+  );
+  background-size: 300% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: shimmer 30s linear infinite;
+}
+
+.dark .shimmer-gold {
+  background: linear-gradient(
+    105deg,
     #b8860b 0%,
     #b8860b 30%,
     #e6b93a 42%,
@@ -295,11 +313,9 @@ body {
     #b8860b 70%,
     #b8860b 100%
   );
-  background-size: 300% auto;
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
-  animation: shimmer 30s linear infinite;
 }
 
 .rune-divider {

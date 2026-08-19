@@ -16,7 +16,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
   const { id } = await params;
   const thread = await siteDb.thread.findUnique({
     where: { id },
-    select: { id: true, closed: true },
+    select: { id: true, status: { select: { isClosed: true } } },
   });
 
   if (!thread) {
@@ -33,7 +33,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
   const messages = await resolveThreadMessages(id, afterCreatedAt);
 
   return NextResponse.json({
-    closed: thread.closed,
+    closed: thread.status?.isClosed ?? false,
     messages: messages.map((m) => ({ ...m, createdAt: m.createdAt.toISOString() })),
   });
 }
