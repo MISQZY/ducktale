@@ -17,6 +17,9 @@ export interface ThreadTreeItem {
 interface ThreadTreeProps {
   lang: string;
   threads: ThreadTreeItem[];
+  basePath?: string;
+  newButtonLabel?: string;
+  noItemsLabel?: string;
 }
 
 function dateGroupLabel(iso: string, lang: string): string {
@@ -28,7 +31,7 @@ function dateGroupLabel(iso: string, lang: string): string {
 }
 
 /** Left sidebar of /threads — a flat, most-recently-active-first list of every thread, visually grouped under a date heading per calendar day. */
-export function ThreadTree({ lang, threads }: ThreadTreeProps) {
+export function ThreadTree({ lang, threads, basePath = "threads", newButtonLabel, noItemsLabel }: ThreadTreeProps) {
   const t = useTranslations("Threads");
   const pathname = usePathname();
   const activeId = pathname.match(/^\/threads\/([^/]+)$/)?.[1];
@@ -47,21 +50,21 @@ export function ThreadTree({ lang, threads }: ThreadTreeProps) {
   return (
     <aside suppressHydrationWarning className="liquid-card w-full h-full flex flex-col min-w-0 overflow-hidden rounded-2xl border border-primary/20 bg-card/50 p-4">
       <Link
-        href="/threads/new"
+        href={`/${basePath}/new`}
         className={cn(
           buttonVariants({ variant: "outline", size: "sm" }),
           "w-full gap-1.5 mb-4 shrink-0 bg-card/50 hover:bg-card/80"
         )}
       >
         <Plus size={14} />
-        {t("newThread")}
+        {newButtonLabel || t("newThread")}
       </Link>
 
       <div className="h-px bg-primary/10 shrink-0 -mx-4 mb-4" />
 
       <div className="flex-1 min-h-0 overflow-y-auto custom-scrollbar pr-2">
         {threads.length === 0 ? (
-          <p className="text-xs text-foreground/40 text-center py-6">{t("noThreads")}</p>
+          <p className="text-xs text-foreground/40 text-center py-6">{noItemsLabel || t("noThreads")}</p>
         ) : (
           <div className="space-y-4">
             {groups.map(([label, items]) => (
@@ -71,7 +74,7 @@ export function ThreadTree({ lang, threads }: ThreadTreeProps) {
                   {items.map((thread) => (
                     <li key={thread.id}>
                       <Link
-                        href={`/threads/${thread.id}`}
+                        href={`/${basePath}/${thread.id}`}
                         className={cn(
                           "flex flex-col gap-0.5 w-full text-left px-2.5 py-2 rounded-lg text-sm transition-colors",
                           activeId === thread.id
