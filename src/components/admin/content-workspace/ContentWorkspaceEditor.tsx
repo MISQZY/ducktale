@@ -314,8 +314,8 @@ export function ContentWorkspaceEditor({ lang, trees, canDelete }: ContentWorksp
       ) : (
         <div className="flex-1 flex flex-col min-h-0 min-w-0 overflow-hidden">
           {/* Editor + Preview */}
-          <ResizablePanelGroup orientation="horizontal" className="flex-1 min-h-0 min-w-0">
-            <ResizablePanel defaultSize="50" minSize="20">
+          <ResizablePanelGroup id="content-editor-split" orientation="horizontal" className="flex-1 min-h-0 min-w-0">
+            <ResizablePanel id="content-editor-code" defaultSize="50" minSize="20">
               <div className="flex flex-col min-w-0 h-full overflow-hidden rounded-2xl border border-primary/20 bg-card/50 p-4">
                 <label className="block text-xs uppercase tracking-widest text-foreground/50 mb-2 shrink-0">
                   {isMeta ? t("editorLabelJson") : t("editorLabel")}
@@ -343,7 +343,7 @@ export function ContentWorkspaceEditor({ lang, trees, canDelete }: ContentWorksp
 
             <ResizableHandle withHandle className="w-[2px] mx-2 rounded-full bg-primary/10 hover:bg-primary/30 transition-colors" />
 
-            <ResizablePanel defaultSize="50" minSize="20">
+            <ResizablePanel id="content-editor-preview" defaultSize="50" minSize="20">
               <div className="flex flex-col min-w-0 h-full overflow-hidden rounded-2xl border border-primary/20 bg-card/30 p-4">
                 <label className="block text-xs uppercase tracking-widest text-foreground/50 mb-2 shrink-0">
                   {isMeta ? t("metaOrderLabel") : t("previewLabel")}

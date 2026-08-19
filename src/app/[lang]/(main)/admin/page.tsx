@@ -7,6 +7,7 @@ import type { Resource } from "@/config/resource-roles";
 // can open wins.
 const ADMIN_TAB_PATHS: [Resource, string][] = [
   ["users", "users"],
+  ["whitelist", "whitelist"],
   ["badges", "badges"],
   ["ranks", "ranks"],
   ["role", "roles"],

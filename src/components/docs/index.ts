@@ -12,7 +12,6 @@ export { ServerStatusWidget } from "./ServerStatusWidget";
 export { ServerVersion } from "./ServerVersion";
 export { StepList } from "./StepList";
 export { TownyTable } from "./TownyTable";
-export { WhitelistTable } from "./WhitelistTable";
 export { GitHubLastModified } from "./GitHubLastModified";
 export { PermissionTable } from "./PermissionTable";
 

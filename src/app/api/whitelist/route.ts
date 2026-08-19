@@ -14,6 +14,8 @@ interface RawRow {
   addedAt:   bigint;
   duration:  bigint;
   moderator: string;
+  reason:    string | null;
+  server:    string | null;
   total:     bigint;
 }
 
@@ -25,8 +27,8 @@ async function buildWhitelistResponse(
 ): Promise<WhitelistResponse> {
   const offset = (page - 1) * pageSize;
 
-  let orderSql = Prisma.sql`ORDER BY p.name ASC`;
-  const dir = order === "desc" ? Prisma.sql`DESC` : Prisma.sql`ASC`;
+  let orderSql = Prisma.sql`ORDER BY addedAt DESC`;
+  const dir = order === "asc" ? Prisma.sql`ASC` : Prisma.sql`DESC`;
   switch (sort) {
     case "id":
       orderSql = Prisma.sql`ORDER BY p.id ${dir}`;
@@ -53,6 +55,8 @@ async function buildWhitelistResponse(
         p.uuid,
         m.date AS addedAt,
         m.time AS duration,
+        m.reason,
+        m.server,
         COALESCE(mod_player.name, CAST(m.moderator AS CHAR)) AS moderator,
         COUNT(*) OVER() AS total
       FROM fp_player p
@@ -91,6 +95,8 @@ async function buildWhitelistResponse(
         addedAt,
         expiresAt: duration > 0 ? addedAt + duration : 0,
         moderator: r.moderator,
+        reason:    r.reason,
+        server:    r.server,
       };
     }),
     total,

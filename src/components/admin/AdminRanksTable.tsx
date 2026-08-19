@@ -97,8 +97,7 @@ export function AdminRanksTable({ lang, ranks, tracksByGroup, userCounts, groupS
   ], [lang, groupSuggestions, canEdit, canDelete, t, tr, tracksMap, countsMap]);
 
   return (
-    <DataTable
-      columns={columns}
+    <DataTable storageKey="AdminRanksTable" columns={columns}
       data={ranks}
       getRowId={(r) => r.id}
       emptyMessage={tr("noResults")}
@@ -114,3 +113,4 @@ export function AdminRanksTable({ lang, ranks, tracksByGroup, userCounts, groupS
     />
   );
 }
+

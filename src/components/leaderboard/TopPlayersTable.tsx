@@ -148,8 +148,7 @@ export function TopPlayersTable({ pageSize = 10, className, initialData }: TopPl
   ], [query, tCard]);
 
   return (
-    <PagedTableLayout
-      className={className}
+    <PagedTableLayout storageKey="TopPlayersTable" className={className}
       titleNode={
         <span
           className="text-sm font-semibold text-foreground/80 tracking-wide"
@@ -191,3 +190,4 @@ export function TopPlayersTable({ pageSize = 10, className, initialData }: TopPl
     />
   );
 }
+

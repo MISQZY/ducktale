@@ -5,6 +5,8 @@ export interface WhitelistPlayer {
   addedAt:   number;
   expiresAt: number; // 0 = permanent
   moderator: string;
+  reason:    string | null;
+  server:    string | null;
 }
 
 export interface WhitelistResponse {

@@ -52,14 +52,14 @@ export default async function MapsLayout({
   return (
     <main className="relative overflow-hidden h-dvh flex flex-col px-6 pt-24 pb-8">
       <div className="relative z-10 w-full flex-1 min-h-0">
-        <ResizablePanelGroup orientation="horizontal" className="h-full w-full">
-          <ResizablePanel defaultSize="16" minSize="12" maxSize="28">
+        <ResizablePanelGroup id="maps-layout" orientation="horizontal" className="h-full w-full">
+          <ResizablePanel id="maps-sidebar" defaultSize="16" minSize="12" maxSize="28">
             <MapServerTree lang={lang} servers={servers} noMapsLabel={t("noMapsInTree")} />
           </ResizablePanel>
 
           <ResizableHandle withHandle className="w-[2px] mx-2 rounded-full bg-primary/10 hover:bg-primary/30 transition-colors" />
 
-          <ResizablePanel defaultSize="84" minSize="60">
+          <ResizablePanel id="maps-content" defaultSize="84" minSize="60">
             {children}
           </ResizablePanel>
         </ResizablePanelGroup>

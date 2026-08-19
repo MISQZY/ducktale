@@ -11,7 +11,6 @@ import {
   ServerAddress,
   ServerStatusWidget,
   StepList,
-  WhitelistTable,
 } from "@/components/docs";
 
 import {
@@ -43,6 +42,5 @@ export const docsComponents = {
   ServerAddress,
   ServerStatusWidget,
   StepList,
-  WhitelistTable,
   PermissionTable
 };

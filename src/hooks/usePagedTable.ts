@@ -40,6 +40,14 @@ export interface UsePagedTableOptions<T> {
    * fetches fresh, same as before this option existed.
    */
   initialData?: PagedResponse<T>;
+  /**
+   * If provided, prepended to all cache keys. Useful if the fetcher's
+   * identity changes based on external state (e.g. a server selector)
+   * but you want the table to keep caching by that state.
+   */
+  cacheKeyPrefix?: string;
+  defaultSortColumn?: string;
+  defaultSortDirection?: "asc" | "desc";
 }
 
 export interface UsePagedTableResult<T> {
@@ -86,6 +94,9 @@ export function usePagedTable<T>({
   debounceMs  = 300,
   cacheTtlMs  = 60_000,
   initialData,
+  cacheKeyPrefix = "",
+  defaultSortColumn,
+  defaultSortDirection,
 }: UsePagedTableOptions<T>): UsePagedTableResult<T> {
   const [state, setState] = useState<TableFetchState<T>>(
     initialData ? { status: "ok", data: initialData } : { status: "loading" }
@@ -99,8 +110,8 @@ export function usePagedTable<T>({
   // same pattern as RankingsTabs' initial-tab correction.
   const [query, setQueryState] = useState("");
   const [page,  setPage]  = useState(1);
-  const [sortColumn, setSortColumn] = useState<string | undefined>(undefined);
-  const [sortDirection, setSortDirection] = useState<"asc" | "desc" | undefined>(undefined);
+  const [sortColumn, setSortColumn] = useState<string | undefined>(defaultSortColumn);
+  const [sortDirection, setSortDirection] = useState<"asc" | "desc" | undefined>(defaultSortDirection);
 
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const cacheRef    = useRef<Map<string, CacheEntry<T>>>(new Map());
@@ -135,7 +146,7 @@ export function usePagedTable<T>({
   // ── Core fetch ──────────────────────────────────────────────────────────────
 
   const fetchPage = useCallback((p: number, q: string, sc?: string, sd?: "asc" | "desc") => {
-    const key   = `${q}:${p}:${sc || ""}:${sd || ""}`;
+    const key   = `${cacheKeyPrefix}:${q}:${p}:${sc || ""}:${sd || ""}`;
     const now   = Date.now();
     const entry = cacheRef.current.get(key);
 
@@ -174,7 +185,7 @@ export function usePagedTable<T>({
           message: err instanceof Error ? err.message : "Unknown error",
         });
       });
-  }, [fetcher, cacheTtlMs]);
+  }, [fetcher, cacheTtlMs, cacheKeyPrefix]);
 
   // Client-only: read whatever page/search/sort actually came in via the URL
   // (unavailable during SSR — see the state initializers above) and correct
@@ -196,14 +207,14 @@ export function usePagedTable<T>({
     if (matchesInitialData) {
       // Seed the same cache entry fetchPage would have written, so an
       // immediate goTo(1)/refresh reads it back instead of re-fetching.
-      const key = `:1::`;
+      const key = `${cacheKeyPrefix}::1::`;
       cacheRef.current.set(key, { data: initialData, expiresAt: Date.now() + cacheTtlMs });
       return;
     }
 
     fetchPage(urlPage, urlQuery, urlSortColumn, urlSortDirection);
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- initialData/cacheTtlMs are stable per mount (server-provided prop / options), not meant to re-run this mount-only effect
-  }, [fetchPage]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- Mount-only effect. fetchPage can be unstable if caller's fetcher is unstable (e.g. captures useTranslations).
+  }, []);
 
   // ── Search with debounce ────────────────────────────────────────────────────
 

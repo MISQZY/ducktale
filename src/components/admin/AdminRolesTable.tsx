@@ -156,8 +156,7 @@ export function AdminRolesTable({ lang, roles, rowLevelRoleOptions, resourceLabe
   ], [lang, canEdit, canDelete, t, tr, roleName, roleById, rowLevelRoleById, roleOptions, rowLevelRoleOptions, resourceLabels]);
 
   return (
-    <DataTable
-      columns={columns}
+    <DataTable storageKey="AdminRolesTable" columns={columns}
       data={roles}
       getRowId={(r) => r.id}
       emptyMessage={tr("noResults")}
@@ -170,3 +169,4 @@ export function AdminRolesTable({ lang, roles, rowLevelRoleOptions, resourceLabe
     />
   );
 }
+

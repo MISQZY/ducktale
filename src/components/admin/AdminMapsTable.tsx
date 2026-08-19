@@ -91,8 +91,7 @@ export function AdminMapsTable({ lang, maps, servers, canEdit, canDelete, sortCo
   ], [lang, servers, serverById, canEdit, canDelete, t, tm]);
 
   return (
-    <DataTable
-      columns={columns}
+    <DataTable storageKey="AdminMapsTable" columns={columns}
       data={maps}
       getRowId={(m) => m.id}
       emptyMessage={tm("noResults")}
@@ -108,3 +107,4 @@ export function AdminMapsTable({ lang, maps, servers, canEdit, canDelete, sortCo
     />
   );
 }
+

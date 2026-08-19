@@ -77,6 +77,7 @@ export function AdminNav({ active, navAccess }: AdminNavProps) {
 
   const usersItems: NavItem[] = ([
     { resource: "users", href: "/admin/users", label: t("navUsers") },
+    { resource: "whitelist", href: "/admin/whitelist", label: t("navWhitelist") },
     { resource: "badges", href: "/admin/badges", label: t("navBadges") },
     { resource: "ranks", href: "/admin/ranks", label: t("navRanks") },
   ] as NavItem[]).filter((item) => navAccess[item.resource]);

@@ -49,7 +49,7 @@ const FRONTMATTER_PATTERN = /^---\r?\n[\s\S]*?\r?\n---\r?\n?/;
 // just the file itself.
 const CLIENT_ONLY_COMPONENT_NAMES = [
   "CommandCard", "EventTimeline", "PageEmbed", "PlayerCard", "ResourceCard", "ResourceCardGrid",
-  "ServerStatusWidget", "ServerVersion", "TownyTable", "WhitelistTable",
+  "ServerStatusWidget", "ServerVersion", "TownyTable",
   "ItemCard", "RuleTable", "ServerAddress", "GitHubLastModified", "PermissionTable",
   "Steps", "Step", "Accordion", "Accordions", "Tab", "Tabs", "TabsContent", "TabsList", "TabsTrigger",
   "LiveQuestTree",

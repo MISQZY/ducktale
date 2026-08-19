@@ -71,6 +71,7 @@ export default async function AdminRolesPage({
 
   const createSlot = canEdit ? (
     <RoleFormDialog
+      key="create"
       lang={lang}
       roleOptions={roleOptions}
       rowLevelRoleOptions={rowLevelRoleOptions}

@@ -125,8 +125,7 @@ export function AdminTicketsTable({ tickets, sortColumn, sortDirection, rowOffse
 
   return (
     <div ref={adaptiveRef}>
-      <DataTable
-        columns={columns}
+      <DataTable storageKey="AdminTicketsTable" columns={columns}
         data={tickets}
         getRowId={(t) => t.id}
         emptyMessage={tt("noTickets")}
@@ -141,3 +140,4 @@ export function AdminTicketsTable({ tickets, sortColumn, sortDirection, rowOffse
     </div>
   );
 }
+

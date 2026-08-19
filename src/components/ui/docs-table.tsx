@@ -15,7 +15,7 @@ import {
 // these same hex literals locally — extend this object instead of adding
 // new raw colors so the palette stays in exactly one place.
 export const DOCS_TABLE_THEME = {
-  wrapper:   "not-prose w-full overflow-hidden rounded-xl border border-border bg-card",
+  wrapper:   "not-prose w-full overflow-auto rounded-xl border border-border bg-card",
   header:    "bg-muted border-border",
   // Column-divider strength — was border-border/50, which washed out badly
   // next to the row dividers (plain border-b, full theme opacity) and the

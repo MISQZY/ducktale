@@ -104,8 +104,7 @@ export function TownyTable({
   ], [query]);
 
   return (
-    <PagedTableLayout
-      className={className}
+    <PagedTableLayout storageKey="TownyTable" className={className}
       titleNode={
         <span
           className="text-sm font-semibold text-foreground/80 tracking-wide"
@@ -140,3 +139,4 @@ export function TownyTable({
     />
   );
 }
+

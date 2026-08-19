@@ -105,8 +105,7 @@ export function AdminBadgesTable({ lang, badges, roleOptions, canEdit, canDelete
 
   return (
     <div ref={adaptiveRef}>
-      <DataTable
-        columns={columns}
+      <DataTable storageKey="AdminBadgesTable" columns={columns}
         data={badges}
         getRowId={(b) => b.id}
         emptyMessage={tb("noResults")}
@@ -121,3 +120,4 @@ export function AdminBadgesTable({ lang, badges, roleOptions, canEdit, canDelete
     </div>
   );
 }
+

@@ -1,16 +1,47 @@
 "use client"
 
+import * as React from "react"
 import * as ResizablePrimitive from "react-resizable-panels"
 
 import { cn } from "@/lib/utils"
 
 function ResizablePanelGroup({
   className,
+  id,
+  onLayoutChanged,
+  defaultLayout,
   ...props
 }: ResizablePrimitive.GroupProps) {
+  const groupRef = React.useRef<ResizablePrimitive.GroupImperativeHandle>(null);
+
+  // Restore layout on mount without hydration mismatch
+  React.useEffect(() => {
+    if (id) {
+      try {
+        const raw = localStorage.getItem(`ducktale:layout:${id}`);
+        if (raw) {
+          const layout = JSON.parse(raw);
+          groupRef.current?.setLayout(layout);
+        }
+      } catch {}
+    }
+  }, [id]);
+
   return (
     <ResizablePrimitive.Group
       data-slot="resizable-panel-group"
+      id={id}
+      groupRef={groupRef}
+      defaultLayout={defaultLayout}
+      onLayoutChanged={(layout, meta) => {
+        // Only save when user interacts to avoid saving default on mount
+        if (id && meta.isUserInteraction) {
+          try {
+            localStorage.setItem(`ducktale:layout:${id}`, JSON.stringify(layout));
+          } catch {}
+        }
+        if (onLayoutChanged) onLayoutChanged(layout, meta);
+      }}
       className={cn(
         "flex h-full w-full",
         className

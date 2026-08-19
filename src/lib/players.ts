@@ -87,3 +87,17 @@ export async function getMaintenanceStatuses(
     return new Set(rows.map((r) => r.server));
   });
 }
+export async function getServerWhitelistStatuses(
+  dbKey: string = "default"
+): Promise<Set<string>> {
+  return withCache("server-whitelist-statuses:${dbKey}", 60_000, async () => {
+    const rows = await withDb(dbKey, (db) =>
+      db.$queryRaw<{ server: string }[]>(Prisma.sql`
+        SELECT server
+        FROM fp_moderation
+        WHERE player = -1 AND type = 'whitelist' AND valid = 1
+      `)
+    );
+    return new Set(rows.map((r) => r.server));
+  });
+}

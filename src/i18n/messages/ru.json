@@ -131,7 +131,8 @@
     "duckShow": "Показать уточку",
     "duckHide": "Скрыть уточку",
     "duckMute": "Выключить звук уточки",
-    "switchLanguage": "Переключить язык"
+    "switchLanguage": "Переключить язык",
+    "whitelist": "Проходки"
   },
   "Hero": {
     "badge": "Minecraft • Server network",
@@ -465,6 +466,8 @@
   "Admin": {
     "title": "Админ-панель",
     "description": "Всего пользователей: {count}",
+    "navBadges": "Бейджи",
+    "navWhitelist": "Проходки",
     "navUsers": "Пользователи",
     "navContent": "Контент",
     "navMaps": "Карты",
@@ -500,7 +503,6 @@
     "navTickets": "Тикеты",
     "ticketsTitle": "Тикеты поддержки",
     "ticketsDescription": "Всего тикетов: {count}",
-    "navBadges": "Бейджи",
     "badgesTitle": "Бейджи",
     "badgesLabel": "Бейджи",
     "rolesColumn": "Роли",

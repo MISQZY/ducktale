@@ -113,8 +113,7 @@ export function AdminResourceRolesTable({ lang, rows, canEdit }: AdminResourceRo
   ], [lang, canEdit, t, tr, tal, resourceName]);
 
   return (
-    <DataTable
-      columns={columns}
+    <DataTable storageKey="AdminResourceRolesTable" columns={columns}
       data={sortedRows}
       getRowId={(r) => r.resource}
       emptyMessage={tr("noResults")}
@@ -126,3 +125,4 @@ export function AdminResourceRolesTable({ lang, rows, canEdit }: AdminResourceRo
     />
   );
 }
+

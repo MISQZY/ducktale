@@ -116,6 +116,8 @@ export const RESOURCE_ROLE_ACTIONS = {
   "events-page": ["view"],
   reports: ["view", "edit", "delete"],
   applications: ["view", "edit", "delete"],
+  whitelist: ["view", "edit", "delete"],
+  "whitelist-page": ["view"],
 } as const;
 
 export type Resource = keyof typeof RESOURCE_ROLE_ACTIONS;

@@ -53,6 +53,8 @@ interface PagedTableLayoutProps<TData extends RowData> {
   pageNumbers: () => (number | "…")[];
   goTo: (page: number) => void;
   showPagination?: boolean;
+  /** Unique key to persist column sizing and visibility to localStorage. If omitted, state is lost on reload. */
+  storageKey?: string;
 }
 
 export function PagedTableLayout<TData extends RowData>({
@@ -85,8 +87,9 @@ export function PagedTableLayout<TData extends RowData>({
   pageNumbers,
   goTo,
   showPagination = true,
+  storageKey,
 }: PagedTableLayoutProps<TData>) {
-  const table = useDataTable(columns, data, getRowId, pageStart, showRowNumber);
+  const table = useDataTable(columns, data, getRowId, pageStart, showRowNumber, storageKey);
 
   // Skeleton cells must match the real column count, including the
   // automatic row-number column useDataTable prepends unless disabled (see
@@ -120,7 +123,7 @@ export function PagedTableLayout<TData extends RowData>({
       </div>
 
       {/* Table */}
-      <DocsTable className="table-fixed w-full" style={{ minWidth: table.getTotalSize() }}>
+      <DocsTable wrapperClassName="min-w-0 min-h-0" className="table-fixed w-full" style={{ minWidth: table.getTotalSize() }}>
         <DataTableColGroup table={table} />
         <DataTableHeader table={table} sortColumn={sortColumn} sortDirection={sortDirection} onSort={onSort} />
 

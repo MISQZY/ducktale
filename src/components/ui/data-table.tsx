@@ -9,6 +9,7 @@ import {
 } from "@tanstack/react-table/legacy";
 import type { TableFeatures, RowData, ColumnVisibilityState, ColumnSizingState } from "@tanstack/table-core";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useLocalStorage } from "@/hooks/useLocalStorage";
 import { Settings } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
@@ -112,10 +113,31 @@ export function useDataTable<TData extends RowData>(
   data: TData[],
   getRowId?: (row: TData, index: number) => string,
   rowOffset = 0,
-  showRowNumber = true
+  showRowNumber = true,
+  storageKey?: string
 ) {
-  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
-  const [columnSizing, setColumnSizing] = useState<ColumnSizingState>({});
+  // Use localStorage if a key is provided, otherwise fall back to regular useState
+  const [columnVisibility, setColumnVisibility] = useLocalStorage<VisibilityState>(
+    storageKey ? `table:visibility:${storageKey}` : "",
+    {}
+  );
+  
+  const [columnSizing, setColumnSizing] = useLocalStorage<ColumnSizingState>(
+    storageKey ? `table:sizing:${storageKey}` : "",
+    {}
+  );
+  
+  // If no storage key is provided, we still use the hooks but we must ensure they don't persist globally.
+  // Actually, useLocalStorage with an empty key will use "ducktale:", which is bad. 
+  // Let's create local state for the non-persisted case instead to avoid collisions.
+  const [localVisibility, setLocalVisibility] = useState<VisibilityState>({});
+  const [localSizing, setLocalSizing] = useState<ColumnSizingState>({});
+
+  const effectiveVisibility = storageKey ? columnVisibility : localVisibility;
+  const effectiveSetVisibility = storageKey ? setColumnVisibility : setLocalVisibility;
+  
+  const effectiveSizing = storageKey ? columnSizing : localSizing;
+  const effectiveSetSizing = storageKey ? setColumnSizing : setLocalSizing;
 
   const columnsWithRowNumber = useMemo<ColumnDef<TData, unknown>[]>(
     () => (showRowNumber ? [buildRowNumberColumn<TData>(rowOffset), ...columns] : columns),
@@ -130,9 +152,9 @@ export function useDataTable<TData extends RowData>(
     manualFiltering: true,
     enableColumnResizing: true,
     columnResizeMode: "onChange",
-    state: { columnVisibility, columnSizing },
-    onColumnVisibilityChange: setColumnVisibility,
-    onColumnSizingChange: setColumnSizing,
+    state: { columnVisibility: effectiveVisibility, columnSizing: effectiveSizing },
+    onColumnVisibilityChange: effectiveSetVisibility,
+    onColumnSizingChange: effectiveSetSizing,
     ...(getRowId ? { getRowId } : {}),
   });
 }
@@ -372,6 +394,8 @@ interface DataTableProps<TData extends RowData> {
   fillViewport?: boolean;
   /** Vertical space below the table to leave alone when fillViewport is measuring — just the page's own bottom padding for the unpaginated tables this is meant for. Default 140; pass viewportBottomReservePx explicitly if a given page's chrome below the table differs. */
   viewportBottomReservePx?: number;
+  /** Unique key to persist column sizing and visibility to localStorage. If omitted, state is lost on reload. */
+  storageKey?: string;
 }
 
 const DEFAULT_VIEWPORT_BOTTOM_RESERVE_PX = 140;
@@ -386,9 +410,9 @@ const DEFAULT_VIEWPORT_BOTTOM_RESERVE_PX = 140;
  */
 export function DataTable<TData extends RowData>({
   columns, data, getRowId, rowClassName, sortColumn, sortDirection, onSort, emptyMessage, rowOffset, showRowNumber = true,
-  toolbarLeft, toolbarRight, minRows, rowHeightClassName, rowHeightPx, fillViewport, viewportBottomReservePx,
+  toolbarLeft, toolbarRight, minRows, rowHeightClassName, rowHeightPx, fillViewport, viewportBottomReservePx, storageKey
 }: DataTableProps<TData>) {
-  const table = useDataTable(columns, data, getRowId, rowOffset, showRowNumber);
+  const table = useDataTable(columns, data, getRowId, rowOffset, showRowNumber, storageKey);
 
   const wrapperRef = useRef<HTMLDivElement>(null);
   const [viewportFillRows, setViewportFillRows] = useState(0);

@@ -122,6 +122,7 @@
     "threads": "Threads",
     "maps": "Maps",
     "events": "Events",
+    "whitelist": "Whitelist",
     "profile": "Profile",
     "login": "Sign in",
     "home": "DuckTale — home",
@@ -467,6 +468,7 @@
     "title": "Admin panel",
     "description": "Total users: {count}",
     "navUsers": "Users",
+    "navWhitelist": "Whitelist",
     "navContent": "Content",
     "navMaps": "Maps",
     "navEvents": "Events",
@@ -599,7 +601,9 @@
         "server-status": "Server status",
         "maps-page": "Maps",
         "events-page": "Events",
-        "applications": "[Admin] Applications"
+        "applications": "[Admin] Applications",
+        "whitelist": "[Admin] Whitelist",
+        "whitelist-page": "Whitelist"
       },
       "actionLabels": {
         "view": "View",

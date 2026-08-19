@@ -226,8 +226,7 @@ export function AdminUsersTable({ lang, users, badges, roleOptions, canEditUsers
   return (
     <>
       <div ref={adaptiveRef}>
-        <DataTable
-          columns={columns}
+        <DataTable storageKey="AdminUsersTable" columns={columns}
           data={users}
           getRowId={(u) => u.id}
           emptyMessage={t("noResults")}
@@ -253,3 +252,4 @@ export function AdminUsersTable({ lang, users, badges, roleOptions, canEditUsers
     </>
   );
 }
+

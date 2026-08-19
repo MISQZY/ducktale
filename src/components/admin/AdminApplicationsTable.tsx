@@ -105,8 +105,7 @@ export function AdminApplicationsTable({ applications, sortColumn, sortDirection
 
   return (
     <div ref={adaptiveRef}>
-      <DataTable
-        columns={columns}
+      <DataTable storageKey="AdminApplicationsTable" columns={columns}
         data={applications}
         getRowId={(a) => a.id}
         emptyMessage={tr("noResults")}
@@ -121,3 +120,4 @@ export function AdminApplicationsTable({ applications, sortColumn, sortDirection
     </div>
   );
 }
+

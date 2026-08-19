@@ -118,8 +118,7 @@ export function AdminEventsTable({ lang, events, servers, canEdit, canDelete, so
   ], [lang, servers, serverById, canEdit, canDelete, t, te, formatDate]);
 
   return (
-    <DataTable
-      columns={columns}
+    <DataTable storageKey="AdminEventsTable" columns={columns}
       data={events}
       getRowId={(e) => e.id}
       emptyMessage={te("noResults")}
@@ -135,3 +134,4 @@ export function AdminEventsTable({ lang, events, servers, canEdit, canDelete, so
     />
   );
 }
+

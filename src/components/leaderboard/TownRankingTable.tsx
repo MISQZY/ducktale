@@ -109,8 +109,7 @@ export function TownRankingTable({ pageSize = 10, className }: TownRankingTableP
   ], [query]);
 
   return (
-    <PagedTableLayout
-      className={className}
+    <PagedTableLayout storageKey="TownRankingTable" className={className}
       titleNode={
         <span
           className="text-sm font-semibold text-foreground/80 tracking-wide"
@@ -152,3 +151,4 @@ export function TownRankingTable({ pageSize = 10, className }: TownRankingTableP
     />
   );
 }
+

@@ -1,7 +1,7 @@
 export interface NavLink {
   href: string;
   /** Key into the `Nav` message namespace. */
-  key: "about" | "leaderboard" | "threads" | "maps" | "events" | "profile";
+  key: "about" | "leaderboard" | "threads" | "maps" | "events" | "profile" | "whitelist";
 }
 
 export const NAV_LINKS: NavLink[] = [
@@ -10,5 +10,6 @@ export const NAV_LINKS: NavLink[] = [
   { href: "/threads",     key: "threads" },
   { href: "/maps",        key: "maps" },
   { href: "/events",      key: "events" },
+  { href: "/whitelist",   key: "whitelist" },
   { href: "/profile",     key: "profile" },
 ];

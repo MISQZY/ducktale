@@ -29,8 +29,8 @@ export default async function ThreadsLayout({
   return (
     <main className="relative overflow-hidden h-dvh flex flex-col px-6 pt-24 pb-8">
       <div className="relative z-10 w-full flex-1 min-h-0">
-        <ResizablePanelGroup orientation="horizontal" className="h-full w-full">
-          <ResizablePanel defaultSize="15" minSize="12" maxSize="30">
+        <ResizablePanelGroup id="threads-layout" orientation="horizontal" className="h-full w-full">
+          <ResizablePanel id="threads-sidebar" defaultSize="15" minSize="12" maxSize="30">
             <Suspense fallback={
               <div className="flex flex-col gap-2 p-4 h-full border-r border-primary/10">
                 {Array.from({ length: 8 }).map((_, i) => (
@@ -44,7 +44,7 @@ export default async function ThreadsLayout({
 
           <ResizableHandle withHandle className="w-[2px] mx-2 rounded-full bg-primary/10 hover:bg-primary/30 transition-colors" />
 
-          <ResizablePanel defaultSize="85" minSize="40">
+          <ResizablePanel id="threads-content" defaultSize="85" minSize="40">
             <div suppressHydrationWarning className="liquid-card w-full h-full flex flex-col min-w-0 overflow-hidden rounded-2xl border border-primary/20 bg-card/50 p-4 sm:p-6">
               {children}
             </div>

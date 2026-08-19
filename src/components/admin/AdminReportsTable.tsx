@@ -103,8 +103,7 @@ export function AdminReportsTable({ reports, sortColumn, sortDirection, rowOffse
 
   return (
     <div ref={adaptiveRef}>
-      <DataTable
-        columns={columns}
+      <DataTable storageKey="AdminReportsTable" columns={columns}
         data={reports}
         getRowId={(r) => r.id}
         emptyMessage={tr("noResults")}
@@ -119,3 +118,4 @@ export function AdminReportsTable({ reports, sortColumn, sortDirection, rowOffse
     </div>
   );
 }
+
