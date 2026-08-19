@@ -33,7 +33,7 @@ export default function HeroSection() {
   // round-trip through the proxy and could drop back to the default locale.
   const CTA_LINKS = [
     { href: `/${locale}#servers`, label: t("ctaPrimary"), variant: "primary" as const },
-    { href: `/${locale}#about`,   label: t("ctaSecondary"), variant: "outline" as const, className: "liquid-card" },
+    { href: `/${locale}#about`,   label: t("ctaSecondary"), variant: "outline" as const, className: "liquid-badge backdrop-blur-sm bg-primary/5 border-primary/25 shadow-[inset_0_1px_0_rgba(212,160,23,0.06),0_1px_8px_rgba(0,0,0,0.3)]" },
   ];
 
   return (

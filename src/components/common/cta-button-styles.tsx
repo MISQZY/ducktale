@@ -14,9 +14,10 @@ export const CTA_FONT_STYLE = {
  */
 export function ctaButtonClasses(variant: CtaVariant, className?: string) {
   return cn(
-    "h-auto relative flex items-center justify-center gap-2 px-8 py-3.5 rounded-xl font-semibold tracking-wide transition-all duration-200 active:scale-95 overflow-hidden group",
+    "h-auto relative flex items-center justify-center gap-2 px-8 py-3.5 rounded-xl font-semibold tracking-wide transition-all duration-200 active:scale-95 group",
     "disabled:opacity-40 disabled:pointer-events-none disabled:active:scale-100",
     variant === "primary" && [
+      "overflow-hidden",
       "bg-linear-to-b from-gold-400 to-gold-600 text-neutral-950",
       "hover:from-gold-300 hover:to-gold-500",
       "shadow-lg shadow-gold-900/30 hover:shadow-xl hover:shadow-gold-800/40",
