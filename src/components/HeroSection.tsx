@@ -33,7 +33,7 @@ export default function HeroSection() {
   // round-trip through the proxy and could drop back to the default locale.
   const CTA_LINKS = [
     { href: `/${locale}#servers`, label: t("ctaPrimary"), variant: "primary" as const },
-    { href: `/${locale}#about`,   label: t("ctaSecondary"), variant: "outline" as const },
+    { href: `/${locale}#about`,   label: t("ctaSecondary"), variant: "outline" as const, className: "liquid-card" },
   ];
 
   return (
@@ -65,7 +65,7 @@ export default function HeroSection() {
         </h1>
 
         <p
-          className="text-primary/70 text-sm tracking-[0.35em] uppercase mb-6 fade-up fade-up-2"
+          className="text-primary/70 text-sm tracking-[0.35em] capitalize mb-6 fade-up fade-up-2"
           style={{ fontFamily: "var(--font-display)" }}
         >
           ✦ {t("tagline")} ✦
@@ -106,8 +106,8 @@ export default function HeroSection() {
 
         {/* CTA buttons */}
         <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-20 fade-up fade-up-4">
-          {CTA_LINKS.map(({ href, label, variant }) => (
-            <CtaButton key={href} href={href} variant={variant}>
+          {CTA_LINKS.map(({ href, label, variant, className }) => (
+            <CtaButton key={href} href={href} variant={variant} className={className}>
               {label}
             </CtaButton>
           ))}
