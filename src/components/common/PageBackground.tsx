@@ -34,14 +34,14 @@ export function PageBackground({ showGlows = true }: { showGlows?: boolean }) {
       {/* 3. Illumination Glows (acts as flickering light on the stone) */}
       {showGlows && (
         <div className="absolute inset-0 mix-blend-overlay hero-glows">
-          <div className="absolute top-1/2 left-[48%] -translate-x-1/2 -translate-y-1/2">
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
             <div
               className="rounded-full blur-[100px] bg-primary/80 hero-pulse"
               style={{ width: 1000, height: 750 }}
             />
           </div>
 
-          <div className="absolute top-[52%] left-[52%] -translate-x-1/2 -translate-y-1/2">
+          <div className="absolute top-[52%] left-1/2 -translate-x-1/2 -translate-y-1/2">
             <div
               className="rounded-full blur-[70px] bg-primary/50 hero-pulse-2"
               style={{ width: 600, height: 600 }}
