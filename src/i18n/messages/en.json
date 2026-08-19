@@ -967,7 +967,9 @@
     "submitting": "Creating...",
     "errors": {
       "required": "Fill in a title and message",
-      "generic": "Couldn't complete that. Try again later."
+      "generic": "Couldn't complete that. Try again later.",
+      "invalidFileType": "Unsupported file format: {name}. Allowed: images, .txt, .log, .pdf, .zip, video, and .jar.",
+      "tooManyFiles": "No more than {max} attachments allowed."
     },
     "backToList": "← Back to threads",
     "initiatorLabel": "Started by:",
@@ -981,7 +983,8 @@
     "noMessages": "No messages yet.",
     "replyPlaceholder": "Your message...",
     "send": "Send",
-    "sending": "Sending..."
+    "sending": "Sending...",
+    "attachmentsLabel": "Attach file"
   },
   "Reports": {
     "myReportsTitle": "My reports",
