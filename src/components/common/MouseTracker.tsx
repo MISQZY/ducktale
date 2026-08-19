@@ -11,7 +11,7 @@ export function MouseTracker() {
         window.requestAnimationFrame(() => {
           const target = e.target as HTMLElement;
           if (target && target.closest) {
-            let current = target.closest(".liquid-badge, [data-roles-badge], .liquid-card, [data-card], .fd-card") as HTMLElement | null;
+            let current = target.closest(".liquid-badge, [data-roles-badge], .liquid-card, [data-card], .fd-card, .liquid-cta") as HTMLElement | null;
             while (current) {
               const rect = current.getBoundingClientRect();
               const x = e.clientX - rect.left;
@@ -20,7 +20,7 @@ export function MouseTracker() {
               current.style.setProperty("--mouse-y", `${y}px`);
               
               const parent = current.parentElement;
-              current = parent ? parent.closest(".liquid-badge, [data-roles-badge], .liquid-card, [data-card], .fd-card") as HTMLElement | null : null;
+              current = parent ? parent.closest(".liquid-badge, [data-roles-badge], .liquid-card, [data-card], .fd-card, .liquid-cta") as HTMLElement | null : null;
             }
           }
           ticking = false;

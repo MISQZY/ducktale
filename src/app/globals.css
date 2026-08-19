@@ -1139,3 +1139,48 @@ body {
   animation: fog-drift linear infinite;
   will-change: transform;
 }
+
+.liquid-cta {
+  position: relative;
+  @apply backdrop-blur-md;
+  box-shadow:
+    0 1px 0 rgba(212, 160, 23, 0.04),
+    0 4px 30px rgba(0, 0, 0, 0.4) !important;
+}
+.liquid-cta::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: radial-gradient(
+    circle 600px at var(--mouse-x, 0) var(--mouse-y, 0),
+    color-mix(in srgb, var(--color-primary) 5%, transparent),
+    transparent 100%
+  );
+  z-index: 10;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+.liquid-cta::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: radial-gradient(
+    circle 300px at var(--mouse-x, 0) var(--mouse-y, 0),
+    color-mix(in srgb, var(--color-primary) 30%, transparent),
+    transparent 100%
+  );
+  -webkit-mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  z-index: 11;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+.liquid-cta:hover::after,
+.liquid-cta:hover::before {
+  opacity: 1;
+}

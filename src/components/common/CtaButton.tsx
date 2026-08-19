@@ -46,7 +46,7 @@ export function CtaButton({
     <Button
       variant="ghost"
       className={`pointer-events-auto ${ctaButtonClasses(variant, className)}`}
-      style={CTA_FONT_STYLE}
+      style={{ ...CTA_FONT_STYLE, ...(variant === "outline" ? { backdropFilter: "blur(12px)", WebkitBackdropFilter: "blur(12px)", backgroundColor: "rgba(255, 255, 255, 0.05)" } : {}) }}
       asChild
     >
       {hardLink ? (
