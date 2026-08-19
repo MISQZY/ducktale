@@ -1094,3 +1094,48 @@ body {
     transform: none;
   }
 }
+
+
+
+
+.fog-cloud-2 {
+  animation: fog-drift 45s linear infinite;
+  animation-delay: -15s;
+  will-change: transform, opacity;
+}
+
+.fog-cloud-3 {
+  animation: fog-drift 38s linear infinite;
+  animation-delay: -30s;
+  will-change: transform, opacity;
+}
+
+
+.fog-layer-2 {
+  background: repeating-linear-gradient(
+    -90deg,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(240, 244, 248, 0.3) 30%,
+    rgba(255, 255, 255, 0.6) 50%,
+    rgba(240, 244, 248, 0.3) 70%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  background-size: 150vw 100%;
+  animation: fog-flow 35s linear infinite reverse;
+  filter: blur(40px);
+  will-change: background-position;
+}
+
+@keyframes fog-drift {
+  0% { transform: translateX(120vw); }
+  100% { transform: translateX(-120vw); }
+}
+
+.fog-cloud {
+  position: absolute;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.8);
+  filter: blur(180px);
+  animation: fog-drift linear infinite;
+  will-change: transform;
+}
