@@ -1,19 +1,29 @@
+"use client";
+
 import { useLocale, useTranslations } from "next-intl";
 import Navbar from "@/components/Navbar";
 import { ErrorView } from "@/components/common/ErrorView";
-import { createMetadata } from "@/lib/create-metadata";
+import { useEffect } from "react";
 
-export const generateMetadata = createMetadata({ namespace: "NotFound" });
-
-export default function NotFound() {
-  const t = useTranslations("NotFound");
+export default function ErrorPage({
+  error,
+  reset,
+}: {
+  error: Error & { digest?: string };
+  reset: () => void;
+}) {
+  const t = useTranslations("Error");
   const locale = useLocale();
+
+  useEffect(() => {
+    console.error(error);
+  }, [error]);
 
   return (
     <>
       <Navbar />
       <ErrorView
-        code="404"
+        code="500"
         badge={t("badge")}
         heading={t("heading")}
         description={t("description")}

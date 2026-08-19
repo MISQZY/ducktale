@@ -3,7 +3,13 @@
     "Home": {
       "description": "DuckTale is a network of Minecraft servers. DuckBurg is a survival server, DuckHood is a creative server."
     },
-    "NotFound": {
+    "Error": {
+    "badge": "Server Error",
+    "heading": "Service Unavailable",
+    "description": "Our services or database are currently unreachable. Please try again later.",
+    "ctaHome": "Return to Home"
+  },
+  "NotFound": {
       "title": "Page not found",
       "description": "This page doesn't exist. Head back to the DuckTale homepage."
     }
@@ -370,6 +376,12 @@
         ]
       }
     ]
+  },
+  "Error": {
+    "badge": "Server Error",
+    "heading": "Service Unavailable",
+    "description": "Our services or database are currently unreachable. Please try again later.",
+    "ctaHome": "Return to Home"
   },
   "NotFound": {
     "badge": "Page not found",

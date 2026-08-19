@@ -1,46 +1,31 @@
-import type { Metadata } from "next";
-import { cookies, headers } from "next/headers";
-import { getTranslations } from "next-intl/server";
+"use client";
+
+import { useEffect } from "react";
 import Link from "next/link";
 import "./globals.css";
 import { cn } from "@/lib/utils";
 import { routing } from "@/i18n/routing";
 import { ErrorView } from "@/components/common/ErrorView";
 
-export const metadata: Metadata = {
-  title: "DuckTale - 404",
-  description: "The page you're looking for doesn't exist.",
-};
-
 type Locale = (typeof routing.locales)[number];
 
-// This file bypasses the [lang] layout entirely (see Next.js global-not-found
-// docs), so there's no route param and no NextIntlClientProvider to read a
-// locale from. Best-effort guess from the locale cookie next-intl's own
-// middleware sets, falling back to the browser's Accept-Language header.
-async function resolveLocale(): Promise<Locale> {
-  const cookieLocale = (await cookies()).get("NEXT_LOCALE")?.value;
-  if (routing.locales.includes(cookieLocale as Locale)) {
-    return cookieLocale as Locale;
-  }
+export default function GlobalError({
+  error,
+  reset,
+}: {
+  error: Error & { digest?: string };
+  reset: () => void;
+}) {
+  useEffect(() => {
+    console.error(error);
+  }, [error]);
 
-  const acceptLanguage = (await headers()).get("accept-language") ?? "";
-  const preferred = acceptLanguage.split(",")[0]?.split("-")[0]?.trim();
-  if (routing.locales.includes(preferred as Locale)) {
-    return preferred as Locale;
-  }
-
-  return routing.defaultLocale;
-}
-
-export default async function GlobalNotFound() {
-  const locale = await resolveLocale();
-  const t = await getTranslations({ locale, namespace: "NotFound" });
+  // We don't have cookies/headers easily available synchronously in a Client Component.
+  // We'll fall back to the default locale.
+  const locale = routing.defaultLocale;
 
   return (
-    <html
-      lang={locale}
-    >
+    <html lang={locale}>
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
@@ -55,11 +40,11 @@ export default async function GlobalNotFound() {
       </head>
       <body className="bg-background text-foreground antialiased min-h-screen">
         <ErrorView
-          code="404"
-          badge={t("badge")}
-          heading={t("heading")}
-          description={t("description")}
-          ctaHomeLabel={t("ctaHome")}
+          code="500"
+          badge="Ошибка сервера"
+          heading="Сервер временно недоступен"
+          description="Наши сервисы или база данных в данный момент недоступны. Пожалуйста, повторите попытку позже."
+          ctaHomeLabel="Вернуться на главную"
           homeHref={`/${locale}`}
           footer={
             <div className="flex items-center gap-3 text-xs text-foreground/30">
