@@ -17,6 +17,7 @@ import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { PlayerAvatar } from "@/components/common/PlayerAvatar";
 import { MessageBubble } from "@/components/common/MessageBubble";
+import { EmbedImage } from "@/components/common/EmbedImage";
 import { ConversationEventMarker } from "@/components/common/ConversationEventMarker";
 import { handleComposerKeyDown } from "@/lib/compose-keydown";
 import { usePolling } from "@/hooks/usePolling";
@@ -104,26 +105,13 @@ function AttachmentImage({ att }: { att: AttachmentData }) {
   if (failed) return <AttachmentImageError att={att} />;
 
   return (
-    <a
-      href={url}
-      target="_blank"
-      rel="noopener noreferrer"
-      className="block group/img rounded-xl overflow-hidden border border-primary/15 bg-card/40 hover:border-primary/30 transition-colors"
-    >
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img
-        src={url}
-        alt={att.filename}
-        onError={() => setFailed(true)}
-        className="max-w-full max-h-[280px] object-contain rounded-xl"
-        loading="lazy"
-      />
-      <div className="flex items-center gap-1.5 px-2.5 py-1.5 text-[0.65rem] text-foreground/45">
-        <ImageIcon size={11} className="shrink-0" />
-        <span className="truncate">{att.filename}</span>
-        <span className="shrink-0 ml-auto">{formatFileSize(att.size)}</span>
-      </div>
-    </a>
+    <EmbedImage
+      url={url}
+      filename={att.filename}
+      className="block group/img rounded-xl overflow-hidden border border-primary/15 bg-card/40 hover:border-primary/30 transition-colors w-max"
+      imgClassName="max-w-full max-h-[280px] object-contain rounded-xl"
+      onError={() => setFailed(true)}
+    />
   );
 }
 

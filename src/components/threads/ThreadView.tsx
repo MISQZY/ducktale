@@ -17,6 +17,7 @@ import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { PlayerAvatar } from "@/components/common/PlayerAvatar";
 import { MessageBubble } from "@/components/common/MessageBubble";
+import { EmbedImage } from "@/components/common/EmbedImage";
 import { ConversationEventMarker } from "@/components/common/ConversationEventMarker";
 import { handleComposerKeyDown } from "@/lib/compose-keydown";
 import { usePolling } from "@/hooks/usePolling";
@@ -252,19 +253,12 @@ export function ThreadView({
                           const url = `/api/threads/attachments/${a.id}`;
                           if (isImg) {
                             return (
-                              <a
+                              <EmbedImage
                                 key={a.id}
-                                href={url}
-                                target="_blank"
-                                rel="noreferrer"
-                                className="block rounded-md overflow-hidden border border-border bg-black/20 hover:opacity-90 transition-opacity h-20 w-32 sm:h-24 sm:w-40 relative group"
-                              >
-                                {/* eslint-disable-next-line @next/next/no-img-element */}
-                                <img src={url} alt={a.filename} className="object-cover w-full h-full" />
-                                <div className="absolute top-1 right-1 bg-black/60 rounded p-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                                  <Download size={12} className="text-white" />
-                                </div>
-                              </a>
+                                url={url}
+                                filename={a.filename}
+                                className="block rounded-md overflow-hidden border border-border bg-black/20 hover:opacity-90 transition-opacity h-20 w-32 sm:h-24 sm:w-40"
+                              />
                             );
                           }
                           return (
