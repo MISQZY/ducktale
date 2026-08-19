@@ -42,7 +42,7 @@ export async function createApplication(formData: FormData): Promise<CreateAppli
   const serverId = (formData.get("serverId") as string | null) ?? "";
   const description = ((formData.get("description") as string | null) ?? "").trim().slice(0, APPLICATION_DESCRIPTION_MAX);
   const files = formData.getAll("files") as File[];
-  const validFiles = files.filter((f) => f.size > 0);
+  const validFiles = files.filter((f) => f.name !== "");
 
   // Unlike Report, description is optional here even with no attachment — a
   // bare nickname+server pair is a complete submission on its own (see the
@@ -104,7 +104,7 @@ export async function sendApplicationMessage(formData: FormData): Promise<void> 
   const applicationId = formData.get("applicationId") as string;
   const body = formData.get("body") as string;
   const files = formData.getAll("files") as File[];
-  const validFiles = files.filter((f) => f.size > 0);
+  const validFiles = files.filter((f) => f.name !== "");
 
   const application = await siteDb.application.findUnique({
     where: { id: applicationId },

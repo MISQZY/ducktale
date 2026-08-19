@@ -38,7 +38,7 @@ export async function createReport(formData: FormData): Promise<CreateReportResu
   const category = (formData.get("category") as string | null) ?? "";
   const description = ((formData.get("description") as string | null) ?? "").trim().slice(0, REPORT_DESCRIPTION_MAX);
   const files = formData.getAll("files") as File[];
-  const validFiles = files.filter((f) => f.size > 0);
+  const validFiles = files.filter((f) => f.name !== "");
 
   // Description is only required when there's no attachment to carry the
   // report instead — e.g. a screenshot of the violation can stand on its own.
@@ -95,7 +95,7 @@ export async function sendReportMessage(formData: FormData): Promise<void> {
   const reportId = formData.get("reportId") as string;
   const body = formData.get("body") as string;
   const files = formData.getAll("files") as File[];
-  const validFiles = files.filter((f) => f.size > 0);
+  const validFiles = files.filter((f) => f.name !== "");
 
   const report = await siteDb.report.findUnique({
     where: { id: reportId },

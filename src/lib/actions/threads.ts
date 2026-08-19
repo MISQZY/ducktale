@@ -65,7 +65,7 @@ export async function sendThreadMessage(formData: FormData): Promise<void> {
   const threadId = formData.get("threadId") as string;
   const body = formData.get("body") as string;
   const files = formData.getAll("files") as File[];
-  const validFiles = files.filter(f => f.size > 0);
+  const validFiles = files.filter(f => f.name !== "");
 
   const cleanBody = (body || "").trim().slice(0, THREAD_MESSAGE_MAX);
   if (!cleanBody && validFiles.length === 0) throw new Error("Message is required");

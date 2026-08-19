@@ -32,7 +32,7 @@ export async function createTicket(formData: FormData): Promise<CreateTicketResu
   const subject = formData.get("subject") as string;
   const message = formData.get("message") as string;
   const files = formData.getAll("files") as File[];
-  const validFiles = files.filter(f => f.size > 0);
+  const validFiles = files.filter(f => f.name !== "");
 
   const cleanSubject = (subject || "").trim().slice(0, TICKET_SUBJECT_MAX);
   // Message is only required when there's no attachment to carry the report
@@ -99,7 +99,7 @@ export async function sendTicketMessage(formData: FormData): Promise<void> {
   const ticketId = formData.get("ticketId") as string;
   const body = formData.get("body") as string;
   const files = formData.getAll("files") as File[];
-  const validFiles = files.filter(f => f.size > 0);
+  const validFiles = files.filter(f => f.name !== "");
 
   const ticket = await siteDb.ticket.findUnique({
     where: { id: ticketId },
