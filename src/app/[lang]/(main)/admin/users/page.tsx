@@ -112,18 +112,10 @@ export default async function AdminUsersPage({
     .map(u => u.accountLink?.status === "CONFIRMED" ? u.accountLink.minecraftUuid : null)
     .filter((u): u is string => !!u);
 
-  const serverLastSeenMap = new Map<string, number>();
+  let serverLastSeenMap = new Map<string, number>();
   if (linkedUuids.length > 0) {
-    const { withDb } = await import("@/lib/db");
-    const players = await withDb(db => db.fp_player.findMany({
-      where: { uuid: { in: linkedUuids } },
-      select: { uuid: true, fp_time: { select: { last: true } } }
-    }));
-    for (const p of players) {
-      if (p.fp_time?.last) {
-        serverLastSeenMap.set(p.uuid, Number(p.fp_time.last));
-      }
-    }
+    const { getPlayersLastSeenMap } = await import("@/lib/players");
+    serverLastSeenMap = await getPlayersLastSeenMap(linkedUuids);
   }
 
   const userRows = users.map((user, i) => {

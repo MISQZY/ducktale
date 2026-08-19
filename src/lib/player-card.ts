@@ -226,8 +226,10 @@ async function resolveIdentity(search: string): Promise<IdentityRow | null> {
 
 async function resolveIdentityUncached(search: string): Promise<IdentityRow | null> {
   return withDb(async (db) => {
-    const rows = search
-      ? await db.$queryRaw(Prisma.sql`
+    let rows: unknown[];
+
+    if (search) {
+      rows = await db.$queryRaw(Prisma.sql`
           SELECT p.id, p.uuid, p.name, s.value AS nickname, t.total AS playtimeMs,
                  p.online AS online, t.last AS lastSeenMs, srv.value AS currentServerId,
                  ${whitelistExists()} AS whitelisted,
@@ -240,8 +242,17 @@ async function resolveIdentityUncached(search: string): Promise<IdentityRow | nu
           WHERE p.name LIKE ${"%" + search + "%"} OR s.value LIKE ${"%" + search + "%"}
           ORDER BY (LOWER(p.name) = LOWER(${search}) OR LOWER(s.value) = LOWER(${search})) DESC, p.name ASC
           LIMIT 1
-        `)
-      : await db.$queryRaw(Prisma.sql`
+        `);
+    } else {
+      // ORDER BY RAND() with heavy correlated subqueries in the SELECT clause
+      // causes a severe N+1 full table scan. We pick a random ID first, then
+      // run the heavy query only for that row.
+      const randomRow = await db.$queryRaw<{ id: number }[]>(Prisma.sql`
+        SELECT id FROM fp_player ORDER BY RAND() LIMIT 1
+      `);
+      if (randomRow.length === 0) return null;
+
+      rows = await db.$queryRaw(Prisma.sql`
           SELECT p.id, p.uuid, p.name, s.value AS nickname, t.total AS playtimeMs,
                  p.online AS online, t.last AS lastSeenMs, srv.value AS currentServerId,
                  ${whitelistExists()} AS whitelisted,
@@ -251,9 +262,9 @@ async function resolveIdentityUncached(search: string): Promise<IdentityRow | nu
           ${PLAYER_NICKNAME_JOIN}
           LEFT JOIN fp_time t ON t.player = p.id
           LEFT JOIN fp_setting srv ON srv.player = p.id AND srv.type = 'SERVER'
-          ORDER BY RAND()
-          LIMIT 1
+          WHERE p.id = ${randomRow[0].id}
         `);
+    }
 
     const [row] = rows as IdentityRow[];
     return row ?? null;

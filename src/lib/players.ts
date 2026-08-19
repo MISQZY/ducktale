@@ -90,7 +90,7 @@ export async function getMaintenanceStatuses(
 export async function getServerWhitelistStatuses(
   dbKey: string = "default"
 ): Promise<Set<string>> {
-  return withCache("server-whitelist-statuses:${dbKey}", 60_000, async () => {
+  return withCache(`server-whitelist-statuses:${dbKey}`, 60_000, async () => {
     const rows = await withDb(dbKey, (db) =>
       db.$queryRaw<{ server: string }[]>(Prisma.sql`
         SELECT server
@@ -99,5 +99,33 @@ export async function getServerWhitelistStatuses(
       `)
     );
     return new Set(rows.map((r) => r.server));
+  });
+}
+
+/**
+ * Gets the last seen timestamp (ms) for a batch of UUIDs.
+ * Uses a short TTL cache to avoid spamming the database from admin pages.
+ */
+export async function getPlayersLastSeenMap(uuids: string[], dbKey: string = "default"): Promise<Map<string, number>> {
+  if (uuids.length === 0) return new Map();
+
+  // Sort UUIDs to ensure stable cache key regardless of order
+  const sortedUuids = [...uuids].sort();
+  // Using a short 30-second TTL so last-seen stays relatively fresh but deduplicates concurrent/rapid requests
+  return withCache(`players-last-seen:${dbKey}:${sortedUuids.join(",")}`, 30_000, async () => {
+    const players = await withDb(dbKey, (db) => 
+      db.fp_player.findMany({
+        where: { uuid: { in: sortedUuids } },
+        select: { uuid: true, fp_time: { select: { last: true } } }
+      })
+    );
+
+    const map = new Map<string, number>();
+    for (const p of players) {
+      if (p.fp_time?.last) {
+        map.set(p.uuid, Number(p.fp_time.last));
+      }
+    }
+    return map;
   });
 }

@@ -46,11 +46,12 @@ async function buildLeaderboardResponse(
   // default rank ASC when several players share a rank) would otherwise
   // sort in whatever order MySQL feels like per-query, which can reshuffle
   // rows between pages — a stable secondary key keeps pagination consistent.
-  let orderSql = Prisma.sql`ORDER BY sub.\`rank\` ASC, sub.uuid ASC`;
+  let orderSql = Prisma.sql`ORDER BY sub.playtimeMs DESC, sub.uuid ASC`;
   const dir = order === "desc" ? Prisma.sql`DESC` : Prisma.sql`ASC`;
   switch (sort) {
     case "rank":
-      orderSql = Prisma.sql`ORDER BY sub.\`rank\` ${dir}, sub.uuid ASC`;
+      // rank ASC is the same as playtimeMs DESC
+      orderSql = Prisma.sql`ORDER BY sub.playtimeMs ${order === "desc" ? Prisma.sql`ASC` : Prisma.sql`DESC`}, sub.uuid ASC`;
       break;
     case "player":
       orderSql = Prisma.sql`ORDER BY sub.name ${dir}, sub.uuid ASC`;
@@ -60,10 +61,18 @@ async function buildLeaderboardResponse(
       break;
   }
 
-  const rows: RawPlayerRow[] = await withDb(async (db) => {
-    return await db.$queryRaw(Prisma.sql`
-      SELECT sub.uuid, sub.name, sub.nickname, sub.playtimeMs, sub.online, sub.\`rank\`,
-             COUNT(*) OVER() AS total
+  const { rows, total } = await withDb(async (db) => {
+    const countRow = await db.$queryRaw(Prisma.sql`
+      SELECT COUNT(*) AS total
+      FROM fp_player p
+      LEFT JOIN fp_setting s ON s.player = p.id AND s.type = 'NICKNAME'
+      INNER JOIN fp_time t ON t.player = p.id
+      ${search ? Prisma.sql`WHERE p.name LIKE ${"%" + search + "%"} OR s.value LIKE ${"%" + search + "%"}` : Prisma.empty}
+    `) as { total: bigint }[];
+    const total = countRow.length > 0 ? Number(countRow[0].total) : 0;
+
+    const rows = total === 0 ? [] : await db.$queryRaw(Prisma.sql`
+      SELECT sub.*
       FROM (
         SELECT
           p.uuid,
@@ -71,18 +80,18 @@ async function buildLeaderboardResponse(
           s.value AS nickname,
           t.total AS playtimeMs,
           p.online AS online,
-          RANK() OVER (ORDER BY t.total DESC) AS \`rank\`
+          (SELECT COUNT(*) + 1 FROM fp_time t2 WHERE t2.total > t.total) AS \`rank\`
         ${PLAYER_NICKNAME_JOIN}
         INNER JOIN fp_time t ON t.player = p.id
+        ${search ? Prisma.sql`WHERE p.name LIKE ${"%" + search + "%"} OR s.value LIKE ${"%" + search + "%"}` : Prisma.empty}
       ) sub
-      ${search ? Prisma.sql`WHERE sub.name LIKE ${"%" + search + "%"} OR sub.nickname LIKE ${"%" + search + "%"}` : Prisma.empty}
       ${orderSql}
       LIMIT  ${pageSize}
       OFFSET ${offset}
     `) as RawPlayerRow[];
-  });
 
-  const total = rows.length > 0 ? Number(rows[0].total) : 0;
+    return { rows, total };
+  });
 
   // Only this page's rows, not the whole leaderboard — a plain indexed
   // lookup by minecraftUuid, cheap regardless of page size (capped at 100).

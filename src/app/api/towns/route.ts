@@ -46,9 +46,18 @@ async function buildTownsResponse(page: number, pageSize: number, search: string
       break;
   }
 
-  const { townRows, residentRows } = await withDb("duckburg_towns", async (db) => {
-    const townRows = await db.$queryRaw(Prisma.sql`
-      SELECT sub.*, COUNT(*) OVER() AS total
+  const { townRows, residentRows, total } = await withDb("duckburg_towns", async (db) => {
+    const totalRow = await db.$queryRaw(Prisma.sql`
+      SELECT COUNT(*) AS total
+      FROM (
+        ${townBaseQuery(Prisma.sql`, t.uuid AS uuid, t.mayor AS mayorUuid`)}
+      ) sub
+      ${search ? Prisma.sql`WHERE sub.name LIKE ${"%" + search + "%"}` : Prisma.empty}
+    `) as { total: bigint }[];
+    const total = totalRow.length > 0 ? Number(totalRow[0].total) : 0;
+
+    const townRows = total === 0 ? [] : await db.$queryRaw(Prisma.sql`
+      SELECT sub.*
       FROM (
         ${townBaseQuery(Prisma.sql`, t.uuid AS uuid, t.mayor AS mayorUuid`)}
       ) sub
@@ -64,10 +73,8 @@ async function buildTownsResponse(page: number, pageSize: number, search: string
       WHERE r.town IN (${Prisma.join(townUuids)})
     `) as ResidentRow[];
 
-    return { townRows, residentRows };
+    return { townRows, residentRows, total };
   });
-
-  const total = townRows.length > 0 ? Number(townRows[0].total) : 0;
 
   const [nicknames, skinUrlList] = await Promise.all([
     resolveNicknames(residentRows.map((r) => r.name)),

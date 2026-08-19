@@ -11,17 +11,18 @@ import { siteDb } from "@/lib/site-db";
 export const getShowcasePlayers = unstable_cache(
   async () => {
     try {
-      const totalResult = await withDb(db => db.$queryRaw<{ c: bigint }[]>(Prisma.sql`SELECT COUNT(*) as c FROM fp_player`));
-      const total = totalResult.length > 0 ? Number(totalResult[0].c) : 0;
+      const maxIdResult = await withDb(db => db.$queryRaw<{ m: number }[]>(Prisma.sql`SELECT MAX(id) as m FROM fp_player`));
+      const maxId = maxIdResult.length > 0 ? Number(maxIdResult[0].m) : 0;
       
-      const half = Math.max(50, Math.floor(total / 2));
+      // Generate random IDs to fetch. We generate more than needed because some IDs might be missing/deleted.
+      const randomIds = Array.from({ length: 1000 }, () => Math.floor(Math.random() * maxId) + 1);
 
       const rows = await withDb(async (db) => {
         return await db.$queryRaw(Prisma.sql`
           SELECT uuid, name
           FROM fp_player
-          ORDER BY RAND()
-          LIMIT ${half}
+          WHERE id IN (${Prisma.join(randomIds)})
+          LIMIT 200
         `) as { uuid: string; name: string }[];
       });
       
