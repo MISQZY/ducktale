@@ -359,7 +359,8 @@ export function ThreadView({
             )}
           </div>
 
-          <label
+          <div className="flex items-center gap-2">
+            <label
               className={cn(
                 buttonVariants({ variant: "outline", size: "sm" }),
                 "gap-2 font-normal cursor-pointer text-xs h-8 bg-card/50 hover:bg-card",
@@ -397,6 +398,7 @@ export function ThreadView({
             <FormButton type="submit" disabled={closed || isPending || (!body.trim() && files.length === 0)} className="px-6 py-2 text-xs">
             {isPending ? t("sending") : t("send")}
           </FormButton>
+          </div>
         </div>
 
         {error && <p className="text-xs text-destructive">{error}</p>}

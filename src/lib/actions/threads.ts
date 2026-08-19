@@ -103,14 +103,17 @@ export async function sendThreadMessage(formData: FormData): Promise<void> {
   // bump this write already needed (so the tree's date grouping reflects
   // the thread's latest activity), rather than being a no-op check.
   await siteDb.$transaction(async (tx) => {
-    const { count } = await tx.thread.updateMany({
-      where: { id: threadId, closed: false },
-      data: { updatedAt: new Date() },
-    });
-    if (count === 0) {
-      const exists = await tx.thread.findUnique({ where: { id: threadId }, select: { id: true } });
-      throw new Error(exists ? "Thread is closed" : "Thread not found");
-    }
+    const threadRecord = await tx.thread.findUnique({
+        where: { id: threadId },
+        include: { status: { select: { isClosed: true } } }
+      });
+      if (!threadRecord) throw new Error("Thread not found");
+      if (threadRecord.status.isClosed) throw new Error("Thread is closed");
+
+      await tx.thread.update({
+        where: { id: threadId },
+        data: { updatedAt: new Date() },
+      });
 
     await tx.message.create({
       data: { 
