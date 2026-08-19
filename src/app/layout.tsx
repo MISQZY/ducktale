@@ -1,35 +1,9 @@
 import type { Metadata } from "next";
 import { ThemeProvider } from "@/components/ThemeProvider";
-import { Cinzel_Decorative, Lora, JetBrains_Mono } from "next/font/google";
 import localFont from "next/font/local";
 import "./globals.css";
 import { cn } from "@/lib/utils";
 import { SITE } from "@/config/site";
-
-const fontDisplay = Cinzel_Decorative({
-  weight: ["400", "700", "900"],
-  subsets: ["latin"],
-  variable: "--font-display",
-  display: "swap",
-  fallback: ["Georgia", "serif"],
-});
-
-const fontBody = Lora({
-  weight: ["400", "500", "600"],
-  style: ["normal", "italic"],
-  subsets: ["latin", "latin-ext", "cyrillic", "cyrillic-ext"],
-  variable: "--font-body",
-  display: "swap",
-  fallback: ["Georgia", "serif"],
-});
-
-const fontMono = JetBrains_Mono({
-  weight: ["400", "500"],
-  subsets: ["latin"],
-  variable: "--font-mono",
-  display: "swap",
-  fallback: ["monospace"],
-});
 
 const fontMinecraft = localFont({
   src: [
@@ -92,12 +66,21 @@ export default async function RootLayout({
       data-scroll-behavior="smooth"
       className={cn(
         "scroll-smooth scroll-pt-16",
-        fontDisplay.variable,
-        fontBody.variable,
-        fontMono.variable,
         fontMinecraft.variable
       )}
     >
+      <head>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700;900&family=JetBrains+Mono:wght@400;500&family=Lora:ital,wght@0,400;0,500;0,600;1,400;1,500;1,600&display=swap" rel="stylesheet" />
+        <style dangerouslySetInnerHTML={{ __html: `
+          :root {
+            --font-display: 'Cinzel Decorative', Georgia, serif;
+            --font-body: 'Lora', Georgia, serif;
+            --font-mono: 'JetBrains Mono', monospace;
+          }
+        `}} />
+      </head>
       <body suppressHydrationWarning className="bg-background text-foreground antialiased min-h-screen">
         <ThemeProvider
           attribute="class"

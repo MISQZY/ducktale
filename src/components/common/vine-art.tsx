@@ -19,6 +19,8 @@
  * than the markup it is hydrating.
  */
 
+import { memo } from "react";
+
 export type Pt = readonly [number, number];
 
 /** Control point 1, control point 2, end point — a cubic continuing from wherever the previous segment ended. */
@@ -390,7 +392,7 @@ export function growVine(trunk: Stem, spec: GrowthSpec, seed: number): GrownVine
  * Stop colours are CSS custom properties so the light theme can re-point them
  * at deeper golds in globals.css rather than needing a second copy of this.
  */
-export function VineDefs() {
+export const VineDefs = memo(function VineDefs() {
   return (
     <svg width="0" height="0" aria-hidden="true" style={{ position: "absolute" }}>
       <defs>
@@ -421,7 +423,7 @@ export function VineDefs() {
       </defs>
     </svg>
   );
-}
+});
 
 // ── Branch ────────────────────────────────────────────────────────────────
 
@@ -434,7 +436,7 @@ export interface VineBranchProps {
   trunkWidth: number;
 }
 
-export function VineBranch({ vine, trunkWidth }: VineBranchProps) {
+export const VineBranch = memo(function VineBranch({ vine, trunkWidth }: VineBranchProps) {
   return (
     <g className="vine-wind">
       {vine.stems.map((d, depth) =>
@@ -482,4 +484,4 @@ export function VineBranch({ vine, trunkWidth }: VineBranchProps) {
       )}
     </g>
   );
-}
+});

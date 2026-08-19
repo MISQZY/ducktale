@@ -1,38 +1,12 @@
 import type { Metadata } from "next";
 import { cookies, headers } from "next/headers";
 import { getTranslations } from "next-intl/server";
-import { Cinzel_Decorative, Lora, JetBrains_Mono } from "next/font/google";
 import Link from "next/link";
 import "./globals.css";
 import { cn } from "@/lib/utils";
 import { SERVERS } from "@/config/servers";
 import { routing } from "@/i18n/routing";
 import { NotFoundView } from "@/components/common/NotFoundView";
-
-const fontDisplay = Cinzel_Decorative({
-  weight: ["400", "700", "900"],
-  subsets: ["latin"],
-  variable: "--font-display",
-  display: "swap",
-  fallback: ["Georgia", "serif"],
-});
-
-const fontBody = Lora({
-  weight: ["400", "500", "600"],
-  style: ["normal", "italic"],
-  subsets: ["latin", "latin-ext", "cyrillic", "cyrillic-ext"],
-  variable: "--font-body",
-  display: "swap",
-  fallback: ["Georgia", "serif"],
-});
-
-const fontMono = JetBrains_Mono({
-  weight: ["400", "500"],
-  subsets: ["latin"],
-  variable: "--font-mono",
-  display: "swap",
-  fallback: ["monospace"],
-});
 
 export const metadata: Metadata = {
   title: "DuckTale - 404",
@@ -70,8 +44,19 @@ export default async function GlobalNotFound() {
   return (
     <html
       lang={locale}
-      className={cn(fontDisplay.variable, fontBody.variable, fontMono.variable)}
     >
+      <head>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700;900&family=JetBrains+Mono:wght@400;500&family=Lora:ital,wght@0,400;0,500;0,600;1,400;1,500;1,600&display=swap" rel="stylesheet" />
+        <style dangerouslySetInnerHTML={{ __html: `
+          :root {
+            --font-display: 'Cinzel Decorative', Georgia, serif;
+            --font-body: 'Lora', Georgia, serif;
+            --font-mono: 'JetBrains Mono', monospace;
+          }
+        `}} />
+      </head>
       <body className="bg-background text-foreground antialiased min-h-screen">
         <NotFoundView
           badge={t("badge")}

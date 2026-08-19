@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, type CSSProperties } from "react";
+import { memo, useEffect, useRef, type CSSProperties } from "react";
 import { VineBranch, VineDefs, growVine, type GrownVine, type GrowthSpec, type Stem } from "./vine-art";
 import { createVineMotion } from "./vine-motion";
 
@@ -245,7 +245,7 @@ const GROWN_MOBILE: Record<Side, GrownVine> = {
   right: growVine(TRUNK_CORNER, CORNER_SPEC, 9928357),
 };
 
-function VinePiece({
+const VinePiece = memo(function VinePiece({
   piece,
   layer,
   side,
@@ -293,9 +293,9 @@ function VinePiece({
       </div>
     </div>
   );
-}
+});
 
-export function HeaderVines() {
+export const HeaderVines = memo(function HeaderVines() {
   const fieldRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -403,4 +403,4 @@ export function HeaderVines() {
       ))}
     </div>
   );
-}
+});

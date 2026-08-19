@@ -1,7 +1,7 @@
 import type { CSSProperties } from "react";
-import { DynamicIcon } from "lucide-react/dynamic";
+import dynamic from "next/dynamic";
+import dynamicIconImports from "lucide-react/dynamicIconImports";
 import { isBadgeIconName } from "@/config/badges";
-import * as GiIcons from "react-icons/gi";
 
 interface BadgeIconProps {
   name: string;
@@ -13,20 +13,49 @@ interface BadgeIconProps {
 const FALLBACK_ICON = "award";
 
 /**
- * Renders an icon from either lucide-react (via DynamicIcon for code splitting)
- * or react-icons/gi (Game Icons).
+ * Renders an icon from lucide-react (via next/dynamic for code splitting and SSR)
+ * or Gi icons via our API mask.
  */
 export function BadgeIcon({ name, size, className, style }: BadgeIconProps) {
   if (name.startsWith("Gi")) {
-    const IconComponent = GiIcons[name as keyof typeof GiIcons];
-    if (IconComponent) {
-      return <IconComponent size={size} className={className} style={style} />;
-    }
+    return (
+      <span 
+        className={className} 
+        style={{ 
+          width: size, 
+          height: size, 
+          display: "inline-block", 
+          backgroundColor: "currentColor", 
+          maskImage: `url(/api/icons/${name})`,
+          maskSize: "contain",
+          maskRepeat: "no-repeat",
+          maskPosition: "center",
+          WebkitMaskImage: `url(/api/icons/${name})`,
+          WebkitMaskSize: "contain",
+          WebkitMaskRepeat: "no-repeat",
+          WebkitMaskPosition: "center",
+          ...style 
+        }} 
+        title={name} 
+      />
+    );
   }
 
+  const iconName = isBadgeIconName(name) ? name : FALLBACK_ICON;
+  const importFn = dynamicIconImports[iconName as keyof typeof dynamicIconImports] || dynamicIconImports[FALLBACK_ICON];
+  
+  const LucideIcon = dynamic(importFn, {
+    ssr: true,
+    loading: () => (
+      <span 
+        className={className} 
+        style={{ width: size, height: size, display: "inline-block", opacity: 0, ...style }} 
+      />
+    )
+  });
+
   return (
-    <DynamicIcon
-      name={isBadgeIconName(name) ? (name as "award") : FALLBACK_ICON}
+    <LucideIcon
       size={size}
       className={className}
       style={style}

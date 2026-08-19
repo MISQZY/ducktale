@@ -23,6 +23,7 @@ const nextConfig = {
     serverActions: {
       bodySizeLimit: `${MAX_ATTACHMENT_MB}mb`,
     },
+    optimizePackageImports: ["react-icons", "lucide-react", "@antv/x6"],
   },
   images: {
     remotePatterns: [

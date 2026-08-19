@@ -63,7 +63,10 @@ export function createVineMotion({ apply, schedule, cancel }: VineMotionOptions)
   let handle = 0;
   let running = false;
   let onScreen = true;
-  let lastStamp = "";
+  let lastX = NaN;
+  let lastY = NaN;
+  let lastScroll = NaN;
+  let lastFade = NaN;
 
   const state = (): VineMotionState => {
     const progress = Math.min(scrolled / SCROLL_RANGE, 1);
@@ -75,14 +78,20 @@ export function createVineMotion({ apply, schedule, cancel }: VineMotionOptions)
     };
   };
 
-  // Stamped and compared before applying, so a frame that changed nothing —
+  // Rounded and compared before applying, so a frame that changed nothing —
   // every frame of a still page whose cursor has already settled — costs no
   // style writes at all.
   const flush = (): void => {
     const next = state();
-    const stamp = `${next.x.toFixed(2)} ${next.y.toFixed(2)} ${next.scroll.toFixed(2)} ${next.fade.toFixed(3)}`;
-    if (stamp === lastStamp) return;
-    lastStamp = stamp;
+    const rx = Math.round(next.x * 100);
+    const ry = Math.round(next.y * 100);
+    const rs = Math.round(next.scroll * 100);
+    const rf = Math.round(next.fade * 1000);
+    if (rx === lastX && ry === lastY && rs === lastScroll && rf === lastFade) return;
+    lastX = rx;
+    lastY = ry;
+    lastScroll = rs;
+    lastFade = rf;
     apply(next);
   };
 

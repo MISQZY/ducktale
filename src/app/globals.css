@@ -391,6 +391,17 @@ body {
   will-change: opacity, transform;
 }
 
+/* The glow container fades in so it arrives together with the text rather than
+   flashing as a bright blob before anything else is on the page. The delay and
+   duration are tuned to sit between the first and last fade-up steps (0.1s–0.55s). */
+@keyframes glowEntrance {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+.hero-glows {
+  animation: glowEntrance 0.9s ease-out 0.1s both;
+}
+
 @keyframes float {
   0%,
   100% {

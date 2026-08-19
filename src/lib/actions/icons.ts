@@ -1,12 +1,19 @@
 "use server";
 
-import * as GiIcons from "react-icons/gi";
+import fs from "fs/promises";
+import path from "path";
 
 /**
  * Returns all available Game Icons keys dynamically.
- * This runs on the server to bypass client-side bundler optimizations
- * that strip out module keys for tree-shaking.
+ * Reads from filesystem to avoid bundling the massive gi package on the server.
  */
 export async function getGiIconKeys(): Promise<string[]> {
-  return Object.keys(GiIcons);
+  try {
+    const filepath = path.join(process.cwd(), "node_modules", "react-icons", "gi", "index.d.ts");
+    const content = await fs.readFile(filepath, "utf-8");
+    const matches = Array.from(content.matchAll(/export declare const (Gi[a-zA-Z0-9]+):/g));
+    return matches.map((m) => m[1]);
+  } catch (e) {
+    return [];
+  }
 }

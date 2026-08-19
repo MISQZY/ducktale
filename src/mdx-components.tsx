@@ -5,7 +5,27 @@ import * as TabsComponents from "fumadocs-ui/components/tabs";
 import type { MDXComponents } from "mdx/types";
 import { LinkIcon } from "lucide-react";
 import Image from "next/image";
-import * as DocsComponents from "@/components/docs";
+import {
+  Callout,
+  CommandCard,
+  FeatureGrid,
+  ItemCard,
+  EmbedPage,
+  PageEmbed,
+  LiveQuestTree,
+  PlayerCard,
+  ResourceCard,
+  ResourceCardGrid,
+  RuleTable,
+  ServerAddress,
+  ServerStatusWidget,
+  ServerVersion,
+  StepList,
+  TownyTable,
+  WhitelistTable,
+  GitHubLastModified,
+  PermissionTable,
+} from "@/components/docs";
 import {
   DocsTable,
   DocsTableHeader,
@@ -29,7 +49,25 @@ export function getMDXComponents(components?: MDXComponents): MDXComponents {
     tr: DocsTableRow,
     th: DocsTableHead,
     td: DocsTableCell,
-    ...DocsComponents,
+    Callout,
+    CommandCard,
+    FeatureGrid,
+    ItemCard,
+    EmbedPage,
+    PageEmbed,
+    LiveQuestTree,
+    PlayerCard,
+    ResourceCard,
+    ResourceCardGrid,
+    RuleTable,
+    ServerAddress,
+    ServerStatusWidget,
+    ServerVersion,
+    StepList,
+    TownyTable,
+    WhitelistTable,
+    GitHubLastModified,
+    PermissionTable,
     ...components,
     h1: ({ id, children, ...props }) => (
       <h1
