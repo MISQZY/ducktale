@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { auth } from "@/auth";
-import { AccountShell } from "@/components/common/AccountShell";
+import { PanelCenteredShell } from "@/components/common/PanelCenteredShell";
 import { NewTicketForm } from "@/components/tickets/NewTicketForm";
 
 export default async function NewTicketPage({
@@ -16,8 +16,8 @@ export default async function NewTicketPage({
   const t = await getTranslations("Tickets");
 
   return (
-    <AccountShell title={t("newTicketTitle")} description={t("newTicketDescription")}>
+    <PanelCenteredShell title={t("newTicketTitle")} description={t("newTicketDescription")}>
       <NewTicketForm lang={lang} />
-    </AccountShell>
+    </PanelCenteredShell>
   );
 }

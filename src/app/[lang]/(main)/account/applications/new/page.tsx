@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { auth } from "@/auth";
-import { AccountShell } from "@/components/common/AccountShell";
+import { PanelCenteredShell } from "@/components/common/PanelCenteredShell";
 import { NewApplicationForm } from "@/components/applications/NewApplicationForm";
 
 export default async function NewApplicationPage({
@@ -16,8 +16,8 @@ export default async function NewApplicationPage({
   const t = await getTranslations("Applications");
 
   return (
-    <AccountShell title={t("newApplicationTitle")} description={t("newApplicationDescription")}>
+    <PanelCenteredShell title={t("newApplicationTitle")} description={t("newApplicationDescription")}>
       <NewApplicationForm lang={lang} />
-    </AccountShell>
+    </PanelCenteredShell>
   );
 }
