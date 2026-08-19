@@ -4,6 +4,7 @@ import { siteDb } from "@/lib/site-db";
 import { revalidatePath } from "next/cache";
 import { getSiteViewer } from "@/lib/site-viewer";
 import { hasResourceRole } from "@/config/resource-roles";
+import { deleteAttachmentFile } from "@/lib/attachments";
 
 export async function deleteMessage(lang: string, messageId: string, pathToRevalidate: string): Promise<void> {
   const viewer = await getSiteViewer();
@@ -37,10 +38,22 @@ export async function deleteMessage(lang: string, messageId: string, pathToReval
     throw new Error("Not authorized to delete this message");
   }
 
-  await siteDb.message.update({
-    where: { id: messageId },
-    data: { isDeleted: true }
+  
+  const attachments = await siteDb.messageAttachment.findMany({
+    where: { messageId },
+    select: { path: true },
   });
+
+  await siteDb.$transaction([
+    siteDb.messageAttachment.deleteMany({ where: { messageId } }),
+    siteDb.message.update({
+      where: { id: messageId },
+      data: { isDeleted: true }
+    })
+  ]);
+
+  await Promise.all(attachments.map((a) => deleteAttachmentFile(a.path).catch(() => {})));
+
 
   revalidatePath(pathToRevalidate);
 }
