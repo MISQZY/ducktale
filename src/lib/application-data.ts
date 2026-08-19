@@ -11,6 +11,7 @@ export interface ApplicationAttachmentDTO {
 export interface ApplicationMessageDTO {
   id: string;
   body: string;
+  isDeleted: boolean;
   isAdminReply: boolean;
   createdAt: Date;
   /** Which side of the thread a message renders on (ApplicationThread.tsx compares this against the current viewer's own id) — deliberately not staff-vs-applicant grouping, so replying-among-multiple-staff still shows each message on whichever side its actual author is looking from. Not anonymized like authorSkinUrl below: it's never displayed, only compared. */
@@ -48,6 +49,7 @@ export async function resolveApplicationMessages(
     select: {
       id: true,
       body: true,
+      isDeleted: true,
       isAdminReply: true,
       createdAt: true,
       authorId: true,
@@ -70,6 +72,7 @@ export async function resolveApplicationMessages(
   return messages.map((m) => ({
     id: m.id,
     body: m.body,
+    isDeleted: m.isDeleted,
     isAdminReply: m.isAdminReply,
     createdAt: m.createdAt,
     authorId: m.authorId,

@@ -6,6 +6,7 @@ import { Trash2, Lock, LockOpen, Paperclip, FileText, Download, X, Image as Imag
 import { cn } from "@/lib/utils";
 import { useRouter } from "@/i18n/navigation";
 import { sendTicketMessage, setTicketStatus, deleteTicket } from "@/lib/actions/tickets";
+import { deleteMessage } from "@/lib/actions/messages";
 import { TICKET_MESSAGE_MAX, MAX_FILES_PER_MESSAGE } from "@/lib/tickets";
 import { isAllowedAttachmentExtension, ATTACHMENT_ACCEPT } from "@/config/attachments";
 import { FormButton } from "@/components/common/FormButton";
@@ -33,6 +34,7 @@ interface TicketMessageData {
   id: string;
   type: "MESSAGE" | "CLOSED" | "REOPENED" | "STATUS_CHANGED";
   body: string;
+  isDeleted: boolean;
   isAdminReply: boolean;
   createdAt: string;
   authorId: string;
@@ -208,6 +210,14 @@ export function TicketThread({ lang, ticketId, subject, initialStatus, initialMe
   const router = useRouter();
   const [status, setStatus] = useState<any>(initialStatus);
   const [messages, setMessages] = useState(initialMessages);
+  const handleDeleteMessage = useCallback(async (messageId: string) => {
+    try {
+      await deleteMessage(lang, messageId, window.location.pathname);
+      setMessages((prev) => prev.map((m) => m.id === messageId ? { ...m, isDeleted: true } : m));
+    } catch (e: unknown) {
+      console.error("Failed to delete message:", e);
+    }
+  }, [lang]);
   const [body, setBody] = useState("");
   const [files, setFiles] = useState<File[]>([]);
   const [error, setError] = useState<string | null>(null);
@@ -341,6 +351,8 @@ export function TicketThread({ lang, ticketId, subject, initialStatus, initialMe
                   alignRight={alignRight}
                   lang={lang}
                   createdAt={m.createdAt}
+                  isDeleted={m.isDeleted}
+                  onDelete={canDelete || m.authorId === viewerId ? () => handleDeleteMessage(m.id) : undefined}
                   body={m.body}
                   header={
                     anonymized ? (

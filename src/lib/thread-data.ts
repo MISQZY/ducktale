@@ -5,6 +5,7 @@ export interface ThreadMessageDTO {
   id: string;
   type: "MESSAGE" | "CLOSED" | "REOPENED" | "STATUS_CHANGED";
   body: string;
+  isDeleted: boolean;
   createdAt: Date;
   authorId: string;
   authorNickname: string;
@@ -35,6 +36,7 @@ export async function resolveThreadMessages(threadId: string, afterCreatedAt?: D
       id: true,
       type: true,
       body: true,
+      isDeleted: true,
       createdAt: true,
       authorId: true,
       author: {
@@ -54,6 +56,7 @@ export async function resolveThreadMessages(threadId: string, afterCreatedAt?: D
     id: m.id,
     type: m.type,
     body: m.body,
+    isDeleted: m.isDeleted,
     createdAt: m.createdAt,
     authorId: m.authorId,
     authorNickname: m.author.nickname,

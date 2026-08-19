@@ -12,6 +12,7 @@ export interface TicketMessageDTO {
   id: string;
   type: "MESSAGE" | "CLOSED" | "REOPENED" | "STATUS_CHANGED";
   body: string;
+  isDeleted: boolean;
   isAdminReply: boolean;
   createdAt: Date;
   /** Which side of the thread a message renders on (TicketThread.tsx compares this against the current viewer's own id) — deliberately not staff-vs-owner grouping, so replying-among-multiple-staff still shows each message on whichever side its actual author is looking from. Not anonymized like authorSkinUrl below: it's never displayed, only compared. */
@@ -60,6 +61,7 @@ export async function resolveTicketMessages(
       id: true,
       type: true,
       body: true,
+      isDeleted: true,
       isAdminReply: true,
       createdAt: true,
       authorId: true,
@@ -83,6 +85,7 @@ export async function resolveTicketMessages(
     id: m.id,
     type: m.type,
     body: m.body,
+    isDeleted: m.isDeleted,
     isAdminReply: m.isAdminReply,
     createdAt: m.createdAt,
     authorId: m.authorId,

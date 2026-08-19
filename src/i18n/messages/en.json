@@ -1102,7 +1102,11 @@
       "notFound": "The requested data wasn't found",
       "network": "Couldn't reach the server — check your internet connection",
       "generic": "Something went wrong while loading — try again"
-    }
+    },
+    "deletedMessage": "Message deleted",
+    "delete": "Delete",
+    "confirmAction": "Confirm action",
+    "confirmDelete": "Are you sure you want to delete this message?"
   },
   "Applications": {
     "myApplicationsTitle": "My applications",

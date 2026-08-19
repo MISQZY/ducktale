@@ -6,6 +6,7 @@ import { Trash2, Paperclip, FileText, Download, X, Image as ImageIcon, ImageOff 
 import { cn } from "@/lib/utils";
 import { useRouter } from "@/i18n/navigation";
 import { sendApplicationMessage, setany, deleteApplication } from "@/lib/actions/applications";
+import { deleteMessage } from "@/lib/actions/messages";
 import { APPLICATION_MESSAGE_MAX, MAX_FILES_PER_MESSAGE } from "@/lib/applications";
 import { isAllowedAttachmentExtension, ATTACHMENT_ACCEPT } from "@/config/attachments";
 import { FormButton } from "@/components/common/FormButton";
@@ -32,6 +33,7 @@ interface AttachmentData {
 interface ApplicationMessageData {
   id: string;
   body: string;
+  isDeleted: boolean;
   isAdminReply: boolean;
   createdAt: string;
   authorId: string;
@@ -191,6 +193,14 @@ export function ApplicationThread({ lang, applicationId, applicantName, initialS
   const router = useRouter();
   const [status, setStatus] = useState<any>(initialStatus);
   const [messages, setMessages] = useState(initialMessages);
+  const handleDeleteMessage = useCallback(async (messageId: string) => {
+    try {
+      await deleteMessage(lang, messageId, window.location.pathname);
+      setMessages((prev) => prev.map((m) => m.id === messageId ? { ...m, isDeleted: true } : m));
+    } catch (e: unknown) {
+      console.error("Failed to delete message:", e);
+    }
+  }, [lang]);
   const [body, setBody] = useState("");
   const [files, setFiles] = useState<File[]>([]);
   const [error, setError] = useState<string | null>(null);
@@ -328,6 +338,8 @@ export function ApplicationThread({ lang, applicationId, applicantName, initialS
                   alignRight={alignRight}
                   lang={lang}
                   createdAt={m.createdAt}
+                  isDeleted={m.isDeleted}
+                  onDelete={canDelete || m.authorId === viewerId ? () => handleDeleteMessage(m.id) : undefined}
                   body={m.body}
                   header={
                     anonymized ? (

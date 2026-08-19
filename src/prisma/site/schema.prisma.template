@@ -546,6 +546,7 @@ model Message {
   newStatusId  String?
   newStatus    WorkflowStatus? @relation("MessageNewStatus", fields: [newStatusId], references: [id], onDelete: SetNull)
   isAdminReply Boolean  @default(false)
+  isDeleted    Boolean  @default(false)
   body         String   @db.Text
   createdAt    DateTime @default(now())
   attachments  MessageAttachment[]

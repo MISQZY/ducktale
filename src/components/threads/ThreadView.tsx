@@ -6,6 +6,7 @@ import { Trash2, Lock, LockOpen } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useRouter } from "@/i18n/navigation";
 import { sendThreadMessage, deleteThread, setThreadClosed } from "@/lib/actions/threads";
+import { deleteMessage } from "@/lib/actions/messages";
 import { THREAD_MESSAGE_MAX } from "@/lib/threads";
 import { FormButton } from "@/components/common/FormButton";
 import { FormTextarea } from "@/components/common/FormTextarea";
@@ -24,6 +25,7 @@ interface ThreadMessageData {
   id: string;
   type: ThreadMessageType;
   body: string;
+  isDeleted: boolean;
   createdAt: string;
   authorId: string;
   authorNickname: string;
@@ -64,6 +66,14 @@ export function ThreadView({
   const router = useRouter();
   const [closed, setClosed] = useState(initialClosed);
   const [messages, setMessages] = useState(initialMessages);
+  const handleDeleteMessage = useCallback(async (messageId: string) => {
+    try {
+      await deleteMessage(lang, messageId, window.location.pathname);
+      setMessages((prev) => prev.map((m) => m.id === messageId ? { ...m, isDeleted: true } : m));
+    } catch (e: unknown) {
+      console.error("Failed to delete message:", e);
+    }
+  }, [lang]);
   const [body, setBody] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
@@ -181,6 +191,8 @@ export function ThreadView({
                   alignRight={alignRight}
                   lang={lang}
                   createdAt={m.createdAt}
+                  isDeleted={m.isDeleted}
+                  onDelete={isDeleter || m.authorId === viewerId ? () => handleDeleteMessage(m.id) : undefined}
                   body={m.body}
                   header={
                     <PlayerAvatar
