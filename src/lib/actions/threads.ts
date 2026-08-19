@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { saveAttachment, deleteAttachmentFile } from "@/lib/attachments";
 import { siteDb } from "@/lib/site-db";
 import { getInitialStatusId } from "@/lib/workflows";
 import { isRateLimitedByHeaders } from "@/lib/rate-limit";
@@ -12,7 +13,11 @@ import {
   THREAD_TITLE_MAX,
   THREAD_DESCRIPTION_MAX,
   THREAD_MESSAGE_MAX,
+  MAX_FILES_PER_MESSAGE,
 } from "@/lib/threads";
+
+const MAX_ATTACHMENT_MB = Math.min(Math.max(Number(process.env.MAX_TICKET_ATTACHMENT_MB) || 20, 1), 50);
+const MAX_ATTACHMENT_BYTES = MAX_ATTACHMENT_MB * 1024 * 1024;
 
 export interface CreateThreadResult {
   id: string;
@@ -59,9 +64,26 @@ export async function sendThreadMessage(formData: FormData): Promise<void> {
   const lang = formData.get("lang") as string;
   const threadId = formData.get("threadId") as string;
   const body = formData.get("body") as string;
+  const files = formData.getAll("files") as File[];
+  const validFiles = files.filter(f => f.size > 0);
 
   const cleanBody = (body || "").trim().slice(0, THREAD_MESSAGE_MAX);
-  if (!cleanBody) throw new Error("Message is required");
+  if (!cleanBody && validFiles.length === 0) throw new Error("Message is required");
+
+  if (validFiles.length > MAX_FILES_PER_MESSAGE) {
+    throw new Error(`Too many attachments, max ${MAX_FILES_PER_MESSAGE} per message`);
+  }
+  for (const file of validFiles) {
+    if (file.size > MAX_ATTACHMENT_BYTES) {
+      throw new Error(`File ${file.name} is too large. Max size is ${MAX_ATTACHMENT_MB}MB.`);
+    }
+  }
+
+  const attachmentsData: any[] = [];
+  for (const file of validFiles) {
+    const saved = await saveAttachment(file);
+    attachmentsData.push(saved);
+  }
 
   if (await isRateLimitedByHeaders("thread-message", 20, 5 * 60_000)) {
     throw new Error("Too many messages, slow down");
@@ -91,7 +113,19 @@ export async function sendThreadMessage(formData: FormData): Promise<void> {
     }
 
     await tx.message.create({
-      data: { threadId, authorId: viewer.id, body: cleanBody },
+      data: { 
+          threadId, 
+          authorId: viewer.id, 
+          body: cleanBody,
+          attachments: attachmentsData.length > 0 ? {
+            create: attachmentsData.map(a => ({
+              filename: a.filename,
+              size: a.size,
+              mimeType: a.mimeType,
+              path: a.path
+            }))
+          } : undefined
+        },
     });
   });
 
@@ -143,7 +177,14 @@ export async function deleteThread(lang: string, threadId: string): Promise<void
   if (!thread) throw new Error("Thread not found");
 
   // Message rows cascade via the schema's onDelete: Cascade.
+  const attachments = await siteDb.messageAttachment.findMany({
+    where: { message: { threadId } },
+    select: { path: true },
+  });
+
   await siteDb.thread.delete({ where: { id: threadId } });
+
+  await Promise.all(attachments.map((a) => deleteAttachmentFile(a.path).catch(() => {})));
 
   revalidatePath(`/${lang}/threads`, "layout");
 }

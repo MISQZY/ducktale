@@ -4,6 +4,7 @@ import { hasResourceRole } from "@/config/resource-roles";
 export const THREAD_TITLE_MAX = 120;
 export const THREAD_DESCRIPTION_MAX = 300;
 export const THREAD_MESSAGE_MAX = 4000;
+export const MAX_FILES_PER_MESSAGE = 3;
 
 export type ThreadViewer = SiteViewer;
 

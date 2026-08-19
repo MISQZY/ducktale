@@ -1,11 +1,19 @@
 import { siteDb } from "@/lib/site-db";
 import { resolveSkinUrlMap } from "@/lib/skin";
 
+export interface AttachmentData {
+  id: string;
+  filename: string;
+  size: number;
+  mimeType: string;
+}
+
 export interface ThreadMessageDTO {
   id: string;
   type: "MESSAGE" | "CLOSED" | "REOPENED" | "STATUS_CHANGED";
   body: string;
   isDeleted: boolean;
+  attachments: AttachmentData[];
   createdAt: Date;
   authorId: string;
   authorNickname: string;
@@ -36,8 +44,9 @@ export async function resolveThreadMessages(threadId: string, afterCreatedAt?: D
       id: true,
       type: true,
       body: true,
-      isDeleted: true,
-      createdAt: true,
+        isDeleted: true,
+        createdAt: true,
+        attachments: { select: { id: true, filename: true, size: true, mimeType: true } },
       authorId: true,
       author: {
         select: {
@@ -57,6 +66,7 @@ export async function resolveThreadMessages(threadId: string, afterCreatedAt?: D
     type: m.type,
     body: m.body,
     isDeleted: m.isDeleted,
+      attachments: m.attachments,
     createdAt: m.createdAt,
     authorId: m.authorId,
     authorNickname: m.author.nickname,
