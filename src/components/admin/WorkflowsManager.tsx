@@ -4,7 +4,6 @@ import { useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
 import { WorkflowTarget } from ".prisma/site-client";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { ColorPickerField } from "@/components/admin/ColorPickerField";
 import { Checkbox } from "@/components/ui/checkbox";
 import { LocalizedNameInput } from "@/components/common/LocalizedNameInput";
@@ -14,11 +13,11 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/components/ui/resizable";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { WorkflowStatusBadge } from "@/components/common/WorkflowStatusBadge";
-import { createWorkflowStatus, deleteWorkflowStatus, updateWorkflowStatus, addWorkflowTransition, removeWorkflowTransition } from "@/lib/actions/workflows";
+import { createWorkflowStatus, deleteWorkflowStatus, addWorkflowTransition, removeWorkflowTransition } from "@/lib/actions/workflows";
 import { Trash2, Plus, ArrowRight } from "lucide-react";
 import { useRouter } from "@/i18n/navigation";
 
-export function WorkflowsManager({ lang, initialStatuses }: { lang: string, initialStatuses: any[] }) {
+export function WorkflowsManager({ lang, initialStatuses }: { lang: string, initialStatuses: unknown[] }) {
   const t = useTranslations("Admin.workflows");
   const [isPending, startTransition] = useTransition();
   const [target, setTarget] = useState<WorkflowTarget>("TICKET");
@@ -158,7 +157,7 @@ export function WorkflowsManager({ lang, initialStatuses }: { lang: string, init
                     
                     {s.outgoingTransitions.length > 0 ? (
                       <div className="space-y-2">
-                        {s.outgoingTransitions.map((tItem: any) => {
+                        {s.outgoingTransitions.map((tItem: unknown) => {
                           const toStatus = statuses.find(x => x.id === tItem.toId);
                           return (
                             <div key={tItem.id} className="flex items-center gap-2 text-sm bg-muted/50 p-2 rounded-md">
@@ -188,7 +187,7 @@ export function WorkflowsManager({ lang, initialStatuses }: { lang: string, init
                           <SelectValue placeholder={t("selectTarget")} />
                         </SelectTrigger>
                         <SelectContent>
-                          {statuses.filter(x => x.id !== s.id && !s.outgoingTransitions.find((ot: any) => ot.toId === x.id)).map(x => (
+                          {statuses.filter(x => x.id !== s.id && !s.outgoingTransitions.find((ot: unknown) => ot.toId === x.id)).map(x => (
                             <SelectItem key={x.id} value={x.id}>{x.name[lang] || x.name.en}</SelectItem>
                           ))}
                         </SelectContent>

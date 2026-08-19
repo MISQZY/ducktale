@@ -5,7 +5,7 @@ import { useTranslations } from "next-intl";
 import { Trash2, Paperclip, FileText, Download, X, Image as ImageIcon, ImageOff } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useRouter } from "@/i18n/navigation";
-import { sendReportMessage, setany, deleteReport } from "@/lib/actions/reports";
+import { sendReportMessage, setunknown, deleteReport } from "@/lib/actions/reports";
 import { REPORT_MESSAGE_MAX, MAX_FILES_PER_MESSAGE } from "@/lib/reports";
 import { isAllowedAttachmentExtension, ATTACHMENT_ACCEPT } from "@/config/attachments";
 import { FormButton } from "@/components/common/FormButton";
@@ -44,7 +44,7 @@ interface ReportThreadProps {
   lang: string;
   reportId: string;
   reportedName: string;
-  initialStatus: any;
+  initialStatus: unknown;
   initialMessages: ReportMessageData[];
   /** The current viewer's own User.id — which side of the thread a message renders on compares against this directly (m.authorId === viewerId), not staff-vs-reporter grouping, so it stays correct even with multiple staff replying to the same report. */
   viewerId: string;
@@ -59,7 +59,7 @@ interface ReportThreadProps {
 }
 
 const POLL_INTERVAL_MS = 8000;
-const TERMINAL_STATUSES: any[] = ["RESOLVED", "REJECTED"];
+const TERMINAL_STATUSES: unknown[] = ["RESOLVED", "REJECTED"];
 
 function isImageMime(mime: string): boolean {
   return mime.startsWith("image/");
@@ -189,7 +189,7 @@ export function ReportThread({ lang, reportId, reportedName, initialStatus, init
   const t = useTranslations("Reports");
   const confirm = useConfirm();
   const router = useRouter();
-  const [status, setStatus] = useState<any>(initialStatus);
+  const [status, setStatus] = useState<unknown>(initialStatus);
   const [messages, setMessages] = useState(initialMessages);
   const [body, setBody] = useState("");
   const [files, setFiles] = useState<File[]>([]);
@@ -256,10 +256,10 @@ export function ReportThread({ lang, reportId, reportedName, initialStatus, init
     submitMessage();
   }
 
-  function handleStatusChange(next: any) {
+  function handleStatusChange(next: unknown) {
     startTransition(async () => {
       try {
-        await setany(lang, reportId, next);
+        await setunknown(lang, reportId, next);
         setStatus(next);
       } catch {
         setError(t("errors.generic"));
@@ -295,7 +295,7 @@ export function ReportThread({ lang, reportId, reportedName, initialStatus, init
             <select
               value={status}
               disabled={isPending}
-              onChange={(e) => handleStatusChange(e.target.value as any)}
+              onChange={(e) => handleStatusChange(e.target.value as unknown)}
               className={formInputClasses(false, "h-8 py-0 text-xs w-auto")}
               style={formInputStyle}
             >
@@ -432,7 +432,7 @@ export function ReportThread({ lang, reportId, reportedName, initialStatus, init
                   }
                   const valid = picked.filter((f) => isAllowedAttachmentExtension(f.name));
                   if (files.length + valid.length > MAX_FILES_PER_MESSAGE) {
-                    setError(t("errors.tooManyFiles", { max: MAX_FILES_PER_MESSAGE }));
+                    setError(t("errors.tooMunknownFiles", { max: MAX_FILES_PER_MESSAGE }));
                   } else if (valid.length > 0) {
                     setFiles((prev) => [...prev, ...valid]);
                   }

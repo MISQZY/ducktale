@@ -16,7 +16,7 @@ export interface AdminApplicationRow {
   id: string;
   applicantName: string;
   serverId: string;
-  status: any;
+  status: unknown;
   createdAtLabel: string;
   applicantNickname: string;
   skinUrl: string | null;

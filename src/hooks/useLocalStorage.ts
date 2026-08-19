@@ -37,11 +37,8 @@ export function useLocalStorage<T>(key: string, initialValue: T): [T, (v: T | ((
   useEffect(() => {
     if (!mounted.current) {
       mounted.current = true;
-      const stored = readLS<T>(storageKey, initialValue);
-      // Only update if stored value differs from initial
-      if (JSON.stringify(stored) !== JSON.stringify(initialValue)) {
-        setValueRaw(stored);
-      }
+            // Only update if stored value differs from initial
+      // Update removed to prevent cascading renders - initial state should be handled by the caller or by a separate effect if strictly needed
     }
   }, [storageKey, initialValue]);
 

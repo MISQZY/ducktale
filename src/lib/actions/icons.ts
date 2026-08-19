@@ -13,7 +13,7 @@ export async function getGiIconKeys(): Promise<string[]> {
     const content = await fs.readFile(filepath, "utf-8");
     const matches = Array.from(content.matchAll(/export declare const (Gi[a-zA-Z0-9]+):/g));
     return matches.map((m) => m[1]);
-  } catch (e) {
+  } catch {
     return [];
   }
 }

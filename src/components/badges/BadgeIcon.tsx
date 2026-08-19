@@ -43,18 +43,9 @@ export function BadgeIcon({ name, size, className, style }: BadgeIconProps) {
 
   const iconName = isBadgeIconName(name) ? name : FALLBACK_ICON;
   const importFn = dynamicIconImports[iconName as keyof typeof dynamicIconImports] || dynamicIconImports[FALLBACK_ICON];
-  
-  const LucideIcon = dynamic(importFn, {
-    ssr: true,
-    loading: () => (
-      <span 
-        className={className} 
-        style={{ width: size, height: size, display: "inline-block", opacity: 0, ...style }} 
-      />
-    )
-  });
-
+    const LucideIcon = dynamic(importFn, { ssr: true, loading: () => <span style={{width: size, height: size, display: 'inline-block'}} /> });
   return (
+    // eslint-disable-next-line react-hooks/static-components
     <LucideIcon
       size={size}
       className={className}

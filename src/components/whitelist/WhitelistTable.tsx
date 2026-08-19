@@ -21,7 +21,6 @@ import {
 } from "@/components/ui/select";
 import { buttonVariants } from "@/components/ui/button";
 import { Trash2 } from "lucide-react";
-import { PlayerAvatar } from "@/components/common/PlayerAvatar";
 import { useAdaptivePageSize } from "@/hooks/useAdaptivePageSize";
 
 export type { WhitelistPlayer, WhitelistResponse } from "@/types/whitelist";

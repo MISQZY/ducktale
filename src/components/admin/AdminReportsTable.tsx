@@ -15,7 +15,7 @@ export interface AdminReportRow {
   id: string;
   reportedName: string;
   category: string;
-  status: any;
+  status: unknown;
   createdAtLabel: string;
   reporterNickname: string;
   skinUrl: string | null;

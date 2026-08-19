@@ -15,7 +15,7 @@ import { Link } from "@/i18n/navigation";
 export interface AdminTicketRow {
   id: string;
   subject: string;
-  status: any;
+  status: unknown;
   messageCount: number;
   attachmentCount: number;
   updatedAtLabel: string;

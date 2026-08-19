@@ -45,7 +45,7 @@ interface TicketThreadProps {
   lang: string;
   ticketId: string;
   subject: string;
-  initialStatus: any;
+  initialStatus: unknown;
   initialMessages: TicketMessageData[];
   /** The current viewer's own User.id — which side of the thread a message renders on compares against this directly (m.authorId === viewerId), not staff-vs-owner grouping, so it stays correct even with multiple staff replying to the same ticket. */
   viewerId: string;
@@ -206,7 +206,7 @@ export function TicketThread({ lang, ticketId, subject, initialStatus, initialMe
   const t = useTranslations("Tickets");
   const confirm = useConfirm();
   const router = useRouter();
-  const [status, setStatus] = useState<any>(initialStatus);
+  const [status, setStatus] = useState<unknown>(initialStatus);
   const [messages, setMessages] = useState(initialMessages);
   const [body, setBody] = useState("");
   const [files, setFiles] = useState<File[]>([]);
@@ -229,7 +229,7 @@ export function TicketThread({ lang, ticketId, subject, initialStatus, initialMe
       if (!res.ok) return;
       const data = await res.json();
       setStatus(data.status);
-      // Server-side `since` already excludes anything the client has seen —
+      // Server-side `since` already excludes unknownthing the client has seen —
       // this id-based filter is just a safety net against the same message
       // arriving twice (e.g. a retried request), not the primary dedup.
       setMessages((prev) => {
@@ -455,7 +455,7 @@ export function TicketThread({ lang, ticketId, subject, initialStatus, initialMe
                   }
                   const valid = picked.filter((f) => isAllowedAttachmentExtension(f.name));
                   if (files.length + valid.length > MAX_FILES_PER_MESSAGE) {
-                    setError(t("errors.tooManyFiles", { max: MAX_FILES_PER_MESSAGE }));
+                    setError(t("errors.tooMunknownFiles", { max: MAX_FILES_PER_MESSAGE }));
                   } else if (valid.length > 0) {
                     setFiles((prev) => [...prev, ...valid]);
                   }
