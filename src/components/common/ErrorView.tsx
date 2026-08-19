@@ -62,7 +62,7 @@ export function ErrorView({
         </p>
 
         <div className="flex justify-center">
-          <CtaButton href={homeHref} variant="primary" icon={<Home size={16} />} className="text-base px-6 py-3">
+          <CtaButton href={homeHref} variant="primary" icon={<Home size={16} />} className="text-base px-6 py-3" hardLink>
             {ctaHomeLabel}
           </CtaButton>
         </div>

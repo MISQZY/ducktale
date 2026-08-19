@@ -66,7 +66,7 @@ export default async function GlobalNotFound() {
               {routing.locales.map((loc, i) => (
                 <span key={loc} className="flex items-center gap-3">
                   {i > 0 && <span className="text-foreground/15">/</span>}
-                  <Link
+                  <a
                     href={`/${loc}`}
                     className={cn(
                       "hover:text-primary/70 transition-colors uppercase tracking-wider",
@@ -74,7 +74,7 @@ export default async function GlobalNotFound() {
                     )}
                   >
                     {loc}
-                  </Link>
+                  </a>
                 </span>
               ))}
             </div>

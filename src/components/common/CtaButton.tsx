@@ -12,6 +12,7 @@ interface CtaButtonProps {
   variant?: CtaVariant;
   className?: string;
   icon?: ReactNode;
+  hardLink?: boolean;
 }
 
 export function CtaButton({
@@ -20,9 +21,10 @@ export function CtaButton({
   variant = "primary",
   className,
   icon,
+  hardLink,
 }: CtaButtonProps) {
   const handleClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
-    if (href.includes("#")) {
+    if (href.includes("#") && !hardLink) {
       const id = href.split("#")[1];
       const el = document.getElementById(id);
       if (el) {
@@ -32,21 +34,28 @@ export function CtaButton({
     }
   };
 
+  const content = (
+    <>
+      <CtaShine variant={variant} />
+      {icon}
+      {children}
+    </>
+  );
+
   return (
     <Button
       variant="ghost"
-      // pointer-events-auto: makes the button clickable regardless of any
-      // ancestor wrapper that turns pointer-events off for its own
-      // otherwise-empty layout space (see ScrollReveal/HeroSection).
       className={`pointer-events-auto ${ctaButtonClasses(variant, className)}`}
       style={CTA_FONT_STYLE}
       asChild
     >
-      <Link href={href} onClick={handleClick}>
-        <CtaShine variant={variant} />
-        {icon}
-        {children}
-      </Link>
+      {hardLink ? (
+        <a href={href}>{content}</a>
+      ) : (
+        <Link href={href} onClick={handleClick}>
+          {content}
+        </Link>
+      )}
     </Button>
   );
 }
