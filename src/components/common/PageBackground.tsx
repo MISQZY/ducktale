@@ -5,7 +5,7 @@
 // instead of a harsh flat horizontal line.
 const FADE_MASK = "radial-gradient(ellipse 150% 100% at 50% 0%, black 75%, transparent 100%)";
 
-export function PageBackground({ showGlows = true }: { showGlows?: boolean }) {
+export function PageBackground({ showGlows = true, showFog = true }: { showGlows?: boolean; showFog?: boolean }) {
   return (
     <div
       className="absolute inset-0 pointer-events-none"
@@ -33,9 +33,9 @@ export function PageBackground({ showGlows = true }: { showGlows?: boolean }) {
       />
 
       {/* 3. Illumination Glows / Fog */}
-      {showGlows && (
-        <div className="absolute inset-0 hero-glows">
+      <div className="absolute inset-0 hero-glows">
           
+          {showGlows && <>
           {/* Dark Theme: Gold Flickering Glows */}
           <div className="hidden dark:block absolute inset-0 mix-blend-overlay">
             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
@@ -55,7 +55,9 @@ export function PageBackground({ showGlows = true }: { showGlows?: boolean }) {
             <div className="absolute top-0 left-0 w-64 h-64 bg-primary/10 blur-2xl rounded-full -translate-x-1/2 -translate-y-1/2" />
             <div className="absolute bottom-0 right-0 w-64 h-64 bg-primary/10 blur-2xl rounded-full translate-x-1/2 translate-y-1/2" />
           </div>
+          </>}
 
+          {showFog && <>
           {/* Light Theme: Dissipating Fog */}
           <div className="block dark:hidden absolute inset-0 mix-blend-normal pointer-events-none overflow-hidden">
             {/* Weak overall fog */}
@@ -79,8 +81,8 @@ export function PageBackground({ showGlows = true }: { showGlows?: boolean }) {
               style={{ top: "30%", width: "800px", height: "250px", animationDuration: "40s", animationDelay: "-20s", opacity: 0.8 }}
             />
           </div>
+          </>}
         </div>
-      )}
     </div>
   );
 }

@@ -16,7 +16,7 @@ export function GlobalHeaderDecorations() {
       
       {!isHome && (
         <div className="absolute top-0 left-0 w-full h-[600px] pointer-events-none overflow-hidden z-0">
-          <PageBackground showGlows={true} />
+          <PageBackground showGlows={false} showFog={true} />
         </div>
       )}
     </>
