@@ -601,7 +601,7 @@ body {
 .nav-desktop {
   display: none;
 }
-@media (min-width: 768px) {
+@media (min-width: 1024px) {
   .nav-desktop {
     display: flex;
   }
