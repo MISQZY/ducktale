@@ -448,11 +448,7 @@ model PasswordResetToken {
   @@map("{{PREFIX}}password_reset_token")
 }
 
-enum TicketStatus {
-  OPEN
-  ANSWERED
-  CLOSED
-}
+
 
 /// A support ticket opened by a site user from their profile. Any admin can
 /// see and reply to any ticket; the owning user only sees/replies to their
@@ -468,13 +464,14 @@ model Ticket {
   userId    String
   user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   subject   String    @db.VarChar(120)
-  status    TicketStatus @default(OPEN)
+  statusId  String
+  status    WorkflowStatus @relation(fields: [statusId], references: [id])
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
   messages  Message[]
 
   @@index([userId])
-  @@index([status, updatedAt])
+  @@index([statusId, updatedAt])
   @@map("{{PREFIX}}ticket")
 }
 
@@ -494,7 +491,8 @@ model Thread {
   author      User      @relation(fields: [authorId], references: [id], onDelete: Cascade)
   title       String    @db.VarChar(120)
   description String?   @db.VarChar(300)
-  closed      Boolean   @default(false)
+  statusId    String
+  status      WorkflowStatus @relation(fields: [statusId], references: [id])
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
   messages    Message[]
@@ -508,6 +506,7 @@ enum MessageType {
   MESSAGE
   CLOSED
   REOPENED
+  STATUS_CHANGED
 }
 
 /// Shared conversation-message table for both Ticket and Thread — a row
@@ -542,6 +541,10 @@ model Message {
   authorId     String
   author       User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
   type         MessageType @default(MESSAGE)
+  oldStatusId  String?
+  oldStatus    WorkflowStatus? @relation("MessageOldStatus", fields: [oldStatusId], references: [id], onDelete: SetNull)
+  newStatusId  String?
+  newStatus    WorkflowStatus? @relation("MessageNewStatus", fields: [newStatusId], references: [id], onDelete: SetNull)
   isAdminReply Boolean  @default(false)
   body         String   @db.Text
   createdAt    DateTime @default(now())
@@ -673,12 +676,7 @@ model ServerEvent {
   @@map("{{PREFIX}}server_event")
 }
 
-enum ReportStatus {
-  OPEN
-  IN_REVIEW
-  RESOLVED
-  REJECTED
-}
+
 
 /// A player-conduct report, filed by a site user from /account/reports/new
 /// against a Minecraft nickname (reportedName — free text, not an FK: the
@@ -707,22 +705,18 @@ model Report {
   // Validated at the app layer against REPORT_CATEGORIES (src/config/reports.ts),
   // same pattern as ServerEvent.category.
   category     String       @db.VarChar(32)
-  status       ReportStatus @default(OPEN)
+  statusId     String
+  status       WorkflowStatus @relation(fields: [statusId], references: [id])
   createdAt    DateTime     @default(now())
   updatedAt    DateTime     @updatedAt
   messages     Message[]
 
   @@index([reporterId])
-  @@index([status, updatedAt])
+  @@index([statusId, updatedAt])
   @@map("{{PREFIX}}report")
 }
 
-enum ApplicationStatus {
-  OPEN
-  IN_REVIEW
-  ACCEPTED
-  REJECTED
-}
+
 
 /// A generic "заявка" (staff application, whitelist request, unban appeal,
 /// ...) filed by a site user from /account/applications/new — third sibling
@@ -756,12 +750,60 @@ model Application {
   // Validated at the app layer against SERVERS[].id (src/config/servers.ts).
   serverId      String            @db.VarChar(64)
   description   String?           @db.Text
-  status        ApplicationStatus @default(OPEN)
+  statusId      String
+  status        WorkflowStatus @relation(fields: [statusId], references: [id])
   createdAt     DateTime          @default(now())
   updatedAt     DateTime          @updatedAt
   messages      Message[]
 
   @@index([applicantId])
-  @@index([status, updatedAt])
+  @@index([statusId, updatedAt])
   @@map("{{PREFIX}}application")
+}
+
+enum WorkflowTarget {
+  TICKET
+  THREAD
+  APPLICATION
+  REPORT
+}
+
+model WorkflowStatus {
+  id          String         @id @default(uuid())
+  target      WorkflowTarget
+  name        Json
+  color       String         @db.VarChar(32)
+  icon        String?        @db.VarChar(32)
+
+  isInitial   Boolean        @default(false)
+  isClosed    Boolean        @default(false)
+
+  outgoingTransitions WorkflowTransition[] @relation("TransitionFrom")
+  incomingTransitions WorkflowTransition[] @relation("TransitionTo")
+
+  tickets      Ticket[]
+  applications Application[]
+  reports      Report[]
+  threads      Thread[]
+  
+  messagesOld  Message[] @relation("MessageOldStatus")
+  messagesNew  Message[] @relation("MessageNewStatus")
+
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+
+  @@map("{{PREFIX}}workflow_status")
+}
+
+model WorkflowTransition {
+  id          String         @id @default(uuid())
+  fromId      String
+  from        WorkflowStatus @relation("TransitionFrom", fields: [fromId], references: [id], onDelete: Cascade)
+  toId        String
+  to          WorkflowStatus @relation("TransitionTo", fields: [toId], references: [id], onDelete: Cascade)
+
+  requiredResourceRole String? @db.VarChar(32)
+
+  @@unique([fromId, toId])
+  @@map("{{PREFIX}}workflow_transition")
 }

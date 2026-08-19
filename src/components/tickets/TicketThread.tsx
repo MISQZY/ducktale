@@ -20,7 +20,7 @@ import { ConversationEventMarker } from "@/components/common/ConversationEventMa
 import { handleComposerKeyDown } from "@/lib/compose-keydown";
 import { usePolling } from "@/hooks/usePolling";
 import { TicketStatusBadge } from "./TicketStatusBadge";
-import type { TicketStatus } from ".prisma/site-client";
+
 
 interface AttachmentData {
   id: string;
@@ -31,7 +31,7 @@ interface AttachmentData {
 
 interface TicketMessageData {
   id: string;
-  type: "MESSAGE" | "CLOSED" | "REOPENED";
+  type: "MESSAGE" | "CLOSED" | "REOPENED" | "STATUS_CHANGED";
   body: string;
   isAdminReply: boolean;
   createdAt: string;
@@ -45,7 +45,7 @@ interface TicketThreadProps {
   lang: string;
   ticketId: string;
   subject: string;
-  initialStatus: TicketStatus;
+  initialStatus: any;
   initialMessages: TicketMessageData[];
   /** The current viewer's own User.id — which side of the thread a message renders on compares against this directly (m.authorId === viewerId), not staff-vs-owner grouping, so it stays correct even with multiple staff replying to the same ticket. */
   viewerId: string;
@@ -206,7 +206,7 @@ export function TicketThread({ lang, ticketId, subject, initialStatus, initialMe
   const t = useTranslations("Tickets");
   const confirm = useConfirm();
   const router = useRouter();
-  const [status, setStatus] = useState<TicketStatus>(initialStatus);
+  const [status, setStatus] = useState<any>(initialStatus);
   const [messages, setMessages] = useState(initialMessages);
   const [body, setBody] = useState("");
   const [files, setFiles] = useState<File[]>([]);

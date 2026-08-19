@@ -5,7 +5,7 @@ import { useTranslations } from "next-intl";
 import { Trash2, Paperclip, FileText, Download, X, Image as ImageIcon, ImageOff } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useRouter } from "@/i18n/navigation";
-import { sendReportMessage, setReportStatus, deleteReport } from "@/lib/actions/reports";
+import { sendReportMessage, setany, deleteReport } from "@/lib/actions/reports";
 import { REPORT_MESSAGE_MAX, MAX_FILES_PER_MESSAGE } from "@/lib/reports";
 import { isAllowedAttachmentExtension, ATTACHMENT_ACCEPT } from "@/config/attachments";
 import { FormButton } from "@/components/common/FormButton";
@@ -20,7 +20,7 @@ import { MessageBubble } from "@/components/common/MessageBubble";
 import { handleComposerKeyDown } from "@/lib/compose-keydown";
 import { usePolling } from "@/hooks/usePolling";
 import { ReportStatusBadge } from "./ReportStatusBadge";
-import type { ReportStatus } from ".prisma/site-client";
+
 
 interface AttachmentData {
   id: string;
@@ -44,7 +44,7 @@ interface ReportThreadProps {
   lang: string;
   reportId: string;
   reportedName: string;
-  initialStatus: ReportStatus;
+  initialStatus: any;
   initialMessages: ReportMessageData[];
   /** The current viewer's own User.id — which side of the thread a message renders on compares against this directly (m.authorId === viewerId), not staff-vs-reporter grouping, so it stays correct even with multiple staff replying to the same report. */
   viewerId: string;
@@ -59,7 +59,7 @@ interface ReportThreadProps {
 }
 
 const POLL_INTERVAL_MS = 8000;
-const TERMINAL_STATUSES: ReportStatus[] = ["RESOLVED", "REJECTED"];
+const TERMINAL_STATUSES: any[] = ["RESOLVED", "REJECTED"];
 
 function isImageMime(mime: string): boolean {
   return mime.startsWith("image/");
@@ -189,7 +189,7 @@ export function ReportThread({ lang, reportId, reportedName, initialStatus, init
   const t = useTranslations("Reports");
   const confirm = useConfirm();
   const router = useRouter();
-  const [status, setStatus] = useState<ReportStatus>(initialStatus);
+  const [status, setStatus] = useState<any>(initialStatus);
   const [messages, setMessages] = useState(initialMessages);
   const [body, setBody] = useState("");
   const [files, setFiles] = useState<File[]>([]);
@@ -256,10 +256,10 @@ export function ReportThread({ lang, reportId, reportedName, initialStatus, init
     submitMessage();
   }
 
-  function handleStatusChange(next: ReportStatus) {
+  function handleStatusChange(next: any) {
     startTransition(async () => {
       try {
-        await setReportStatus(lang, reportId, next);
+        await setany(lang, reportId, next);
         setStatus(next);
       } catch {
         setError(t("errors.generic"));
@@ -295,7 +295,7 @@ export function ReportThread({ lang, reportId, reportedName, initialStatus, init
             <select
               value={status}
               disabled={isPending}
-              onChange={(e) => handleStatusChange(e.target.value as ReportStatus)}
+              onChange={(e) => handleStatusChange(e.target.value as any)}
               className={formInputClasses(false, "h-8 py-0 text-xs w-auto")}
               style={formInputStyle}
             >

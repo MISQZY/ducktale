@@ -16,6 +16,7 @@ const ADMIN_TAB_PATHS: [Resource, string][] = [
   ["tickets", "tickets"],
   ["reports", "reports"],
   ["applications", "applications"],
+  ["workflows", "workflows"],
   ["content", "content"],
   ["maps", "maps"],
   ["events", "events"],

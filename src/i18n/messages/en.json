@@ -4,12 +4,12 @@
       "description": "DuckTale is a network of Minecraft servers. DuckBurg is a survival server, DuckHood is a creative server."
     },
     "Error": {
-    "badge": "Server Error",
-    "heading": "Service Unavailable",
-    "description": "Our services or database are currently unreachable. Please try again later.",
-    "ctaHome": "Return to Home"
-  },
-  "NotFound": {
+      "badge": "Server Error",
+      "heading": "Service Unavailable",
+      "description": "Our services or database are currently unreachable. Please try again later.",
+      "ctaHome": "Return to Home"
+    },
+    "NotFound": {
       "title": "Page not found",
       "description": "This page doesn't exist. Head back to the DuckTale homepage."
     }
@@ -615,7 +615,8 @@
         "events-page": "Events",
         "applications": "[Admin] Applications",
         "whitelist": "[Admin] Whitelist",
-        "whitelist-page": "Whitelist"
+        "whitelist-page": "Whitelist",
+        "workflows": "[Admin] Workflows"
       },
       "actionLabels": {
         "view": "View",
@@ -809,7 +810,40 @@
         "generic": "Something went wrong. Please try again."
       }
     },
-    "navApplications": "Applications"
+    "navApplications": "Applications",
+    "navWorkflows": "Workflows",
+    "workflows": {
+      "title": "Workflows",
+      "description": "Manage custom statuses and transitions for Tickets, Applications, Reports, and Threads.",
+      "tabs": {
+        "TICKET": "Tickets",
+        "APPLICATION": "Applications",
+        "REPORT": "Reports",
+        "THREAD": "Threads"
+      },
+      "statusesTitle": "Statuses",
+      "statusesDesc": "Manage statuses for {target}",
+      "addStatus": "Add new status",
+      "nameEn": "Name (EN)",
+      "nameEnPlaceholder": "e.g. In Progress",
+      "nameRu": "Name (RU)",
+      "nameRuPlaceholder": "e.g. В работе",
+      "colorLabel": "Color",
+      "colorPlaceholder": "#3b82f6",
+      "isInitial": "Is Initial (default for new)",
+      "isClosed": "Is Closed state",
+      "addButton": "Add Status",
+      "transitionsTitle": "Transitions",
+      "transitionsDesc": "Define valid status transitions",
+      "canTransitionTo": "can transition to:",
+      "noTransitions": "No outgoing transitions",
+      "selectTarget": "Select target...",
+      "addTransitionBtn": "Add",
+      "unknown": "Unknown",
+      "initialBadge": "Initial",
+      "closedBadge": "Closed",
+      "confirmDelete": "Are you sure you want to delete this?"
+    }
   },
   "Profile": {
     "pageTitle": "Player profile {name}",

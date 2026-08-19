@@ -31,9 +31,10 @@ interface ContentWorkspaceEditorProps {
   trees: ServerContentTree[];
   /** content-delete (or isAdmin) — gates the delete button specifically, independent of content-edit (already required just to reach this workspace). */
   canDelete: boolean;
+  canEdit: boolean;
 }
 
-export function ContentWorkspaceEditor({ lang, trees, canDelete }: ContentWorkspaceEditorProps) {
+export function ContentWorkspaceEditor({ lang, trees, canEdit, canDelete }: ContentWorkspaceEditorProps) {
   const t = useTranslations("AdminContent");
   const confirm = useConfirm();
 
@@ -195,8 +196,8 @@ export function ContentWorkspaceEditor({ lang, trees, canDelete }: ContentWorksp
     <div className="w-full h-full flex flex-col min-w-0 overflow-hidden">
       {(sessionBranch || selected) && (
         <div className="shrink-0 flex gap-2 mb-2">
-          {selected && (
-            <div className={cn(
+          {selected && canEdit && (
+              <div className={cn(
               "rounded-2xl border border-primary/20 bg-card/50 p-4 flex flex-col gap-3",
               sessionBranch ? "flex-1 min-w-0" : "w-full"
             )}>
@@ -329,7 +330,8 @@ export function ContentWorkspaceEditor({ lang, trees, canDelete }: ContentWorksp
                   </div>
                 ) : (
                   <textarea
-                    className="w-full flex-1 bg-transparent font-mono text-sm text-foreground/90 focus:outline-none resize-none custom-scrollbar pr-3"
+                      readOnly={!canEdit}
+                      className="w-full flex-1 bg-transparent font-mono text-sm text-foreground/90 focus:outline-none resize-none custom-scrollbar pr-3"
                     value={content}
                     onChange={(e) => {
                       setContent(e.target.value);
@@ -361,7 +363,12 @@ export function ContentWorkspaceEditor({ lang, trees, canDelete }: ContentWorksp
                       <Skeleton className="h-24 w-full mt-6" />
                     </div>
                   ) : isMeta ? (
-                    <MetaOrderEditor content={content} onChange={setContent} availableEntries={metaAvailableEntries} />
+                    <MetaOrderEditor
+                    content={content}
+                    onChange={setContent}
+                    availableEntries={metaAvailableEntries}
+                    canEdit={canEdit}
+                  />
                   ) : previewError ? (
                     <p className="text-destructive text-sm whitespace-pre-wrap font-mono not-prose">{previewError}</p>
                   ) : (

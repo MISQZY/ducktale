@@ -10,7 +10,7 @@ export interface TicketAttachmentDTO {
 
 export interface TicketMessageDTO {
   id: string;
-  type: "MESSAGE" | "CLOSED" | "REOPENED";
+  type: "MESSAGE" | "CLOSED" | "REOPENED" | "STATUS_CHANGED";
   body: string;
   isAdminReply: boolean;
   createdAt: Date;

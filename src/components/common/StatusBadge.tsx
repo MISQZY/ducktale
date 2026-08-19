@@ -2,24 +2,23 @@ import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 
 interface StatusBadgeProps {
+  color?: string;
   label: string;
   pulse?: boolean;
   className?: string;
   onClick?: () => void;
 }
 
-export function StatusBadge({ label, pulse = false, className, onClick }: StatusBadgeProps) {
+export function StatusBadge({ color, label, pulse = false, className, onClick }: StatusBadgeProps) {
+  const defaultColor = "border-primary/25 bg-primary/5 text-primary/90 text-xs tracking-[0.3em]";
   return (
     <Badge
       variant="outline"
       onClick={onClick}
       className={cn(
-        // Stays interactive regardless of an ancestor wrapper that turns
-        // pointer-events off for its own otherwise-empty layout space (see
-        // ScrollReveal/HeroSection).
         "pointer-events-auto h-auto inline-flex items-center gap-2.5 px-5 py-2 rounded-full",
-        "border border-primary/25 bg-primary/5 text-primary/90 text-xs tracking-[0.3em] uppercase",
-        "backdrop-blur-sm",
+        "backdrop-blur-sm liquid-badge-none",
+        color || defaultColor,
         onClick && "select-none active:scale-95 transition-transform cursor-pointer",
         className
       )}
@@ -27,7 +26,7 @@ export function StatusBadge({ label, pulse = false, className, onClick }: Status
     >
       <span
         className={cn(
-          "w-1.5 h-1.5 rounded-full bg-primary/80",
+          "w-1.5 h-1.5 rounded-full bg-current shrink-0",
           pulse && "animate-pulse"
         )}
       />

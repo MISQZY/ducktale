@@ -4,6 +4,7 @@ import { saveAttachment, deleteAttachmentFile } from "@/lib/attachments";
 
 import { revalidatePath } from "next/cache";
 import { siteDb } from "@/lib/site-db";
+import { getInitialStatusId } from "@/lib/workflows";
 import { isRateLimitedByHeaders } from "@/lib/rate-limit";
 import { createNotification } from "@/lib/notifications";
 import {
@@ -61,8 +62,10 @@ export async function createTicket(formData: FormData): Promise<CreateTicketResu
     attachmentsData.push(saved);
   }
 
+  const statusId = await getInitialStatusId("TICKET");
   const ticket = await siteDb.ticket.create({
     data: {
+      statusId,
       userId: viewer.id,
       subject: cleanSubject,
       messages: { 
@@ -139,7 +142,7 @@ export async function sendTicketMessage(formData: FormData): Promise<void> {
   // same REOPENED event row setTicketStatus writes for the explicit
   // reopen-button case, so the timeline doesn't have a gap where the status
   // visibly changes with nothing marking why.
-  const reopened = ticket.status === "CLOSED";
+  const reopened = (ticket as any).status?.isClosed === true;
 
   await siteDb.$transaction([
     ...(reopened ? [siteDb.message.create({
@@ -167,7 +170,7 @@ export async function sendTicketMessage(formData: FormData): Promise<void> {
     }),
     siteDb.ticket.update({
       where: { id: ticketId },
-      data: { status: isAdminReply ? "ANSWERED" : "OPEN" },
+      data: { statusId: await siteDb.workflowStatus.findFirst({ where: { target: "TICKET", isClosed: false, isInitial: !isAdminReply }, select: { id: true } }).then(s => s!.id) },
     }),
   ]);
 
@@ -189,7 +192,7 @@ export async function sendTicketMessage(formData: FormData): Promise<void> {
  * setThreadClosed in src/lib/actions/threads.ts, so it lands in the
  * timeline at its correct chronological position alongside real messages.
  */
-export async function setTicketStatus(lang: string, ticketId: string, status: "OPEN" | "CLOSED"): Promise<void> {
+export async function setTicketStatus(lang: string, ticketId: string, statusId: string): Promise<void> {
   const viewer = await getTicketViewer();
   if (!viewer || !isTicketEditor(viewer)) throw new Error("Not authorized");
 
@@ -197,12 +200,12 @@ export async function setTicketStatus(lang: string, ticketId: string, status: "O
   if (!ticket) throw new Error("Ticket not found");
 
   await siteDb.$transaction([
-    siteDb.ticket.update({ where: { id: ticketId }, data: { status } }),
+    siteDb.ticket.update({ where: { id: ticketId }, data: { statusId } }),
     siteDb.message.create({
       data: {
         ticketId,
         authorId: viewer.id,
-        type: status === "CLOSED" ? "CLOSED" : "REOPENED",
+        type: "STATUS_CHANGED",
         // Same self-ticket exclusion sendTicketMessage's isAdminReply
         // applies — isTicketEditor already guarantees staff here, this only
         // matters for the rare case a staffer closes/reopens their own

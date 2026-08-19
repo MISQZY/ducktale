@@ -9,9 +9,10 @@ interface MetaOrderEditorProps {
   onChange: (newContent: string) => void;
   /** Sibling folder/file names at this meta.json's level, for the "add page" list. */
   availableEntries: string[];
+  canEdit: boolean;
 }
 
-export function MetaOrderEditor({ content, onChange, availableEntries }: MetaOrderEditorProps) {
+export function MetaOrderEditor({ content, onChange, availableEntries, canEdit }: MetaOrderEditorProps) {
   const t = useTranslations("AdminContent");
 
   let parsed: Record<string, unknown> | null = null;
@@ -74,6 +75,7 @@ export function MetaOrderEditor({ content, onChange, availableEntries }: MetaOrd
             className="flex items-center gap-2 rounded-lg border border-primary/15 bg-card/50 px-3 py-1.5 text-sm"
           >
             <span className="flex-1 truncate font-mono text-xs text-foreground/85">{page}</span>
+            {canEdit && <>
             <button
               type="button"
               onClick={() => move(i, -1)}
@@ -100,12 +102,13 @@ export function MetaOrderEditor({ content, onChange, availableEntries }: MetaOrd
             >
               <X size={14} />
             </button>
+            </>}
           </li>
         ))}
         {pages.length === 0 && <li className="text-foreground/30 text-xs italic">{t("metaEmptyList")}</li>}
       </ul>
 
-      {notListed.length > 0 && (
+      {canEdit && notListed.length > 0 && (
         <Select value="" onValueChange={add}>
           <SelectTrigger className="w-full h-auto px-2 py-1.5 text-xs bg-card/50">
             <SelectValue placeholder={t("metaAddPage")} />

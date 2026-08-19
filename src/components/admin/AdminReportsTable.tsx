@@ -9,13 +9,13 @@ import { useAdaptivePageSize } from "@/hooks/useAdaptivePageSize";
 import { PlayerAvatar } from "@/components/common/PlayerAvatar";
 import { ReportStatusBadge } from "@/components/reports/ReportStatusBadge";
 import { Link } from "@/i18n/navigation";
-import type { ReportStatus } from ".prisma/site-client";
+
 
 export interface AdminReportRow {
   id: string;
   reportedName: string;
   category: string;
-  status: ReportStatus;
+  status: any;
   createdAtLabel: string;
   reporterNickname: string;
   skinUrl: string | null;

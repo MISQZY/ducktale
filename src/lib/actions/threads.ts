@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { siteDb } from "@/lib/site-db";
+import { getInitialStatusId } from "@/lib/workflows";
 import { isRateLimitedByHeaders } from "@/lib/rate-limit";
 import {
   getThreadViewer,
@@ -35,8 +36,10 @@ export async function createThread(formData: FormData): Promise<CreateThreadResu
     throw new Error("Too many threads created, try again later");
   }
 
+  const statusId = await getInitialStatusId("THREAD");
   const thread = await siteDb.thread.create({
     data: {
+      statusId,
       authorId: viewer.id,
       title: cleanTitle,
       description: cleanDescription || null,
@@ -115,13 +118,16 @@ export async function setThreadClosed(lang: string, threadId: string, closed: bo
   if (!thread) throw new Error("Thread not found");
   if (viewer.id !== thread.authorId && !isThreadModerator(viewer)) throw new Error("Not authorized");
 
+  const targetStatus = await siteDb.workflowStatus.findFirst({ where: { target: "THREAD", isClosed: closed }, select: { id: true } });
+  if (!targetStatus) throw new Error("Status not found");
+  
   await siteDb.$transaction([
     siteDb.thread.update({
       where: { id: threadId },
-      data: { closed },
+      data: { statusId: targetStatus.id },
     }),
     siteDb.message.create({
-      data: { threadId, authorId: viewer.id, type: closed ? "CLOSED" : "REOPENED", body: "" },
+      data: { threadId, authorId: viewer.id, type: "STATUS_CHANGED", body: "" },
     }),
   ]);
 

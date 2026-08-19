@@ -5,7 +5,7 @@ import { useTranslations } from "next-intl";
 import { Trash2, Paperclip, FileText, Download, X, Image as ImageIcon, ImageOff } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useRouter } from "@/i18n/navigation";
-import { sendApplicationMessage, setApplicationStatus, deleteApplication } from "@/lib/actions/applications";
+import { sendApplicationMessage, setany, deleteApplication } from "@/lib/actions/applications";
 import { APPLICATION_MESSAGE_MAX, MAX_FILES_PER_MESSAGE } from "@/lib/applications";
 import { isAllowedAttachmentExtension, ATTACHMENT_ACCEPT } from "@/config/attachments";
 import { FormButton } from "@/components/common/FormButton";
@@ -20,7 +20,7 @@ import { MessageBubble } from "@/components/common/MessageBubble";
 import { handleComposerKeyDown } from "@/lib/compose-keydown";
 import { usePolling } from "@/hooks/usePolling";
 import { ApplicationStatusBadge } from "./ApplicationStatusBadge";
-import type { ApplicationStatus } from ".prisma/site-client";
+
 
 interface AttachmentData {
   id: string;
@@ -44,7 +44,7 @@ interface ApplicationThreadProps {
   lang: string;
   applicationId: string;
   applicantName: string;
-  initialStatus: ApplicationStatus;
+  initialStatus: any;
   initialMessages: ApplicationMessageData[];
   /** The current viewer's own User.id — which side of the thread a message renders on compares against this directly (m.authorId === viewerId), not staff-vs-applicant grouping, so it stays correct even with multiple staff replying to the same application. */
   viewerId: string;
@@ -59,7 +59,7 @@ interface ApplicationThreadProps {
 }
 
 const POLL_INTERVAL_MS = 8000;
-const TERMINAL_STATUSES: ApplicationStatus[] = ["ACCEPTED", "REJECTED"];
+const TERMINAL_STATUSES: any[] = ["ACCEPTED", "REJECTED"];
 
 function isImageMime(mime: string): boolean {
   return mime.startsWith("image/");
@@ -189,7 +189,7 @@ export function ApplicationThread({ lang, applicationId, applicantName, initialS
   const t = useTranslations("Applications");
   const confirm = useConfirm();
   const router = useRouter();
-  const [status, setStatus] = useState<ApplicationStatus>(initialStatus);
+  const [status, setStatus] = useState<any>(initialStatus);
   const [messages, setMessages] = useState(initialMessages);
   const [body, setBody] = useState("");
   const [files, setFiles] = useState<File[]>([]);
@@ -256,10 +256,10 @@ export function ApplicationThread({ lang, applicationId, applicantName, initialS
     submitMessage();
   }
 
-  function handleStatusChange(next: ApplicationStatus) {
+  function handleStatusChange(next: any) {
     startTransition(async () => {
       try {
-        await setApplicationStatus(lang, applicationId, next);
+        await setany(lang, applicationId, next);
         setStatus(next);
       } catch {
         setError(t("errors.generic"));
@@ -295,7 +295,7 @@ export function ApplicationThread({ lang, applicationId, applicantName, initialS
             <select
               value={status}
               disabled={isPending}
-              onChange={(e) => handleStatusChange(e.target.value as ApplicationStatus)}
+              onChange={(e) => handleStatusChange(e.target.value as any)}
               className={formInputClasses(false, "h-8 py-0 text-xs w-auto")}
               style={formInputStyle}
             >

@@ -10,13 +10,13 @@ import { PlayerAvatar } from "@/components/common/PlayerAvatar";
 import { ApplicationStatusBadge } from "@/components/applications/ApplicationStatusBadge";
 import { Link } from "@/i18n/navigation";
 import { SERVERS } from "@/config/servers";
-import type { ApplicationStatus } from ".prisma/site-client";
+
 
 export interface AdminApplicationRow {
   id: string;
   applicantName: string;
   serverId: string;
-  status: ApplicationStatus;
+  status: any;
   createdAtLabel: string;
   applicantNickname: string;
   skinUrl: string | null;

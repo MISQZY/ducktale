@@ -9,7 +9,7 @@ import { cn } from "@/lib/utils";
 import { SearchInput } from "@/components/ui/search-input";
 import { TablePagination } from "@/components/docs/paged-table/TablePagination";
 import { resolvePageSize } from "@/lib/pagination";
-import type { Prisma, ApplicationStatus } from ".prisma/site-client";
+import type { Prisma } from ".prisma/site-client";
 
 const DEFAULT_PAGE_SIZE = 10;
 const STATUS_FILTERS = ["ALL", "OPEN", "IN_REVIEW", "ACCEPTED", "REJECTED"] as const;
@@ -45,7 +45,7 @@ export default async function AdminApplicationsPage({
   const tr = await getTranslations("Admin.applications");
 
   const where = {
-    ...(status !== "ALL" ? { status: status as ApplicationStatus } : {}),
+    ...(status !== "ALL" ? { status: status as any } : {}),
     ...(search
       ? {
           OR: [

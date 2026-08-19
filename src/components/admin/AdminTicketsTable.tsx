@@ -10,12 +10,12 @@ import { useAdaptivePageSize } from "@/hooks/useAdaptivePageSize";
 import { PlayerAvatar } from "@/components/common/PlayerAvatar";
 import { TicketStatusBadge } from "@/components/tickets/TicketStatusBadge";
 import { Link } from "@/i18n/navigation";
-import type { TicketStatus } from ".prisma/site-client";
+
 
 export interface AdminTicketRow {
   id: string;
   subject: string;
-  status: TicketStatus;
+  status: any;
   messageCount: number;
   attachmentCount: number;
   updatedAtLabel: string;

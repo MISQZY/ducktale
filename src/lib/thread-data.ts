@@ -3,7 +3,7 @@ import { resolveSkinUrlMap } from "@/lib/skin";
 
 export interface ThreadMessageDTO {
   id: string;
-  type: "MESSAGE" | "CLOSED" | "REOPENED";
+  type: "MESSAGE" | "CLOSED" | "REOPENED" | "STATUS_CHANGED";
   body: string;
   createdAt: Date;
   authorId: string;

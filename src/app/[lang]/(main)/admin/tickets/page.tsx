@@ -9,7 +9,7 @@ import { cn } from "@/lib/utils";
 import { SearchInput } from "@/components/ui/search-input";
 import { TablePagination } from "@/components/docs/paged-table/TablePagination";
 import { resolvePageSize } from "@/lib/pagination";
-import type { Prisma, TicketStatus } from ".prisma/site-client";
+import type { Prisma } from ".prisma/site-client";
 
 // Default/fallback only — useAdaptivePageSize (client-side, in
 // AdminTicketsTable) overrides this via ?pageSize= to whatever count
@@ -53,7 +53,7 @@ export default async function AdminTicketsPage({
   const tt = await getTranslations("Tickets");
 
   const where = {
-    ...(status !== "ALL" ? { status: status as TicketStatus } : {}),
+    ...(status !== "ALL" ? { status: status as any } : {}),
     ...(search
       ? {
           OR: [

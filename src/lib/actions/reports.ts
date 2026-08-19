@@ -4,6 +4,7 @@ import { saveAttachment, deleteAttachmentFile } from "@/lib/attachments";
 
 import { revalidatePath } from "next/cache";
 import { siteDb } from "@/lib/site-db";
+import { getInitialStatusId } from "@/lib/workflows";
 import { isRateLimitedByHeaders } from "@/lib/rate-limit";
 import { createNotification } from "@/lib/notifications";
 import { isReportCategory } from "@/config/reports";
@@ -20,13 +21,13 @@ import {
   MAX_ATTACHMENT_MB,
   MAX_FILES_PER_MESSAGE,
 } from "@/lib/reports";
-import type { ReportStatus } from ".prisma/site-client";
+
 
 export interface CreateReportResult {
   id: string;
 }
 
-const TERMINAL_STATUSES: ReportStatus[] = ["RESOLVED", "REJECTED"];
+const TERMINAL_STATUSES: any[] = ["RESOLVED", "REJECTED"];
 
 export async function createReport(formData: FormData): Promise<CreateReportResult> {
   const viewer = await getReportViewer();
@@ -63,8 +64,10 @@ export async function createReport(formData: FormData): Promise<CreateReportResu
     attachmentsData.push(await saveAttachment(file));
   }
 
+  const statusId = await getInitialStatusId("REPORT");
   const report = await siteDb.report.create({
     data: {
+      statusId,
       reporterId: viewer.id,
       reportedName,
       category,
@@ -146,7 +149,7 @@ export async function sendReportMessage(formData: FormData): Promise<void> {
     // Only fires from OPEN specifically (not IN_REVIEW again) — updateMany's
     // where-clause makes this a no-op once already in review.
     ...(isAdminReply
-      ? [siteDb.report.updateMany({ where: { id: reportId, status: "OPEN" }, data: { status: "IN_REVIEW" } })]
+      ? [siteDb.report.updateMany({ where: { id: reportId }, data: { statusId: await siteDb.workflowStatus.findFirst({ where: { target: "REPORT", isClosed: false, isInitial: false }, select: { id: true } }).then(s => s!.id) } })]
       : []),
   ]);
 
@@ -166,22 +169,23 @@ export async function sendReportMessage(formData: FormData): Promise<void> {
  * function, not a separate toggle). See the Report model's doc comment for
  * the full status semantics.
  */
-export async function setReportStatus(lang: string, reportId: string, status: ReportStatus): Promise<void> {
+export async function setany(lang: string, reportId: string, statusId: string): Promise<void> {
   const viewer = await getReportViewer();
   if (!viewer || !isReportEditor(viewer)) throw new Error("Not authorized");
 
   const report = await siteDb.report.findUnique({ where: { id: reportId }, select: { reporterId: true, reportedName: true } });
   if (!report) throw new Error("Report not found");
 
-  await siteDb.report.update({ where: { id: reportId }, data: { status } });
+  await siteDb.report.update({ where: { id: reportId }, data: { statusId } });
 
   // Same self-report exclusion sendReportMessage's isAdminReply applies —
   // staff changing the status of their own report doesn't need to be told.
   if (viewer.id !== report.reporterId) {
+    const statusObj = await siteDb.workflowStatus.findUnique({ where: { id: statusId } });
     await createNotification(report.reporterId, "report_status_changed", {
       reportId,
       reportedName: report.reportedName,
-      status,
+      status: (statusObj?.name as any)?.en || 'Unknown',
     });
   }
 

@@ -4,6 +4,7 @@ import { saveAttachment, deleteAttachmentFile } from "@/lib/attachments";
 
 import { revalidatePath } from "next/cache";
 import { siteDb } from "@/lib/site-db";
+import { getInitialStatusId } from "@/lib/workflows";
 import { isRateLimitedByHeaders } from "@/lib/rate-limit";
 import { createNotification } from "@/lib/notifications";
 import { SERVERS } from "@/config/servers";
@@ -20,13 +21,13 @@ import {
   MAX_ATTACHMENT_MB,
   MAX_FILES_PER_MESSAGE,
 } from "@/lib/applications";
-import type { ApplicationStatus } from ".prisma/site-client";
+
 
 export interface CreateApplicationResult {
   id: string;
 }
 
-const TERMINAL_STATUSES: ApplicationStatus[] = ["ACCEPTED", "REJECTED"];
+const TERMINAL_STATUSES: any[] = ["ACCEPTED", "REJECTED"];
 
 function isServerId(value: string): boolean {
   return SERVERS.some((s) => s.id === value);
@@ -68,8 +69,10 @@ export async function createApplication(formData: FormData): Promise<CreateAppli
     attachmentsData.push(await saveAttachment(file));
   }
 
+  const statusId = await getInitialStatusId("APPLICATION");
   const application = await siteDb.application.create({
     data: {
+      statusId,
       applicantId: viewer.id,
       applicantName,
       serverId,
@@ -153,7 +156,7 @@ export async function sendApplicationMessage(formData: FormData): Promise<void> 
     // First staff reply on an OPEN application signals "someone's looking at
     // this" — mirrors sendReportMessage's isAdminReply -> IN_REVIEW flip.
     ...(isAdminReply
-      ? [siteDb.application.updateMany({ where: { id: applicationId, status: "OPEN" }, data: { status: "IN_REVIEW" } })]
+      ? [siteDb.application.updateMany({ where: { id: applicationId }, data: { statusId: await siteDb.workflowStatus.findFirst({ where: { target: "APPLICATION", isClosed: false, isInitial: false }, select: { id: true } }).then(s => s!.id) } })]
       : []),
   ]);
 
@@ -173,23 +176,24 @@ export async function sendApplicationMessage(formData: FormData): Promise<void> 
  * IN_REVIEW is this same function, not a separate toggle). See the
  * Application model's doc comment for the full status semantics.
  */
-export async function setApplicationStatus(lang: string, applicationId: string, status: ApplicationStatus): Promise<void> {
+export async function setany(lang: string, applicationId: string, statusId: string): Promise<void> {
   const viewer = await getApplicationViewer();
   if (!viewer || !isApplicationEditor(viewer)) throw new Error("Not authorized");
 
   const application = await siteDb.application.findUnique({ where: { id: applicationId }, select: { applicantId: true, applicantName: true } });
   if (!application) throw new Error("Application not found");
 
-  await siteDb.application.update({ where: { id: applicationId }, data: { status } });
+  await siteDb.application.update({ where: { id: applicationId }, data: { statusId } });
 
   // Same self-application exclusion sendApplicationMessage's isAdminReply
   // applies — staff changing the status of their own application doesn't
   // need to be told.
   if (viewer.id !== application.applicantId) {
+    const statusObj = await siteDb.workflowStatus.findUnique({ where: { id: statusId } });
     await createNotification(application.applicantId, "application_status_changed", {
       applicationId,
       applicantName: application.applicantName,
-      status,
+      status: (statusObj?.name as any)?.en || 'Unknown',
     });
   }
 

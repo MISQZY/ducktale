@@ -9,6 +9,7 @@ interface ContentWorkspaceProps {
   trees: ServerContentTree[];
   /** content-delete (or isAdmin) — reaching this workspace at all already required content-edit; this additionally gates the delete button inside it. */
   canDelete: boolean;
+  canEdit: boolean;
 }
 
 import {
@@ -17,7 +18,7 @@ import {
   ResizablePanelGroup,
 } from "@/components/ui/resizable";
 
-export function ContentWorkspace({ lang, trees, canDelete }: ContentWorkspaceProps) {
+export function ContentWorkspace({ lang, trees, canEdit, canDelete }: ContentWorkspaceProps) {
   return (
     <div className="w-full" style={{ height: "calc(100vh - 380px)", minHeight: "500px" }}>
       <ResizablePanelGroup
@@ -32,7 +33,12 @@ export function ContentWorkspace({ lang, trees, canDelete }: ContentWorkspacePro
         <ResizableHandle withHandle className="w-[2px] mx-2 rounded-full bg-primary/10 hover:bg-primary/30 transition-colors" />
 
         <ResizablePanel id="content-editor" defaultSize="80" minSize="40">
-          <ContentWorkspaceEditor lang={lang} trees={trees} canDelete={canDelete} />
+          <ContentWorkspaceEditor
+            lang={lang}
+            trees={trees}
+            canEdit={canEdit}
+            canDelete={canDelete}
+          />
         </ResizablePanel>
       </ResizablePanelGroup>
     </div>

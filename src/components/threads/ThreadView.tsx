@@ -18,7 +18,7 @@ import { ConversationEventMarker } from "@/components/common/ConversationEventMa
 import { handleComposerKeyDown } from "@/lib/compose-keydown";
 import { usePolling } from "@/hooks/usePolling";
 
-type ThreadMessageType = "MESSAGE" | "CLOSED" | "REOPENED";
+type ThreadMessageType = "MESSAGE" | "CLOSED" | "REOPENED" | "STATUS_CHANGED";
 
 interface ThreadMessageData {
   id: string;

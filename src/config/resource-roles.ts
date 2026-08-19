@@ -100,7 +100,7 @@ export const RESOURCE_ROLE_ACTIONS = {
   users: ["view", "edit", "delete"],
   tickets: ["view", "edit", "delete"],
   badges: ["view", "edit", "delete"],
-  content: ["edit", "delete"],
+  content: ["view", "edit", "delete"],
   ranks: ["view", "edit", "delete"],
   "resource-roles": ["view", "edit"],
   role: ["view", "edit", "delete"],
@@ -116,6 +116,7 @@ export const RESOURCE_ROLE_ACTIONS = {
   "events-page": ["view"],
   reports: ["view", "edit", "delete"],
   applications: ["view", "edit", "delete"],
+  workflows: ["view", "edit", "delete"],
   whitelist: ["view", "edit", "delete"],
   "whitelist-page": ["view"],
 } as const;

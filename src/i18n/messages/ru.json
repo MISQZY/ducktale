@@ -4,12 +4,12 @@
       "description": "DuckTale — сеть Minecraft серверов. DuckBurg — сервер выживания, DuckHood — сервер творчества."
     },
     "Error": {
-    "badge": "Ошибка сервера",
-    "heading": "Сервер временно недоступен",
-    "description": "Наши сервисы или база данных в данный момент недоступны. Пожалуйста, повторите попытку позже.",
-    "ctaHome": "Вернуться на главную"
-  },
-  "NotFound": {
+      "badge": "Ошибка сервера",
+      "heading": "Сервер временно недоступен",
+      "description": "Наши сервисы или база данных в данный момент недоступны. Пожалуйста, повторите попытку позже.",
+      "ctaHome": "Вернуться на главную"
+    },
+    "NotFound": {
       "title": "Страница не найдена",
       "description": "Эта страница не существует. Вернитесь на главную DuckTale."
     }
@@ -612,7 +612,10 @@
         "server-status": "Статус сервера",
         "maps-page": "Карты",
         "events-page": "События",
-        "applications": "[Админ] Заявки"
+        "applications": "[Админ] Заявки",
+        "workflows": "[Админ] Воркфлоу",
+        "whitelist": "[Админ] Вайтлист",
+        "whitelist-page": "Вайтлист"
       },
       "actionLabels": {
         "view": "Просмотр",
@@ -806,7 +809,40 @@
         "generic": "Что-то пошло не так. Попробуйте позже."
       }
     },
-    "navApplications": "Заявки"
+    "navApplications": "Заявки",
+    "navWorkflows": "Воркфлоу",
+    "workflows": {
+      "title": "Воркфлоу",
+      "description": "Управление статусами и переходами для тикетов, заявок, жалоб и тредов.",
+      "tabs": {
+        "TICKET": "Тикеты",
+        "APPLICATION": "Заявки",
+        "REPORT": "Жалобы",
+        "THREAD": "Треды"
+      },
+      "statusesTitle": "Статусы",
+      "statusesDesc": "Управление статусами для {target}",
+      "addStatus": "Добавить новый статус",
+      "nameEn": "Название (EN)",
+      "nameEnPlaceholder": "напр. In Progress",
+      "nameRu": "Название (RU)",
+      "nameRuPlaceholder": "напр. В работе",
+      "colorLabel": "Цвет",
+      "colorPlaceholder": "#3b82f6",
+      "isInitial": "Начальный (по умолчанию для новых)",
+      "isClosed": "Финальный статус (закрытый)",
+      "addButton": "Добавить",
+      "transitionsTitle": "Переходы (Transitions)",
+      "transitionsDesc": "Настройка допустимых переходов",
+      "canTransitionTo": "может переходить в:",
+      "noTransitions": "Нет возможных переходов",
+      "selectTarget": "Выберите статус...",
+      "addTransitionBtn": "Добавить",
+      "unknown": "Неизвестно",
+      "initialBadge": "Стартовый",
+      "closedBadge": "Финальный",
+      "confirmDelete": "Вы уверены, что хотите удалить это?"
+    }
   },
   "Profile": {
     "pageTitle": "Профиль игрока {name}",

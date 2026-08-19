@@ -22,7 +22,6 @@ import {
   ServerVersion,
   StepList,
   TownyTable,
-  WhitelistTable,
   GitHubLastModified,
   PermissionTable,
 } from "@/components/docs";
@@ -65,7 +64,6 @@ export function getMDXComponents(components?: MDXComponents): MDXComponents {
     ServerVersion,
     StepList,
     TownyTable,
-    WhitelistTable,
     GitHubLastModified,
     PermissionTable,
     ...components,

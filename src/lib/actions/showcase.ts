@@ -91,7 +91,7 @@ export const getShowcasePlayers = unstable_cache(
 
       return {
         players: shuffled,
-        total
+        total: maxId
       };
     } catch (e) {
       console.error("[showcase] Error fetching showcase players:", e);
