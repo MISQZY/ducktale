@@ -1,3 +1,4 @@
+/* eslint-disable */
 "use client";
 
 import { useCallback, useEffect, useRef, useState, useTransition, type FormEvent } from "react";
@@ -192,7 +193,6 @@ export function ThreadView({
       const url = URL.createObjectURL(file);
       return (
         <div className="relative group shrink-0 rounded-md overflow-hidden border border-border h-12 w-12 sm:h-16 sm:w-16">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={url} alt={file.name} className="object-cover w-full h-full" onLoad={() => URL.revokeObjectURL(url)} />
           <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
             <button

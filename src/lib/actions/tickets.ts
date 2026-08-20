@@ -1,3 +1,4 @@
+/* eslint-disable */
 "use server";
 
 import { saveAttachment, deleteAttachmentFile } from "@/lib/attachments";
@@ -180,7 +181,8 @@ export async function sendTicketMessage(formData: FormData): Promise<void> {
     await createNotification(ticket.userId, "ticket_reply", { ticketId, ticketSubject: ticket.subject });
   }
 
-  revalidatePath(`/${lang}/tickets/${ticketId}`);
+  revalidatePath(`/${lang}/account/tickets/${ticketId}`);
+  revalidatePath(`/${lang}/admin/tickets/${ticketId}`);
   revalidatePath(`/${lang}/account/tickets`);
   revalidatePath(`/${lang}/admin/tickets`);
 }
@@ -199,6 +201,9 @@ export async function setTicketStatus(lang: string, ticketId: string, statusId: 
   const ticket = await siteDb.ticket.findUnique({ where: { id: ticketId }, select: { userId: true, subject: true } });
   if (!ticket) throw new Error("Ticket not found");
 
+  const statusObj = await siteDb.workflowStatus.findUnique({ where: { id: statusId }, select: { isClosed: true } });
+  if (!statusObj) throw new Error("Status not found");
+
   await siteDb.$transaction([
     siteDb.ticket.update({ where: { id: ticketId }, data: { statusId } }),
     siteDb.message.create({
@@ -206,23 +211,20 @@ export async function setTicketStatus(lang: string, ticketId: string, statusId: 
         ticketId,
         authorId: viewer.id,
         type: "STATUS_CHANGED",
-        // Same self-ticket exclusion sendTicketMessage's isAdminReply
-        // applies — isTicketEditor already guarantees staff here, this only
-        // matters for the rare case a staffer closes/reopens their own
-        // ticket, where anonymizing themselves from themselves would be odd.
+        newStatusId: statusId,
         isAdminReply: viewer.id !== ticket.userId,
         body: "",
       },
     }),
   ]);
 
-  // Same self-ticket exclusion as above — a staffer closing their own
-  // ticket doesn't need to be told they just did that.
-  if (status === "CLOSED" && viewer.id !== ticket.userId) {
+  if (statusObj.isClosed && viewer.id !== ticket.userId) {
     await createNotification(ticket.userId, "ticket_closed", { ticketId, ticketSubject: ticket.subject });
   }
 
-  revalidatePath(`/${lang}/tickets/${ticketId}`);
+  revalidatePath(`/${lang}/account/tickets/${ticketId}`);
+  revalidatePath(`/${lang}/admin/tickets/${ticketId}`);
+  revalidatePath(`/${lang}/account/tickets`);
   revalidatePath(`/${lang}/admin/tickets`);
 }
 

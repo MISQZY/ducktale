@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/no-unused-vars */
 "use client";
 
 import { useCallback, useEffect, useRef, useState, useTransition, type FormEvent } from "react";
@@ -41,7 +43,9 @@ interface TicketMessageData {
   authorId: string;
   authorNickname: string;
   authorSkinUrl: string | null;
-  attachments?: AttachmentData[];
+  
+  newStatusName?: string;
+attachments?: AttachmentData[];
 }
 
 interface TicketThreadProps {

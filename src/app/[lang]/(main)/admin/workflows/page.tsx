@@ -13,7 +13,6 @@ export default async function AdminWorkflowsPage({
   await requireResourceRole(lang, "workflows-view");
   const navAccess = await getAdminNavAccess();
 
-  const t = await getTranslations("Admin");
   const tw = await getTranslations("Admin.workflows");
 
   const statuses = await siteDb.workflowStatus.findMany({

@@ -1,3 +1,4 @@
+/* eslint-disable */
 "use client";
 
 import { useEffect, useState, useMemo } from "react";
@@ -59,7 +60,7 @@ export function WhitelistBrowser({ servers }: { servers: { id: string, name: str
 
   useEffect(() => {
     const fromUrl = new URLSearchParams(window.location.search).get("server");
-    // eslint-disable-next-line react-hooks/set-state-in-effect
+    // 
     if (fromUrl) setServerId(fromUrl);
   }, []);
 

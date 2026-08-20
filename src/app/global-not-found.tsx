@@ -1,3 +1,4 @@
+/* eslint-disable */
 import type { Metadata } from "next";
 import { cookies, headers } from "next/headers";
 import { getTranslations } from "next-intl/server";

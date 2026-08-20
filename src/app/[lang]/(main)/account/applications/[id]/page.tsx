@@ -34,7 +34,6 @@ export default async function AccountApplicationViewerPage({
 
   if (!application || !canViewApplication(viewer, application)) notFound();
 
-  const isOwner = application.applicantId === viewer.id;
   const canEdit = isApplicationEditor(viewer);
   const canDelete = isApplicationDeleter(viewer);
 

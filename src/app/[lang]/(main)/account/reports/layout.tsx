@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { getTranslations } from "next-intl/server";
 import { getReportViewer } from "@/lib/reports";
 import { siteDb } from "@/lib/site-db";
@@ -69,20 +70,29 @@ async function ReportList({ lang, userId }: { lang: string; userId: string }) {
     select: {
       id: true,
       reportedName: true,
+      category: true,
       updatedAt: true,
       reporter: { select: { nickname: true } },
+      status: { select: { color: true, name: true } },
     },
   });
 
   return (
     <ThreadTree
       lang={lang}
-      threads={reports.map((r) => ({
-        id: r.id,
-        title: r.reportedName,
-        authorNickname: r.reporter.nickname,
-        updatedAt: r.updatedAt.toISOString(),
-      }))}
+      threads={reports.map((r) => {
+        const catName = t(`category.${r.category}` as any) || r.category;
+        return {
+          id: r.id,
+          title: t("reportColumn") + " " + r.id.substring(0, 6),
+          authorNickname: r.reporter.nickname,
+          updatedAt: r.updatedAt.toISOString(),
+          typeLabel: catName,
+          targetLabel: r.reportedName,
+          statusColor: r.status.color,
+          statusName: (r.status.name as any)?.[lang] || r.status.name,
+        };
+      })}
       basePath="account/reports"
       newButtonLabel={t("newReport")} noItemsLabel={t("noReports")}
     />

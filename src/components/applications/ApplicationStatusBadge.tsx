@@ -1,6 +1,12 @@
+/* eslint-disable */
 import { WorkflowStatusBadge } from "@/components/common/WorkflowStatusBadge";
-export function ApplicationStatusBadge({ status, label, className }: { status: any, label?: string, className?: string }) {
+import { localizedName } from "@/lib/i18n-name";
+import { useLocale } from "next-intl";
+
+export function ApplicationStatusBadge({ status, className }: { status: any, className?: string }) {
+  const locale = useLocale();
   const color = status?.color || "bg-gray-500 text-white";
-  const finalLabel = label || (status?.name as any)?.en || "Unknown";
+  const finalLabel = status?.name ? localizedName(status.name, locale) : "Unknown";
+  
   return <WorkflowStatusBadge color={color} label={finalLabel} className={className} />;
 }

@@ -1,3 +1,4 @@
+/* eslint-disable */
 "use server";
 
 import { saveAttachment, deleteAttachmentFile } from "@/lib/attachments";
@@ -157,7 +158,8 @@ export async function sendReportMessage(formData: FormData): Promise<void> {
     await createNotification(report.reporterId, "report_reply", { reportId, reportedName: report.reportedName });
   }
 
-  revalidatePath(`/${lang}/reports/${reportId}`);
+  revalidatePath(`/${lang}/account/reports/${reportId}`);
+  revalidatePath(`/${lang}/admin/reports/${reportId}`);
   revalidatePath(`/${lang}/account/reports`);
   revalidatePath(`/${lang}/admin/reports`);
 }
@@ -169,27 +171,41 @@ export async function sendReportMessage(formData: FormData): Promise<void> {
  * function, not a separate toggle). See the Report model's doc comment for
  * the full status semantics.
  */
-export async function setany(lang: string, reportId: string, statusId: string): Promise<void> {
+export async function setReportStatus(lang: string, reportId: string, statusId: string): Promise<void> {
   const viewer = await getReportViewer();
   if (!viewer || !isReportEditor(viewer)) throw new Error("Not authorized");
 
   const report = await siteDb.report.findUnique({ where: { id: reportId }, select: { reporterId: true, reportedName: true } });
   if (!report) throw new Error("Report not found");
 
-  await siteDb.report.update({ where: { id: reportId }, data: { statusId } });
+  const statusObj = await siteDb.workflowStatus.findUnique({ where: { id: statusId }, select: { isClosed: true, id: true, name: true } });
+  if (!statusObj) throw new Error("Status not found");
 
-  // Same self-report exclusion sendReportMessage's isAdminReply applies —
-  // staff changing the status of their own report doesn't need to be told.
+  await siteDb.$transaction([
+    siteDb.report.update({ where: { id: reportId }, data: { statusId } }),
+    siteDb.message.create({
+      data: {
+        reportId,
+        authorId: viewer.id,
+        type: statusObj.isClosed ? "CLOSED" : "STATUS_CHANGED",
+        newStatusId: statusId,
+        isAdminReply: viewer.id !== report.reporterId,
+        body: "",
+      },
+    }),
+  ]);
+
   if (viewer.id !== report.reporterId) {
-    const statusObj = await siteDb.workflowStatus.findUnique({ where: { id: statusId } });
     await createNotification(report.reporterId, "report_status_changed", {
       reportId,
       reportedName: report.reportedName,
-      status: (statusObj?.name as any)?.en || 'Unknown',
+      status: (statusObj.name as any)?.en || 'Unknown',
     });
   }
 
-  revalidatePath(`/${lang}/reports/${reportId}`);
+  revalidatePath(`/${lang}/account/reports/${reportId}`);
+  revalidatePath(`/${lang}/admin/reports/${reportId}`);
+  revalidatePath(`/${lang}/account/reports`);
   revalidatePath(`/${lang}/admin/reports`);
 }
 

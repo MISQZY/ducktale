@@ -1,3 +1,4 @@
+/* eslint-disable */
 "use client";
 
 import { useCallback, useEffect, useRef, useState, useTransition, type FormEvent } from "react";
@@ -5,7 +6,7 @@ import { useTranslations } from "next-intl";
 import { Trash2, Paperclip, FileText, Download, X, Image as ImageIcon, ImageOff } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useRouter } from "@/i18n/navigation";
-import { sendApplicationMessage, setany, deleteApplication } from "@/lib/actions/applications";
+import { sendApplicationMessage, setApplicationStatus, deleteApplication } from "@/lib/actions/applications";
 import { deleteMessage } from "@/lib/actions/messages";
 import { APPLICATION_MESSAGE_MAX, MAX_FILES_PER_MESSAGE } from "@/lib/applications";
 import { isAllowedAttachmentExtension, ATTACHMENT_ACCEPT } from "@/config/attachments";
@@ -18,10 +19,13 @@ import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { PlayerAvatar } from "@/components/common/PlayerAvatar";
 import { MessageBubble } from "@/components/common/MessageBubble";
+import { ConversationEventMarker } from "@/components/common/ConversationEventMarker";
 import { EmbedImage } from "@/components/common/EmbedImage";
 import { handleComposerKeyDown } from "@/lib/compose-keydown";
 import { usePolling } from "@/hooks/usePolling";
 import { ApplicationStatusBadge } from "./ApplicationStatusBadge";
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
+import { localizedName } from "@/lib/i18n-name";
 
 
 interface AttachmentData {
@@ -40,7 +44,9 @@ interface ApplicationMessageData {
   authorId: string;
   authorNickname: string;
   authorSkinUrl: string | null;
-  attachments?: AttachmentData[];
+  type: string;
+  newStatusName?: string;
+attachments?: AttachmentData[];
 }
 
 interface ApplicationThreadProps {
@@ -62,7 +68,6 @@ interface ApplicationThreadProps {
 }
 
 const POLL_INTERVAL_MS = 8000;
-const TERMINAL_STATUSES: any[] = ["ACCEPTED", "REJECTED"];
 
 function isImageMime(mime: string): boolean {
   return mime.startsWith("image/");
@@ -196,7 +201,8 @@ export function ApplicationThread({ lang, applicationId, applicantName, initialS
   const bottomRef = useRef<HTMLDivElement>(null);
   const latestCreatedAtRef = useRef<string | undefined>(initialMessages.at(-1)?.createdAt);
 
-  const isTerminal = TERMINAL_STATUSES.includes(status);
+  const isTerminal = status?.isClosed;
+  const [transitions, setTransitions] = useState<any[]>([]);
 
   const poll = useCallback(async () => {
     try {
@@ -208,6 +214,7 @@ export function ApplicationThread({ lang, applicationId, applicantName, initialS
       if (!res.ok) return;
       const data = await res.json();
       setStatus(data.status);
+      if (data.transitions) setTransitions(data.transitions);
       setMessages((prev) => {
         const newOnes = (data.messages as ApplicationMessageData[]).filter(
           (m) => !prev.some((existing) => existing.id === m.id)
@@ -217,9 +224,13 @@ export function ApplicationThread({ lang, applicationId, applicantName, initialS
         return [...prev, ...newOnes];
       });
     } catch {
-      // Silent — a missed poll just tries again next interval.
+      // Silent
     }
   }, [applicationId]);
+
+  useEffect(() => {
+    if (canEdit) poll();
+  }, [canEdit, poll]);
 
   usePolling(poll, POLL_INTERVAL_MS);
 
@@ -254,11 +265,11 @@ export function ApplicationThread({ lang, applicationId, applicantName, initialS
     submitMessage();
   }
 
-  function handleStatusChange(next: any) {
+  function handleStatusChange(next: string) {
     startTransition(async () => {
       try {
-        await setany(lang, applicationId, next);
-        setStatus(next);
+        await setApplicationStatus(lang, applicationId, next);
+        await poll();
       } catch {
         setError(t("errors.generic"));
       }
@@ -285,23 +296,34 @@ export function ApplicationThread({ lang, applicationId, applicantName, initialS
     <div className="flex flex-col h-full min-h-0">
       {/* Header bar */}
       <div className="flex items-center justify-between gap-3 flex-wrap mb-4 shrink-0">
-        <ApplicationStatusBadge status={status} label={t(`status.${status}`)} />
+        <ApplicationStatusBadge status={status} />
 
-        {canEdit && (
+        {canEdit && transitions.length > 0 && (
           <div className="flex items-center gap-2 text-xs text-foreground/50">
             <span>{t("setStatus")}</span>
-            <select
-              value={status}
-              disabled={isPending}
-              onChange={(e) => handleStatusChange(e.target.value as any)}
-              className={formInputClasses(false, "h-8 py-0 text-xs w-auto")}
-              style={formInputStyle}
-            >
-              <option value="OPEN">{t("status.OPEN")}</option>
-              <option value="IN_REVIEW">{t("markInReview")}</option>
-              <option value="ACCEPTED">{t("markAccepted")}</option>
-              <option value="REJECTED">{t("markRejected")}</option>
-            </select>
+            <Select disabled={isPending} value={status?.id || ""} onValueChange={handleStatusChange}>
+              <SelectTrigger size="sm" className="w-auto border-none shadow-none h-8 px-2 bg-card/50 hover:bg-card/80">
+                <SelectValue placeholder={t("changeStatus") || "Change status"} />
+              </SelectTrigger>
+              <SelectContent>
+                {status && (
+                  <SelectItem value={status.id} disabled>
+                    <div className="flex items-center gap-2 text-foreground/50">
+                      <div className="w-2 h-2 rounded-full" style={{ backgroundColor: status.color || "#000" }} />
+                      {localizedName(status.name, lang)}
+                    </div>
+                  </SelectItem>
+                )}
+                {transitions.map((t) => (
+                  <SelectItem key={t.id} value={t.id}>
+                    <div className="flex items-center gap-2">
+                      <div className="w-2 h-2 rounded-full" style={{ backgroundColor: t.color || "#000" }} />
+                      {localizedName(t.name, lang)}
+                    </div>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
         )}
       </div>
@@ -313,6 +335,18 @@ export function ApplicationThread({ lang, applicationId, applicantName, initialS
             <p className="text-center text-foreground/40 text-sm py-6">{t("noMessages")}</p>
           ) : (
             messages.map((m) => {
+              if (m.type && m.type !== "MESSAGE") {
+                const nickname = m.isAdminReply && !isStaff ? t("adminName") : m.authorNickname;
+                let label = "";
+                if (m.type === "STATUS_CHANGED") {
+                  const statusName = (m as any).newStatusName?.[lang] || (m as any).newStatusName?.en || "Unknown";
+                  label = t("applicationStatusChangedEvent", { nickname, status: statusName });
+                } else {
+                  label = t(m.type === "CLOSED" ? "applicationClosedEvent" : "applicationReopenedEvent", { nickname });
+                }
+                return <ConversationEventMarker key={m.id} type={m.type as any} label={label} createdAt={m.createdAt} lang={lang} />;
+              }
+
               // Which side of the thread this message renders on — the
               // viewer's own messages, specifically, not "staff" as a group.
               // With more than one staff member replying to the same

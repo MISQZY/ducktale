@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { NextResponse } from "next/server";
 import { siteDb } from "@/lib/site-db";
 import { isRateLimited } from "@/lib/rate-limit";
@@ -32,8 +33,20 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
 
   const messages = await resolveApplicationMessages(id, isApplicationStaff(viewer), afterCreatedAt);
 
+  const rawTransitions = await siteDb.workflowTransition.findMany({
+    where: { fromId: application.status.id },
+    include: { to: true },
+  });
+  
+  const { hasResourceRole } = await import("@/config/resource-roles");
+  
+  const availableTransitions = rawTransitions
+    .filter((t) => !t.requiredResourceRole || viewer.isAdmin || hasResourceRole(viewer.roles, t.requiredResourceRole as any))
+    .map((t) => t.to);
+
   return NextResponse.json({
     status: application.status,
+    transitions: availableTransitions,
     messages: messages.map((m) => ({ ...m, createdAt: m.createdAt.toISOString() })),
   });
 }

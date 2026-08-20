@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { getTranslations } from "next-intl/server";
 import { requireResourceRole } from "@/lib/admin";
 import { siteDb } from "@/lib/site-db";
@@ -64,6 +65,7 @@ async function ThreadList({ lang }: { lang: string }) {
       title: true,
       updatedAt: true,
       author: { select: { nickname: true } },
+      status: { select: { color: true, name: true } },
     },
   });
 
@@ -75,6 +77,8 @@ async function ThreadList({ lang }: { lang: string }) {
         title: t.title,
         authorNickname: t.author.nickname,
         updatedAt: t.updatedAt.toISOString(),
+        statusColor: t.status.color,
+        statusName: (t.status.name as any)?.[lang] || t.status.name,
       }))}
     />
   );

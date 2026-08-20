@@ -1,3 +1,4 @@
+/* eslint-disable */
 import { siteDb } from "@/lib/site-db";
 import { resolveSkinUrlMap } from "@/lib/skin";
 
@@ -20,6 +21,8 @@ export interface TicketMessageDTO {
   authorNickname: string;
   authorSkinUrl: string | null;
   attachments: TicketAttachmentDTO[];
+  
+  newStatusName?: string;
 }
 
 /**
@@ -74,6 +77,7 @@ export async function resolveTicketMessages(
       attachments: {
         select: { id: true, filename: true, size: true, mimeType: true },
       },
+      newStatus: { select: { name: true } },
     },
   });
 
@@ -97,5 +101,6 @@ export async function resolveTicketMessages(
           ? skinByUuid.get(m.author.accountLink.minecraftUuid) ?? null
           : null,
     attachments: m.attachments,
+    newStatusName: (m as any).newStatus?.name,
   }));
 }

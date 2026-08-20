@@ -37,7 +37,6 @@ export default async function AccountTicketViewerPage({
 
   if (!ticket || !canViewTicket(viewer, ticket)) notFound();
 
-  const isOwner = ticket.userId === viewer.id;
   const canEdit = isTicketEditor(viewer);
   const canDelete = isTicketDeleter(viewer);
 

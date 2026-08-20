@@ -72,20 +72,13 @@ export default async function TicketPage({
   }
 
   const t = await getTranslations("Tickets");
-  const backHref = isStaff && !isOwner ? `/admin/tickets` : `/account/tickets`;
+  const backHref = `/admin/tickets`;
 
   return (
     <>
-      {/* h-dvh, not h-screen: 100vh on mobile Chrome/Safari measures the
-          viewport as if the address bar were hidden, so a flex-col layout
-          pinned to that height gets its bottom edge (the reply box here)
-          pushed behind the browser's own UI chrome whenever it's visible.
-          dvh tracks the actual visible height instead. */}
-      <main className="relative overflow-hidden h-dvh flex flex-col px-6 pt-24 pb-8">
-        <div className="relative z-10 max-w-2xl mx-auto w-full flex-1 flex flex-col min-h-0">
-          <Link href={backHref} className="text-xs text-foreground/45 hover:text-foreground/70 transition-colors mb-4 inline-block shrink-0">
-            {t("backToList")}
-          </Link>
+      
+      <div className="w-full flex-1 flex flex-col min-h-0">
+
 
           <div className="flex items-center justify-between gap-4 flex-wrap mb-4 shrink-0">
             <h1 className="text-2xl text-primary/90 leading-tight" style={{ fontFamily: "var(--font-body)" }}>
@@ -156,7 +149,6 @@ export default async function TicketPage({
             />
           </div>
         </div>
-      </main>
     </>
   );
 }

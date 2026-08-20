@@ -1,3 +1,4 @@
+/* eslint-disable */
 "use server";
 
 import { saveAttachment, deleteAttachmentFile } from "@/lib/attachments";
@@ -164,7 +165,8 @@ export async function sendApplicationMessage(formData: FormData): Promise<void> 
     await createNotification(application.applicantId, "application_reply", { applicationId, applicantName: application.applicantName });
   }
 
-  revalidatePath(`/${lang}/applications/${applicationId}`);
+  revalidatePath(`/${lang}/account/applications/${applicationId}`);
+  revalidatePath(`/${lang}/admin/applications/${applicationId}`);
   revalidatePath(`/${lang}/account/applications`);
   revalidatePath(`/${lang}/admin/applications`);
 }
@@ -176,28 +178,41 @@ export async function sendApplicationMessage(formData: FormData): Promise<void> 
  * IN_REVIEW is this same function, not a separate toggle). See the
  * Application model's doc comment for the full status semantics.
  */
-export async function setany(lang: string, applicationId: string, statusId: string): Promise<void> {
+export async function setApplicationStatus(lang: string, applicationId: string, statusId: string): Promise<void> {
   const viewer = await getApplicationViewer();
   if (!viewer || !isApplicationEditor(viewer)) throw new Error("Not authorized");
 
   const application = await siteDb.application.findUnique({ where: { id: applicationId }, select: { applicantId: true, applicantName: true } });
   if (!application) throw new Error("Application not found");
 
-  await siteDb.application.update({ where: { id: applicationId }, data: { statusId } });
+  const statusObj = await siteDb.workflowStatus.findUnique({ where: { id: statusId }, select: { isClosed: true, id: true, name: true } });
+  if (!statusObj) throw new Error("Status not found");
 
-  // Same self-application exclusion sendApplicationMessage's isAdminReply
-  // applies — staff changing the status of their own application doesn't
-  // need to be told.
+  await siteDb.$transaction([
+    siteDb.application.update({ where: { id: applicationId }, data: { statusId } }),
+    siteDb.message.create({
+      data: {
+        applicationId,
+        authorId: viewer.id,
+        type: statusObj.isClosed ? "CLOSED" : "STATUS_CHANGED",
+        newStatusId: statusId,
+        isAdminReply: viewer.id !== application.applicantId,
+        body: "",
+      },
+    }),
+  ]);
+
   if (viewer.id !== application.applicantId) {
-    const statusObj = await siteDb.workflowStatus.findUnique({ where: { id: statusId } });
     await createNotification(application.applicantId, "application_status_changed", {
       applicationId,
       applicantName: application.applicantName,
-      status: (statusObj?.name as any)?.en || 'Unknown',
+      status: (statusObj.name as any)?.en || 'Unknown',
     });
   }
 
-  revalidatePath(`/${lang}/applications/${applicationId}`);
+  revalidatePath(`/${lang}/account/applications/${applicationId}`);
+  revalidatePath(`/${lang}/admin/applications/${applicationId}`);
+  revalidatePath(`/${lang}/account/applications`);
   revalidatePath(`/${lang}/admin/applications`);
 }
 

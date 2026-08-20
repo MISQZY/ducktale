@@ -47,7 +47,7 @@ export function NewReportForm({ lang }: { lang: string }) {
       files.forEach((f) => formData.append("files", f));
 
       const { id } = await createReport(formData);
-      router.push(`/reports/${id}`);
+      router.push(`/account/reports/${id}`);
     } catch (err) {
       setError((err instanceof Error && err.message) || t("errors.generic"));
       setSubmitting(false);

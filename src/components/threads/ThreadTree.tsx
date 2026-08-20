@@ -12,6 +12,10 @@ export interface ThreadTreeItem {
   title: string;
   authorNickname: string;
   updatedAt: string; // ISO
+  typeLabel?: string;
+  targetLabel?: string;
+  statusColor?: string | null;
+  statusName?: string;
 }
 
 interface ThreadTreeProps {
@@ -19,6 +23,7 @@ interface ThreadTreeProps {
   threads: ThreadTreeItem[];
   basePath?: string;
   newButtonLabel?: string;
+  hideNewButton?: boolean;
   noItemsLabel?: string;
 }
 
@@ -31,7 +36,7 @@ function dateGroupLabel(iso: string, lang: string): string {
 }
 
 /** Left sidebar of /threads — a flat, most-recently-active-first list of every thread, visually grouped under a date heading per calendar day. */
-export function ThreadTree({ lang, threads, basePath = "threads", newButtonLabel, noItemsLabel }: ThreadTreeProps) {
+export function ThreadTree({ lang, threads, basePath = "threads", newButtonLabel, noItemsLabel, hideNewButton }: ThreadTreeProps) {
   const t = useTranslations("Threads");
   const pathname = usePathname();
   const activeId = pathname.match(/^\/threads\/([^/]+)$/)?.[1];
@@ -49,18 +54,21 @@ export function ThreadTree({ lang, threads, basePath = "threads", newButtonLabel
 
   return (
     <aside suppressHydrationWarning className="liquid-card w-full h-full flex flex-col min-w-0 overflow-hidden rounded-2xl border border-primary/20 bg-card/50 p-4">
-      <Link
-        href={`/${basePath}/new`}
-        className={cn(
-          buttonVariants({ variant: "outline", size: "sm" }),
-          "w-full gap-1.5 mb-4 shrink-0 bg-card/50 hover:bg-card/80"
-        )}
-      >
-        <Plus size={14} />
-        {newButtonLabel || t("newThread")}
-      </Link>
-
-      <div className="h-px bg-primary/10 shrink-0 -mx-4 mb-4" />
+      {!hideNewButton && (
+        <>
+          <Link
+            href={`/${basePath}/new`}
+            className={cn(
+              buttonVariants({ variant: "outline", size: "sm" }),
+              "w-full gap-1.5 mb-4 shrink-0 bg-card/50 hover:bg-card/80"
+            )}
+          >
+            <Plus size={14} />
+            {newButtonLabel || t("newThread")}
+          </Link>
+          <div className="h-px bg-primary/10 shrink-0 -mx-4 mb-4" />
+        </>
+      )}
 
       <div className="flex-1 min-h-0 overflow-y-auto custom-scrollbar pr-2">
         {threads.length === 0 ? (
@@ -76,14 +84,42 @@ export function ThreadTree({ lang, threads, basePath = "threads", newButtonLabel
                       <Link
                         href={`/${basePath}/${thread.id}`}
                         className={cn(
-                          "flex flex-col gap-0.5 w-full text-left px-2.5 py-2 rounded-lg text-sm transition-colors",
+                          "flex flex-col gap-0 w-full text-left px-2.5 py-2 rounded-lg text-sm transition-colors",
                           activeId === thread.id
                             ? "bg-primary/10 text-primary/90"
                             : "text-foreground/70 hover:bg-primary/5 hover:text-foreground/90"
                         )}
                       >
-                        <span className="truncate font-medium">{thread.title}</span>
-                        <span className="truncate text-[0.65rem] text-foreground/40">{thread.authorNickname}</span>
+                        <div className="flex justify-between items-start gap-2">
+                          <span className="truncate font-medium flex-1">{thread.title}</span>
+                          {thread.statusName && (
+                            <span 
+                              className="text-[0.65rem] font-medium shrink-0 ml-1 mt-0.5" 
+                              style={{ color: thread.statusColor || "inherit" }}
+                            >
+                              {thread.statusName}
+                            </span>
+                          )}
+                        </div>
+                        <div className="flex items-center justify-between gap-2 mt-1 min-w-0">
+                          <span className="truncate text-[0.65rem] text-foreground/40 shrink-0">
+                            {thread.authorNickname}
+                          </span>
+                          {(thread.typeLabel || thread.targetLabel) && (
+                            <div className="flex items-center gap-1.5 min-w-0 justify-end">
+                              {thread.typeLabel && (
+                                <span className="truncate text-[0.6rem] px-1.5 py-0.5 rounded-md bg-foreground/5 text-foreground/50 shrink-0">
+                                  {thread.typeLabel}
+                                </span>
+                              )}
+                              {thread.targetLabel && (
+                                <span className="truncate text-[0.6rem] text-foreground/50">
+                                  → {thread.targetLabel}
+                                </span>
+                              )}
+                            </div>
+                          )}
+                        </div>
                       </Link>
                     </li>
                   ))}

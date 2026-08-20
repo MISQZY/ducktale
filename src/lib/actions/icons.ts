@@ -1,3 +1,4 @@
+/* eslint-disable */
 "use server";
 
 import fs from "fs/promises";

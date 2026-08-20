@@ -41,13 +41,13 @@ type PushRenderer<T extends NotificationType> = (payload: NotificationPayloads[T
  * upgradeable later if a stored locale preference is ever added.
  */
 const PUSH_RENDERERS: { [T in NotificationType]: PushRenderer<T> } = {
-  ticket_reply: (payload) => ({ title: "Новый ответ в тикете", body: `«${payload.ticketSubject}»`, url: `/ru/tickets/${payload.ticketId}` }),
-  ticket_closed: (payload) => ({ title: "Тикет закрыт", body: `«${payload.ticketSubject}»`, url: `/ru/tickets/${payload.ticketId}` }),
+  ticket_reply: (payload) => ({ title: "Новый ответ в тикете", body: `«${payload.ticketSubject}»`, url: `/ru/account/tickets/${payload.ticketId}` }),
+  ticket_closed: (payload) => ({ title: "Тикет закрыт", body: `«${payload.ticketSubject}»`, url: `/ru/account/tickets/${payload.ticketId}` }),
   badge_awarded: (payload) => ({ title: "Новый бейдж", body: `Вы получили «${localizedName(payload.badgeName, "ru")}»`, url: "/ru/profile" }),
-  report_reply: (payload) => ({ title: "Новый ответ по репорту", body: `На «${payload.reportedName}»`, url: `/ru/reports/${payload.reportId}` }),
-  report_status_changed: (payload) => ({ title: "Статус репорта изменён", body: `На «${payload.reportedName}»`, url: `/ru/reports/${payload.reportId}` }),
-  application_reply: (payload) => ({ title: "Новый ответ по заявке", body: `«${payload.applicantName}»`, url: `/ru/applications/${payload.applicationId}` }),
-  application_status_changed: (payload) => ({ title: "Статус заявки изменён", body: `«${payload.applicantName}»`, url: `/ru/applications/${payload.applicationId}` }),
+  report_reply: (payload) => ({ title: "Новый ответ по репорту", body: `На «${payload.reportedName}»`, url: `/ru/account/reports/${payload.reportId}` }),
+  report_status_changed: (payload) => ({ title: "Статус репорта изменён", body: `На «${payload.reportedName}»`, url: `/ru/account/reports/${payload.reportId}` }),
+  application_reply: (payload) => ({ title: "Новый ответ по заявке", body: `«${payload.applicantName}»`, url: `/ru/account/applications/${payload.applicationId}` }),
+  application_status_changed: (payload) => ({ title: "Статус заявки изменён", body: `«${payload.applicantName}»`, url: `/ru/account/applications/${payload.applicationId}` }),
 };
 
 // routing.ts's localePrefix is "always" (every URL needs a /ru or /en

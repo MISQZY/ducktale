@@ -42,7 +42,7 @@ export function NewTicketForm({ lang }: { lang: string }) {
       files.forEach(f => formData.append("files", f));
 
       const { id } = await createTicket(formData);
-      router.push(`/tickets/${id}`);
+      router.push(`/account/tickets/${id}`);
     } catch (err) {
       setError((err instanceof Error && err.message) || t("errors.generic"));
       setSubmitting(false);

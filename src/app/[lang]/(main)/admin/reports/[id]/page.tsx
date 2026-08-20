@@ -64,14 +64,11 @@ export default async function ReportPage({
   }
 
   const t = await getTranslations("Reports");
-  const backHref = isStaff && !isOwner ? `/admin/reports` : `/account/reports`;
+  const backHref = `/admin/reports`;
 
   return (
-    <main className="relative overflow-hidden h-dvh flex flex-col px-6 pt-24 pb-8">
-      <div className="relative z-10 max-w-2xl mx-auto w-full flex-1 flex flex-col min-h-0">
-        <Link href={backHref} className="text-xs text-foreground/45 hover:text-foreground/70 transition-colors mb-4 inline-block shrink-0">
-          {t("backToList")}
-        </Link>
+    <div className="w-full flex-1 flex flex-col min-h-0">
+
 
         <div className="flex items-center justify-between gap-4 flex-wrap mb-1 shrink-0">
           <div className="flex items-baseline gap-2">
@@ -146,6 +143,5 @@ export default async function ReportPage({
           />
         </div>
       </div>
-    </main>
   );
 }

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { getTranslations } from "next-intl/server";
 import { getTicketViewer } from "@/lib/tickets";
 import { siteDb } from "@/lib/site-db";
@@ -71,6 +72,7 @@ async function TicketList({ lang, userId }: { lang: string; userId: string }) {
       subject: true,
       updatedAt: true,
       user: { select: { nickname: true } },
+      status: { select: { color: true, name: true } },
     },
   });
 
@@ -82,6 +84,8 @@ async function TicketList({ lang, userId }: { lang: string; userId: string }) {
         title: t.subject,
         authorNickname: t.user.nickname,
         updatedAt: t.updatedAt.toISOString(),
+        statusColor: t.status.color,
+        statusName: (t.status.name as any)?.[lang] || t.status.name,
       }))}
       basePath="account/tickets"
       newButtonLabel={t("newTicket")} noItemsLabel={t("noTickets")}

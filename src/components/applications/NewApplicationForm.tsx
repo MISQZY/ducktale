@@ -48,7 +48,7 @@ export function NewApplicationForm({ lang }: { lang: string }) {
       files.forEach((f) => formData.append("files", f));
 
       const { id } = await createApplication(formData);
-      router.push(`/applications/${id}`);
+      router.push(`/account/applications/${id}`);
     } catch (err) {
       setError((err instanceof Error && err.message) || t("errors.generic"));
       setSubmitting(false);

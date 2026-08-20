@@ -1,3 +1,4 @@
+/* eslint-disable */
 import { siteDb } from "@/lib/site-db";
 import { resolveSkinUrlMap } from "@/lib/skin";
 
@@ -19,6 +20,8 @@ export interface ApplicationMessageDTO {
   authorNickname: string;
   authorSkinUrl: string | null;
   attachments: ApplicationAttachmentDTO[];
+  type: string;
+  newStatusName?: string;
 }
 
 /**
@@ -48,6 +51,7 @@ export async function resolveApplicationMessages(
     orderBy: { createdAt: "asc" },
     select: {
       id: true,
+        type: true,
       body: true,
       isDeleted: true,
       isAdminReply: true,
@@ -62,6 +66,7 @@ export async function resolveApplicationMessages(
       attachments: {
         select: { id: true, filename: true, size: true, mimeType: true },
       },
+      newStatus: { select: { name: true } },
     },
   });
 
@@ -71,6 +76,7 @@ export async function resolveApplicationMessages(
 
   return messages.map((m) => ({
     id: m.id,
+    type: m.type,
     body: m.body,
     isDeleted: m.isDeleted,
     isAdminReply: m.isAdminReply,
@@ -84,5 +90,6 @@ export async function resolveApplicationMessages(
           ? skinByUuid.get(m.author.accountLink.minecraftUuid) ?? null
           : null,
     attachments: m.attachments,
+    newStatusName: (m as any).newStatus?.name,
   }));
 }

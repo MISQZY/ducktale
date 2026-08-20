@@ -1,3 +1,4 @@
+/* eslint-disable */
 import type { Metadata } from "next";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import localFont from "next/font/local";

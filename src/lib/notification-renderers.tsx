@@ -24,11 +24,11 @@ type Renderer<Type extends NotificationType> = (
 const RENDERERS: { [Type in NotificationType]: Renderer<Type> } = {
   ticket_reply: (payload, { t }) => ({
     message: t("ticketReply", { subject: payload.ticketSubject }),
-    href: `/tickets/${payload.ticketId}`,
+    href: `/account/tickets/${payload.ticketId}`,
   }),
   ticket_closed: (payload, { t }) => ({
     message: t("ticketClosed", { subject: payload.ticketSubject }),
-    href: `/tickets/${payload.ticketId}`,
+    href: `/account/tickets/${payload.ticketId}`,
   }),
   badge_awarded: (payload, { t, lang }) => ({
     message: t("badgeAwarded", { name: localizedName(payload.badgeName, lang) }),
@@ -36,19 +36,19 @@ const RENDERERS: { [Type in NotificationType]: Renderer<Type> } = {
   }),
   report_reply: (payload, { t }) => ({
     message: t("reportReply", { reportedName: payload.reportedName }),
-    href: `/reports/${payload.reportId}`,
+    href: `/account/reports/${payload.reportId}`,
   }),
   report_status_changed: (payload, { t }) => ({
     message: t("reportStatusChanged", { reportedName: payload.reportedName }),
-    href: `/reports/${payload.reportId}`,
+    href: `/account/reports/${payload.reportId}`,
   }),
   application_reply: (payload, { t }) => ({
     message: t("applicationReply", { applicantName: payload.applicantName }),
-    href: `/applications/${payload.applicationId}`,
+    href: `/account/applications/${payload.applicationId}`,
   }),
   application_status_changed: (payload, { t }) => ({
     message: t("applicationStatusChanged", { applicantName: payload.applicantName }),
-    href: `/applications/${payload.applicationId}`,
+    href: `/account/applications/${payload.applicationId}`,
   }),
 };
 

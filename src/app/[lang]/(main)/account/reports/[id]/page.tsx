@@ -33,7 +33,6 @@ export default async function AccountReportViewerPage({
 
   if (!report || !canViewReport(viewer, report)) notFound();
 
-  const isOwner = report.reporterId === viewer.id;
   const canEdit = isReportEditor(viewer);
   const canDelete = isReportDeleter(viewer);
 

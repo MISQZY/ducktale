@@ -7,9 +7,9 @@ interface AdminPageShellProps {
   title: string;
   description: string;
   active: Resource;
-  /** Which tabs the current viewer can open — from getAdminNavAccess() (src/lib/admin.ts). A resource-role holder with e.g. only tickets-view shouldn't see tabs for resources they can't reach. */
   navAccess: Record<Resource, boolean>;
   children: ReactNode;
+  fullHeight?: boolean;
 }
 
 /**
@@ -18,10 +18,10 @@ interface AdminPageShellProps {
  * shift the page. Only the content between AdminNav and the closing tag
  * differs per page.
  */
-export function AdminPageShell({ title, description, active, navAccess, children }: AdminPageShellProps) {
+export function AdminPageShell({ title, description, active, navAccess, children, fullHeight }: AdminPageShellProps) {
   return (
-    <main className="relative overflow-hidden min-h-screen px-6 pt-24 pb-16">
-      <div className="relative z-10 max-w-[1600px] mx-auto">
+    <main className={`relative overflow-hidden px-6 pt-24 pb-8 ${fullHeight ? "h-dvh flex flex-col" : "min-h-screen pb-16"}`}>
+      <div className={`relative z-10 mx-auto w-full ${fullHeight ? "flex-1 flex flex-col min-h-0 max-w-[1600px]" : "max-w-[1600px]"}`}>
         <h1
           className="text-3xl text-primary/90 mb-2 leading-tight text-center"
           style={{ fontFamily: "var(--font-body)" }}

@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/no-unused-vars */
 "use client";
 
 import { useCallback, useEffect, useRef, useState, useTransition, type FormEvent } from "react";
@@ -5,7 +7,7 @@ import { useTranslations } from "next-intl";
 import { Trash2, Paperclip, FileText, Download, X, Image as ImageIcon, ImageOff } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useRouter } from "@/i18n/navigation";
-import { sendReportMessage, setany, deleteReport } from "@/lib/actions/reports";
+import { sendReportMessage, setReportStatus, deleteReport } from "@/lib/actions/reports";
 import { deleteMessage } from "@/lib/actions/messages";
 import { REPORT_MESSAGE_MAX, MAX_FILES_PER_MESSAGE } from "@/lib/reports";
 import { isAllowedAttachmentExtension, ATTACHMENT_ACCEPT } from "@/config/attachments";
@@ -40,7 +42,9 @@ interface ReportMessageData {
   authorId: string;
   authorNickname: string;
   authorSkinUrl: string | null;
-  attachments?: AttachmentData[];
+  type: string;
+  newStatusName?: string;
+attachments?: AttachmentData[];
 }
 
 interface ReportThreadProps {
@@ -257,7 +261,7 @@ export function ReportThread({ lang, reportId, reportedName, initialStatus, init
   function handleStatusChange(next: any) {
     startTransition(async () => {
       try {
-        await setany(lang, reportId, next);
+        await setReportStatus(lang, reportId, next);
         setStatus(next);
       } catch {
         setError(t("errors.generic"));

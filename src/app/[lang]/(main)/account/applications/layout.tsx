@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { getTranslations } from "next-intl/server";
 import { getApplicationViewer } from "@/lib/applications";
 import { siteDb } from "@/lib/site-db";
@@ -69,8 +70,10 @@ async function ApplicationList({ lang, userId }: { lang: string; userId: string 
     select: {
       id: true,
       applicantName: true,
+      serverId: true,
       updatedAt: true,
       applicant: { select: { nickname: true } },
+      status: { select: { color: true, name: true } },
     },
   });
 
@@ -82,6 +85,9 @@ async function ApplicationList({ lang, userId }: { lang: string; userId: string 
         title: a.applicantName,
         authorNickname: a.applicant.nickname,
         updatedAt: a.updatedAt.toISOString(),
+        targetLabel: a.serverId,
+        statusColor: a.status.color,
+        statusName: (a.status.name as any)?.[lang] || a.status.name,
       }))}
       basePath="account/applications"
       newButtonLabel={t("newApplication")} noItemsLabel={t("noApplications")}

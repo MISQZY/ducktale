@@ -9,7 +9,7 @@ export default async function AccountTicketsPage() {
       <div className="w-16 h-16 rounded-2xl bg-card border border-primary/20 flex items-center justify-center">
         <MessageSquare size={24} className="text-primary/60" />
       </div>
-      <p>{t("noTickets")}</p>
+      <p>{t("selectTicketHint")}</p>
     </div>
   );
 }

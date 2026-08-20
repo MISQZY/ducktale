@@ -12,7 +12,6 @@ export default async function WhitelistPage({
 }) {
   const { lang } = await params;
   await requirePublicResourceRole(lang, "whitelist-page-view");
-  const t = await getTranslations("Nav");
 
   const whitelistStatuses = await getServerWhitelistStatuses().catch((err) => {
     console.error("[whitelist-page] Failed to load server whitelist statuses:", err);
