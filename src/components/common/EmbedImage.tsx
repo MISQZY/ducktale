@@ -53,23 +53,18 @@ export function EmbedImage({ url, filename, className, imgClassName, onError }: 
         modalMode={true}
         header={({ fullscreen, toggleFullscreen, closeButtonRef }) => (
           <div className="flex items-center gap-2 px-5 py-3 border-b border-primary/20 bg-card relative z-10 shrink-0">
-            <div className="flex gap-1.5">
+            <div className="flex gap-1.5 group/mac">
               <span className="w-2.5 h-2.5 rounded-full bg-rose-500/70" />
-              <span className="w-2.5 h-2.5 rounded-full bg-primary/70" />
+              <button
+                ref={closeButtonRef}
+                onClick={toggleFullscreen}
+                className="relative w-2.5 h-2.5 rounded-full bg-primary/70 flex items-center justify-center hover:bg-primary transition-colors outline-none cursor-pointer group/mac-btn"
+              />
               <span className="w-2.5 h-2.5 rounded-full bg-emerald-500/70" />
             </div>
             <p className="text-foreground/25 text-xs tracking-widest ml-3 font-mono truncate max-w-[200px] sm:max-w-[400px]">
               {filename}
             </p>
-            <div className="ml-auto flex items-center gap-4">
-              <button
-                ref={closeButtonRef}
-                onClick={toggleFullscreen}
-                className="flex items-center justify-center text-primary/40 hover:text-primary transition-colors outline-none rounded"
-              >
-                {fullscreen ? <Minimize2 size={14} /> : <Maximize2 size={14} />}
-              </button>
-            </div>
           </div>
         )}
       >

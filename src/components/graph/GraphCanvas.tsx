@@ -46,7 +46,7 @@ export function GraphCanvas({
       container: graphContainer,
       autoResize: true,
       panning: { enabled: true, eventTypes: ["leftMouseDown"] },
-      mousewheel: { enabled: true, modifiers: ["ctrl", "meta"], minScale: 0.2, maxScale: 1.5 },
+      mousewheel: { enabled: true, minScale: 0.2, maxScale: 1.5 },
       grid: { size: 1, visible: false },
       ...graphOptions,
     });
@@ -101,8 +101,50 @@ export function GraphCanvas({
 
     const cleanup = onInit(g);
 
+    // Touch pinch-to-zoom
+    let initialDist = 0;
+    let initialScale = 1;
+
+    const getDistance = (touches: TouchList) => {
+      const dx = touches[0].clientX - touches[1].clientX;
+      const dy = touches[0].clientY - touches[1].clientY;
+      return Math.sqrt(dx * dx + dy * dy);
+    };
+
+    const handleTouchStart = (e: TouchEvent) => {
+      if (e.touches.length === 2) {
+        e.preventDefault();
+        initialDist = getDistance(e.touches);
+        initialScale = g.zoom();
+      }
+    };
+
+    const handleTouchMove = (e: TouchEvent) => {
+      if (e.touches.length === 2 && initialDist > 0) {
+        e.preventDefault();
+        const currentDist = getDistance(e.touches);
+        const scale = initialScale * (currentDist / initialDist);
+        g.zoomTo(Math.min(Math.max(scale, 0.2), 1.5));
+      }
+    };
+
+    const handleTouchEnd = (e: TouchEvent) => {
+      if (e.touches.length < 2) {
+        initialDist = 0;
+      }
+    };
+
+    container.addEventListener("touchstart", handleTouchStart, { passive: false });
+    container.addEventListener("touchmove", handleTouchMove, { passive: false });
+    container.addEventListener("touchend", handleTouchEnd);
+    container.addEventListener("touchcancel", handleTouchEnd);
+
     return () => {
       observer.disconnect();
+      container.removeEventListener("touchstart", handleTouchStart);
+      container.removeEventListener("touchmove", handleTouchMove);
+      container.removeEventListener("touchend", handleTouchEnd);
+      container.removeEventListener("touchcancel", handleTouchEnd);
       if (cleanup) cleanup();
       setTimeout(() => {
         g.dispose();
@@ -124,38 +166,20 @@ export function GraphCanvas({
       collapseLabel={collapseLabel}
       header={({ fullscreen, toggleFullscreen, closeButtonRef }) => (
         <div className="flex items-center gap-2 px-5 py-3 border-b border-primary/20 bg-card/40 relative z-10">
-          <div className="flex gap-1.5">
+          <div className="flex gap-1.5 group/mac">
             <span className="w-2.5 h-2.5 rounded-full bg-rose-500/70" />
-            <span className="w-2.5 h-2.5 rounded-full bg-primary/70" />
-            <span className="w-2.5 h-2.5 rounded-full bg-emerald-500/70" />
-          </div>
-          <p className="text-foreground/25 text-xs tracking-widest ml-3 font-mono">
-            {header as React.ReactNode}
-          </p>
-          <div className="ml-auto flex items-center gap-3">
-            <div className="flex items-center gap-1.5 mr-1 border-r border-primary/10 pr-4">
-              <button onClick={zoomOut} className="flex items-center justify-center p-1 text-primary/40 hover:text-primary transition-colors outline-none rounded" title="Отдалить">
-                <Minus size={14} />
-              </button>
-              <button onClick={zoomIn} className="flex items-center justify-center p-1 text-primary/40 hover:text-primary transition-colors outline-none rounded" title="Приблизить">
-                <Plus size={14} />
-              </button>
-              <button onClick={zoomFit} className="flex items-center justify-center p-1 text-primary/40 hover:text-primary transition-colors outline-none rounded ml-1" title="По центру">
-                <Target size={14} />
-              </button>
-            </div>
-            
             <button
               ref={closeButtonRef}
               onClick={toggleFullscreen}
               aria-label={fullscreen ? collapseLabel : expandLabel}
               title={fullscreen ? collapseLabel : expandLabel}
-              className="flex items-center justify-center text-primary/40 hover:text-primary transition-colors outline-none rounded"
-            >
-              {fullscreen ? <Minimize2 size={12} /> : <Maximize2 size={12} />}
-            </button>
-            <Lock size={10} className="text-primary/40" />
+              className="relative w-2.5 h-2.5 rounded-full bg-primary/70 flex items-center justify-center hover:bg-primary transition-colors outline-none cursor-pointer group/mac-btn"
+            />
+            <span className="w-2.5 h-2.5 rounded-full bg-emerald-500/70" />
           </div>
+          <p className="text-foreground/25 text-xs tracking-widest ml-3 font-mono">
+            {header as React.ReactNode}
+          </p>
         </div>
       )}
     >
@@ -168,6 +192,18 @@ export function GraphCanvas({
         style={{ backgroundImage: `url("${GRID_BG_URL}")`, backgroundSize: `${GRID_CELL}px ${GRID_CELL}px`, touchAction: "none" }}
       />
       
+      <div className="absolute top-3 right-3 z-10 flex gap-2">
+        <button onClick={zoomOut} className="flex items-center justify-center h-9 w-9 rounded-md border border-input bg-stone-800 text-foreground hover:bg-stone-700 transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring" title="Отдалить">
+          <Minus size={16} />
+        </button>
+        <button onClick={zoomIn} className="flex items-center justify-center h-9 w-9 rounded-md border border-input bg-stone-800 text-foreground hover:bg-stone-700 transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring" title="Приблизить">
+          <Plus size={16} />
+        </button>
+        <button onClick={zoomFit} className="flex items-center justify-center h-9 w-9 rounded-md border border-input bg-stone-800 text-foreground hover:bg-stone-700 transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring" title="По центру">
+          <Target size={16} />
+        </button>
+      </div>
+
       {children}
     </EmbedPage>
   );

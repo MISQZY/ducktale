@@ -74,26 +74,20 @@ export function EmbedPage({
 
   const defaultHeader = (
     <div className="flex items-center gap-2 px-5 py-3 border-b border-primary/20 bg-card relative z-10 shrink-0">
-      <div className="flex gap-1.5">
+      <div className="flex gap-1.5 group/mac">
         <span className="w-2.5 h-2.5 rounded-full bg-rose-500/70" />
-        <span className="w-2.5 h-2.5 rounded-full bg-primary/70" />
-        <span className="w-2.5 h-2.5 rounded-full bg-emerald-500/70" />
-      </div>
-      <p className="text-foreground/25 text-xs tracking-widest ml-3 font-mono">
-        {title}
-      </p>
-      <div className="ml-auto flex items-center gap-3">
         <button
           ref={closeButtonRef}
           onClick={toggleFullscreen}
           aria-label={fullscreen ? collapseLabel : expandLabel}
           title={fullscreen ? collapseLabel : expandLabel}
-          className="flex items-center justify-center text-primary/40 hover:text-primary transition-colors outline-none rounded"
-        >
-          {fullscreen ? <Minimize2 size={12} /> : <Maximize2 size={12} />}
-        </button>
-        <Lock size={10} className="text-primary/40" />
+          className="relative w-2.5 h-2.5 rounded-full bg-primary/70 flex items-center justify-center hover:bg-primary transition-colors outline-none cursor-pointer group/mac-btn"
+        />
+        <span className="w-2.5 h-2.5 rounded-full bg-emerald-500/70" />
       </div>
+      <p className="text-foreground/25 text-xs tracking-widest ml-3 font-mono">
+        {title}
+      </p>
     </div>
   );
 

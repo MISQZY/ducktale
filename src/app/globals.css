@@ -313,6 +313,7 @@ body {
     #b8860b 70%,
     #b8860b 100%
   );
+  background-size: 300% auto;
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
