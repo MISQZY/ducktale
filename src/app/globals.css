@@ -861,7 +861,11 @@ body {
 
 @keyframes marquee {
   0% { transform: translate3d(0, 0, 0); }
-  100% { transform: translate3d(-50%, 0, 0); }
+  /* Translate by exactly the width of one set of items + one gap. 
+     The container width is 2 * (items_width) + 1 * gap.
+     50% of container = items_width + 0.5 * gap.
+     So we subtract another 0.5 * gap (8px for gap-4) to perfectly align the second set! */
+  100% { transform: translate3d(calc(-50% - 0.5rem), 0, 0); }
 }
 .animate-marquee {
   animation: marquee 120s linear infinite;
