@@ -17,7 +17,8 @@ async function findSuggestions(q: string): Promise<PlayerSuggestion[]> {
     return await db.$queryRaw(Prisma.sql`
       SELECT p.name, s.value AS nickname
       ${PLAYER_NICKNAME_JOIN}
-      WHERE p.name LIKE ${"%" + q + "%"} OR s.value LIKE ${"%" + q + "%"}
+      WHERE (p.name LIKE ${"%" + q + "%"} OR s.value LIKE ${"%" + q + "%"})
+        AND p.uuid NOT IN ('00000000-0000-0000-0000-000000000000', '0000-0000-0000-0000')
       ORDER BY (LOWER(p.name) = LOWER(${q}) OR LOWER(s.value) = LOWER(${q})) DESC, p.name ASC
       LIMIT ${MAX_RESULTS}
     `) as PlayerSuggestion[];

@@ -6,7 +6,8 @@ import { ThreadView } from "@/components/threads/ThreadView";
 import { Link } from "@/i18n/navigation";
 import { PlayerAvatar } from "@/components/common/PlayerAvatar";
 import { CompactBadgeChip } from "@/components/badges/CompactBadgeChip";
-import { getPlayerCard } from "@/lib/player-card";
+
+import { resolveSkinUrl } from "@/lib/skin";
 import { resolveThreadMessages } from "@/lib/thread-data";
 import { localizedName, type LocalizedName } from "@/lib/i18n-name";
 import type { Metadata } from "next";
@@ -15,13 +16,45 @@ import type { Metadata } from "next";
 // thread fetch below — this only ever needs the title column, not worth a
 // cache()-shared fetch like profile/[username]/page.tsx's (that one avoids
 // duplicating a much heavier query).
+import { cache } from "react";
+
+const getThread = cache(async (id: string) => {
+  return await siteDb.thread.findUnique({
+    where: { id },
+    select: {
+      id: true,
+      title: true,
+      description: true,
+      status: { select: { isClosed: true } },
+      authorId: true,
+      author: {
+        select: {
+          nickname: true,
+          accountLink: {
+            select: { status: true, minecraftName: true, minecraftUuid: true },
+          },
+          badges: {
+            select: {
+              badge: {
+                select: { id: true, name: true, icon: true, color: true, description: true, earnCondition: true },
+              },
+            },
+            where: { pinned: true },
+            take: 1,
+          },
+        },
+      },
+    },
+  });
+});
+
 export async function generateMetadata({
   params,
 }: {
   params: Promise<{ id: string }>;
 }): Promise<Metadata> {
   const { id } = await params;
-  const thread = await siteDb.thread.findUnique({ where: { id }, select: { title: true } });
+  const thread = await getThread(id);
   return thread ? { title: thread.title } : {};
 }
 
@@ -41,31 +74,7 @@ export default async function ThreadPage({
   // record below, so it runs alongside the thread query instead of after it
   // — an avoidable serial DB round trip otherwise.
   const [thread, messages] = await Promise.all([
-    siteDb.thread.findUnique({
-      where: { id },
-      select: {
-        id: true,
-        title: true,
-        description: true,
-        status: { select: { isClosed: true } },
-        authorId: true,
-        author: {
-          select: {
-            nickname: true,
-            accountLink: {
-              select: { status: true, minecraftName: true },
-            },
-            badges: {
-              select: {
-                badge: {
-                  select: { id: true, name: true, icon: true, color: true, description: true, earnCondition: true },
-                },
-              },
-            },
-          },
-        },
-      },
-    }),
+    getThread(id),
     resolveThreadMessages(id),
   ]);
 
@@ -75,9 +84,9 @@ export default async function ThreadPage({
   // owner-only/admin-only split here) — only skip the extra getPlayerCard
   // fetch when the author has no confirmed Minecraft link to look up. Stays
   // serial (after the Promise.all above) since it depends on thread.author.
-  let playerCard = null;
-  if (thread.author.accountLink?.status === "CONFIRMED" && thread.author.accountLink.minecraftName) {
-    playerCard = await getPlayerCard(thread.author.accountLink.minecraftName);
+  let authorSkinUrl = null;
+  if (thread.author.accountLink?.status === "CONFIRMED" && thread.author.accountLink.minecraftUuid) {
+    authorSkinUrl = await resolveSkinUrl(thread.author.accountLink.minecraftUuid);
   }
 
   const t = await getTranslations("Threads");
@@ -94,14 +103,12 @@ export default async function ThreadPage({
         </h1>
         <div className="flex items-center gap-2">
           <span className="text-xs text-foreground/45">{t("initiatorLabel")}</span>
-          {thread.author.accountLink?.status === "CONFIRMED" && thread.author.accountLink.minecraftName && playerCard ? (
+          {thread.author.accountLink?.status === "CONFIRMED" ? (
             <PlayerAvatar
               name={thread.author.nickname}
-              skinUrl={playerCard.skinUrl}
+              skinUrl={authorSkinUrl}
               hasSiteProfile={true}
               linked={true}
-              online={playerCard.online}
-              siteOnline={playerCard.siteOnline}
               appendNode={
                 thread.author.badges.length > 0 ? (
                   <div className="flex items-center gap-1">
@@ -162,3 +169,5 @@ export default async function ThreadPage({
     </div>
   );
 }
+
+// fix hmr

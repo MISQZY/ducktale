@@ -127,7 +127,7 @@ export async function getRankUsers(group: string) {
       return await db.$queryRaw`
         SELECT uuid, name as username
         FROM fp_player
-        WHERE uuid IN (${Prisma.join(missingUuids)})
+        WHERE uuid IN (${Prisma.join(missingUuids)}) AND uuid NOT IN ('00000000-0000-0000-0000-000000000000', '0000-0000-0000-0000')
       ` as { uuid: string, username: string }[];
     });
     for (const p of fpPlayers) {

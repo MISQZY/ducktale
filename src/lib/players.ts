@@ -23,6 +23,7 @@ export async function resolveNicknames(usernames: string[]): Promise<Map<string,
       SELECT p.name, s.value AS nickname
       ${PLAYER_NICKNAME_JOIN}
       WHERE p.name IN (${Prisma.join(usernames)})
+        AND p.uuid NOT IN ('00000000-0000-0000-0000-000000000000', '0000-0000-0000-0000')
     `) as { name: string; nickname: string | null }[];
   });
 
@@ -55,6 +56,7 @@ export async function getAllOnlinePlayers(
           ON  s.player = p.id
           AND s.type = 'SERVER'
         WHERE p.online = 1
+          AND p.uuid NOT IN ('00000000-0000-0000-0000-000000000000', '0000-0000-0000-0000')
         ORDER BY p.name ASC
       `)
     )
@@ -115,7 +117,12 @@ export async function getPlayersLastSeenMap(uuids: string[], dbKey: string = "de
   return withCache(`players-last-seen:${dbKey}:${sortedUuids.join(",")}`, 30_000, async () => {
     const players = await withDb(dbKey, (db) => 
       db.fp_player.findMany({
-        where: { uuid: { in: sortedUuids } },
+        where: { 
+          uuid: { 
+            in: sortedUuids,
+            notIn: ['00000000-0000-0000-0000-000000000000', '0000-0000-0000-0000']
+          } 
+        },
         select: { uuid: true, fp_time: { select: { last: true } } }
       })
     );

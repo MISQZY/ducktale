@@ -26,7 +26,7 @@ export async function resolveSkinUrl(uuid: string): Promise<string | null> {
 async function resolvePlayerName(uuid: string): Promise<string | null> {
   const rows = await withDb("default", async (db) => {
     return await db.$queryRaw(Prisma.sql`
-      SELECT name FROM fp_player WHERE uuid = ${uuid} LIMIT 1
+      SELECT name FROM fp_player WHERE uuid = ${uuid} AND uuid NOT IN ('00000000-0000-0000-0000-000000000000', '0000-0000-0000-0000') LIMIT 1
     `) as { name: string }[];
   });
   return rows.length > 0 ? rows[0].name : null;
@@ -159,7 +159,7 @@ async function resolveSkinUrlsUncachedBatch(uuids: string[]): Promise<Map<string
     if (fallbackUuids.length > 0) {
       const nameByUuid = await withDb("default", async (defaultDb) => {
         const rows = await defaultDb.$queryRaw(Prisma.sql`
-          SELECT uuid, name FROM fp_player WHERE uuid IN (${Prisma.join(fallbackUuids)})
+          SELECT uuid, name FROM fp_player WHERE uuid IN (${Prisma.join(fallbackUuids)}) AND uuid NOT IN ('00000000-0000-0000-0000-000000000000', '0000-0000-0000-0000')
         `) as { uuid: string; name: string }[];
         return new Map(rows.map((r) => [r.uuid, r.name]));
       });

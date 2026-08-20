@@ -9,6 +9,7 @@ import { useSession } from "next-auth/react";
 import { useTranslations } from "next-intl";
 import Logo from "./ui/Logo";
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 import { PlayerAvatar } from "@/components/common/PlayerAvatar";
 import { getCachedAvatar, getCachedAvatarFromStorage, setCachedAvatar, type AvatarCacheEntry } from "@/lib/avatar-cache";
 import { nameColorStyle } from "@/lib/name-color";
@@ -64,7 +65,7 @@ function DuckIcon({ state }: { state: DuckyState }) {
       <circle cx="13" cy="6.2" r="0.7" fill="var(--background)" />
       {/* wing hint */}
       <ellipse cx="7" cy="11" rx="2.5" ry="1.5" fill={duckColor} opacity="0.5" />
-      {/* speaker — sound indicator, bottom-right corner. Muted is drawn as
+      {/* speaker вЂ” sound indicator, bottom-right corner. Muted is drawn as
           a plain speaker with no sound wave, rather than struck through. */}
       {visible && (
         <g opacity="0.85">
@@ -79,8 +80,8 @@ function DuckIcon({ state }: { state: DuckyState }) {
 }
 
 /**
- * The "Профиль" link renders as a self-contained pill (own border/background)
- * rather than a plain text label — it's not another page to browse to, it's
+ * The "РџСЂРѕС„РёР»СЊ" link renders as a self-contained pill (own border/background)
+ * rather than a plain text label вЂ” it's not another page to browse to, it's
  * "you", so it needs to read differently from the rest of NAV_LINKS at a
  * glance. Session status starts "loading" briefly on first paint; treated
  * the same as unauthenticated so there's no skeleton, just a quick flip to
@@ -88,12 +89,12 @@ function DuckIcon({ state }: { state: DuckyState }) {
  */
 function AccountLinkContent({ fallbackLabel }: { fallbackLabel: string }) {
   const { data: session, status } = useSession();
-  // Lazy initializer reads the in-memory cache synchronously — this only
+  // Lazy initializer reads the in-memory cache synchronously вЂ” this only
   // ever has anything on a client-side remount (navigating in from outside
   // the (main) route group's persistent layout) within the same page load;
   // a hard reload re-evaluates the whole bundle, so this is always a miss
   // right after one. That's on purpose: it must render identically to SSR
-  // (also always a miss) or React would flag a hydration mismatch — the
+  // (also always a miss) or React would flag a hydration mismatch вЂ” the
   // localStorage-backed cache that *does* survive a hard reload is only
   // ever consulted from the effect below, never from render. See
   // src/lib/avatar-cache.ts's module doc comment for why.
@@ -106,7 +107,7 @@ function AccountLinkContent({ fallbackLabel }: { fallbackLabel: string }) {
     const uid = session?.user?.id;
     if (status !== "authenticated" || !uid) return;
 
-    // getCachedAvatar first (usually a no-op — the initializer above
+    // getCachedAvatar first (usually a no-op вЂ” the initializer above
     // already read it, this only helps the rare render where `uid` wasn't
     // known yet at mount), then the localStorage-backed one, which is what
     // actually saves the network round trip after a hard reload.
@@ -132,21 +133,25 @@ function AccountLinkContent({ fallbackLabel }: { fallbackLabel: string }) {
   const colorStyle = nameColorStyle(avatar.nameColor);
 
   // Same corner-ornament + square-cornered frame used by every other card
-  // in the app (account dashboard, admin lists, ...) — a rounded-full pill
+  // in the app (account dashboard, admin lists, ...) вЂ” a rounded-full pill
   // around a square-cornered avatar was two competing border shapes
   // fighting for the same few pixels. The avatar goes borderless since the
   // outer frame is now the one visual border, not two nested ones.
   //
   // hasSiteProfile/linked are false: PlayerAvatar's own Link would nest
   // inside the <Link href="/profile"> this already renders inside (see
-  // below), which isn't valid — this just needs the avatar+name rendering,
+  // below), which isn't valid вЂ” this just needs the avatar+name rendering,
   // not a second link. That also gets the standard letter-initial fallback
   // (via PlayerAvatar's <Avatar>/<AvatarFallback>) for a not-yet-linked
   // account, instead of a generic icon.
   //
-  // Full nickname always shown (no truncation) — growName={false} keeps
+  // Full nickname always shown (no truncation) вЂ” growName={false} keeps
   // the chip sized to its own content instead of stretching, so a long
   // name just makes the chip wider rather than needing to be cut off.
+  if (status === "loading") {
+    return <Skeleton className="h-9 w-28 rounded-lg opacity-40" />;
+  }
+
   if (status === "authenticated" && session.user?.name) {
     return (
       <PlayerAvatar
@@ -176,20 +181,20 @@ function AccountLinkContent({ fallbackLabel }: { fallbackLabel: string }) {
 }
 
 interface NavbarProps {
-  /** Whether the current viewer (anonymous-via-Guest-role or logged-in) can open /leaderboard — hides that nav link instead of showing a dead end that redirects away. Defaults to visible (e.g. not-found.tsx, which renders Navbar without computing this) rather than hiding navigation on an edge-case page. */
+  /** Whether the current viewer (anonymous-via-Guest-role or logged-in) can open /leaderboard вЂ” hides that nav link instead of showing a dead end that redirects away. Defaults to visible (e.g. not-found.tsx, which renders Navbar without computing this) rather than hiding navigation on an edge-case page. */
   canViewLeaderboard?: boolean;
-  /** Same idea for /threads — that route only requires a session (no resource-role of its own, see getThreadViewer's doc comment), so this is just "is anyone logged in". */
+  /** Same idea for /threads вЂ” that route only requires a session (no resource-role of its own, see getThreadViewer's doc comment), so this is just "is anyone logged in". */
   canViewThreads?: boolean;
-  /** Same idea as canViewLeaderboard — resolved through the guest Role for an anonymous visitor (hasPublicResourceRole("maps-view")), not just session.user.roles. */
+  /** Same idea as canViewLeaderboard вЂ” resolved through the guest Role for an anonymous visitor (hasPublicResourceRole("maps-view")), not just session.user.roles. */
   canViewMaps?: boolean;
-  /** Same idea as canViewMaps — hasPublicResourceRole("events-page-view"). */
+  /** Same idea as canViewMaps вЂ” hasPublicResourceRole("events-page-view"). */
   canViewEvents?: boolean;
 }
 
 export default function Navbar({ canViewLeaderboard = true, canViewThreads = true, canViewMaps = true, canViewEvents = true }: NavbarProps) {
   const t = useTranslations("Nav");
   const pathname = usePathname();
-  // Gates the bell — an anonymous visitor has no notifications, and
+  // Gates the bell вЂ” an anonymous visitor has no notifications, and
   // NotificationsContext only polls for an authenticated session anyway
   // (see its own doc comment), so there's nothing for the bell to show them.
   const { status } = useSession();
@@ -255,7 +260,7 @@ export default function Navbar({ canViewLeaderboard = true, canViewThreads = tru
             <Logo />
           </Link>
 
-          {/* Desktop nav links — absolutely centered against the header
+          {/* Desktop nav links вЂ” absolutely centered against the header
               row (not just the space between logo and the right group),
               so they stay centered regardless of how wide either side is. */}
           <div className="nav-desktop absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 items-center gap-1">
@@ -280,7 +285,7 @@ export default function Navbar({ canViewLeaderboard = true, canViewThreads = tru
             ))}
           </div>
 
-          {/* Desktop right group: account + utilities — not part of the
+          {/* Desktop right group: account + utilities вЂ” not part of the
               centered nav, out of normal flow it stays clear of. */}
           <div className="nav-desktop items-center gap-1 shrink-0">
             <Link href="/profile" className="rounded-lg shrink-0">
@@ -292,7 +297,7 @@ export default function Navbar({ canViewLeaderboard = true, canViewThreads = tru
             <LanguageSwitcher className="ml-1" />
             <ThemeToggle />
 
-            {/* Duck toggle — desktop */}
+            {/* Duck toggle вЂ” desktop */}
             <Button
               variant="ghost"
               size="icon"
@@ -316,7 +321,7 @@ export default function Navbar({ canViewLeaderboard = true, canViewThreads = tru
             <LanguageSwitcher />
             <ThemeToggle />
 
-            {/* Duck toggle — mobile (outside sheet) */}
+            {/* Duck toggle вЂ” mobile (outside sheet) */}
             <Button
               variant="ghost"
               size="icon"
@@ -404,3 +409,6 @@ export default function Navbar({ canViewLeaderboard = true, canViewThreads = tru
     </header>
   );
 }
+
+
+// fix hmr

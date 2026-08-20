@@ -239,7 +239,8 @@ async function resolveIdentityUncached(search: string): Promise<IdentityRow | nu
           ${PLAYER_NICKNAME_JOIN}
           LEFT JOIN fp_time t ON t.player = p.id
           LEFT JOIN fp_setting srv ON srv.player = p.id AND srv.type = 'SERVER'
-          WHERE p.name LIKE ${"%" + search + "%"} OR s.value LIKE ${"%" + search + "%"}
+          WHERE (p.name LIKE ${"%" + search + "%"} OR s.value LIKE ${"%" + search + "%"})
+            AND p.uuid NOT IN ('00000000-0000-0000-0000-000000000000', '0000-0000-0000-0000')
           ORDER BY (LOWER(p.name) = LOWER(${search}) OR LOWER(s.value) = LOWER(${search})) DESC, p.name ASC
           LIMIT 1
         `);
@@ -248,7 +249,7 @@ async function resolveIdentityUncached(search: string): Promise<IdentityRow | nu
       // causes a severe N+1 full table scan. We pick a random ID first, then
       // run the heavy query only for that row.
       const randomRow = await db.$queryRaw<{ id: number }[]>(Prisma.sql`
-        SELECT id FROM fp_player ORDER BY RAND() LIMIT 1
+        SELECT id FROM fp_player WHERE uuid NOT IN ('00000000-0000-0000-0000-000000000000', '0000-0000-0000-0000') ORDER BY RAND() LIMIT 1
       `);
       if (randomRow.length === 0) return null;
 
@@ -393,18 +394,23 @@ async function resolveNameColorUncached(uuid: string): Promise<PlayerColor | nul
  * DB already shared with the live game servers.
  */
 export async function resolveNameColors(
-  uuids: (string | null | undefined)[],
-  chunkSize = 5
+  uuids: (string | null | undefined)[]
 ): Promise<(PlayerColor | null)[]> {
-  const results: (PlayerColor | null)[] = [];
-  for (let i = 0; i < uuids.length; i += chunkSize) {
-    const chunk = uuids.slice(i, i + chunkSize);
-    const chunkResults = await Promise.all(
-      chunk.map((uuid) => (uuid ? resolveNameColor(uuid) : Promise.resolve(null)))
-    );
-    results.push(...chunkResults);
-  }
-  return results;
+  const validUuids = Array.from(new Set(uuids.filter((u): u is string => !!u)));
+  if (validUuids.length === 0) return uuids.map(() => null);
+
+  const rows = await withDb(async (db) => {
+    return await db.$queryRaw(Prisma.sql`
+      SELECT p.uuid, fc.name AS colorName
+      FROM fp_player p
+      JOIN fp_player_fcolor pfc ON pfc.player = p.id AND pfc.type = 'OUT' AND pfc.number = 15
+      JOIN fp_fcolor fc ON fc.id = pfc.fcolor
+      WHERE p.uuid IN (${Prisma.join(validUuids)})
+    `) as { uuid: string; colorName: string }[];
+  });
+
+  const map = new Map(rows.map(r => [r.uuid, parseFColor(r.colorName)]));
+  return uuids.map(u => u ? (map.get(u) ?? null) : null);
 }
 
 /**

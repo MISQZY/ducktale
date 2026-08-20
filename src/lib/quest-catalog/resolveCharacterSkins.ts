@@ -45,7 +45,7 @@ export async function resolveCharacterSkins(nodes: QuestNodeDef[]): Promise<Ques
   const players = skinsRestorerNames.length > 0
     ? await withDb((db) =>
         db.fp_player.findMany({
-          where: { name: { in: skinsRestorerNames } },
+          where: { name: { in: skinsRestorerNames }, uuid: { notIn: ['00000000-0000-0000-0000-000000000000', '0000-0000-0000-0000'] } },
           select: { name: true, uuid: true },
         })
       )

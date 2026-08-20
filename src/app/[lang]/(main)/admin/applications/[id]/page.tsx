@@ -6,7 +6,8 @@ import { ApplicationThread } from "@/components/applications/ApplicationThread";
 import { Link } from "@/i18n/navigation";
 import { PlayerAvatar } from "@/components/common/PlayerAvatar";
 import { CompactBadgeChip } from "@/components/badges/CompactBadgeChip";
-import { getPlayerCard } from "@/lib/player-card";
+
+import { resolveSkinUrl } from "@/lib/skin";
 import { resolveApplicationMessages } from "@/lib/application-data";
 import { localizedName, type LocalizedName } from "@/lib/i18n-name";
 import { SERVERS } from "@/config/servers";
@@ -35,7 +36,7 @@ export default async function ApplicationPage({
           select: {
             nickname: true,
             accountLink: {
-              select: { status: true, minecraftName: true },
+              select: { status: true, minecraftName: true, minecraftUuid: true },
             },
             badges: {
               select: {
@@ -43,6 +44,8 @@ export default async function ApplicationPage({
                   select: { id: true, name: true, icon: true, color: true, description: true, earnCondition: true },
                 },
               },
+              where: { pinned: true },
+              take: 1,
             },
           },
         },
@@ -63,9 +66,9 @@ export default async function ApplicationPage({
   // isStaff/isOwner — applicantName (the "Объект обращения" nickname) may
   // name someone other than the filer, so who actually submitted it is
   // always worth surfacing, not just to staff reviewing someone else's case.
-  let playerCard = null;
-  if (application.applicant.accountLink?.status === "CONFIRMED" && application.applicant.accountLink.minecraftName) {
-    playerCard = await getPlayerCard(application.applicant.accountLink.minecraftName);
+  let authorSkinUrl = null;
+  if (application.applicant.accountLink?.status === "CONFIRMED" && application.applicant.accountLink.minecraftUuid) {
+    authorSkinUrl = await resolveSkinUrl(application.applicant.accountLink.minecraftUuid);
   }
 
   const t = await getTranslations("Applications");
@@ -85,14 +88,12 @@ export default async function ApplicationPage({
           </div>
           <div className="flex items-center gap-2">
             <span className="text-xs text-foreground/45">{t("submittedByLabel")}</span>
-            {application.applicant.accountLink?.status === "CONFIRMED" && application.applicant.accountLink.minecraftName && playerCard ? (
+            {application.applicant.accountLink?.status === "CONFIRMED" ? (
               <PlayerAvatar
                 name={application.applicant.nickname}
-                skinUrl={playerCard.skinUrl}
+                skinUrl={authorSkinUrl}
                 hasSiteProfile={true}
                 linked={true}
-                online={playerCard.online}
-                siteOnline={playerCard.siteOnline}
                 appendNode={
                   application.applicant.badges.length > 0 ? (
                     <div className="flex items-center gap-1">
@@ -149,3 +150,5 @@ export default async function ApplicationPage({
       </div>
   );
 }
+
+// fix hmr

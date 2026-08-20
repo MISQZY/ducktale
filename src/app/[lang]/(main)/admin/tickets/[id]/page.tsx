@@ -6,7 +6,8 @@ import { TicketThread } from "@/components/tickets/TicketThread";
 import { Link } from "@/i18n/navigation";
 import { PlayerAvatar } from "@/components/common/PlayerAvatar";
 import { CompactBadgeChip } from "@/components/badges/CompactBadgeChip";
-import { getPlayerCard } from "@/lib/player-card";
+
+import { resolveSkinUrl } from "@/lib/skin";
 import { resolveTicketMessages } from "@/lib/ticket-data";
 import { localizedName, type LocalizedName } from "@/lib/i18n-name";
 
@@ -39,7 +40,7 @@ export default async function TicketPage({
           select: {
             nickname: true,
             accountLink: {
-              select: { status: true, minecraftName: true }
+              select: { status: true, minecraftName: true, minecraftUuid: true }
             },
             badges: {
               select: {
@@ -66,9 +67,9 @@ export default async function TicketPage({
   // Only ever rendered inside the isStaff && !isOwner block below — skip the
   // (multi-query + external skin fetch) getPlayerCard() call entirely for
   // the common case of a user viewing their own ticket.
-  let playerCard = null;
-  if (isStaff && !isOwner && ticket.user.accountLink?.status === "CONFIRMED" && ticket.user.accountLink.minecraftName) {
-    playerCard = await getPlayerCard(ticket.user.accountLink.minecraftName);
+  let authorSkinUrl = null;
+  if (isStaff && !isOwner && ticket.user.accountLink?.status === "CONFIRMED" && ticket.user.accountLink.minecraftUuid) {
+    authorSkinUrl = await resolveSkinUrl(ticket.user.accountLink.minecraftUuid);
   }
 
   const t = await getTranslations("Tickets");
@@ -87,15 +88,13 @@ export default async function TicketPage({
             {isStaff && !isOwner && (
               <div className="flex items-center gap-2">
                 <span className="text-xs text-foreground/45">{t("initiatorLabel")}</span>
-                {ticket.user.accountLink?.status === "CONFIRMED" && ticket.user.accountLink.minecraftName && playerCard ? (
+                {ticket.user.accountLink?.status === "CONFIRMED" ? (
                   <PlayerAvatar
                     name={ticket.user.nickname}
-                    skinUrl={playerCard.skinUrl}
+                    skinUrl={authorSkinUrl}
                     hasSiteProfile={true}
                     linked={true}
-                    online={playerCard.online}
-                    siteOnline={playerCard.siteOnline}
-                    appendNode={
+                                        appendNode={
                       ticket.user.badges.length > 0 ? (
                         <div className="flex items-center gap-1">
                           {ticket.user.badges.slice(0, 3).map((b) => (
@@ -152,3 +151,5 @@ export default async function TicketPage({
     </>
   );
 }
+
+// fix hmr

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useCallback, useRef, ReactNode, RefObject, useEffect } from "react";
-import { Maximize2, Minimize2, Lock } from "lucide-react";
+
 import { cn } from "@/lib/utils";
 import { useFullscreen } from "@/hooks/useFullscreen";
 

@@ -6,7 +6,8 @@ import { ReportThread } from "@/components/reports/ReportThread";
 import { Link } from "@/i18n/navigation";
 import { PlayerAvatar } from "@/components/common/PlayerAvatar";
 import { CompactBadgeChip } from "@/components/badges/CompactBadgeChip";
-import { getPlayerCard } from "@/lib/player-card";
+
+import { resolveSkinUrl } from "@/lib/skin";
 import { resolveReportMessages } from "@/lib/report-data";
 import { localizedName, type LocalizedName } from "@/lib/i18n-name";
 
@@ -34,7 +35,7 @@ export default async function ReportPage({
           select: {
             nickname: true,
             accountLink: {
-              select: { status: true, minecraftName: true },
+              select: { status: true, minecraftName: true, minecraftUuid: true },
             },
             badges: {
               select: {
@@ -58,9 +59,9 @@ export default async function ReportPage({
   const canEdit = isReportEditor(viewer);
   const canDelete = isReportDeleter(viewer);
 
-  let playerCard = null;
-  if (isStaff && !isOwner && report.reporter.accountLink?.status === "CONFIRMED" && report.reporter.accountLink.minecraftName) {
-    playerCard = await getPlayerCard(report.reporter.accountLink.minecraftName);
+  let authorSkinUrl = null;
+  if (isStaff && !isOwner && report.reporter.accountLink?.status === "CONFIRMED" && report.reporter.accountLink.minecraftUuid) {
+    authorSkinUrl = await resolveSkinUrl(report.reporter.accountLink.minecraftUuid);
   }
 
   const t = await getTranslations("Reports");
@@ -80,15 +81,13 @@ export default async function ReportPage({
           {isStaff && !isOwner && (
             <div className="flex items-center gap-2">
               <span className="text-xs text-foreground/45">{t("reporterLabel")}</span>
-              {report.reporter.accountLink?.status === "CONFIRMED" && report.reporter.accountLink.minecraftName && playerCard ? (
+              {report.reporter.accountLink?.status === "CONFIRMED" ? (
                 <PlayerAvatar
                   name={report.reporter.nickname}
-                  skinUrl={playerCard.skinUrl}
+                  skinUrl={authorSkinUrl}
                   hasSiteProfile={true}
                   linked={true}
-                  online={playerCard.online}
-                  siteOnline={playerCard.siteOnline}
-                  appendNode={
+                                    appendNode={
                     report.reporter.badges.length > 0 ? (
                       <div className="flex items-center gap-1">
                         {report.reporter.badges.slice(0, 3).map((b) => (
@@ -145,3 +144,5 @@ export default async function ReportPage({
       </div>
   );
 }
+
+// fix hmr

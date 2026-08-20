@@ -4,9 +4,15 @@ import { siteDb } from "@/lib/site-db";
 import { localizedName, type LocalizedName } from "@/lib/i18n-name";
 import { MapEmbed } from "@/components/maps/MapEmbed";
 import type { Metadata } from "next";
+import { cache } from "react";
 
-// Separate, minimal query rather than sharing the page component's fetch
-// below — this only ever needs the name column, not the map's url.
+const getMap = cache(async (id: string) => {
+  return await siteDb.serverMap.findUnique({
+    where: { id },
+    select: { serverId: true, name: true, url: true },
+  });
+});
+
 export async function generateMetadata({
   params,
 }: {
@@ -16,7 +22,7 @@ export async function generateMetadata({
   const config = SERVERS.find((s) => s.id === server);
   if (!config) return {};
 
-  const row = await siteDb.serverMap.findUnique({ where: { id: map }, select: { serverId: true, name: true } });
+  const row = await getMap(map);
   if (!row || row.serverId !== server) return {};
 
   return { title: `${localizedName(row.name as unknown as LocalizedName, lang)} — ${config.name}` };
@@ -31,13 +37,7 @@ export default async function MapPage({
   const config = SERVERS.find((s) => s.id === server);
   if (!config) notFound();
 
-  const row = await siteDb.serverMap.findUnique({
-    where: { id: map },
-    select: { serverId: true, name: true, url: true },
-  });
-  // Same "does this map exist under this server" check whether the map id
-  // is bogus or just belongs to a different server — no need to
-  // distinguish those for a 404.
+  const row = await getMap(map);
   if (!row || row.serverId !== server) notFound();
 
   return <MapEmbed mapId={map} url={row.url} title={localizedName(row.name as unknown as LocalizedName, lang)} />;

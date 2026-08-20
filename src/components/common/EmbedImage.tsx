@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Download, Minimize2, Maximize2 } from "lucide-react";
+import { Download} from "lucide-react";
 import { EmbedPage } from "@/components/docs/EmbedPage";
 import { cn } from "@/lib/utils";
 import { buttonVariants } from "@/components/ui/button";
@@ -51,7 +51,7 @@ export function EmbedImage({ url, filename, className, imgClassName, onError }: 
         open={open}
         onOpenChange={setOpen}
         modalMode={true}
-        header={({ fullscreen, toggleFullscreen, closeButtonRef }) => (
+        header={({ toggleFullscreen, closeButtonRef }) => (
           <div className="flex items-center gap-2 px-5 py-3 border-b border-primary/20 bg-card relative z-10 shrink-0">
             <div className="flex gap-1.5 group/mac">
               <span className="w-2.5 h-2.5 rounded-full bg-rose-500/70" />

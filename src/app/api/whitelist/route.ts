@@ -57,11 +57,15 @@ async function buildWhitelistResponse(
         m.time AS duration,
         m.reason,
         m.server,
-        COALESCE(mod_player.name, CAST(m.moderator AS CHAR)) AS moderator,
+        CASE 
+          WHEN m.moderator <= 0 THEN 'Консоль' 
+          ELSE COALESCE(mod_player.name, CAST(m.moderator AS CHAR)) 
+        END AS moderator,
         COUNT(*) OVER() AS total
       FROM fp_player p
       INNER JOIN fp_moderation m
         ON  m.player = p.id
+        AND p.uuid NOT IN ('00000000-0000-0000-0000-000000000000', '0000-0000-0000-0000')
         AND m.type   = 'whitelist'
         AND m.valid  = 1
         ${serverId ? Prisma.sql`AND m.server = ${serverId}` : Prisma.empty}

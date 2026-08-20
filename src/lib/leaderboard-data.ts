@@ -67,7 +67,8 @@ async function buildLeaderboardResponse(
       FROM fp_player p
       LEFT JOIN fp_setting s ON s.player = p.id AND s.type = 'NICKNAME'
       INNER JOIN fp_time t ON t.player = p.id
-      ${search ? Prisma.sql`WHERE p.name LIKE ${"%" + search + "%"} OR s.value LIKE ${"%" + search + "%"}` : Prisma.empty}
+      WHERE p.uuid NOT IN ('00000000-0000-0000-0000-000000000000', '0000-0000-0000-0000')
+      ${search ? Prisma.sql`AND (p.name LIKE ${"%" + search + "%"} OR s.value LIKE ${"%" + search + "%"})` : Prisma.empty}
     `) as { total: bigint }[];
     const total = countRow.length > 0 ? Number(countRow[0].total) : 0;
 
@@ -80,10 +81,11 @@ async function buildLeaderboardResponse(
           s.value AS nickname,
           t.total AS playtimeMs,
           p.online AS online,
-          (SELECT COUNT(*) + 1 FROM fp_time t2 WHERE t2.total > t.total) AS \`rank\`
+          (SELECT COUNT(*) + 1 FROM fp_time t2 INNER JOIN fp_player p2 ON t2.player = p2.id WHERE t2.total > t.total AND p2.uuid NOT IN ('00000000-0000-0000-0000-000000000000', '0000-0000-0000-0000')) AS \`rank\`
         ${PLAYER_NICKNAME_JOIN}
         INNER JOIN fp_time t ON t.player = p.id
-        ${search ? Prisma.sql`WHERE p.name LIKE ${"%" + search + "%"} OR s.value LIKE ${"%" + search + "%"}` : Prisma.empty}
+        WHERE p.uuid NOT IN ('00000000-0000-0000-0000-000000000000', '0000-0000-0000-0000')
+        ${search ? Prisma.sql`AND (p.name LIKE ${"%" + search + "%"} OR s.value LIKE ${"%" + search + "%"})` : Prisma.empty}
       ) sub
       ${orderSql}
       LIMIT  ${pageSize}
