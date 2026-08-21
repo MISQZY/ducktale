@@ -54,7 +54,8 @@ export function IconPickerField({
     <FormField id="icon" label={label}>
         <input type="hidden" name="icon" value={icon} />
       
-      <Popover open={open} onOpenChange={setOpen} modal={true}>
+      {/* Not modal={true}: nested inside AdminFormDialog, whose own modal Dialog already traps focus — a modal Popover's hideOthers() would make that Dialog (and this trigger) inert right as it opens. */}
+      <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger asChild>
           <button
             type="button"
