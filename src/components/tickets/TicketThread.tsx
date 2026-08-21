@@ -201,6 +201,7 @@ export function TicketThread({ lang, ticketId, subject, initialStatus, initialMe
   const confirm = useConfirm();
   const router = useRouter();
   const [status, setStatus] = useState<any>(initialStatus);
+  const [transitions, setTransitions] = useState<any[]>([]);
   const [messages, setMessages] = useState(initialMessages);
   const handleDeleteMessage = useCallback(async (messageId: string) => {
     try {
@@ -231,6 +232,7 @@ export function TicketThread({ lang, ticketId, subject, initialStatus, initialMe
       if (!res.ok) return;
       const data = await res.json();
       setStatus(data.status);
+      if (data.transitions) setTransitions(data.transitions);
       // Server-side `since` already excludes anything the client has seen —
       // this id-based filter is just a safety net against the same message
       // arriving twice (e.g. a retried request), not the primary dedup.
@@ -246,6 +248,14 @@ export function TicketThread({ lang, ticketId, subject, initialStatus, initialMe
       // Silent — a missed poll just tries again next interval.
     }
   }, [ticketId]);
+
+  // transitions (needed to resolve a real close/reopen status id below) only
+  // comes from the poll endpoint, not the server-rendered initial props — so
+  // canEdit viewers need one poll right away rather than waiting out the
+  // first interval, same as ApplicationThread's equivalent effect.
+  useEffect(() => {
+    if (canEdit) poll();
+  }, [canEdit, poll]);
 
   usePolling(poll, POLL_INTERVAL_MS);
 
@@ -281,11 +291,11 @@ export function TicketThread({ lang, ticketId, subject, initialStatus, initialMe
   }
 
 
-  function handleStatusChange(next: "OPEN" | "CLOSED") {
+  function handleStatusChange(targetStatusId: string) {
     startTransition(async () => {
       try {
-        await setTicketStatus(lang, ticketId, next);
-        setStatus(next);
+        await setTicketStatus(lang, ticketId, targetStatusId);
+        await poll();
       } catch {
         setError(t("errors.generic"));
       }
@@ -308,11 +318,18 @@ export function TicketThread({ lang, ticketId, subject, initialStatus, initialMe
     setFiles((prev) => prev.filter((_, i) => i !== index));
   }
 
+  // `status` is the full WorkflowStatus object (see initialStatus's doc
+  // comment on the props interface), not an "OPEN"/"CLOSED" string — the
+  // close/reopen button resolves the actual target status id from the
+  // available transitions rather than guessing a literal.
+  const isClosed = status?.isClosed === true;
+  const closeReopenTarget = transitions.find((tr) => tr.isClosed !== isClosed);
+
   return (
     <div className="flex flex-col h-full min-h-0">
       {/* Header bar */}
       <div className="flex items-center justify-between gap-3 flex-wrap mb-4 shrink-0">
-        <TicketStatusBadge status={status} label={t(`status.${status}`)} />
+        <TicketStatusBadge status={status} />
       </div>
 
       {/* Messages area — fills remaining height */}
@@ -381,7 +398,7 @@ export function TicketThread({ lang, ticketId, subject, initialStatus, initialMe
 
       {/* Reply form */}
       <form onSubmit={handleSend} className="flex flex-col gap-2 mt-4 shrink-0">
-        {status === "CLOSED" && <p className="text-xs text-foreground/40">{t("closedHint")}</p>}
+        {isClosed && <p className="text-xs text-foreground/40">{t("closedHint")}</p>}
         <FormTextarea
           value={body}
           onChange={(e) => setBody(e.target.value)}
@@ -402,19 +419,19 @@ export function TicketThread({ lang, ticketId, subject, initialStatus, initialMe
 
         <div className="flex items-center justify-between gap-2">
           <div className="flex items-center gap-2">
-            {canEdit && (
+            {canEdit && closeReopenTarget && (
               <button
                 type="button"
                 disabled={isPending}
-                onClick={() => handleStatusChange(status === "CLOSED" ? "OPEN" : "CLOSED")}
-                aria-label={status === "CLOSED" ? t("reopenTicket") : t("closeTicket")}
-                title={status === "CLOSED" ? t("reopenTicket") : t("closeTicket")}
+                onClick={() => handleStatusChange(closeReopenTarget.id)}
+                aria-label={isClosed ? t("reopenTicket") : t("closeTicket")}
+                title={isClosed ? t("reopenTicket") : t("closeTicket")}
                 className={cn(
                   buttonVariants({ variant: "outline", size: "icon-sm" }),
                   "bg-card/50 hover:bg-card/80"
                 )}
               >
-                {status === "CLOSED" ? <LockOpen size={14} /> : <Lock size={14} />}
+                {isClosed ? <LockOpen size={14} /> : <Lock size={14} />}
               </button>
             )}
             {canDelete && (
