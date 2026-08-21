@@ -21,17 +21,7 @@ import { MessageBubble } from "@/components/common/MessageBubble";
 import { EmbedImage } from "@/components/common/EmbedImage";
 import { ConversationEventMarker } from "@/components/common/ConversationEventMarker";
 import { SelectedFilePreview } from "@/components/common/SelectedFilePreview";
-import {
-  VideoPlayer,
-  VideoPlayerContent,
-  VideoPlayerControlBar,
-  VideoPlayerMuteButton,
-  VideoPlayerPlayButton,
-  VideoPlayerSeekBackwardButton,
-  VideoPlayerSeekForwardButton,
-  VideoPlayerTimeDisplay,
-  VideoPlayerTimeRange,
-} from "@/components/kibo-ui/video-player";
+import { VideoAttachment } from "@/components/common/VideoAttachment";
 import { handleComposerKeyDown } from "@/lib/compose-keydown";
 import { usePolling } from "@/hooks/usePolling";
 
@@ -240,17 +230,12 @@ export function ThreadView({
                           }
                           if (isVideo) {
                             return (
-                              <VideoPlayer key={a.id} className="w-full max-w-xs sm:max-w-sm aspect-video overflow-hidden rounded-md border border-border bg-black">
-                                <VideoPlayerContent src={url} preload="metadata" slot="media" className="w-full h-full object-contain" />
-                                <VideoPlayerControlBar>
-                                  <VideoPlayerPlayButton />
-                                  <VideoPlayerSeekBackwardButton />
-                                  <VideoPlayerSeekForwardButton />
-                                  <VideoPlayerTimeRange />
-                                  <VideoPlayerTimeDisplay />
-                                  <VideoPlayerMuteButton />
-                                </VideoPlayerControlBar>
-                              </VideoPlayer>
+                              <VideoAttachment
+                                key={a.id}
+                                url={url}
+                                filename={a.filename}
+                                className="w-full max-w-xs sm:max-w-sm aspect-video rounded-md border border-border bg-black overflow-hidden"
+                              />
                             );
                           }
                           return (
