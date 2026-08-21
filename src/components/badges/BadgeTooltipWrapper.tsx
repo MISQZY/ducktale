@@ -24,16 +24,16 @@ export function BadgeTooltipWrapper({ name, description, earnCondition, children
             {children}
           </span>
         </TooltipTrigger>
-        <TooltipContent className="flex-col items-start gap-1 max-w-64 text-left">
+        <TooltipContent className="flex-col items-start gap-1 max-w-64 text-left liquid-card border-primary/20">
           <p className="font-medium flex items-center gap-1">
             {name}
             {earnCondition && (
               <span title={earnCondition} className="inline-flex shrink-0">
-                <HelpCircle size={12} className="text-background/50" />
+                <HelpCircle size={12} className="text-popover-foreground/50" />
               </span>
             )}
           </p>
-          {description && <p className="text-background/70">{description}</p>}
+          {description && <p className="text-popover-foreground/70">{description}</p>}
         </TooltipContent>
       </Tooltip>
     </TooltipProvider>
