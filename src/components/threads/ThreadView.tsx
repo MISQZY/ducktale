@@ -3,7 +3,7 @@
 
 import { useCallback, useEffect, useRef, useState, useTransition, type FormEvent } from "react";
 import { useTranslations } from "next-intl";
-import { Trash2, Lock, LockOpen, Paperclip, FileText, Download, X, Image as ImageIcon, ImageOff } from "lucide-react";
+import { Trash2, Lock, LockOpen, Paperclip, FileText, Download, Image as ImageIcon, ImageOff } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useRouter } from "@/i18n/navigation";
 import { sendThreadMessage, deleteThread, setThreadClosed } from "@/lib/actions/threads";
@@ -20,6 +20,7 @@ import { PlayerAvatar } from "@/components/common/PlayerAvatar";
 import { MessageBubble } from "@/components/common/MessageBubble";
 import { EmbedImage } from "@/components/common/EmbedImage";
 import { ConversationEventMarker } from "@/components/common/ConversationEventMarker";
+import { SelectedFilePreview } from "@/components/common/SelectedFilePreview";
 import { handleComposerKeyDown } from "@/lib/compose-keydown";
 import { usePolling } from "@/hooks/usePolling";
 
@@ -187,42 +188,6 @@ export function ThreadView({
     });
   }
 
-  function FilePreview({ file, onRemove }: { file: File; onRemove: () => void }) {
-    const isImg = file.type.startsWith("image/");
-    if (isImg) {
-      const url = URL.createObjectURL(file);
-      return (
-        <div className="relative group shrink-0 rounded-md overflow-hidden border border-border h-12 w-12 sm:h-16 sm:w-16">
-          <img src={url} alt={file.name} className="object-cover w-full h-full" onLoad={() => URL.revokeObjectURL(url)} />
-          <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-            <button
-              type="button"
-              onClick={onRemove}
-              className="text-white hover:text-red-400 transition-colors"
-              aria-label={`Remove ${file.name}`}
-            >
-              <Trash2 size={14} />
-            </button>
-          </div>
-        </div>
-      );
-    }
-    return (
-      <Badge variant="outline" className="flex items-center gap-1.5 py-1 px-2 h-7 sm:h-8 bg-card shrink-0">
-        <Paperclip size={10} className="shrink-0 opacity-50" />
-        <span className="truncate max-w-[120px]">{file.name}</span>
-        <button
-          type="button"
-          onClick={onRemove}
-          className="ml-0.5 hover:text-destructive transition-colors"
-          aria-label={`Remove ${file.name}`}
-        >
-          <X size={10} />
-        </button>
-      </Badge>
-    );
-  }
-
   return (
     <div className="flex flex-col h-full min-h-0">
       {/* Messages area — fills remaining height */}
@@ -304,7 +269,7 @@ export function ThreadView({
         {files.length > 0 && (
           <div className="flex flex-wrap items-center gap-2 mt-1 mb-1">
             {files.map((f, i) => (
-              <FilePreview key={i} file={f} onRemove={() => setFiles((p) => p.filter((_, idx) => idx !== i))} />
+              <SelectedFilePreview key={i} file={f} onRemove={() => setFiles((p) => p.filter((_, idx) => idx !== i))} />
             ))}
           </div>
         )}
