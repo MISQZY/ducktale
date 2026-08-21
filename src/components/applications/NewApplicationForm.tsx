@@ -6,6 +6,7 @@ import { useRouter } from "@/i18n/navigation";
 import { Paperclip, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { PlayerNicknameInput } from "@/components/common/PlayerNicknameInput";
+import { FormField } from "@/components/common/FormField";
 import { FormTextarea } from "@/components/common/FormTextarea";
 import { FormButton } from "@/components/common/FormButton";
 import { formInputClasses, formInputStyle } from "@/components/common/form-styles";
@@ -81,11 +82,13 @@ export function NewApplicationForm({ lang, servers }: { lang: string; servers: A
         required
       />
 
-      <div className="flex flex-col gap-1.5">
-        <label htmlFor="application-server" className="text-xs uppercase tracking-widest text-foreground/50 leading-none">
-          {t("serverLabel")}
-        </label>
-        {servers.length > 0 ? (
+      <FormField
+        id="application-server"
+        label={t("serverLabel")}
+        requiredEmpty={servers.length === 0}
+        error={servers.length === 0 ? t("errors.noServersAvailable") : undefined}
+      >
+        {servers.length > 0 && (
           <select
             id="application-server"
             name="serverId"
@@ -99,10 +102,8 @@ export function NewApplicationForm({ lang, servers }: { lang: string; servers: A
               <option key={s.id} value={s.id}>{s.name}</option>
             ))}
           </select>
-        ) : (
-          <p className="text-xs text-destructive">{t("errors.noServersAvailable")}</p>
         )}
-      </div>
+      </FormField>
 
       <FormTextarea
         id="application-description"
