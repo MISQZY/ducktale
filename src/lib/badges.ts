@@ -31,19 +31,24 @@ export interface BadgeSummary {
   name: LocalizedName;
   icon: string;
   color: string | null;
+  description: string | null;
+  earnCondition: string | null;
 }
 
 /**
  * Every badge that exists, for the profile page's "hover to see all badges"
  * hint next to the Badges section title — unlike the section itself, this
- * isn't scoped to one user. Cached briefly since it's now fetched on every
- * profile view (own + public) instead of only on /admin/badges.
+ * isn't scoped to one user. Includes description/earnCondition so each row
+ * can use the same ProfileBadgeChip (icon + name + its own hover tooltip)
+ * a user's own earned badges already render with. Cached briefly since it's
+ * now fetched on every profile view (own + public) instead of only on
+ * /admin/badges.
  */
 export async function getAllBadges(): Promise<BadgeSummary[]> {
   return withCache("all-badges", 60_000, async () => {
     const badges = await siteDb.badge.findMany({
       orderBy: { createdAt: "asc" },
-      select: { id: true, name: true, icon: true, color: true },
+      select: { id: true, name: true, icon: true, color: true, description: true, earnCondition: true },
     });
     return badges.map((b) => ({ ...b, name: b.name as unknown as LocalizedName }));
   });
