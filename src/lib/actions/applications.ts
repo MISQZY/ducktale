@@ -28,8 +28,6 @@ export interface CreateApplicationResult {
   id: string;
 }
 
-const TERMINAL_STATUSES: any[] = ["ACCEPTED", "REJECTED"];
-
 function isServerId(value: string): boolean {
   return SERVERS.some((s) => s.id === value);
 }
@@ -115,7 +113,7 @@ export async function sendApplicationMessage(formData: FormData): Promise<void> 
 
   // Terminal statuses reject new messages outright — see the Application
   // model's doc comment for why this differs from Ticket's auto-reopen-on-reply.
-  if (TERMINAL_STATUSES.includes(application.status)) {
+  if (application.status.isClosed) {
     throw new Error("This application is closed to new messages");
   }
 
