@@ -241,7 +241,7 @@ export function ThreadView({
                           if (isVideo) {
                             return (
                               <VideoPlayer key={a.id} className="w-full max-w-xs sm:max-w-sm aspect-video overflow-hidden rounded-md border border-border bg-black">
-                                <VideoPlayerContent src={url} preload="metadata" className="w-full h-full object-contain" />
+                                <VideoPlayerContent src={url} preload="metadata" slot="media" className="w-full h-full object-contain" />
                                 <VideoPlayerControlBar>
                                   <VideoPlayerPlayButton />
                                   <VideoPlayerSeekBackwardButton />

@@ -88,6 +88,7 @@ function AttachmentVideo({ att, baseUrl }: { att: MessageAttachmentData; baseUrl
       <VideoPlayerContent
         src={url}
         preload="metadata"
+        slot="media"
         className="w-full h-full object-contain"
         onError={() => setFailed(true)}
       />
