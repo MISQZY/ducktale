@@ -18,7 +18,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { PlayerAvatar } from "@/components/common/PlayerAvatar";
 import { MessageBubble } from "@/components/common/MessageBubble";
 import { MessageAttachmentList, type MessageAttachmentData } from "@/components/common/MessageAttachmentList";
-import { SelectedFileChip } from "@/components/common/SelectedFileChip";
+import { SelectedFilePreview } from "@/components/common/SelectedFilePreview";
 import { handleComposerKeyDown } from "@/lib/compose-keydown";
 import { usePolling } from "@/hooks/usePolling";
 import { ReportStatusBadge } from "./ReportStatusBadge";
@@ -285,9 +285,9 @@ export function ReportThread({ lang, reportId, reportedName, initialStatus, init
         />
 
         {files.length > 0 && (
-          <div className="flex flex-wrap gap-1.5">
+          <div className="flex flex-wrap items-center gap-1.5">
             {files.map((f, i) => (
-              <SelectedFileChip key={`${f.name}-${i}`} file={f} onRemove={() => removeFile(i)} />
+              <SelectedFilePreview key={`${f.name}-${i}`} file={f} onRemove={() => removeFile(i)} />
             ))}
           </div>
         )}
