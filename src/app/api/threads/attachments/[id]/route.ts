@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
 import { siteDb } from "@/lib/site-db";
 import { getThreadViewer, hasThreadAccess } from "@/lib/threads";
-import { createReadStream, existsSync } from "fs";
-import { Readable } from "stream";
+import { serveAttachmentFile } from "@/lib/serve-attachment";
+import { existsSync } from "fs";
 import { join } from "path";
 import { stat } from "fs/promises";
 
@@ -47,22 +47,9 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
   }
 
   const fileStat = await stat(filePath);
-  const stream = createReadStream(filePath);
 
-  const headers = new Headers();
   const safeType = attachment.mimeType && SAFE_CONTENT_TYPES.has(attachment.mimeType) ? attachment.mimeType : "application/octet-stream";
-  headers.set("Content-Type", safeType);
-  headers.set("Content-Length", fileStat.size.toString());
-  
-  const isInlineImage = safeType.startsWith("image/");
-  headers.set(
-    "Content-Disposition",
-    `${isInlineImage ? "inline" : "attachment"}; filename="${encodeURIComponent(attachment.filename)}"`
-  );
-  headers.set("X-Content-Type-Options", "nosniff");
+  const isInlineMedia = safeType.startsWith("image/") || safeType.startsWith("video/");
 
-  return new Response(Readable.toWeb(stream) as ReadableStream, {
-    status: 200,
-    headers,
-  });
+  return serveAttachmentFile(req, filePath, fileStat.size, safeType, isInlineMedia ? "inline" : "attachment", attachment.filename);
 }
