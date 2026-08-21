@@ -4,6 +4,17 @@ import { useState } from "react";
 import type { useTranslations } from "next-intl";
 import { FileText, Download, ImageOff } from "lucide-react";
 import { EmbedImage } from "@/components/common/EmbedImage";
+import {
+  VideoPlayer,
+  VideoPlayerContent,
+  VideoPlayerControlBar,
+  VideoPlayerMuteButton,
+  VideoPlayerPlayButton,
+  VideoPlayerSeekBackwardButton,
+  VideoPlayerSeekForwardButton,
+  VideoPlayerTimeDisplay,
+  VideoPlayerTimeRange,
+} from "@/components/kibo-ui/video-player";
 
 export interface MessageAttachmentData {
   id: string;
@@ -16,6 +27,10 @@ type Translator = ReturnType<typeof useTranslations>;
 
 function isImageMime(mime: string): boolean {
   return mime.startsWith("image/");
+}
+
+function isVideoMime(mime: string): boolean {
+  return mime.startsWith("video/");
 }
 
 function formatFileSize(bytes: number): string {
@@ -62,6 +77,32 @@ function AttachmentImage({ att, baseUrl, t }: { att: MessageAttachmentData; base
   );
 }
 
+function AttachmentVideo({ att, baseUrl }: { att: MessageAttachmentData; baseUrl: string }) {
+  const [failed, setFailed] = useState(false);
+  const url = `${baseUrl}/${att.id}`;
+
+  if (failed) return <AttachmentFile att={att} baseUrl={baseUrl} />;
+
+  return (
+    <VideoPlayer className="w-full max-w-sm aspect-video overflow-hidden rounded-xl border border-primary/15 bg-black">
+      <VideoPlayerContent
+        src={url}
+        preload="metadata"
+        className="w-full h-full object-contain"
+        onError={() => setFailed(true)}
+      />
+      <VideoPlayerControlBar>
+        <VideoPlayerPlayButton />
+        <VideoPlayerSeekBackwardButton />
+        <VideoPlayerSeekForwardButton />
+        <VideoPlayerTimeRange />
+        <VideoPlayerTimeDisplay />
+        <VideoPlayerMuteButton />
+      </VideoPlayerControlBar>
+    </VideoPlayer>
+  );
+}
+
 function AttachmentFile({ att, baseUrl }: { att: MessageAttachmentData; baseUrl: string }) {
   const url = `${baseUrl}/${att.id}`;
 
@@ -85,7 +126,8 @@ function AttachmentFile({ att, baseUrl }: { att: MessageAttachmentData; baseUrl:
 }
 
 /**
- * Renders a message's attachments (image preview or generic file card) —
+ * Renders a message's attachments (image preview, video player, or generic
+ * file card) —
  * shared by TicketThread/ReportThread/ApplicationThread, which otherwise
  * each carried a byte-for-byte copy of this differing only in their
  * attachments API prefix. Not used by ThreadView, whose attachment layout
@@ -100,6 +142,8 @@ export function MessageAttachmentList({ attachments, baseUrl, t }: { attachments
       {attachments.map((att) =>
         isImageMime(att.mimeType) ? (
           <AttachmentImage key={att.id} att={att} baseUrl={baseUrl} t={t} />
+        ) : isVideoMime(att.mimeType) ? (
+          <AttachmentVideo key={att.id} att={att} baseUrl={baseUrl} />
         ) : (
           <AttachmentFile key={att.id} att={att} baseUrl={baseUrl} />
         )
