@@ -1,5 +1,7 @@
 import { siteDb } from "@/lib/site-db";
+import { withCache } from "@/lib/query-cache";
 import { BADGE_DEFINITIONS } from "@/config/badges";
+import type { LocalizedName } from "@/lib/i18n-name";
 
 // Same once-per-process gate as seedBuiltinRoles (src/lib/roles.ts) — a
 // createMany + skipDuplicates is cheap, but it's still a write query run
@@ -22,6 +24,29 @@ export async function seedBuiltinBadges(): Promise<void> {
   });
 
   builtinBadgesSeeded = true;
+}
+
+export interface BadgeSummary {
+  id: string;
+  name: LocalizedName;
+  icon: string;
+  color: string | null;
+}
+
+/**
+ * Every badge that exists, for the profile page's "hover to see all badges"
+ * hint next to the Badges section title — unlike the section itself, this
+ * isn't scoped to one user. Cached briefly since it's now fetched on every
+ * profile view (own + public) instead of only on /admin/badges.
+ */
+export async function getAllBadges(): Promise<BadgeSummary[]> {
+  return withCache("all-badges", 60_000, async () => {
+    const badges = await siteDb.badge.findMany({
+      orderBy: { createdAt: "asc" },
+      select: { id: true, name: true, icon: true, color: true },
+    });
+    return badges.map((b) => ({ ...b, name: b.name as unknown as LocalizedName }));
+  });
 }
 
 const KEY_MAX_LENGTH = 64;
