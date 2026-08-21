@@ -6,7 +6,9 @@ import { isUserOnline } from "@/lib/presence";
 import { formatLastSeen } from "@/lib/player-card-format";
 import { ProfilePlayerCard } from "@/components/account/ProfilePlayerCard";
 import { BadgePinSelector } from "@/components/badges/BadgePinSelector";
+import { AllBadgesHint } from "@/components/badges/AllBadgesHint";
 import { requirePublicResourceRole } from "@/lib/public-access";
+import { getAllBadges } from "@/lib/badges";
 import type { LocalizedName } from "@/lib/i18n-name";
 import type { Metadata } from "next";
 
@@ -43,7 +45,7 @@ export default async function PublicProfilePage({
 }) {
   const { lang, username } = await params;
   await requirePublicResourceRole(lang, "profiles-view");
-  const user = await findUser(username);
+  const [user, allBadges] = await Promise.all([findUser(username), getAllBadges()]);
   if (!user) notFound();
 
   const t = await getTranslations("Profile");
@@ -59,8 +61,9 @@ export default async function PublicProfilePage({
 
   const badgesContent = user.badges.length > 0 ? (
     <div>
-      <h2 className="text-xs uppercase tracking-widest text-foreground/50 mb-2 text-center">
+      <h2 className="flex items-center justify-center gap-1.5 text-xs uppercase tracking-widest text-foreground/50 mb-2 text-center">
         {td("badgesSectionTitle")}
+        <AllBadgesHint lang={lang} badges={allBadges} />
       </h2>
       <BadgePinSelector
         lang={lang}

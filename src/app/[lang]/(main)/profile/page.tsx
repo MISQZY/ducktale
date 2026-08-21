@@ -5,6 +5,7 @@ import { auth } from "@/auth";
 import { siteDb } from "@/lib/site-db";
 import { evaluateAutoBadges } from "@/lib/luckperms";
 import { hasAdminNavAccess } from "@/lib/admin";
+import { getAllBadges } from "@/lib/badges";
 import type { LocalizedName } from "@/lib/i18n-name";
 import type { Metadata } from "next";
 import { Suspense } from "react";
@@ -14,6 +15,7 @@ import { ProfileQuickActions } from "@/components/account/ProfileQuickActions";
 import { ProfilePlayerCard } from "@/components/account/ProfilePlayerCard";
 import { ProfileSectionCard } from "@/components/account/ProfileSectionCard";
 import { BadgePinSelector } from "@/components/badges/BadgePinSelector";
+import { AllBadgesHint } from "@/components/badges/AllBadgesHint";
 import { Callout } from "@/components/docs/Callout";
 import { Link as LinkIcon } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -65,13 +67,14 @@ async function ProfileContent({ lang, session }: { lang: string; session: Sessio
   const t = await getTranslations("Account.dashboard");
   const tp = await getTranslations("Profile");
 
-  // Fetch link and canAccessAdmin in parallel to save time
-  const [link, canAccessAdmin] = await Promise.all([
+  // Fetch link, canAccessAdmin and the full badge catalog in parallel to save time
+  const [link, canAccessAdmin, allBadges] = await Promise.all([
     siteDb.accountLink.findUnique({
       where: { userId: session.user.id },
       select: { status: true, minecraftName: true, minecraftUuid: true },
     }),
-    hasAdminNavAccess()
+    hasAdminNavAccess(),
+    getAllBadges(),
   ]);
 
   if (link?.status === "CONFIRMED" && link.minecraftUuid) {
@@ -92,8 +95,9 @@ async function ProfileContent({ lang, session }: { lang: string; session: Sessio
 
   const badgesContent = user && user.badges.length > 0 ? (
     <div>
-      <h2 className="text-xs uppercase tracking-widest text-foreground/50 mb-2 text-center">
+      <h2 className="flex items-center justify-center gap-1.5 text-xs uppercase tracking-widest text-foreground/50 mb-2 text-center">
         {t("badgesSectionTitle")}
+        <AllBadgesHint lang={lang} badges={allBadges} />
       </h2>
       <BadgePinSelector
         lang={lang}
