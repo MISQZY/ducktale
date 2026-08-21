@@ -21,6 +21,17 @@ import { MessageBubble } from "@/components/common/MessageBubble";
 import { EmbedImage } from "@/components/common/EmbedImage";
 import { ConversationEventMarker } from "@/components/common/ConversationEventMarker";
 import { SelectedFilePreview } from "@/components/common/SelectedFilePreview";
+import {
+  VideoPlayer,
+  VideoPlayerContent,
+  VideoPlayerControlBar,
+  VideoPlayerMuteButton,
+  VideoPlayerPlayButton,
+  VideoPlayerSeekBackwardButton,
+  VideoPlayerSeekForwardButton,
+  VideoPlayerTimeDisplay,
+  VideoPlayerTimeRange,
+} from "@/components/kibo-ui/video-player";
 import { handleComposerKeyDown } from "@/lib/compose-keydown";
 import { usePolling } from "@/hooks/usePolling";
 
@@ -215,6 +226,7 @@ export function ThreadView({
                       <div className={cn("flex flex-wrap gap-2 mt-2", alignRight && "justify-end")}>
                         {m.attachments.map((a) => {
                           const isImg = a.mimeType.startsWith("image/");
+                          const isVideo = a.mimeType.startsWith("video/");
                           const url = `/api/threads/attachments/${a.id}`;
                           if (isImg) {
                             return (
@@ -224,6 +236,21 @@ export function ThreadView({
                                 filename={a.filename}
                                 className="block rounded-md overflow-hidden border border-border bg-black/20 hover:opacity-90 transition-opacity h-20 w-32 sm:h-24 sm:w-40"
                               />
+                            );
+                          }
+                          if (isVideo) {
+                            return (
+                              <VideoPlayer key={a.id} className="w-full max-w-xs sm:max-w-sm aspect-video overflow-hidden rounded-md border border-border bg-black">
+                                <VideoPlayerContent src={url} preload="metadata" className="w-full h-full object-contain" />
+                                <VideoPlayerControlBar>
+                                  <VideoPlayerPlayButton />
+                                  <VideoPlayerSeekBackwardButton />
+                                  <VideoPlayerSeekForwardButton />
+                                  <VideoPlayerTimeRange />
+                                  <VideoPlayerTimeDisplay />
+                                  <VideoPlayerMuteButton />
+                                </VideoPlayerControlBar>
+                              </VideoPlayer>
                             );
                           }
                           return (
