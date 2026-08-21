@@ -4,17 +4,7 @@ import { useState } from "react";
 import type { useTranslations } from "next-intl";
 import { FileText, Download, ImageOff } from "lucide-react";
 import { EmbedImage } from "@/components/common/EmbedImage";
-import {
-  VideoPlayer,
-  VideoPlayerContent,
-  VideoPlayerControlBar,
-  VideoPlayerMuteButton,
-  VideoPlayerPlayButton,
-  VideoPlayerSeekBackwardButton,
-  VideoPlayerSeekForwardButton,
-  VideoPlayerTimeDisplay,
-  VideoPlayerTimeRange,
-} from "@/components/kibo-ui/video-player";
+import { VideoAttachment } from "@/components/common/VideoAttachment";
 
 export interface MessageAttachmentData {
   id: string;
@@ -84,23 +74,12 @@ function AttachmentVideo({ att, baseUrl }: { att: MessageAttachmentData; baseUrl
   if (failed) return <AttachmentFile att={att} baseUrl={baseUrl} />;
 
   return (
-    <VideoPlayer className="w-full max-w-sm aspect-video overflow-hidden rounded-xl border border-primary/15 bg-black">
-      <VideoPlayerContent
-        src={url}
-        preload="metadata"
-        slot="media"
-        className="w-full h-full object-contain"
-        onError={() => setFailed(true)}
-      />
-      <VideoPlayerControlBar>
-        <VideoPlayerPlayButton />
-        <VideoPlayerSeekBackwardButton />
-        <VideoPlayerSeekForwardButton />
-        <VideoPlayerTimeRange />
-        <VideoPlayerTimeDisplay />
-        <VideoPlayerMuteButton />
-      </VideoPlayerControlBar>
-    </VideoPlayer>
+    <VideoAttachment
+      url={url}
+      filename={att.filename}
+      className="w-full max-w-sm aspect-video rounded-xl border border-primary/15 bg-black overflow-hidden"
+      onError={() => setFailed(true)}
+    />
   );
 }
 
