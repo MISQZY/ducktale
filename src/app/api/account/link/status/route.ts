@@ -1,11 +1,17 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { siteDb } from "@/lib/site-db";
+import { isRateLimited } from "@/lib/rate-limit";
 
-export async function GET() {
+/** Polled by LinkAccountFlow every 4s while a link is PENDING. */
+export async function GET(req: Request) {
   const session = await auth();
   if (!session?.user?.id) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  if (isRateLimited(req, "account-link-status", 30, 60_000)) {
+    return NextResponse.json({ error: "Too many requests" }, { status: 429 });
   }
 
   const link = await siteDb.accountLink.findUnique({
