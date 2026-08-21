@@ -47,17 +47,12 @@ async function buildTownsResponse(page: number, pageSize: number, search: string
   }
 
   const { townRows, residentRows, total } = await withDb("duckburg_towns", async (db) => {
-    const totalRow = await db.$queryRaw(Prisma.sql`
-      SELECT COUNT(*) AS total
-      FROM (
-        ${townBaseQuery(Prisma.sql`, t.uuid AS uuid, t.mayor AS mayorUuid`)}
-      ) sub
-      ${search ? Prisma.sql`WHERE sub.name LIKE ${"%" + search + "%"}` : Prisma.empty}
-    `) as { total: bigint }[];
-    const total = totalRow.length > 0 ? Number(totalRow[0].total) : 0;
-
-    const townRows = total === 0 ? [] : await db.$queryRaw(Prisma.sql`
-      SELECT sub.*
+    // COUNT(*) OVER() folds the total-count query into the same pass as the
+    // page query — townBaseQuery's correlated subquery over ALL towns used
+    // to run twice per request (see buildTownRankingResponse in
+    // leaderboard-data.ts, which already used this pattern).
+    const townRows = await db.$queryRaw(Prisma.sql`
+      SELECT sub.*, COUNT(*) OVER() AS total
       FROM (
         ${townBaseQuery(Prisma.sql`, t.uuid AS uuid, t.mayor AS mayorUuid`)}
       ) sub
@@ -65,6 +60,7 @@ async function buildTownsResponse(page: number, pageSize: number, search: string
       ${orderSql}
       LIMIT ${pageSize} OFFSET ${offset}
     `) as TownRow[];
+    const total = townRows.length > 0 ? Number(townRows[0].total) : 0;
 
     const townUuids = townRows.map((t) => t.uuid);
     const residentRows = townUuids.length === 0 ? [] : await db.$queryRaw(Prisma.sql`
