@@ -1,5 +1,5 @@
 import { withDb } from "@/lib/db";
-import { resolveSkinUrl } from "@/lib/skin";
+import { resolveSkinUrlMap } from "@/lib/skin";
 import { EXTERNAL_APIS } from "@/config/external-apis";
 import type { QuestNodeDef } from "@/components/quest-tree/types";
 
@@ -52,15 +52,18 @@ export async function resolveCharacterSkins(nodes: QuestNodeDef[]): Promise<Ques
     : [];
   const uuidByName = new Map(players.map((p) => [p.name, p.uuid]));
 
+  // One batched round trip for every uuid instead of resolveSkinUrl's
+  // up-to-3-sequential-queries chain run once per NPC name in parallel — see
+  // resolveSkinUrlMap's doc comment for why that matters on a cold cache.
+  const skinUrlByUuid = await resolveSkinUrlMap(Array.from(uuidByName.values()));
+
   const urlByName = new Map<string, string>();
-  await Promise.all(
-    namesToResolve.map(async (name) => {
-      const uuid = uuidByName.get(name);
-      const skinsRestorerUrl = uuid ? await resolveSkinUrl(uuid) : null;
-      const url = skinsRestorerUrl ?? EXTERNAL_APIS.legacy_skin.skinUrl(name);
-      urlByName.set(name, url);
-    })
-  );
+  for (const name of namesToResolve) {
+    const uuid = uuidByName.get(name);
+    const skinsRestorerUrl = uuid ? skinUrlByUuid.get(uuid) ?? null : null;
+    const url = skinsRestorerUrl ?? EXTERNAL_APIS.legacy_skin.skinUrl(name);
+    urlByName.set(name, url);
+  }
 
   return nodes.map((node) => {
     if (!node.characterName) return node;
