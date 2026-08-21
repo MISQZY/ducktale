@@ -9,6 +9,7 @@ import { getInitialStatusId } from "@/lib/workflows";
 import { isRateLimitedByHeaders } from "@/lib/rate-limit";
 import { createNotification } from "@/lib/notifications";
 import { SERVERS } from "@/config/servers";
+import { getServerWhitelistStatuses } from "@/lib/players";
 import {
   getApplicationViewer,
   canViewApplication,
@@ -28,8 +29,15 @@ export interface CreateApplicationResult {
   id: string;
 }
 
-function isServerId(value: string): boolean {
-  return SERVERS.some((s) => s.id === value);
+// Defense in depth — the create form only ever offers whitelisted servers
+// (see applications/new/page.tsx), but this re-checks server-side so a
+// request built by hand can't submit a server whose whitelist has since
+// been turned off (or was never on).
+async function isWhitelistedServerId(value: string): Promise<boolean> {
+  const server = SERVERS.find((s) => s.id === value);
+  if (!server) return false;
+  const whitelistStatuses = await getServerWhitelistStatuses().catch(() => new Set<string>());
+  return whitelistStatuses.has(server.uuid);
 }
 
 export async function createApplication(formData: FormData): Promise<CreateApplicationResult> {
@@ -46,8 +54,8 @@ export async function createApplication(formData: FormData): Promise<CreateAppli
   // Unlike Report, description is optional here even with no attachment — a
   // bare nickname+server pair is a complete submission on its own (see the
   // Application model's doc comment in schema.prisma.template).
-  if (!applicantName || !isServerId(serverId)) {
-    throw new Error("Nickname and server are required");
+  if (!applicantName || !(await isWhitelistedServerId(serverId))) {
+    throw new Error("Nickname and a currently whitelisted server are required");
   }
 
   if (validFiles.length > MAX_FILES_PER_MESSAGE) {
