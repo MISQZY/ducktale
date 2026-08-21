@@ -116,7 +116,7 @@ export function VideoAttachment({ url, filename, className, onError }: VideoAtta
               <Download size={16} />
             </a>
           </div>
-          <VideoPlayer className="w-full max-w-4xl aspect-video mx-auto overflow-hidden rounded-xl">
+          <VideoPlayer className="w-full h-full overflow-hidden rounded-xl">
             <VideoPlayerContent src={url} preload="metadata" slot="media" className="w-full h-full object-contain" />
             <Controls />
           </VideoPlayer>
