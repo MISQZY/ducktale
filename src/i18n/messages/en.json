@@ -1154,6 +1154,7 @@
     "submitting": "Sending...",
     "errors": {
       "required": "Fill in your nickname",
+      "noServersAvailable": "No server currently has whitelist open — applications aren't accepted right now.",
       "invalidFileType": "Unsupported file format: {name}. Allowed: images, .txt, .log, .pdf, .zip, video, and .jar.",
       "tooManyFiles": "No more than {max} attachments allowed.",
       "generic": "Couldn't complete that. Try again later."

@@ -13,15 +13,19 @@ import { buttonVariants } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { createApplication } from "@/lib/actions/applications";
 import { APPLICATION_DESCRIPTION_MAX, APPLICANT_NAME_MAX, MAX_FILES_PER_MESSAGE } from "@/lib/applications";
-import { SERVERS } from "@/config/servers";
 import { isAllowedAttachmentExtension, ATTACHMENT_ACCEPT } from "@/config/attachments";
 
-export function NewApplicationForm({ lang }: { lang: string }) {
+interface ApplicationServerOption {
+  id: string;
+  name: string;
+}
+
+export function NewApplicationForm({ lang, servers }: { lang: string; servers: ApplicationServerOption[] }) {
   const t = useTranslations("Applications");
   const router = useRouter();
 
   const [applicantName, setApplicantName] = useState("");
-  const [serverId, setServerId] = useState(SERVERS[0].id);
+  const [serverId, setServerId] = useState(servers[0]?.id ?? "");
   const [description, setDescription] = useState("");
   const [files, setFiles] = useState<File[]>([]);
   const [error, setError] = useState<string | null>(null);
@@ -35,6 +39,10 @@ export function NewApplicationForm({ lang }: { lang: string }) {
     // pair is a complete submission (see the Application model's doc comment).
     if (!applicantName.trim()) {
       setError(t("errors.required"));
+      return;
+    }
+    if (!serverId) {
+      setError(t("errors.noServersAvailable"));
       return;
     }
 
@@ -77,18 +85,23 @@ export function NewApplicationForm({ lang }: { lang: string }) {
         <label htmlFor="application-server" className="text-xs uppercase tracking-widest text-foreground/50 leading-none">
           {t("serverLabel")}
         </label>
-        <select
-          id="application-server"
-          name="serverId"
-          value={serverId}
-          onChange={(e) => setServerId(e.target.value)}
-          className={formInputClasses(false)}
-          style={formInputStyle}
-        >
-          {SERVERS.map((s) => (
-            <option key={s.id} value={s.id}>{s.name}</option>
-          ))}
-        </select>
+        {servers.length > 0 ? (
+          <select
+            id="application-server"
+            name="serverId"
+            value={serverId}
+            onChange={(e) => setServerId(e.target.value)}
+            className={formInputClasses(false)}
+            style={formInputStyle}
+            required
+          >
+            {servers.map((s) => (
+              <option key={s.id} value={s.id}>{s.name}</option>
+            ))}
+          </select>
+        ) : (
+          <p className="text-xs text-destructive">{t("errors.noServersAvailable")}</p>
+        )}
       </div>
 
       <FormTextarea
@@ -166,7 +179,7 @@ export function NewApplicationForm({ lang }: { lang: string }) {
 
       {error && <p className="text-sm text-destructive text-center">{error}</p>}
 
-      <FormButton type="submit" disabled={submitting} className="mt-2 w-full">
+      <FormButton type="submit" disabled={submitting || servers.length === 0} className="mt-2 w-full">
         {submitting ? t("submitting") : t("submit")}
       </FormButton>
     </form>
