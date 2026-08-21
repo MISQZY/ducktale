@@ -15,9 +15,19 @@ const MAX_ENTRIES = 5000;
 
 const windows = new Map<string, Window>();
 
+/**
+ * Caddy (see Caddyfile) sits as the single reverse-proxy hop in front of this
+ * app and appends the real client IP to X-Forwarded-For rather than replacing
+ * it — it does not set trusted_proxies/strip incoming values. So the FIRST
+ * entry is attacker-controlled (a client can send its own X-Forwarded-For
+ * with any value) while the LAST entry is always the one Caddy appended.
+ */
 function getClientIp(req: Request): string {
   const forwardedFor = req.headers.get("x-forwarded-for");
-  if (forwardedFor) return forwardedFor.split(",")[0].trim();
+  if (forwardedFor) {
+    const ips = forwardedFor.split(",").map((ip) => ip.trim()).filter(Boolean);
+    if (ips.length > 0) return ips[ips.length - 1];
+  }
   return req.headers.get("x-real-ip") ?? "unknown";
 }
 
