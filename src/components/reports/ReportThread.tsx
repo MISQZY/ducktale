@@ -13,7 +13,6 @@ import { REPORT_MESSAGE_MAX, MAX_FILES_PER_MESSAGE } from "@/lib/reports";
 import { isAllowedAttachmentExtension, ATTACHMENT_ACCEPT } from "@/config/attachments";
 import { FormButton } from "@/components/common/FormButton";
 import { FormTextarea } from "@/components/common/FormTextarea";
-import { formInputClasses, formInputStyle } from "@/components/common/form-styles";
 import { buttonVariants } from "@/components/ui/button";
 import { useConfirm } from "@/components/common/ConfirmDialogProvider";
 import { Badge } from "@/components/ui/badge";
@@ -24,6 +23,8 @@ import { EmbedImage } from "@/components/common/EmbedImage";
 import { handleComposerKeyDown } from "@/lib/compose-keydown";
 import { usePolling } from "@/hooks/usePolling";
 import { ReportStatusBadge } from "./ReportStatusBadge";
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
+import { localizedName } from "@/lib/i18n-name";
 
 
 interface AttachmentData {
@@ -66,7 +67,6 @@ interface ReportThreadProps {
 }
 
 const POLL_INTERVAL_MS = 8000;
-const TERMINAL_STATUSES: any[] = ["RESOLVED", "REJECTED"];
 
 function isImageMime(mime: string): boolean {
   return mime.startsWith("image/");
@@ -184,6 +184,7 @@ export function ReportThread({ lang, reportId, reportedName, initialStatus, init
   const confirm = useConfirm();
   const router = useRouter();
   const [status, setStatus] = useState<any>(initialStatus);
+  const [transitions, setTransitions] = useState<any[]>([]);
   const [messages, setMessages] = useState(initialMessages);
   const handleDeleteMessage = useCallback(async (messageId: string) => {
     try {
@@ -200,7 +201,7 @@ export function ReportThread({ lang, reportId, reportedName, initialStatus, init
   const bottomRef = useRef<HTMLDivElement>(null);
   const latestCreatedAtRef = useRef<string | undefined>(initialMessages.at(-1)?.createdAt);
 
-  const isTerminal = TERMINAL_STATUSES.includes(status);
+  const isTerminal = status?.isClosed === true;
 
   const poll = useCallback(async () => {
     try {
@@ -212,6 +213,7 @@ export function ReportThread({ lang, reportId, reportedName, initialStatus, init
       if (!res.ok) return;
       const data = await res.json();
       setStatus(data.status);
+      if (data.transitions) setTransitions(data.transitions);
       setMessages((prev) => {
         const newOnes = (data.messages as ReportMessageData[]).filter(
           (m) => !prev.some((existing) => existing.id === m.id)
@@ -224,6 +226,14 @@ export function ReportThread({ lang, reportId, reportedName, initialStatus, init
       // Silent — a missed poll just tries again next interval.
     }
   }, [reportId]);
+
+  // transitions (needed to populate the status dropdown below) only comes
+  // from the poll endpoint, not the server-rendered initial props — so
+  // canEdit viewers need one poll right away rather than waiting out the
+  // first interval, same as ApplicationThread's equivalent effect.
+  useEffect(() => {
+    if (canEdit) poll();
+  }, [canEdit, poll]);
 
   usePolling(poll, POLL_INTERVAL_MS);
 
@@ -258,11 +268,11 @@ export function ReportThread({ lang, reportId, reportedName, initialStatus, init
     submitMessage();
   }
 
-  function handleStatusChange(next: any) {
+  function handleStatusChange(next: string) {
     startTransition(async () => {
       try {
         await setReportStatus(lang, reportId, next);
-        setStatus(next);
+        await poll();
       } catch {
         setError(t("errors.generic"));
       }
@@ -289,23 +299,34 @@ export function ReportThread({ lang, reportId, reportedName, initialStatus, init
     <div className="flex flex-col h-full min-h-0">
       {/* Header bar */}
       <div className="flex items-center justify-between gap-3 flex-wrap mb-4 shrink-0">
-        <ReportStatusBadge status={status} label={t(`status.${status}`)} />
+        <ReportStatusBadge status={status} />
 
-        {canEdit && (
+        {canEdit && transitions.length > 0 && (
           <div className="flex items-center gap-2 text-xs text-foreground/50">
             <span>{t("setStatus")}</span>
-            <select
-              value={status}
-              disabled={isPending}
-              onChange={(e) => handleStatusChange(e.target.value as any)}
-              className={formInputClasses(false, "h-8 py-0 text-xs w-auto")}
-              style={formInputStyle}
-            >
-              <option value="OPEN">{t("status.OPEN")}</option>
-              <option value="IN_REVIEW">{t("markInReview")}</option>
-              <option value="RESOLVED">{t("markResolved")}</option>
-              <option value="REJECTED">{t("markRejected")}</option>
-            </select>
+            <Select disabled={isPending} value={status?.id || ""} onValueChange={handleStatusChange}>
+              <SelectTrigger size="sm" className="w-auto border-none shadow-none h-8 px-2 bg-card/50 hover:bg-card/80">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {status && (
+                  <SelectItem value={status.id} disabled>
+                    <div className="flex items-center gap-2 text-foreground/50">
+                      <div className="w-2 h-2 rounded-full" style={{ backgroundColor: status.color || "#000" }} />
+                      {localizedName(status.name, lang)}
+                    </div>
+                  </SelectItem>
+                )}
+                {transitions.map((tr) => (
+                  <SelectItem key={tr.id} value={tr.id}>
+                    <div className="flex items-center gap-2">
+                      <div className="w-2 h-2 rounded-full" style={{ backgroundColor: tr.color || "#000" }} />
+                      {localizedName(tr.name, lang)}
+                    </div>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
         )}
       </div>

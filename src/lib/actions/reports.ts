@@ -28,8 +28,6 @@ export interface CreateReportResult {
   id: string;
 }
 
-const TERMINAL_STATUSES: any[] = ["RESOLVED", "REJECTED"];
-
 export async function createReport(formData: FormData): Promise<CreateReportResult> {
   const viewer = await getReportViewer();
   if (!viewer) throw new Error("Not authenticated");
@@ -106,7 +104,7 @@ export async function sendReportMessage(formData: FormData): Promise<void> {
 
   // Terminal statuses reject new messages outright — see the Report model's
   // doc comment for why this differs from Ticket's auto-reopen-on-reply.
-  if (TERMINAL_STATUSES.includes(report.status)) {
+  if (report.status.isClosed) {
     throw new Error("This report is closed to new messages");
   }
 
