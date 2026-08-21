@@ -1,10 +1,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable @typescript-eslint/no-unused-vars */
 "use client";
 
 import { useCallback, useEffect, useRef, useState, useTransition, type FormEvent } from "react";
 import { useTranslations } from "next-intl";
-import { Trash2, Paperclip, FileText, Download, X, Image as ImageIcon, ImageOff } from "lucide-react";
+import { Trash2, Paperclip } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useRouter } from "@/i18n/navigation";
 import { sendReportMessage, setReportStatus, deleteReport } from "@/lib/actions/reports";
@@ -15,24 +14,18 @@ import { FormButton } from "@/components/common/FormButton";
 import { FormTextarea } from "@/components/common/FormTextarea";
 import { buttonVariants } from "@/components/ui/button";
 import { useConfirm } from "@/components/common/ConfirmDialogProvider";
-import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { PlayerAvatar } from "@/components/common/PlayerAvatar";
 import { MessageBubble } from "@/components/common/MessageBubble";
-import { EmbedImage } from "@/components/common/EmbedImage";
+import { MessageAttachmentList, type MessageAttachmentData } from "@/components/common/MessageAttachmentList";
+import { SelectedFileChip } from "@/components/common/SelectedFileChip";
 import { handleComposerKeyDown } from "@/lib/compose-keydown";
 import { usePolling } from "@/hooks/usePolling";
 import { ReportStatusBadge } from "./ReportStatusBadge";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 import { localizedName } from "@/lib/i18n-name";
 
-
-interface AttachmentData {
-  id: string;
-  filename: string;
-  size: number;
-  mimeType: string;
-}
+const ATTACHMENTS_BASE_URL = "/api/reports/attachments";
 
 interface ReportMessageData {
   id: string;
@@ -45,7 +38,7 @@ interface ReportMessageData {
   authorSkinUrl: string | null;
   type: string;
   newStatusName?: string;
-attachments?: AttachmentData[];
+  attachments?: MessageAttachmentData[];
 }
 
 interface ReportThreadProps {
@@ -67,115 +60,6 @@ interface ReportThreadProps {
 }
 
 const POLL_INTERVAL_MS = 8000;
-
-function isImageMime(mime: string): boolean {
-  return mime.startsWith("image/");
-}
-
-function formatFileSize(bytes: number): string {
-  if (bytes < 1024) return `${bytes} B`;
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
-  return `${(bytes / 1024 / 1024).toFixed(2)} MB`;
-}
-
-/* ---------- Attachment renderers (mirrors TicketThread's own set) ---------- */
-
-function AttachmentImageError({ att }: { att: AttachmentData }) {
-  const t = useTranslations("Reports");
-  const url = `/api/reports/attachments/${att.id}`;
-
-  return (
-    <a
-      href={url}
-      target="_blank"
-      rel="noopener noreferrer"
-      className="flex items-center gap-2.5 px-3 py-2 rounded-xl border border-destructive/25 bg-destructive/5 hover:border-destructive/40 hover:bg-destructive/10 transition-colors group/file"
-    >
-      <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-destructive/10 shrink-0">
-        <ImageOff size={16} className="text-destructive/70" />
-      </div>
-      <div className="flex flex-col min-w-0 flex-1">
-        <span className="text-xs text-foreground/80 truncate">{att.filename}</span>
-        <span className="text-[0.6rem] text-destructive/60">{t("imageLoadError")}</span>
-      </div>
-    </a>
-  );
-}
-
-function AttachmentImage({ att }: { att: AttachmentData }) {
-  const [failed, setFailed] = useState(false);
-  const url = `/api/reports/attachments/${att.id}`;
-
-  if (failed) return <AttachmentImageError att={att} />;
-
-  return (
-    <EmbedImage
-      url={url}
-      filename={att.filename}
-      className="block group/img rounded-xl overflow-hidden border border-primary/15 bg-card/40 hover:border-primary/30 transition-colors w-max"
-      imgClassName="max-w-full max-h-[280px] object-contain rounded-xl"
-      onError={() => setFailed(true)}
-    />
-  );
-}
-
-function AttachmentFile({ att }: { att: AttachmentData }) {
-  const url = `/api/reports/attachments/${att.id}`;
-
-  return (
-    <a
-      href={url}
-      target="_blank"
-      rel="noopener noreferrer"
-      className="flex items-center gap-2.5 px-3 py-2 rounded-xl border border-primary/15 bg-card/40 hover:border-primary/30 hover:bg-card/60 transition-colors group/file"
-    >
-      <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-primary/10 shrink-0">
-        <FileText size={16} className="text-primary/60" />
-      </div>
-      <div className="flex flex-col min-w-0 flex-1">
-        <span className="text-xs text-foreground/80 truncate">{att.filename}</span>
-        <span className="text-[0.6rem] text-foreground/35">{formatFileSize(att.size)}</span>
-      </div>
-      <Download size={14} className="text-foreground/30 group-hover/file:text-primary/60 transition-colors shrink-0" />
-    </a>
-  );
-}
-
-function MessageAttachments({ attachments }: { attachments: AttachmentData[] }) {
-  if (attachments.length === 0) return null;
-
-  return (
-    <div className="flex flex-col gap-1.5 mt-2">
-      {attachments.map((att) =>
-        isImageMime(att.mimeType) ? (
-          <AttachmentImage key={att.id} att={att} />
-        ) : (
-          <AttachmentFile key={att.id} att={att} />
-        )
-      )}
-    </div>
-  );
-}
-
-function SelectedFileChip({ file, onRemove }: { file: File; onRemove: () => void }) {
-  return (
-    <Badge
-      variant="secondary"
-      className="h-auto gap-1.5 px-2.5 py-1 rounded-lg bg-primary/10 border-primary/20 text-foreground/70 text-[0.65rem]"
-    >
-      <Paperclip size={10} className="shrink-0 opacity-50" />
-      <span className="truncate max-w-[120px]">{file.name}</span>
-      <button
-        type="button"
-        onClick={onRemove}
-        className="ml-0.5 hover:text-destructive transition-colors"
-        aria-label={`Remove ${file.name}`}
-      >
-        <X size={10} />
-      </button>
-    </Badge>
-  );
-}
 
 /* ---------- Main component ---------- */
 
@@ -377,7 +261,7 @@ export function ReportThread({ lang, reportId, reportedName, initialStatus, init
                   }
                 >
                   {m.attachments && m.attachments.length > 0 && (
-                    <MessageAttachments attachments={m.attachments} />
+                    <MessageAttachmentList attachments={m.attachments} baseUrl={ATTACHMENTS_BASE_URL} t={t} />
                   )}
                 </MessageBubble>
               );
