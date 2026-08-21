@@ -80,14 +80,14 @@ export async function sendThreadMessage(formData: FormData): Promise<void> {
     }
   }
 
+  if (await isRateLimitedByHeaders("thread-message", 20, 5 * 60_000)) {
+    throw new Error("Too many messages, slow down");
+  }
+
   const attachmentsData: any[] = [];
   for (const file of validFiles) {
     const saved = await saveAttachment(file);
     attachmentsData.push(saved);
-  }
-
-  if (await isRateLimitedByHeaders("thread-message", 20, 5 * 60_000)) {
-    throw new Error("Too many messages, slow down");
   }
 
   // Every authenticated user can reply to every thread (see getThreadViewer's
