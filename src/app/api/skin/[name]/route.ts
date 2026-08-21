@@ -1,9 +1,14 @@
 import { NextResponse } from "next/server";
 import { getMojangSkinUrl } from "@/lib/mojang";
+import { isRateLimited } from "@/lib/rate-limit";
 
 export async function GET(req: Request, { params }: { params: Promise<{ name: string }> }) {
+  if (isRateLimited(req, "skin", 30, 60_000)) {
+    return NextResponse.json({ error: "Too many requests" }, { status: 429 });
+  }
+
   const { name } = await params;
-  
+
   if (!name) {
     return NextResponse.json({ error: "Name is required" }, { status: 400 });
   }
