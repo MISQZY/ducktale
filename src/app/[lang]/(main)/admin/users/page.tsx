@@ -98,25 +98,25 @@ export default async function AdminUsersPage({
     .filter((r) => r.key !== "guest")
     .map((r) => ({ id: r.id, name: r.name as unknown as LocalizedName }));
 
-  const { resolveSkinUrls } = await import("@/lib/skin");
-  const skinUrls = await resolveSkinUrls(users.map((u) => u.accountLink?.minecraftUuid));
-
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
   const dateLocale = lang === "ru" ? "ru-RU" : "en-US";
-
-  const { getAllOnlinePlayers } = await import("@/lib/players");
-  const onlinePlayers = await getAllOnlinePlayers();
-  const onlineMcNames = new Set(onlinePlayers.map(p => p.name.toLowerCase()));
 
   const linkedUuids = users
     .map(u => u.accountLink?.status === "CONFIRMED" ? u.accountLink.minecraftUuid : null)
     .filter((u): u is string => !!u);
 
-  let serverLastSeenMap = new Map<string, number>();
-  if (linkedUuids.length > 0) {
-    const { getPlayersLastSeenMap } = await import("@/lib/players");
-    serverLastSeenMap = await getPlayersLastSeenMap(linkedUuids);
-  }
+  const [{ resolveSkinUrls }, { getAllOnlinePlayers, getPlayersLastSeenMap }] = await Promise.all([
+    import("@/lib/skin"),
+    import("@/lib/players"),
+  ]);
+
+  // Independent lookups — run together instead of awaiting one at a time.
+  const [skinUrls, onlinePlayers, serverLastSeenMap] = await Promise.all([
+    resolveSkinUrls(users.map((u) => u.accountLink?.minecraftUuid)),
+    getAllOnlinePlayers(),
+    linkedUuids.length > 0 ? getPlayersLastSeenMap(linkedUuids) : Promise.resolve(new Map<string, number>()),
+  ]);
+  const onlineMcNames = new Set(onlinePlayers.map(p => p.name.toLowerCase()));
 
   const userRows = users.map((user, i) => {
     const isLinked = user.accountLink?.status === "CONFIRMED";
