@@ -2,8 +2,8 @@
 
 import { ThemeToggle } from "./ThemeToggle";
 import { LanguageSwitcher } from "./LanguageSwitcher";
-import { Link, usePathname } from "@/i18n/navigation";
-import { Menu, UserRound } from "lucide-react";
+import { Link, usePathname, useRouter } from "@/i18n/navigation";
+import { Menu, UserRound, ChevronDown } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import { useTranslations } from "next-intl";
@@ -21,8 +21,16 @@ import {
   SheetTrigger,
   SheetClose,
 } from "@/components/ui/sheet";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
-import { NAV_LINKS } from "@/config/navigation";
+import { NAV_ITEMS, type NavLeaf } from "@/config/navigation";
+import { SERVERS } from "@/config/servers";
 import { getDuckyVisible, setDuckyVisible, getDuckyMuted, setDuckyMuted } from "@/components/DuckyPet";
 import { useSyncExternalStore } from "react";
 import { NotificationBell } from "@/components/NotificationBell";
@@ -82,7 +90,7 @@ function DuckIcon({ state }: { state: DuckyState }) {
 /**
  * The "РџСЂРѕС„РёР»СЊ" link renders as a self-contained pill (own border/background)
  * rather than a plain text label вЂ” it's not another page to browse to, it's
- * "you", so it needs to read differently from the rest of NAV_LINKS at a
+ * "you", so it needs to read differently from the rest of NAV_ITEMS at a
  * glance. Session status starts "loading" briefly on first paint; treated
  * the same as unauthenticated so there's no skeleton, just a quick flip to
  * the real avatar+username once the session resolves.
@@ -180,6 +188,37 @@ function AccountLinkContent({ fallbackLabel }: { fallbackLabel: string }) {
   );
 }
 
+/** One row in the mobile Sheet's nav list — shared by top-level links, a group's children, and the per-server links appended under "Серверы", so that shape only lives in one place. */
+function MobileNavLink({
+  href,
+  label,
+  active,
+  onNavigate,
+}: {
+  href: string;
+  label: React.ReactNode;
+  active: boolean;
+  onNavigate: (e: React.MouseEvent<HTMLAnchorElement>, href: string) => void;
+}) {
+  return (
+    <SheetClose asChild>
+      <Link
+        href={href}
+        onClick={(e) => onNavigate(e, href)}
+        className={cn(
+          "flex items-center gap-1.5 rounded-lg px-4 py-2.5 text-sm tracking-wide transition-colors",
+          active
+            ? "bg-primary/10 text-primary font-semibold border-l-2 border-primary/50"
+            : "text-foreground/60 hover:bg-primary/5 hover:text-primary/90"
+        )}
+        aria-current={active ? "page" : undefined}
+      >
+        {label}
+      </Link>
+    </SheetClose>
+  );
+}
+
 interface NavbarProps {
   /** Whether the current viewer (anonymous-via-Guest-role or logged-in) can open /leaderboard вЂ” hides that nav link instead of showing a dead end that redirects away. Defaults to visible (e.g. not-found.tsx, which renders Navbar without computing this) rather than hiding navigation on an edge-case page. */
   canViewLeaderboard?: boolean;
@@ -189,26 +228,42 @@ interface NavbarProps {
   canViewMaps?: boolean;
   /** Same idea as canViewMaps вЂ” hasPublicResourceRole("events-page-view"). */
   canViewEvents?: boolean;
+  /** Same idea as canViewEvents — hasPublicResourceRole("news-page-view"). */
+  canViewNews?: boolean;
 }
 
-export default function Navbar({ canViewLeaderboard = true, canViewThreads = true, canViewMaps = true, canViewEvents = true }: NavbarProps) {
+export default function Navbar({ canViewLeaderboard = true, canViewThreads = true, canViewMaps = true, canViewEvents = true, canViewNews = true }: NavbarProps) {
   const t = useTranslations("Nav");
   const pathname = usePathname();
+  const router = useRouter();
   // Gates the bell вЂ” an anonymous visitor has no notifications, and
   // NotificationsContext only polls for an authenticated session anyway
   // (see its own doc comment), so there's nothing for the bell to show them.
   const { status } = useSession();
   const [menuOpen, setMenuOpen] = useState(false);
+  const [communityOpen, setCommunityOpen] = useState(false);
+  const [serversOpen, setServersOpen] = useState(false);
   const duckyVisible = useSyncExternalStore(subscribeDuckyToggle, getDuckyVisible, () => true);
   const duckyMuted = useSyncExternalStore(subscribeDuckyToggle, getDuckyMuted, () => false);
 
-  const visibleLinks = NAV_LINKS.filter((link) => {
-    if (link.key === "leaderboard") return canViewLeaderboard;
-    if (link.key === "threads") return canViewThreads;
-    if (link.key === "maps") return canViewMaps;
-    if (link.key === "events") return canViewEvents;
+  function canViewLeaf(key: NavLeaf["key"]): boolean {
+    if (key === "leaderboard") return canViewLeaderboard;
+    if (key === "threads") return canViewThreads;
+    if (key === "maps") return canViewMaps;
+    if (key === "events") return canViewEvents;
+    if (key === "news") return canViewNews;
     return true;
-  });
+  }
+
+  // Groups with 0 visible children after filtering are dropped entirely
+  // (same as AdminNav.tsx) rather than shown as an empty dropdown.
+  const visibleItems = NAV_ITEMS
+    .map((item) => {
+      if (item.type === "link") return canViewLeaf(item.key) ? item : null;
+      const children = item.children.filter((child) => canViewLeaf(child.key));
+      return children.length > 0 ? { ...item, children } : null;
+    })
+    .filter((item): item is NonNullable<typeof item> => item !== null);
 
   // Cycle: sound on -> muted (still visible) -> hidden -> sound on ...
   const duckyState: DuckyState = !duckyVisible ? "off" : duckyMuted ? "muted" : "on";
@@ -226,6 +281,15 @@ export default function Navbar({ canViewLeaderboard = true, canViewThreads = tru
 
   const duckyBtnTitle =
     duckyState === "on" ? t("duckMute") : duckyState === "muted" ? t("duckHide") : t("duckShow");
+
+  // Closes the dropdown, then navigates on the next tick instead of both in
+  // the same commit — same race (and fix) as AdminNav.tsx's goTo: closing
+  // the menu and mounting whatever the destination renders in one commit
+  // intermittently threw a Radix Slot error via client-side navigation.
+  function goToGroupItem(href: string, setOpen: (open: boolean) => void) {
+    setOpen(false);
+    setTimeout(() => router.push(href), 0);
+  }
 
   const handleNavClick = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
     if (href.includes("#")) {
@@ -262,27 +326,78 @@ export default function Navbar({ canViewLeaderboard = true, canViewThreads = tru
 
           {/* Desktop nav links вЂ” absolutely centered against the header
               row (not just the space between logo and the right group),
-              so they stay centered regardless of how wide either side is. */}
+              so they stay centered regardless of how wide either side is.
+              Groups (community/servers) render as dropdowns instead of more
+              inline pills вЂ” same fix AdminNav.tsx applied once its own flat
+              tab row grew too wide. */}
           <div className="nav-desktop absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 items-center gap-1">
-            {visibleLinks.filter((link) => link.key !== "profile").map((link) => (
-              <Link
-                key={link.href}
-                href={link.href}
-                onClick={(e) => handleNavClick(e, link.href)}
-                className={cn(
-                  "relative px-3 py-2 text-sm transition-colors tracking-wide rounded-md",
-                  isActive(pathname, link.href)
-                    ? "text-primary font-semibold"
-                    : "text-foreground/60 hover:text-primary/90"
-                )}
-                aria-current={isActive(pathname, link.href) ? "page" : undefined}
-              >
-                {t(link.key)}
-                {isActive(pathname, link.href) && (
-                  <span className="absolute bottom-0 left-3 right-3 h-px bg-linear-to-r from-transparent via-primary/70 to-transparent" />
-                )}
-              </Link>
-            ))}
+            {visibleItems.filter((item) => !(item.type === "link" && item.key === "profile")).map((item) => {
+              if (item.type === "link") {
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    onClick={(e) => handleNavClick(e, item.href)}
+                    className={cn(
+                      "relative px-3 py-2 text-sm transition-colors tracking-wide rounded-md",
+                      isActive(pathname, item.href)
+                        ? "text-primary font-semibold"
+                        : "text-foreground/60 hover:text-primary/90"
+                    )}
+                    aria-current={isActive(pathname, item.href) ? "page" : undefined}
+                  >
+                    {t(item.key)}
+                    {isActive(pathname, item.href) && (
+                      <span className="absolute bottom-0 left-3 right-3 h-px bg-linear-to-r from-transparent via-primary/70 to-transparent" />
+                    )}
+                  </Link>
+                );
+              }
+
+              const groupActive = item.children.some((child) => isActive(pathname, child.href));
+              const open = item.key === "community" ? communityOpen : serversOpen;
+              const setOpen = item.key === "community" ? setCommunityOpen : setServersOpen;
+
+              return (
+                <DropdownMenu key={item.key} open={open} onOpenChange={setOpen}>
+                  <DropdownMenuTrigger
+                    className={cn(
+                      "relative inline-flex items-center gap-1 px-3 py-2 text-sm transition-colors tracking-wide rounded-md cursor-pointer outline-hidden",
+                      groupActive ? "text-primary font-semibold" : "text-foreground/60 hover:text-primary/90"
+                    )}
+                  >
+                    {t(item.key)}
+                    <ChevronDown className="size-3.5 opacity-60" />
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent>
+                    {item.children.map((child) => (
+                      <DropdownMenuItem
+                        key={child.href}
+                        className={cn(isActive(pathname, child.href) && "bg-primary/10 text-primary")}
+                        onSelect={() => goToGroupItem(child.href, setOpen)}
+                      >
+                        {t(child.key)}
+                      </DropdownMenuItem>
+                    ))}
+                    {item.key === "servers" && (
+                      <>
+                        <DropdownMenuSeparator />
+                        {SERVERS.map((server) => (
+                          <DropdownMenuItem
+                            key={server.id}
+                            className={cn(isActive(pathname, server.href) && "bg-primary/10 text-primary")}
+                            onSelect={() => goToGroupItem(server.href, setOpen)}
+                          >
+                            <span aria-hidden="true" className="mr-1">{server.emoji}</span>
+                            {server.name}
+                          </DropdownMenuItem>
+                        ))}
+                      </>
+                    )}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              );
+            })}
           </div>
 
           {/* Desktop right group: account + utilities вЂ” not part of the
@@ -376,28 +491,60 @@ export default function Navbar({ canViewLeaderboard = true, canViewThreads = tru
                 <div className="h-px mx-5 bg-linear-to-r from-transparent via-primary/25 to-transparent" />
 
                 <nav className="flex flex-col px-3 py-4 gap-0.5">
-                  {visibleLinks.map((link) => {
-                    const isAccount = link.key === "profile";
+                  {visibleItems.map((item) => {
+                    if (item.type === "link") {
+                      if (item.key === "profile") {
+                        return (
+                          <SheetClose asChild key={item.href}>
+                            <Link
+                              href={item.href}
+                              onClick={(e) => handleNavClick(e, item.href)}
+                              className="flex items-center rounded-lg px-2 py-2 mt-1"
+                            >
+                              <AccountLinkContent fallbackLabel={t("login")} />
+                            </Link>
+                          </SheetClose>
+                        );
+                      }
+                      return (
+                        <MobileNavLink
+                          key={item.href}
+                          href={item.href}
+                          label={t(item.key)}
+                          active={isActive(pathname, item.href)}
+                          onNavigate={handleNavClick}
+                        />
+                      );
+                    }
+
+                    // Groups render as a small uppercase section label above
+                    // their (already-filtered) children — the Sheet has
+                    // vertical room to spare, unlike the desktop row, so no
+                    // Collapsible/flyout is needed here.
                     return (
-                      <SheetClose asChild key={link.href}>
-                        <Link
-                          href={link.href}
-                          onClick={(e) => handleNavClick(e, link.href)}
-                          className={
-                            isAccount
-                              ? "flex items-center rounded-lg px-2 py-2 mt-1"
-                              : cn(
-                                  "flex items-center rounded-lg px-4 py-2.5 text-sm tracking-wide transition-colors",
-                                  isActive(pathname, link.href)
-                                    ? "bg-primary/10 text-primary font-semibold border-l-2 border-primary/50"
-                                    : "text-foreground/60 hover:bg-primary/5 hover:text-primary/90"
-                                )
-                          }
-                          aria-current={isActive(pathname, link.href) ? "page" : undefined}
-                        >
-                          {isAccount ? <AccountLinkContent fallbackLabel={t("login")} /> : t(link.key)}
-                        </Link>
-                      </SheetClose>
+                      <div key={item.key} className="mt-2 flex flex-col gap-0.5">
+                        <p className="px-4 pt-1 pb-0.5 text-[10px] uppercase tracking-widest text-foreground/35">
+                          {t(item.key)}
+                        </p>
+                        {item.children.map((child) => (
+                          <MobileNavLink
+                            key={child.href}
+                            href={child.href}
+                            label={t(child.key)}
+                            active={isActive(pathname, child.href)}
+                            onNavigate={handleNavClick}
+                          />
+                        ))}
+                        {item.key === "servers" && SERVERS.map((server) => (
+                          <MobileNavLink
+                            key={server.id}
+                            href={server.href}
+                            label={<><span aria-hidden="true">{server.emoji}</span>{server.name}</>}
+                            active={isActive(pathname, server.href)}
+                            onNavigate={handleNavClick}
+                          />
+                        ))}
+                      </div>
                     );
                   })}
                 </nav>

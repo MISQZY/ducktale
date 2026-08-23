@@ -14,10 +14,11 @@ export default async function MainLayout({
   // anonymous visitor's effective Guest-role grants) — see hasPublicResourceRole's
   // doc comment (src/lib/public-access.ts).
   const session = await auth();
-  const [canViewLeaderboard, canViewMaps, canViewEvents] = await Promise.all([
+  const [canViewLeaderboard, canViewMaps, canViewEvents, canViewNews] = await Promise.all([
     hasPublicResourceRole("leaderboard-view", session),
     hasPublicResourceRole("maps-page-view", session),
     hasPublicResourceRole("events-page-view", session),
+    hasPublicResourceRole("news-page-view", session),
   ]);
   // Threads has its own resource-role now (threads-view, seeded onto the
   // built-in "user" Role) but — unlike leaderboard — no anonymous/Guest
@@ -29,7 +30,7 @@ export default async function MainLayout({
 
   return (
     <>
-      <Navbar canViewLeaderboard={canViewLeaderboard} canViewThreads={canViewThreads} canViewMaps={canViewMaps} canViewEvents={canViewEvents} />
+      <Navbar canViewLeaderboard={canViewLeaderboard} canViewThreads={canViewThreads} canViewMaps={canViewMaps} canViewEvents={canViewEvents} canViewNews={canViewNews} />
       <GlobalHeaderDecorations />
       {children}
     </>

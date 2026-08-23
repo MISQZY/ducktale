@@ -66,6 +66,29 @@
     },
     "overflow": "+ ещё {count, plural, one {# событие} few {# события} many {# событий} other {# события}} — смотрите в Discord"
   },
+  "News": {
+    "eyebrow": "Журнал изменений",
+    "title": "Новости",
+    "description": "Что нового на сайте и серверах DuckTale — здесь мы ведём этому счёт.",
+    "sidebar": {
+      "all": "Все новости",
+      "site": "Сайт",
+      "servers": "Сервера",
+      "allServers": "Все"
+    },
+    "categories": {
+      "feature": "Новые возможности",
+      "improvement": "Улучшения",
+      "fix": "Исправления",
+      "announcement": "Объявления"
+    },
+    "readMore": "Подробнее",
+    "general": "Все серверы",
+    "empty": {
+      "all": "Новостей пока нет",
+      "filtered": "Нет новостей в этом разделе"
+    }
+  },
   "PlayerCard": {
     "searchPlaceholder": "Найти",
     "refreshLabel": "Случайный игрок",
@@ -128,6 +151,7 @@
     "threads": "Треды",
     "maps": "Карты",
     "events": "События",
+    "news": "Новости",
     "profile": "Профиль",
     "login": "Войти",
     "home": "DuckTale — на главную",
@@ -485,6 +509,7 @@
     "navContent": "Контент",
     "navMaps": "Карты",
     "navEvents": "События",
+    "navNews": "Новости",
     "navAppeals": "Обращения",
     "navReports": "Репорты",
     "navPermissions": "Права",
@@ -609,6 +634,8 @@
         "row-level-roles": "[Админ] Роли уровня строк",
         "maps": "[Админ] Карты",
         "events": "[Админ] События",
+        "news": "[Админ] Новости",
+        "news-page": "Новости",
         "reports": "[Админ] Репорты",
         "threads": "Треды",
         "docs": "Документация",
@@ -755,6 +782,48 @@
       "delete": "Удалить",
       "confirmDelete": "Удалить событие «{name}» безвозвратно?",
       "noResults": "События пока не настроены.",
+      "errors": {
+        "generic": "Что-то пошло не так. Попробуйте позже."
+      }
+    },
+    "news": {
+      "title": "Новости",
+      "description": "Записи журнала изменений — показываются на публичной странице «Новости».",
+      "titleColumn": "Заголовок",
+      "scopeColumn": "Раздел",
+      "categoryColumn": "Категория",
+      "publishedColumn": "Дата",
+      "scopeLabel": "Раздел",
+      "scopeSite": "Сайт",
+      "scopeServer": "Сервер",
+      "scopeGeneral": "— Все серверы —",
+      "serverLabel": "Сервер",
+      "serverGeneral": "— Общая новость (все серверы) —",
+      "categoryLabel": "Категория",
+      "titleLabel": "Заголовок",
+      "contentLabel": "Текст",
+      "iconLabel": "Иконка",
+      "iconSearchPlaceholder": "Найти",
+      "iconSearchEmpty": "По запросу ничего не найдено.",
+      "publishedAtLabel": "Дата публикации",
+      "hrefLabel": "Ссылка (Discord, доки)",
+      "categories": {
+        "feature": "Новые возможности",
+        "improvement": "Улучшения",
+        "fix": "Исправления",
+        "announcement": "Объявления"
+      },
+      "addNews": "Добавить новость",
+      "createTitle": "Создать новость",
+      "editTitle": "Редактировать новость",
+      "create": "Создать",
+      "save": "Сохранить",
+      "saving": "Сохранение...",
+      "saveFailed": "Не удалось сохранить. Попробуйте позже.",
+      "edit": "Редактировать",
+      "delete": "Удалить",
+      "confirmDelete": "Удалить новость «{name}» безвозвратно?",
+      "noResults": "Новостей пока нет.",
       "errors": {
         "generic": "Что-то пошло не так. Попробуйте позже."
       }

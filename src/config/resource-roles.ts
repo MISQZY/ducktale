@@ -95,6 +95,12 @@
  * (Report model, /admin/reports, src/lib/actions/reports.ts) — staff-only,
  * no public split at all: a report's owner sees only their own via ownership
  * (canViewReport), the same shape tickets already use for `tickets`.
+ *
+ * `news`/`news-page` — the same admin/public split as `maps`/`maps-page` and
+ * `events`/`events-page`: `news` (view/edit/delete) gates /admin/news
+ * (NewsPost CRUD, src/lib/actions/admin-news.ts); `news-page` (view only,
+ * guest-inclusive) gates the public /news changelog page and its own
+ * top-level nav entry.
  */
 export const RESOURCE_ROLE_ACTIONS = {
   users: ["view", "edit", "delete"],
@@ -114,6 +120,8 @@ export const RESOURCE_ROLE_ACTIONS = {
   "maps-page": ["view"],
   events: ["view", "edit", "delete"],
   "events-page": ["view"],
+  news: ["view", "edit", "delete"],
+  "news-page": ["view"],
   reports: ["view", "edit", "delete"],
   applications: ["view", "edit", "delete"],
   workflows: ["view", "edit", "delete"],

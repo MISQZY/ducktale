@@ -66,6 +66,29 @@
     },
     "overflow": "+ {count, plural, one {# more event} other {# more events}} — check Discord"
   },
+  "News": {
+    "eyebrow": "Changelog",
+    "title": "News",
+    "description": "What's new on the DuckTale website and servers — kept here for the record.",
+    "sidebar": {
+      "all": "All news",
+      "site": "Site",
+      "servers": "Servers",
+      "allServers": "All"
+    },
+    "categories": {
+      "feature": "New features",
+      "improvement": "Improvements",
+      "fix": "Bug fixes",
+      "announcement": "Announcements"
+    },
+    "readMore": "Read more",
+    "general": "All servers",
+    "empty": {
+      "all": "No news yet",
+      "filtered": "No news in this section"
+    }
+  },
   "PlayerCard": {
     "searchPlaceholder": "Search by nickname or username…",
     "refreshLabel": "Random player",
@@ -128,6 +151,7 @@
     "threads": "Threads",
     "maps": "Maps",
     "events": "Events",
+    "news": "News",
     "whitelist": "Whitelist",
     "profile": "Profile",
     "login": "Sign in",
@@ -485,6 +509,7 @@
     "navContent": "Content",
     "navMaps": "Maps",
     "navEvents": "Events",
+    "navNews": "News",
     "navAppeals": "Requests",
     "navReports": "Reports",
     "navPermissions": "Permissions",
@@ -610,6 +635,8 @@
         "row-level-roles": "[Admin] Row-level roles",
         "maps": "[Admin] Maps",
         "events": "[Admin] Events",
+        "news": "[Admin] News",
+        "news-page": "News",
         "reports": "[Admin] Reports",
         "threads": "Threads",
         "docs": "Docs",
@@ -756,6 +783,48 @@
       "delete": "Delete",
       "confirmDelete": "Permanently delete the event \"{name}\"?",
       "noResults": "No events configured yet.",
+      "errors": {
+        "generic": "Something went wrong. Please try again."
+      }
+    },
+    "news": {
+      "title": "News",
+      "description": "Changelog entries — shown on the public \"News\" page.",
+      "titleColumn": "Title",
+      "scopeColumn": "Scope",
+      "categoryColumn": "Category",
+      "publishedColumn": "Date",
+      "scopeLabel": "Scope",
+      "scopeSite": "Site",
+      "scopeServer": "Server",
+      "scopeGeneral": "— All servers —",
+      "serverLabel": "Server",
+      "serverGeneral": "— General news (all servers) —",
+      "categoryLabel": "Category",
+      "titleLabel": "Title",
+      "contentLabel": "Content",
+      "iconLabel": "Icon",
+      "iconSearchPlaceholder": "Search",
+      "iconSearchEmpty": "No results.",
+      "publishedAtLabel": "Published at",
+      "hrefLabel": "Link (Discord, docs)",
+      "categories": {
+        "feature": "New features",
+        "improvement": "Improvements",
+        "fix": "Bug fixes",
+        "announcement": "Announcements"
+      },
+      "addNews": "Add news post",
+      "createTitle": "Create news post",
+      "editTitle": "Edit news post",
+      "create": "Create",
+      "save": "Save",
+      "saving": "Saving...",
+      "saveFailed": "Couldn't save. Please try again.",
+      "edit": "Edit",
+      "delete": "Delete",
+      "confirmDelete": "Permanently delete the news post \"{name}\"?",
+      "noResults": "No news posts yet.",
       "errors": {
         "generic": "Something went wrong. Please try again."
       }

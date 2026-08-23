@@ -677,6 +677,33 @@ model ServerEvent {
   @@map("{{PREFIX}}server_event")
 }
 
+/// A changelog entry shown on the public /news page. `scope` distinguishes a
+/// site-wide change ("site", serverId always null) from a change to the
+/// servers ("server"). Within scope="server", serverId is optional — set to
+/// one SERVERS[].id for a change specific to that server, or left null for a
+/// general "applies to all servers" post (same "network-wide" convention
+/// ServerEvent.serverId already uses). The /news sidebar's "Все" (all
+/// servers) filter shows every scope="server" post regardless of serverId;
+/// a specific server's filter only shows that server's own posts, not the
+/// general ones.
+model NewsPost {
+  id          String   @id @default(uuid())
+  scope       String   @db.VarChar(8)
+  serverId    String?  @db.VarChar(64)
+  category    String   @db.VarChar(16)
+  icon        String   @db.VarChar(64)
+  title       Json
+  content     Json
+  href        String?  @db.VarChar(1024)
+  publishedAt DateTime
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([publishedAt])
+  @@index([serverId])
+  @@map("{{PREFIX}}news_post")
+}
+
 
 
 /// A player-conduct report, filed by a site user from /account/reports/new

@@ -11,7 +11,7 @@ interface AdminRowActionsProps {
   itemName: string;
   onDelete: () => Promise<void>;
   editDialog: ReactNode;
-  translationsNamespace?: "Admin.badges" | "Admin.ranks" | "Admin.roles" | "Admin.rowLevelRoles" | "Admin.maps" | "Admin.events" | "Admin.reports";
+  translationsNamespace?: "Admin.badges" | "Admin.ranks" | "Admin.roles" | "Admin.rowLevelRoles" | "Admin.maps" | "Admin.events" | "Admin.news" | "Admin.reports";
   /** Hides the delete button entirely (e.g. a built-in Role that can't be removed) — editing stays available. Default true. */
   canDelete?: boolean;
 }
