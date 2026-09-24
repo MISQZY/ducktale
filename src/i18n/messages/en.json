@@ -1062,7 +1062,17 @@
     "replyPlaceholder": "Your message...",
     "send": "Send",
     "sending": "Sending...",
-    "attachmentsLabel": "Attach file"
+    "attachmentsLabel": "Attach file",
+    "manageSections": "Sections",
+    "sectionsDialogTitle": "Thread sections",
+    "noSectionsYet": "No sections yet.",
+    "sectionNameLabel": "Section name",
+    "addSectionLabel": "New section",
+    "addSectionButton": "Add section",
+    "confirmDeleteSection": "Delete the section \"{name}\"? Its threads will become unsectioned.",
+    "noSectionOption": "No section",
+    "sectionLabel": "Section:",
+    "sectionFieldLabel": "Section"
   },
   "Reports": {
     "myReportsTitle": "My reports",

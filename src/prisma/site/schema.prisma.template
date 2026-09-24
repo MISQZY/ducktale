@@ -493,13 +493,37 @@ model Thread {
   description String?   @db.VarChar(300)
   statusId    String
   status      WorkflowStatus @relation(fields: [statusId], references: [id])
+  sectionId   String?
+  section     ThreadSection? @relation(fields: [sectionId], references: [id], onDelete: SetNull)
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
   messages    Message[]
 
   @@index([authorId])
   @@index([updatedAt])
+  @@index([sectionId])
   @@map("{{PREFIX}}thread")
+}
+
+/// Optional grouping bucket for Thread — purely organizational, managed by
+/// thread moderators (isThreadModerator() in src/lib/threads.ts, same
+/// threads-edit gate as closing/reopening someone else's thread — see
+/// createThreadSection/renameThreadSection/deleteThreadSection/
+/// moveThreadToSection in src/lib/actions/threads.ts). The thread list sorts
+/// by a section's localized `name` alphabetically, then by Thread.updatedAt
+/// (most recent first) within it — done in application code
+/// (src/app/[lang]/(main)/threads/layout.tsx) rather than SQL, since there's
+/// no portable way to ORDER BY a JSON path here. Deleting a section detaches
+/// its threads back to unsectioned (onDelete: SetNull on Thread.section)
+/// instead of deleting them or blocking the delete.
+model ThreadSection {
+  id        String   @id @default(uuid())
+  name      Json
+  threads   Thread[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("{{PREFIX}}thread_section")
 }
 
 enum MessageType {

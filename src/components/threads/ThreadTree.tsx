@@ -16,6 +16,8 @@ export interface ThreadTreeItem {
   targetLabel?: string;
   statusColor?: string | null;
   statusName?: string;
+  /** Only read when `groupBy="section"` — null/undefined groups under `noSectionLabel`. */
+  sectionName?: string | null;
 }
 
 interface ThreadTreeProps {
@@ -25,6 +27,12 @@ interface ThreadTreeProps {
   newButtonLabel?: string;
   hideNewButton?: boolean;
   noItemsLabel?: string;
+  /** "date" (default, every other caller) groups by calendar day, most recent first. "section" groups by `ThreadTreeItem.sectionName`, sorted alphabetically with `noSectionLabel` pinned last — used only by /threads, the one caller with real sections. */
+  groupBy?: "date" | "section";
+  /** Required when `groupBy="section"` — the heading for items with no `sectionName`. */
+  noSectionLabel?: string;
+  /** Extra content rendered below the "new thread" button (e.g. a "manage sections" trigger) — only /threads uses this today. */
+  extraHeaderContent?: React.ReactNode;
 }
 
 function dateGroupLabel(iso: string, lang: string): string {
@@ -35,8 +43,8 @@ function dateGroupLabel(iso: string, lang: string): string {
   });
 }
 
-/** Left sidebar of /threads — a flat, most-recently-active-first list of every thread, visually grouped under a date heading per calendar day. */
-export function ThreadTree({ lang, threads, basePath = "threads", newButtonLabel, noItemsLabel, hideNewButton }: ThreadTreeProps) {
+/** Left sidebar of /threads (and reused by tickets/reports/applications) — a flat, most-recently-active-first list, visually grouped either under a date heading per calendar day (default) or, for /threads, under its section. */
+export function ThreadTree({ lang, threads, basePath = "threads", newButtonLabel, noItemsLabel, hideNewButton, groupBy = "date", noSectionLabel, extraHeaderContent }: ThreadTreeProps) {
   const t = useTranslations("Threads");
   const pathname = usePathname();
   const activeId = pathname.match(/^\/threads\/([^/]+)$/)?.[1];
@@ -44,29 +52,44 @@ export function ThreadTree({ lang, threads, basePath = "threads", newButtonLabel
   const groups = useMemo(() => {
     const map = new Map<string, ThreadTreeItem[]>();
     for (const thread of threads) {
-      const key = dateGroupLabel(thread.updatedAt, lang);
+      const key = groupBy === "section"
+        ? thread.sectionName || noSectionLabel || ""
+        : dateGroupLabel(thread.updatedAt, lang);
       const list = map.get(key) ?? [];
       list.push(thread);
       map.set(key, list);
     }
-    return Array.from(map.entries());
-  }, [threads, lang]);
+    const entries = Array.from(map.entries());
+    if (groupBy === "section") {
+      // Alphabetical by section name, with the unsectioned bucket always last
+      // regardless of where its label would otherwise sort.
+      entries.sort(([a], [b]) => {
+        if (a === noSectionLabel) return 1;
+        if (b === noSectionLabel) return -1;
+        return a.localeCompare(b, lang === "ru" ? "ru" : "en");
+      });
+    }
+    return entries;
+  }, [threads, lang, groupBy, noSectionLabel]);
 
   return (
     <aside suppressHydrationWarning className="liquid-card w-full h-full flex flex-col min-w-0 overflow-hidden rounded-2xl border border-primary/20 bg-card/50 p-4">
-      {!hideNewButton && (
+      {(!hideNewButton || extraHeaderContent) && (
         <>
-          <Link
-            href={`/${basePath}/new`}
-            className={cn(
-              buttonVariants({ variant: "outline", size: "sm" }),
-              "w-full gap-1.5 mb-4 shrink-0 bg-card/50 hover:bg-card/80"
-            )}
-          >
-            <Plus size={14} />
-            {newButtonLabel || t("newThread")}
-          </Link>
-          <div className="h-px bg-primary/10 shrink-0 -mx-4 mb-4" />
+          {!hideNewButton && (
+            <Link
+              href={`/${basePath}/new`}
+              className={cn(
+                buttonVariants({ variant: "outline", size: "sm" }),
+                "w-full gap-1.5 mb-2 shrink-0 bg-card/50 hover:bg-card/80"
+              )}
+            >
+              <Plus size={14} />
+              {newButtonLabel || t("newThread")}
+            </Link>
+          )}
+          {extraHeaderContent}
+          <div className="h-px bg-primary/10 shrink-0 -mx-4 mb-4 mt-2" />
         </>
       )}
 

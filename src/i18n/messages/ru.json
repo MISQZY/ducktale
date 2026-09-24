@@ -1061,7 +1061,17 @@
     "replyPlaceholder": "Ваше сообщение...",
     "send": "Отправить",
     "sending": "Отправка...",
-    "attachmentsLabel": "Прикрепить файл"
+    "attachmentsLabel": "Прикрепить файл",
+    "manageSections": "Разделы",
+    "sectionsDialogTitle": "Разделы тредов",
+    "noSectionsYet": "Разделов пока нет.",
+    "sectionNameLabel": "Название раздела",
+    "addSectionLabel": "Новый раздел",
+    "addSectionButton": "Добавить раздел",
+    "confirmDeleteSection": "Удалить раздел «{name}»? Треды из него станут без раздела.",
+    "noSectionOption": "Без раздела",
+    "sectionLabel": "Раздел:",
+    "sectionFieldLabel": "Раздел"
   },
   "Reports": {
     "myReportsTitle": "Мои репорты",

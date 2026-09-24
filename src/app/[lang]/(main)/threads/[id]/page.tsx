@@ -3,6 +3,7 @@ import { getTranslations } from "next-intl/server";
 import { getThreadViewer, isThreadModerator, isThreadDeleter } from "@/lib/threads";
 import { siteDb } from "@/lib/site-db";
 import { ThreadView } from "@/components/threads/ThreadView";
+import { ThreadSectionSelect } from "@/components/threads/ThreadSectionSelect";
 import { Link } from "@/i18n/navigation";
 import { PlayerAvatar } from "@/components/common/PlayerAvatar";
 import { CompactBadgeChip } from "@/components/badges/CompactBadgeChip";
@@ -26,6 +27,7 @@ const getThread = cache(async (id: string) => {
       title: true,
       description: true,
       status: { select: { isClosed: true } },
+      sectionId: true,
       authorId: true,
       author: {
         select: {
@@ -70,12 +72,17 @@ export default async function ThreadPage({
   const viewer = await getThreadViewer();
   if (!viewer) notFound();
 
+  const isModerator = isThreadModerator(viewer);
+
   // resolveThreadMessages only depends on the route id, not on the thread
   // record below, so it runs alongside the thread query instead of after it
-  // — an avoidable serial DB round trip otherwise.
-  const [thread, messages] = await Promise.all([
+  // — an avoidable serial DB round trip otherwise. The sections list is only
+  // ever rendered for a moderator (the move-section control), but it's a
+  // tiny table, not worth conditioning the query on isModerator.
+  const [thread, messages, sections] = await Promise.all([
     getThread(id),
     resolveThreadMessages(id),
+    siteDb.threadSection.findMany({ select: { id: true, name: true } }),
   ]);
 
   if (!thread) notFound();
@@ -148,9 +155,21 @@ export default async function ThreadPage({
       </div>
 
       {thread.description && (
-        <p className="text-foreground/60 text-sm mb-4 shrink-0">{thread.description}</p>
+        <p className="text-foreground/60 text-sm mb-2 shrink-0">{thread.description}</p>
       )}
-      {!thread.description && <div className="mb-3" />}
+
+      {isModerator && (
+        <div className="flex items-center gap-2 mb-4 shrink-0">
+          <span className="text-xs text-foreground/45">{t("sectionLabel")}</span>
+          <ThreadSectionSelect
+            lang={lang}
+            threadId={thread.id}
+            sections={sections.map((s) => ({ id: s.id, name: s.name as unknown as LocalizedName }))}
+            currentSectionId={thread.sectionId}
+          />
+        </div>
+      )}
+      {!thread.description && !isModerator && <div className="mb-3" />}
 
       <div className="flex-1 flex flex-col min-h-0">
         <ThreadView
@@ -162,7 +181,7 @@ export default async function ThreadPage({
           initialMessages={messages.map((m) => ({ ...m, createdAt: m.createdAt.toISOString() }))}
           viewerId={viewer.id}
           isAuthor={viewer.id === thread.authorId}
-          isModerator={isThreadModerator(viewer)}
+          isModerator={isModerator}
           isDeleter={isThreadDeleter(viewer)}
         />
       </div>

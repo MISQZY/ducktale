@@ -14,6 +14,7 @@ import {
   THREAD_TITLE_MAX,
   THREAD_DESCRIPTION_MAX,
   THREAD_MESSAGE_MAX,
+  THREAD_SECTION_NAME_MAX,
   MAX_FILES_PER_MESSAGE,
 } from "@/lib/threads";
 
@@ -32,6 +33,7 @@ export async function createThread(formData: FormData): Promise<CreateThreadResu
   const title = formData.get("title") as string;
   const description = formData.get("description") as string | null;
   const message = formData.get("message") as string;
+  const rawSectionId = formData.get("sectionId") as string | null;
 
   const cleanTitle = (title || "").trim().slice(0, THREAD_TITLE_MAX);
   const cleanDescription = (description || "").trim().slice(0, THREAD_DESCRIPTION_MAX);
@@ -42,6 +44,18 @@ export async function createThread(formData: FormData): Promise<CreateThreadResu
     throw new Error("Too many threads created, try again later");
   }
 
+  // The author picking a starting section is plain categorization, not a
+  // moderation action (see isThreadModerator's gate on moveThreadToSection
+  // below for the "reassign an existing thread" case) — so unlike that one,
+  // this needs no permission check beyond hasThreadAccess above, just
+  // existence: an unknown/deleted sectionId is silently dropped instead of
+  // failing thread creation over it.
+  let sectionId: string | null = null;
+  if (rawSectionId) {
+    const section = await siteDb.threadSection.findUnique({ where: { id: rawSectionId }, select: { id: true } });
+    sectionId = section?.id ?? null;
+  }
+
   const statusId = await getInitialStatusId("THREAD");
   const thread = await siteDb.thread.create({
     data: {
@@ -49,6 +63,7 @@ export async function createThread(formData: FormData): Promise<CreateThreadResu
       authorId: viewer.id,
       title: cleanTitle,
       description: cleanDescription || null,
+      sectionId,
       messages: { create: { authorId: viewer.id, body: cleanMessage } },
     },
     select: { id: true },
@@ -168,6 +183,67 @@ export async function setThreadClosed(lang: string, threadId: string, closed: bo
       data: { threadId, authorId: viewer.id, type: "STATUS_CHANGED", body: "" },
     }),
   ]);
+
+  revalidatePath(`/${lang}/threads/${threadId}`);
+  revalidatePath(`/${lang}/threads`, "layout");
+}
+
+export interface ThreadSectionResult {
+  id: string;
+}
+
+function cleanSectionName(name: { ru: string; en: string }): { ru: string; en: string } {
+  const ru = (name.ru || "").trim().slice(0, THREAD_SECTION_NAME_MAX);
+  const en = (name.en || "").trim().slice(0, THREAD_SECTION_NAME_MAX);
+  if (!ru || !en) throw new Error("Section name is required");
+  return { ru, en };
+}
+
+/** Section management (create/rename/delete) is gated the same as the rest of thread moderation — see isThreadModerator() in src/lib/threads.ts. */
+export async function createThreadSection(lang: string, name: { ru: string; en: string }): Promise<ThreadSectionResult> {
+  const viewer = await getThreadViewer();
+  if (!viewer || !isThreadModerator(viewer)) throw new Error("Not authorized");
+
+  const section = await siteDb.threadSection.create({
+    data: { name: cleanSectionName(name) },
+    select: { id: true },
+  });
+
+  revalidatePath(`/${lang}/threads`, "layout");
+  return section;
+}
+
+export async function renameThreadSection(lang: string, sectionId: string, name: { ru: string; en: string }): Promise<void> {
+  const viewer = await getThreadViewer();
+  if (!viewer || !isThreadModerator(viewer)) throw new Error("Not authorized");
+
+  await siteDb.threadSection.update({
+    where: { id: sectionId },
+    data: { name: cleanSectionName(name) },
+  });
+
+  revalidatePath(`/${lang}/threads`, "layout");
+}
+
+/** Threads in the deleted section fall back to unsectioned via the schema's onDelete: SetNull — never deleted or blocked by this. */
+export async function deleteThreadSection(lang: string, sectionId: string): Promise<void> {
+  const viewer = await getThreadViewer();
+  if (!viewer || !isThreadModerator(viewer)) throw new Error("Not authorized");
+
+  await siteDb.threadSection.delete({ where: { id: sectionId } });
+
+  revalidatePath(`/${lang}/threads`, "layout");
+}
+
+/** Moves a thread into `sectionId`, or back to unsectioned when null. */
+export async function moveThreadToSection(lang: string, threadId: string, sectionId: string | null): Promise<void> {
+  const viewer = await getThreadViewer();
+  if (!viewer || !isThreadModerator(viewer)) throw new Error("Not authorized");
+
+  await siteDb.thread.update({
+    where: { id: threadId },
+    data: { sectionId },
+  });
 
   revalidatePath(`/${lang}/threads/${threadId}`);
   revalidatePath(`/${lang}/threads`, "layout");

@@ -1,8 +1,11 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { getTranslations } from "next-intl/server";
 import { requireResourceRole } from "@/lib/admin";
+import { isThreadModerator } from "@/lib/threads";
 import { siteDb } from "@/lib/site-db";
+import { localizedName, type LocalizedName } from "@/lib/i18n-name";
 import { ThreadTree } from "@/components/threads/ThreadTree";
+import { ThreadSectionsDialog } from "@/components/threads/ThreadSectionsDialog";
 import {
   ResizableHandle,
   ResizablePanel,
@@ -25,7 +28,8 @@ export default async function ThreadsLayout({
   children: React.ReactNode;
 }) {
   const { lang } = await params;
-  await requireResourceRole(lang, "threads-view");
+  const viewer = await requireResourceRole(lang, "threads-view");
+  const isModerator = isThreadModerator(viewer);
 
   return (
     <main className="relative overflow-hidden h-dvh flex flex-col px-6 pt-24 pb-8">
@@ -39,7 +43,7 @@ export default async function ThreadsLayout({
                 ))}
               </div>
             }>
-              <ThreadList lang={lang} />
+              <ThreadList lang={lang} isModerator={isModerator} />
             </Suspense>
           </ResizablePanel>
 
@@ -56,18 +60,26 @@ export default async function ThreadsLayout({
   );
 }
 
-async function ThreadList({ lang }: { lang: string }) {
-  const threads = await siteDb.thread.findMany({
-    take: 50,
-    orderBy: { updatedAt: "desc" },
-    select: {
-      id: true,
-      title: true,
-      updatedAt: true,
-      author: { select: { nickname: true } },
-      status: { select: { color: true, name: true } },
-    },
-  });
+async function ThreadList({ lang, isModerator }: { lang: string; isModerator: boolean }) {
+  const t = await getTranslations("Threads");
+
+  const [threads, sections] = await Promise.all([
+    siteDb.thread.findMany({
+      take: 50,
+      orderBy: { updatedAt: "desc" },
+      select: {
+        id: true,
+        title: true,
+        updatedAt: true,
+        author: { select: { nickname: true } },
+        status: { select: { color: true, name: true } },
+        section: { select: { name: true } },
+      },
+    }),
+    siteDb.threadSection.findMany({ select: { id: true, name: true } }),
+  ]);
+
+  const noSectionLabel = t("noSectionOption");
 
   return (
     <ThreadTree
@@ -79,7 +91,18 @@ async function ThreadList({ lang }: { lang: string }) {
         updatedAt: t.updatedAt.toISOString(),
         statusColor: t.status.color,
         statusName: (t.status.name as any)?.[lang] || t.status.name,
+        sectionName: t.section ? localizedName(t.section.name as unknown as LocalizedName, lang) : null,
       }))}
+      groupBy="section"
+      noSectionLabel={noSectionLabel}
+      extraHeaderContent={
+        isModerator ? (
+          <ThreadSectionsDialog
+            lang={lang}
+            sections={sections.map((s) => ({ id: s.id, name: s.name as unknown as LocalizedName }))}
+          />
+        ) : undefined
+      }
     />
   );
 }
